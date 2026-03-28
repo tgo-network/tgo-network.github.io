@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../lib/format";
+import { getArticle, listArticles } from "../../lib/public-api";
+
+export const getStaticPaths = async () => {
+  const articles = await listArticles();
+
+  return articles.map((article) => ({
+    params: {
+      slug: article.slug
+    }
+  }));
+};
+
+const slug = Astro.params.slug!;
+const article = await getArticle(slug);
+
+if (!article) {
+  throw new Error(`Article not found: ${slug}`);
+}
+---
+
+<BaseLayout title={`${article.title} | Articles | TGO Network`} description={article.excerpt}>
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class:list={["hero-card", { "hero-split": Boolean(article.coverImage), "hero-card-media": Boolean(article.coverImage) }]}>
+        <div>
+          <span class="eyebrow">Article Detail</span>
+          <h1>{article.title}</h1>
+          <p>{article.excerpt}</p>
+          <ul class="stat-row">
+            <li>{formatDate(article.publishedAt)}</li>
+            <li>{article.author.name}</li>
+            <li>{article.citySummary.name}</li>
+          </ul>
+        </div>
+
+        {
+          article.coverImage && (
+            <figure class="hero-figure">
+              <img class="hero-image" src={article.coverImage.url} alt={article.coverImage.alt} />
+            </figure>
+          )
+        }
+      </div>
+    </section>
+
+    <section class="section detail-grid">
+      <article class="panel prose-panel">
+        <div class="card-label">Article Body</div>
+        {article.body.map((paragraph) => <p>{paragraph}</p>)}
+      </article>
+
+      <aside class="panel panel-soft stack-sm">
+        <div>
+          <div class="card-label">Author</div>
+          <h2 class="card-title">{article.author.name}</h2>
+          <p class="card-copy">{article.author.role}</p>
+        </div>
+
+        <div>
+          <div class="card-label">City Context</div>
+          <p class="card-copy">
+            <a class="text-link" href={`/cities/${article.citySummary.slug}`}>{article.citySummary.name}</a>
+            {" "}
+            - {article.citySummary.summary}
+          </p>
+        </div>
+
+        <div>
+          <div class="card-label">Topics</div>
+          <div class="chip-row">
+            {
+              article.topics.map((topic) => (
+                <a class="chip" href={`/topics/${topic.slug}`}>
+                  {topic.title}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+</BaseLayout>

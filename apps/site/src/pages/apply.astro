@@ -1,0 +1,116 @@
+---
+import { applicationTypeOptions } from "@tgo/shared";
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getPublicApiBaseUrl } from "../lib/public-api";
+
+const apiBaseUrl = getPublicApiBaseUrl();
+---
+
+<BaseLayout title="Apply | TGO Network" description="Public application form wired to the shared applications API contract.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card hero-split">
+        <div>
+          <span class="eyebrow">Public Form</span>
+          <h1>Apply</h1>
+          <p>
+            This form submits against <code>/api/public/v1/applications</code>. Right now it validates the shared public
+            contract and returns a demo receipt, which keeps the frontend flow aligned with the future backend.
+          </p>
+        </div>
+
+        <aside class="panel panel-soft">
+          <div class="card-label">What this proves</div>
+          <ul class="meta-list">
+            <li>Shared application input shape</li>
+            <li>API-side validation and friendly errors</li>
+            <li>Static Astro page with a real submission path</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <form class="panel form-panel" data-application-form data-api-base={apiBaseUrl}>
+        <div class="form-grid">
+          <label>
+            <span>Application type</span>
+            <select name="type" required>
+              {applicationTypeOptions.map((option) => <option value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+
+          <label>
+            <span>Name</span>
+            <input name="name" type="text" required minlength="2" />
+          </label>
+
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" required />
+          </label>
+
+          <label>
+            <span>Company</span>
+            <input name="company" type="text" />
+          </label>
+
+          <label>
+            <span>City</span>
+            <input name="city" type="text" />
+          </label>
+        </div>
+
+        <label>
+          <span>Why are you applying?</span>
+          <textarea name="message" rows="6" required minlength="20"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="button primary" type="submit">Submit application</button>
+          <p class="form-status" data-form-status>Ready to validate against the public API.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("[data-application-form]");
+    const status = document.querySelector("[data-form-status]");
+
+    if (form instanceof HTMLFormElement && status instanceof HTMLElement) {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Submitting...";
+
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+        const baseUrl = form.dataset.apiBase ?? "http://127.0.0.1:8787";
+
+        try {
+          const response = await fetch(new URL("/api/public/v1/applications", baseUrl), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            const firstIssue = result.error?.details?.issues?.[0]?.message;
+            status.textContent = firstIssue ?? result.error?.message ?? "Unable to submit the application.";
+            return;
+          }
+
+          status.textContent = `Received application ${result.data.id}.`;
+          form.reset();
+        } catch {
+          status.textContent = "The API is currently unavailable. Start apps/api to test the full flow.";
+        }
+      });
+    }
+  </script>
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatCount } from "../../lib/format";
+import { listTopics } from "../../lib/public-api";
+
+const topics = await listTopics();
+---
+
+<BaseLayout title="Topics | TGO Network" description="Published topic hubs backed by the TGO public API contract.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Public Route</span>
+        <h1>Topics</h1>
+        <p>
+          Topic pages act as editorial anchors. Each one can pull together related articles, events, and future featured
+          blocks without changing the public site structure.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-3">
+        {
+          topics.map((topic) => (
+            <CollectionCard
+              href={`/topics/${topic.slug}`}
+              label={formatCount(topic.articleCount, "article")}
+              title={topic.title}
+              summary={topic.summary}
+              image={topic.coverImage}
+              meta={[formatCount(topic.eventCount, "event")]}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

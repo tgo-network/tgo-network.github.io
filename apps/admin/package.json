@@ -1,0 +1,23 @@
+{
+  "name": "@tgo/admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@tgo/shared": "workspace:*",
+    "better-auth": "^1.3.7",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1",
+    "vue-tsc": "^2.2.8"
+  }
+}

@@ -1,0 +1,134 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatCount, formatDate, formatDateRange } from "../../lib/format";
+import { getCity, listCities } from "../../lib/public-api";
+
+export const getStaticPaths = async () => {
+  const cities = await listCities();
+
+  return cities.map((city) => ({
+    params: {
+      slug: city.slug
+    }
+  }));
+};
+
+const slug = Astro.params.slug!;
+const city = await getCity(slug);
+
+if (!city) {
+  throw new Error(`City not found: ${slug}`);
+}
+---
+
+<BaseLayout title={`${city.name} | Cities | TGO Network`} description={city.summary}>
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class:list={["hero-card", { "hero-split": Boolean(city.coverImage), "hero-card-media": Boolean(city.coverImage) }]}>
+        <div>
+          <span class="eyebrow">City Detail</span>
+          <h1>{city.name}</h1>
+          <p>{city.summary}</p>
+          <ul class="stat-row">
+            <li>{formatCount(city.topicCount, "topic")}</li>
+            <li>{formatCount(city.articleCount, "article")}</li>
+            <li>{formatCount(city.eventCount, "event")}</li>
+          </ul>
+        </div>
+
+        {
+          city.coverImage && (
+            <figure class="hero-figure">
+              <img class="hero-image" src={city.coverImage.url} alt={city.coverImage.alt} />
+            </figure>
+          )
+        }
+      </div>
+    </section>
+
+    <section class="section detail-grid">
+      <article class="panel prose-panel">
+        <div class="card-label">City Story</div>
+        <p>{city.body}</p>
+      </article>
+
+      <aside class="panel panel-soft">
+        <div class="card-label">Operational Angle</div>
+        <p class="card-copy">
+          City pages are where editorial, event, and community data meet. They should stay fresh through admin-managed
+          links rather than hand-edited templates.
+        </p>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">Featured Articles</div>
+          <h2>Local editorial highlights</h2>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        {
+          city.featuredArticles.map((article) => (
+            <CollectionCard
+              href={`/articles/${article.slug}`}
+              label={formatDate(article.publishedAt)}
+              title={article.title}
+              summary={article.excerpt}
+              image={article.coverImage}
+              meta={[article.authorName, article.city.name]}
+            />
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">Upcoming Events</div>
+          <h2>Public event pages tied to this city</h2>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        {
+          city.upcomingEvents.map((event) => (
+            <CollectionCard
+              href={`/events/${event.slug}`}
+              label={event.city.name}
+              title={event.title}
+              summary={event.summary}
+              image={event.coverImage}
+              meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName]}
+            />
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">Featured Topics</div>
+          <h2>Themes that define this city page</h2>
+        </div>
+      </div>
+      <div class="grid grid-3">
+        {
+          city.featuredTopics.map((topic) => (
+            <CollectionCard
+              href={`/topics/${topic.slug}`}
+              label={formatCount(topic.articleCount, "article")}
+              title={topic.title}
+              summary={topic.summary}
+              image={topic.coverImage}
+              meta={[formatCount(topic.eventCount, "event")]}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDateRange, formatRegistrationState } from "../../lib/format";
+import { listEvents } from "../../lib/public-api";
+
+const events = await listEvents();
+---
+
+<BaseLayout title="Events | TGO Network" description="Published event pages and registration-ready public routes.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Public Route</span>
+        <h1>Events</h1>
+        <p>
+          Event pages are ready to expose registration state, venue details, and agendas while staying compatible with
+          a static-first Astro delivery model.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-2">
+        {
+          events.map((event) => (
+            <CollectionCard
+              href={`/events/${event.slug}`}
+              label={event.city.name}
+              title={event.title}
+              summary={event.summary}
+              image={event.coverImage}
+              meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName, formatRegistrationState(event.registrationState)]}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

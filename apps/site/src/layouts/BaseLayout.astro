@@ -1,0 +1,41 @@
+---
+import SiteHeader from "../components/SiteHeader.astro";
+import { getSiteConfig } from "../lib/public-api";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = "Static-first public site for the TGO Network platform."
+} = Astro.props;
+const config = await getSiteConfig();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <SiteHeader config={config} />
+    <slot />
+
+    <footer class="site-footer">
+      <div class="page-shell site-footer-inner">
+        <p>{config.footerTagline}</p>
+        <div class="site-footer-links">
+          {config.supportEmail && <a href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>}
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

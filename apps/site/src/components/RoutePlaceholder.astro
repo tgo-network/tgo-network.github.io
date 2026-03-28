@@ -1,0 +1,38 @@
+---
+interface Item {
+  label: string;
+  title: string;
+  summary: string;
+}
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  items: Item[];
+}
+
+const { eyebrow, title, description, items } = Astro.props;
+---
+
+<section class="hero">
+  <div class="hero-card">
+    <span class="eyebrow">{eyebrow}</span>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="grid grid-3">
+    {
+      items.map((item) => (
+        <article class="panel">
+          <div class="card-label">{item.label}</div>
+          <h2 class="card-title">{item.title}</h2>
+          <p class="card-copy">{item.summary}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>

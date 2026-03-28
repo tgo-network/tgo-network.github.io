@@ -1,0 +1,40 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../lib/format";
+import { listArticles } from "../../lib/public-api";
+
+const articles = await listArticles();
+---
+
+<BaseLayout title="Articles | TGO Network" description="Published article listing backed by the TGO public API contract.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Public Route</span>
+        <h1>Articles</h1>
+        <p>
+          Articles are rendered as static-first detail pages, but their content contract already lives in the shared API
+          layer so admin publishing can take over without reshaping the frontend.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-2">
+        {
+          articles.map((article) => (
+            <CollectionCard
+              href={`/articles/${article.slug}`}
+              label={formatDate(article.publishedAt)}
+              title={article.title}
+              summary={article.excerpt}
+              image={article.coverImage}
+              meta={[article.authorName, article.city.name, `${article.topicSlugs.length} linked topics`]}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

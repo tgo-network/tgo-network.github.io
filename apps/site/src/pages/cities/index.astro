@@ -1,0 +1,40 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatCount } from "../../lib/format";
+import { listCities } from "../../lib/public-api";
+
+const cities = await listCities();
+---
+
+<BaseLayout title="Cities | TGO Network" description="City landing pages and local network highlights.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Public Route</span>
+        <h1>Cities</h1>
+        <p>
+          City pages are designed as curated hubs, not simple directories. Each one can roll up local events, related
+          articles, and topic-led programming under a single route.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-3">
+        {
+          cities.map((city) => (
+            <CollectionCard
+              href={`/cities/${city.slug}`}
+              label={formatCount(city.topicCount, "topic")}
+              title={city.name}
+              summary={city.summary}
+              image={city.coverImage}
+              meta={[formatCount(city.articleCount, "article"), formatCount(city.eventCount, "event")]}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,42 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="About | TGO Network" description="Brand and organization overview for the TGO Network prototype.">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Static Page</span>
+        <h1>About</h1>
+        <p>
+          TGO Network is being shaped as a content-led platform with city pages, editorial programming, events, and a
+          staff admin workflow. The first implementation goal is not feature breadth, but a system that can evolve
+          cleanly without replacing its foundations later.
+        </p>
+      </div>
+    </section>
+
+    <section class="section detail-grid">
+      <article class="panel prose-panel">
+        <div class="card-label">What is being built</div>
+        <p>
+          The platform separates the public site, admin console, and API so content delivery, operations, and business
+          rules can scale independently.
+        </p>
+        <p>
+          Astro handles the public presentation layer, Vue powers the staff workflows, and Hono owns the application
+          boundary for data, auth, and permissions.
+        </p>
+      </article>
+
+      <aside class="panel panel-soft">
+        <div class="card-label">Current focus</div>
+        <ul class="meta-list">
+          <li>Shared contracts between frontend and backend</li>
+          <li>Static-first public routes with real API shapes</li>
+          <li>Admin and auth groundwork for later operations</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+</BaseLayout>

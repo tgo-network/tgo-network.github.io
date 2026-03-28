@@ -1,0 +1,27 @@
+{
+  "name": "tgo-network",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.8.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --parallel --filter @tgo/site --filter @tgo/admin --filter @tgo/api dev",
+    "dev:site": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/site dev",
+    "dev:admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/admin dev",
+    "dev:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api dev",
+    "infra:up": "docker compose up -d",
+    "infra:up:storage": "docker compose --profile storage up -d minio minio-create-bucket",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f postgres minio minio-create-bucket",
+    "build": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present build",
+    "typecheck": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present typecheck",
+    "lint": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present lint",
+    "db:generate": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db generate",
+    "db:migrate": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db migrate",
+    "db:seed": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db seed",
+    "auth:bootstrap-admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api bootstrap-admin",
+    "bootstrap:dev": "npm run db:migrate && npm run db:seed && npm run auth:bootstrap-admin"
+  }
+}

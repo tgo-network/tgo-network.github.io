@@ -1,0 +1,38 @@
+---
+interface Props {
+  href: string;
+  label: string;
+  title: string;
+  summary: string;
+  meta?: string[];
+  image?: {
+    url: string;
+    alt: string;
+  } | null;
+}
+
+const { href, label, title, summary, meta = [], image = null } = Astro.props;
+---
+
+<a class="card-link" href={href}>
+  <article class="panel card-panel">
+    {
+      image && (
+        <div class="card-media-wrap">
+          <img class="card-media" src={image.url} alt={image.alt} loading="lazy" />
+        </div>
+      )
+    }
+    <div class="card-label">{label}</div>
+    <h2 class="card-title">{title}</h2>
+    <p class="card-copy">{summary}</p>
+
+    {
+      meta.length > 0 && (
+        <ul class="meta-list" aria-label="Card metadata">
+          {meta.map((item) => <li>{item}</li>)}
+        </ul>
+      )
+    }
+  </article>
+</a>
