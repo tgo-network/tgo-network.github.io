@@ -121,6 +121,10 @@ a {
   gap: 16px;
 }
 
+.compact-row {
+  align-items: center;
+}
+
 .page-actions {
   display: flex;
   flex-wrap: wrap;

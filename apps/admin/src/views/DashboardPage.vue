@@ -70,6 +70,14 @@ onMounted(async () => {
           <div class="brand-tag">Audit Logs</div>
           <strong>{{ dashboard?.stats.auditLogs ?? 0 }}</strong>
         </article>
+        <article class="panel stat-panel">
+          <div class="brand-tag">Staff</div>
+          <strong>{{ dashboard?.stats.staff ?? 0 }}</strong>
+        </article>
+        <article class="panel stat-panel">
+          <div class="brand-tag">Roles</div>
+          <strong>{{ dashboard?.stats.roles ?? 0 }}</strong>
+        </article>
       </div>
 
       <div class="panel-grid panel-grid-2" style="margin-top: 18px;">

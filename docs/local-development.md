@@ -184,6 +184,11 @@ After sign-in and cookie/session setup:
 - `GET /api/admin/v1/assets`
 - `POST /api/admin/v1/assets/uploads`
 - `POST /api/admin/v1/assets/uploads/complete`
+- `GET /api/admin/v1/staff`
+- `POST /api/admin/v1/staff`
+- `PATCH /api/admin/v1/staff/:id`
+- `GET /api/admin/v1/roles`
+- `PATCH /api/admin/v1/roles/:id`
 - `GET /api/admin/v1/audit-logs`
 - `GET /api/admin/v1/featured-blocks/homepage`
 - `PATCH /api/admin/v1/featured-blocks/homepage`
@@ -214,6 +219,14 @@ Recommended audit verification:
 
 - perform one protected mutation such as `PATCH /api/admin/v1/site-settings`
 - confirm `GET /api/admin/v1/audit-logs` returns a fresh entry with `action`, `targetType`, actor identity, and before/after snapshots
+
+Recommended staff and role verification:
+
+- create one staff account with `POST /api/admin/v1/staff`
+- update its `status`, `notes`, or role assignments with `PATCH /api/admin/v1/staff/:id`
+- fetch `GET /api/admin/v1/staff` again to confirm the row reflects the new status and roles
+- call `GET /api/admin/v1/roles` to load the permission bundle catalog
+- save one role through `PATCH /api/admin/v1/roles/:id` and confirm the response returns the updated permission set
 
 Recommended rate-limit verification:
 

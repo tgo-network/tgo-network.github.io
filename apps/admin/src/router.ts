@@ -16,7 +16,9 @@ import ApplicationDetailPage from "./views/ApplicationDetailPage.vue";
 import AssetsPage from "./views/AssetsPage.vue";
 import FeaturedBlocksPage from "./views/FeaturedBlocksPage.vue";
 import RegistrationDetailPage from "./views/RegistrationDetailPage.vue";
+import RolesPage from "./views/RolesPage.vue";
 import SiteSettingsPage from "./views/SiteSettingsPage.vue";
+import StaffPage from "./views/StaffPage.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -138,6 +140,22 @@ export const router = createRouter({
       path: "/audit-logs",
       name: "audit-logs",
       component: AuditLogsPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/staff",
+      name: "staff",
+      component: StaffPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/roles",
+      name: "roles",
+      component: RolesPage,
       meta: {
         requiresAuth: true
       }

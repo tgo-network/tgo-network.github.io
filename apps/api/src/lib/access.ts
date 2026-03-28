@@ -74,12 +74,16 @@ export const getDashboardStats = async () => {
   const [applicationCount] = await db.select({ value: count() }).from(applications);
   const [assetCount] = await db.select({ value: count() }).from(assets);
   const [auditLogCount] = await db.select({ value: count() }).from(auditLogs);
+  const [staffCount] = await db.select({ value: count() }).from(staffAccounts);
+  const [roleCount] = await db.select({ value: count() }).from(roles);
 
   return {
     articles: articleCount?.value ?? 0,
     events: eventCount?.value ?? 0,
     applications: applicationCount?.value ?? 0,
     assets: assetCount?.value ?? 0,
-    auditLogs: auditLogCount?.value ?? 0
+    auditLogs: auditLogCount?.value ?? 0,
+    staff: staffCount?.value ?? 0,
+    roles: roleCount?.value ?? 0
   };
 };

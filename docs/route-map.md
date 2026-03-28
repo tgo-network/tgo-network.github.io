@@ -142,7 +142,7 @@ Recommended MVP ownership split:
 - event operators own event pages
 - event operators also own registration review for their events
 - reviewers own applications
-- super admins own staff and settings pages
+- super admins own staff, roles, and settings pages
 
 ## 7. Route Protection Rules
 

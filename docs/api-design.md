@@ -320,13 +320,18 @@ Current MVP contract:
 
 ### Staff And Roles
 
-Phase 4 or later:
+Current MVP contract:
 
 - `GET /api/admin/v1/staff`
+  - returns staff rows plus the available role catalog for assignment
 - `POST /api/admin/v1/staff`
+  - creates a staff account for an existing user or a newly created Better Auth user
 - `PATCH /api/admin/v1/staff/:id`
+  - updates staff status, notes, email/name, and role bindings
 - `GET /api/admin/v1/roles`
+  - returns role records plus the full permission catalog
 - `PATCH /api/admin/v1/roles/:id`
+  - updates role name, description, and permission bindings
 
 ## 8. Internal API Group
 

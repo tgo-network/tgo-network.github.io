@@ -92,6 +92,16 @@ export const adminModules = [
     permission: "application.review"
   },
   {
+    label: "Staff",
+    to: "/staff",
+    permission: "staff.manage"
+  },
+  {
+    label: "Roles",
+    to: "/roles",
+    permission: "role.manage"
+  },
+  {
     label: "Audit Logs",
     to: "/audit-logs",
     permission: "audit_log.read"

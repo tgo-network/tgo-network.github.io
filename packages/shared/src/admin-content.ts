@@ -83,6 +83,29 @@ export const applicationStatusOptions = [
 
 const applicationStatusSet = new Set<string>(applicationStatusOptions.map((option) => option.value));
 
+export type StaffAccountStatus = "invited" | "active" | "suspended" | "disabled";
+
+export const staffAccountStatusOptions = [
+  {
+    value: "invited",
+    label: "Invited"
+  },
+  {
+    value: "active",
+    label: "Active"
+  },
+  {
+    value: "suspended",
+    label: "Suspended"
+  },
+  {
+    value: "disabled",
+    label: "Disabled"
+  }
+] as const;
+
+const staffAccountStatusSet = new Set<string>(staffAccountStatusOptions.map((option) => option.value));
+
 export type FeaturedBlockStatus = "draft" | "active" | "archived";
 
 export const featuredBlockStatusOptions = [
@@ -246,6 +269,8 @@ export interface AdminDashboardPayload {
     applications: number;
     assets: number;
     auditLogs: number;
+    staff: number;
+    roles: number;
   };
 }
 
@@ -265,6 +290,81 @@ export interface AdminAuditLogRecord {
   beforeJson: Record<string, unknown> | null;
   afterJson: Record<string, unknown> | null;
   createdAt: string | Date;
+}
+
+export interface AdminRoleSummary {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface AdminStaffListItem {
+  id: string;
+  userId: string;
+  email: string;
+  name: string;
+  status: StaffAccountStatus;
+  roles: AdminRoleSummary[];
+  notes: string;
+  invitedAt: string | Date | null;
+  activatedAt: string | Date | null;
+  lastLoginAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface AdminStaffListPayload {
+  staff: AdminStaffListItem[];
+  roles: AdminRoleSummary[];
+}
+
+export interface AdminStaffCreateInput {
+  email: string;
+  name: string;
+  password: string;
+  status: StaffAccountStatus;
+  roleIds: string[];
+  notes: string;
+}
+
+export interface AdminStaffUpdateInput {
+  email: string;
+  name: string;
+  status: StaffAccountStatus;
+  roleIds: string[];
+  notes: string;
+}
+
+export interface AdminPermissionRecord {
+  id: string;
+  code: string;
+  name: string;
+  resource: string;
+  action: string;
+}
+
+export interface AdminRoleListItem {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  isSystem: boolean;
+  permissionIds: string[];
+  permissionCodes: string[];
+  assignedStaffCount: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface AdminRolesPayload {
+  roles: AdminRoleListItem[];
+  permissions: AdminPermissionRecord[];
+}
+
+export interface AdminRoleUpdateInput {
+  name: string;
+  description: string;
+  permissionIds: string[];
 }
 
 export interface AdminEditorReferenceOption {
@@ -676,6 +776,7 @@ type AdminValidationResult<T> =
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
 const getTrimmedString = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const getNullableId = (value: unknown) => {
   const normalized = getTrimmedString(value);
@@ -692,6 +793,8 @@ const getStringArray = (value: unknown) => {
     .map((item) => getTrimmedString(item))
     .filter((item) => item.length > 0);
 };
+
+const getUniqueStringArray = (value: unknown) => Array.from(new Set(getStringArray(value)));
 
 const isIsoDate = (value: string) => !Number.isNaN(Date.parse(value));
 const isRelativeOrAbsoluteHref = (value: string) =>
@@ -1613,7 +1716,7 @@ export const validateAdminSiteSettingsInput = (
     });
   }
 
-  if (supportEmail.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail)) {
+  if (supportEmail.length > 0 && !emailPattern.test(supportEmail)) {
     issues.push({
       field: "supportEmail",
       message: "Support email must be a valid email address."
@@ -1633,6 +1736,233 @@ export const validateAdminSiteSettingsInput = (
       siteName,
       footerTagline,
       supportEmail
+    }
+  };
+};
+
+export const validateAdminStaffCreateInput = (
+  payload: unknown
+): AdminValidationResult<AdminStaffCreateInput> => {
+  if (!isRecord(payload)) {
+    return {
+      valid: false,
+      issues: [
+        {
+          field: "payload",
+          message: "A JSON object is required."
+        }
+      ]
+    };
+  }
+
+  const email = getTrimmedString(payload.email).toLowerCase();
+  const name = getTrimmedString(payload.name);
+  const password = getTrimmedString(payload.password);
+  const status = getTrimmedString(payload.status) || "invited";
+  const roleIds = getUniqueStringArray(payload.roleIds);
+  const notes = getTrimmedString(payload.notes);
+  const issues: AdminValidationIssue[] = [];
+
+  if (!emailPattern.test(email)) {
+    issues.push({
+      field: "email",
+      message: "Email must be a valid email address."
+    });
+  }
+
+  if (name.length < 2 || name.length > 120) {
+    issues.push({
+      field: "name",
+      message: "Name must be between 2 and 120 characters."
+    });
+  }
+
+  if (password.length < 12 || password.length > 128) {
+    issues.push({
+      field: "password",
+      message: "Password must be between 12 and 128 characters."
+    });
+  }
+
+  if (!staffAccountStatusSet.has(status)) {
+    issues.push({
+      field: "status",
+      message: "Status is invalid."
+    });
+  }
+
+  if (!Array.isArray(payload.roleIds)) {
+    issues.push({
+      field: "roleIds",
+      message: "Roles must be provided as an array."
+    });
+  } else if (roleIds.length === 0) {
+    issues.push({
+      field: "roleIds",
+      message: "Select at least one role."
+    });
+  }
+
+  if (notes.length > 1000) {
+    issues.push({
+      field: "notes",
+      message: "Notes must be 1000 characters or fewer."
+    });
+  }
+
+  if (issues.length > 0) {
+    return {
+      valid: false,
+      issues
+    };
+  }
+
+  return {
+    valid: true,
+    data: {
+      email,
+      name,
+      password,
+      status: status as StaffAccountStatus,
+      roleIds,
+      notes
+    }
+  };
+};
+
+export const validateAdminStaffUpdateInput = (
+  payload: unknown
+): AdminValidationResult<AdminStaffUpdateInput> => {
+  if (!isRecord(payload)) {
+    return {
+      valid: false,
+      issues: [
+        {
+          field: "payload",
+          message: "A JSON object is required."
+        }
+      ]
+    };
+  }
+
+  const email = getTrimmedString(payload.email).toLowerCase();
+  const name = getTrimmedString(payload.name);
+  const status = getTrimmedString(payload.status) || "invited";
+  const roleIds = getUniqueStringArray(payload.roleIds);
+  const notes = getTrimmedString(payload.notes);
+  const issues: AdminValidationIssue[] = [];
+
+  if (!emailPattern.test(email)) {
+    issues.push({
+      field: "email",
+      message: "Email must be a valid email address."
+    });
+  }
+
+  if (name.length < 2 || name.length > 120) {
+    issues.push({
+      field: "name",
+      message: "Name must be between 2 and 120 characters."
+    });
+  }
+
+  if (!staffAccountStatusSet.has(status)) {
+    issues.push({
+      field: "status",
+      message: "Status is invalid."
+    });
+  }
+
+  if (!Array.isArray(payload.roleIds)) {
+    issues.push({
+      field: "roleIds",
+      message: "Roles must be provided as an array."
+    });
+  } else if (roleIds.length === 0) {
+    issues.push({
+      field: "roleIds",
+      message: "Select at least one role."
+    });
+  }
+
+  if (notes.length > 1000) {
+    issues.push({
+      field: "notes",
+      message: "Notes must be 1000 characters or fewer."
+    });
+  }
+
+  if (issues.length > 0) {
+    return {
+      valid: false,
+      issues
+    };
+  }
+
+  return {
+    valid: true,
+    data: {
+      email,
+      name,
+      status: status as StaffAccountStatus,
+      roleIds,
+      notes
+    }
+  };
+};
+
+export const validateAdminRoleInput = (payload: unknown): AdminValidationResult<AdminRoleUpdateInput> => {
+  if (!isRecord(payload)) {
+    return {
+      valid: false,
+      issues: [
+        {
+          field: "payload",
+          message: "A JSON object is required."
+        }
+      ]
+    };
+  }
+
+  const name = getTrimmedString(payload.name);
+  const description = getTrimmedString(payload.description);
+  const permissionIds = getUniqueStringArray(payload.permissionIds);
+  const issues: AdminValidationIssue[] = [];
+
+  if (name.length < 2 || name.length > 120) {
+    issues.push({
+      field: "name",
+      message: "Role name must be between 2 and 120 characters."
+    });
+  }
+
+  if (description.length > 320) {
+    issues.push({
+      field: "description",
+      message: "Description must be 320 characters or fewer."
+    });
+  }
+
+  if (!Array.isArray(payload.permissionIds)) {
+    issues.push({
+      field: "permissionIds",
+      message: "Permissions must be provided as an array."
+    });
+  }
+
+  if (issues.length > 0) {
+    return {
+      valid: false,
+      issues
+    };
+  }
+
+  return {
+    valid: true,
+    data: {
+      name,
+      description,
+      permissionIds
     }
   };
 };

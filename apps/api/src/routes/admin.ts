@@ -8,7 +8,10 @@ import {
   validateAdminEventInput,
   validateAdminEventRegistrationInput,
   validateAdminFeaturedBlockInput,
+  validateAdminRoleInput,
   validateAdminSiteSettingsInput,
+  validateAdminStaffCreateInput,
+  validateAdminStaffUpdateInput,
   validateAdminTopicInput
 } from "@tgo/shared";
 import { Hono, type Context } from "hono";
@@ -46,6 +49,13 @@ import {
   updateAdminEventRegistration,
   updateAdminTopic
 } from "../lib/admin-content.js";
+import {
+  createAdminStaff,
+  listAdminRoles,
+  listAdminStaff,
+  updateAdminRole,
+  updateAdminStaff
+} from "../lib/admin-staff.js";
 import { getDashboardStats } from "../lib/access.js";
 import { listAdminAuditLogs } from "../lib/audit.js";
 import { jsonError } from "../lib/errors.js";
@@ -444,6 +454,61 @@ adminRoutes.get("/audit-logs", requireActiveStaff("audit_log.read"), async (c) =
   const data = await listAdminAuditLogs();
 
   return c.json(ok(data, { total: data.length }));
+});
+
+adminRoutes.get("/staff", requireActiveStaff("staff.manage"), async (c) => c.json(ok(await listAdminStaff())));
+
+adminRoutes.post("/staff", requireActiveStaff("staff.manage"), async (c) => {
+  const payload = await c.req.json().catch(() => null);
+  const result = validateAdminStaffCreateInput(payload);
+
+  if (!result.valid) {
+    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+      issues: result.issues
+    });
+  }
+
+  try {
+    return c.json(ok(await createAdminStaff(result.data, getAuditActor(c))), 201);
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
+});
+
+adminRoutes.patch("/staff/:id", requireActiveStaff("staff.manage"), async (c) => {
+  const payload = await c.req.json().catch(() => null);
+  const result = validateAdminStaffUpdateInput(payload);
+
+  if (!result.valid) {
+    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+      issues: result.issues
+    });
+  }
+
+  try {
+    return c.json(ok(await updateAdminStaff(c.req.param("id"), result.data, getAuditActor(c))));
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
+});
+
+adminRoutes.get("/roles", requireActiveStaff("role.manage"), async (c) => c.json(ok(await listAdminRoles())));
+
+adminRoutes.patch("/roles/:id", requireActiveStaff("role.manage"), async (c) => {
+  const payload = await c.req.json().catch(() => null);
+  const result = validateAdminRoleInput(payload);
+
+  if (!result.valid) {
+    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+      issues: result.issues
+    });
+  }
+
+  try {
+    return c.json(ok(await updateAdminRole(c.req.param("id"), result.data, getAuditActor(c))));
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
 });
 
 adminRoutes.get("/featured-blocks/homepage", requireActiveStaff("featured_block.manage"), async (c) =>

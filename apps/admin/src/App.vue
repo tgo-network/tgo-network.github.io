@@ -67,7 +67,7 @@ onMounted(() => {
         <span class="brand-tag">Admin MVP</span>
         <h1>{{ platformName }}</h1>
         <p>
-          Role-aware operations console for content, featured presentation, applications, assets, and site configuration.
+          Role-aware operations console for content, staff access, permissions, applications, assets, and site configuration.
         </p>
       </div>
 

@@ -185,6 +185,8 @@ Current MVP note:
 
 - `registration.read` currently covers the event registration queue, registration detail access, and registration status updates in the admin console
 - `audit_log.read` currently gates the audit trail page and the audit log API list endpoint
+- `staff.manage` currently gates the staff list plus staff create/update APIs in the admin console
+- `role.manage` currently gates the role catalog plus role permission update APIs in the admin console
 
 ## 9. Authorization Enforcement Flow
 
@@ -225,6 +227,13 @@ Recommended MVP approach:
 - store invitation metadata on `staff_accounts`
 
 This is simpler than building a full invitation product flow on day one.
+
+Current MVP implementation:
+
+- super admins can create a staff account directly from the admin console
+- if the email does not yet exist, Better Auth creates a new credential-backed user first
+- if the email already exists, the application can attach a new `staff_account` to that user
+- super admins can update staff statuses, notes, and role bindings later without leaving the admin console
 
 ## 12. Public Identity Roadmap
 
@@ -281,7 +290,9 @@ At minimum, audit these staff actions:
 - article publish and unpublish
 - event publish and major edits
 - application status changes
+- staff account creation and status changes
 - staff role changes
+- role permission changes
 - settings updates
 
 ## 16. Out Of Scope For MVP

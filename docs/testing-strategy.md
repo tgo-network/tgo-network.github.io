@@ -98,6 +98,8 @@ Recommended tests:
 - event registration review queue and status update flow
 - application review status update flow
 - asset upload and asset selection flow
+- staff account create/update flow
+- role permission update flow
 
 ## 7. End-To-End Coverage
 
@@ -111,7 +113,9 @@ For MVP, prioritize these critical paths:
 4. submit public event registration and review it in admin
 5. submit public application
 6. upload editorial image and use it in content
-7. verify public page reflects published changes
+7. provision or update one staff account
+8. adjust one role permission bundle
+9. verify public page reflects published changes
 
 ## 8. Manual Release Checklist
 
@@ -128,6 +132,8 @@ Before production release, manually verify:
 - application submission
 - asset upload
 - one protected admin mutation with expected audit output visible in `GET /api/admin/v1/audit-logs`
+- staff account creation or update
+- role permission bundle update
 
 ## 9. Test Data Strategy
 

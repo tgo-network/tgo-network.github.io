@@ -18,9 +18,10 @@ Current implementation status:
 - Homepage featured content is now configurable from the admin console and drives the public `/api/public/v1/home` payload
 - Basic site settings now drive the public site header/footer configuration through `/api/public/v1/site-config`
 - Sensitive admin mutations now write audit records and can be reviewed from the admin console audit log page
+- Staff account provisioning now supports protected list/create/update flows, and roles now support protected list/update flows in the admin console
 - Public write endpoints now have baseline rate limiting, and asset finalization now enforces stronger metadata checks
 - Local bootstrap scripts are in place for `PostgreSQL`, optional `MinIO`, database seeding, and the initial super admin account
-- `npm run typecheck` and `npm run build` pass, and the event registration, rate limiting, and upload-hardening flows have been smoke-tested against the local API
+- `npm run typecheck` and `npm run build` pass, and the event registration, rate limiting, upload-hardening, and staff/role management flows have been smoke-tested against the local API
 
 Workspace commands:
 
