@@ -4,10 +4,11 @@ import { useRouter } from "vue-router";
 import { useRoute } from "vue-router";
 
 import type { AdminMePayload } from "@tgo/shared";
-import { adminModules, platformName } from "@tgo/shared";
+import { platformName } from "@tgo/shared";
 
 import { authClient } from "./lib/auth-client";
 import { adminFetch } from "./lib/api";
+import { getVisibleAdminModules } from "./lib/navigation";
 
 const route = useRoute();
 const router = useRouter();
@@ -17,11 +18,7 @@ const me = ref<AdminMePayload | null>(null);
 const loadingMe = ref(false);
 
 const visibleModules = computed(() => {
-  if (loadingMe.value || !me.value) {
-    return adminModules;
-  }
-
-  return adminModules.filter((item) => !item.permission || me.value?.permissions.includes(item.permission));
+  return getVisibleAdminModules(me.value, loadingMe.value);
 });
 
 const loadMe = async () => {

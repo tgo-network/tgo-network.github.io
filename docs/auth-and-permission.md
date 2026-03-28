@@ -108,6 +108,7 @@ Recommended session strategy:
 - `Secure` enabled in production
 - `SameSite=Lax` by default unless a stricter or cross-site requirement appears
 - configure shared cookie domain if site and admin need shared auth state later
+- allow only explicit trusted frontend origins for Better Auth cross-origin session flows
 
 Recommended domains:
 
@@ -116,6 +117,10 @@ Recommended domains:
 - `api.example.com`
 
 If cross-subdomain session sharing is needed later, use a parent cookie domain such as `.example.com`.
+
+Current MVP implementation note:
+
+- Better Auth should trust the same explicit origins listed in `CORS_ALLOWED_ORIGINS`, so the admin console can sign in against the API without opening auth routes to arbitrary origins
 
 ## 7. Staff Access Model
 

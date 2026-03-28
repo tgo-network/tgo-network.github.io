@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import { authClient } from "./lib/auth-client";
+import { resolveAdminRouteAccess } from "./lib/auth-guard";
 import DashboardPage from "./views/DashboardPage.vue";
 import LoginPage from "./views/LoginPage.vue";
 import TopicsPage from "./views/TopicsPage.vue";
@@ -196,23 +197,5 @@ export const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
-  if (!to.meta.requiresAuth) {
-    return true;
-  }
-
-  try {
-    const session = await authClient.getSession();
-
-    if (!session.data) {
-      return {
-        name: "login"
-      };
-    }
-  } catch {
-    return {
-      name: "login"
-    };
-  }
-
-  return true;
+  return resolveAdminRouteAccess(Boolean(to.meta.requiresAuth), () => authClient.getSession());
 });

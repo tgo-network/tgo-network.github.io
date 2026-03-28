@@ -78,3 +78,7 @@ export const checkRateLimit = (rule: RateLimitRule): RateLimitDecision => {
     resetAt: new Date(existing.resetAtMs).toISOString()
   };
 };
+
+export const resetRateLimitBuckets = () => {
+  bucketStore.clear();
+};

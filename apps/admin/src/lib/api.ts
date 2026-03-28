@@ -1,8 +1,8 @@
 import type { ApiErrorShape, ApiSuccess } from "@tgo/shared";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
+import { getAdminApiBaseUrl } from "./runtime-config";
 
-export const getApiBaseUrl = () => baseURL;
+export const getApiBaseUrl = () => getAdminApiBaseUrl();
 
 export class AdminApiError extends Error {
   status: number;
@@ -42,7 +42,7 @@ export const getValidationIssues = (error: unknown): Record<string, string> => {
 };
 
 export const adminRequest = async <T>(path: string, options: AdminRequestOptions = {}): Promise<T> => {
-  const response = await fetch(new URL(path, baseURL), {
+  const response = await fetch(new URL(path, getAdminApiBaseUrl()), {
     method: options.method ?? "GET",
     credentials: "include",
     headers: {

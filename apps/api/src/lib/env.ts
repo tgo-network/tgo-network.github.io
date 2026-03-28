@@ -26,10 +26,25 @@ const getPositiveInteger = (value: string | undefined, fallback: number) => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const getLogFormat = (value: string | undefined): "json" | "logfmt" => {
+  const normalized = value?.trim().toLowerCase();
+
+  if (normalized === "json") {
+    return "json";
+  }
+
+  return "logfmt";
+};
+
 export const getEnv = () => ({
+  appEnvironment: getOptional(process.env.APP_ENV) ?? getOptional(process.env.NODE_ENV) ?? "development",
+  appVersion: getOptional(process.env.APP_VERSION),
+  gitSha: getOptional(process.env.GIT_SHA),
+  logFormat: getLogFormat(process.env.LOG_FORMAT ?? (process.env.NODE_ENV === "production" ? "json" : "logfmt")),
   databaseUrl: process.env.DATABASE_URL,
   betterAuthSecret: process.env.BETTER_AUTH_SECRET,
   betterAuthUrl: process.env.BETTER_AUTH_URL ?? process.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787",
+  internalApiToken: getOptional(process.env.INTERNAL_API_TOKEN),
   s3Endpoint: getOptional(process.env.S3_ENDPOINT),
   s3Region: getOptional(process.env.S3_REGION) ?? "us-east-1",
   s3Bucket: getOptional(process.env.S3_BUCKET),

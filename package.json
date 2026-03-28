@@ -17,11 +17,23 @@
     "infra:logs": "docker compose logs -f postgres minio minio-create-bucket",
     "build": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present build",
     "typecheck": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present typecheck",
+    "test": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present test",
+    "test:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api test:integration",
+    "test:admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/admin test",
+    "test:site": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/site test",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e:headed": "node scripts/run-e2e.mjs --headed",
+    "test:e2e:install": "playwright install chromium",
+    "env:check:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api validate-env",
+    "docker:build:api": "docker build -f apps/api/Dockerfile -t tgo-api .",
     "lint": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present lint",
     "db:generate": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db generate",
     "db:migrate": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db migrate",
     "db:seed": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db seed",
     "auth:bootstrap-admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api bootstrap-admin",
     "bootstrap:dev": "npm run db:migrate && npm run db:seed && npm run auth:bootstrap-admin"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
   }
 }

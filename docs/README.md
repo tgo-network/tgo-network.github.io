@@ -16,6 +16,7 @@ Recommended reading order:
 10. `implementation-roadmap.md`
 11. `deployment-and-environments.md`
 12. `testing-strategy.md`
+13. `operations-runbook.md`
 
 Document roles:
 
@@ -43,6 +44,8 @@ Document roles:
   - Environment separation, deployment units, and runtime configuration
 - `testing-strategy.md`
   - Test layers, critical coverage, and milestone quality gates
+- `operations-runbook.md`
+  - Release execution, rollback, backup/restore, and operational checks
 
 Suggested implementation order:
 

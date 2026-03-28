@@ -34,6 +34,10 @@ Important local variables:
   - required for `/api/auth/*` and staff session handling
 - `BETTER_AUTH_URL`
   - auth base URL, defaults to the local API origin
+- `LOG_FORMAT`
+  - optional API log output format: `logfmt` or `json`
+- `INTERNAL_API_TOKEN`
+  - required for `/api/internal/v1/*` trusted automation routes such as scheduled publishing
 - `DEV_ADMIN_EMAIL`
 - `DEV_ADMIN_PASSWORD`
 - `DEV_ADMIN_NAME`
@@ -137,10 +141,66 @@ npm run dev
 
 ## 7. Smoke Test Checklist
 
+Automated backend coverage is now available before or after the manual checklist:
+
+```bash
+npm run test:api
+```
+
+Astro-side public data-loading coverage is also available:
+
+```bash
+npm run test:site
+```
+
+Browser-level smoke coverage is also available:
+
+```bash
+npm run test:e2e
+```
+
+What the integration suite does:
+
+- creates a temporary PostgreSQL database derived from `DATABASE_URL`
+- runs Drizzle migrations and seed data into that database
+- exercises auth, permission checks, staff and role management, and scheduled publishing
+- exercises public list/detail, application, registration, and rate-limit behavior
+- drops the temporary database after the run finishes
+
+What the Astro helper suite does:
+
+- mocks public API fetch requests in Node
+- verifies configured API base URL handling
+- verifies fallback to shared demo content when public requests fail
+
+What the Playwright smoke suite does:
+
+- starts or reuses local `postgres` through `npm run infra:up`
+- reapplies local migrations, seed data, and the bootstrapped super admin account
+- starts `api`, `site`, and `admin` dev servers on fixed localhost ports
+- verifies admin login, protected-route redirect behavior, public homepage rendering, public application submission, and public event registration submission
+
+Browser note:
+
+- on macOS, local runs prefer an installed `Google Chrome.app` when available
+- if you prefer Playwright-managed browsers, run `npm run test:e2e:install` once
+
+Important note:
+
+- never point `DATABASE_URL` at a production instance when running the integration suite
+
 Recommended minimum verification after bootstrap:
+
+- confirm successful responses return an `X-Request-ID` header
+- confirm error responses also include `error.requestId` for log correlation
+- run `npm run test:e2e` when auth, public forms, or cross-app navigation changes
 
 ### Public API
 
+- `GET /`
+- `GET /health`
+- `GET /ready`
+- `GET /version`
 - `GET /api/public/v1/site-config`
 - `GET /api/public/v1/home`
 - `GET /api/public/v1/topics`
@@ -154,6 +214,11 @@ Recommended minimum verification after bootstrap:
 
 - `POST /api/auth/sign-in/email`
   - sign in with `DEV_ADMIN_EMAIL` and `DEV_ADMIN_PASSWORD`
+
+### Internal Automation
+
+- `POST /api/internal/v1/publish-scheduled-content`
+  - send `Authorization: Bearer $INTERNAL_API_TOKEN` or `x-internal-api-token`
 
 ### Admin API
 
@@ -227,6 +292,14 @@ Recommended staff and role verification:
 - fetch `GET /api/admin/v1/staff` again to confirm the row reflects the new status and roles
 - call `GET /api/admin/v1/roles` to load the permission bundle catalog
 - save one role through `PATCH /api/admin/v1/roles/:id` and confirm the response returns the updated permission set
+
+Recommended scheduled publishing verification:
+
+- create one article with `status=scheduled` and a `scheduledAt` in the past
+- call `POST /api/internal/v1/publish-scheduled-content` with `INTERNAL_API_TOKEN`
+- confirm the response lists the article under `published`
+- confirm `GET /api/admin/v1/articles/:id` now returns `status=published`
+- confirm `GET /api/admin/v1/audit-logs` contains `article.publish_scheduled`
 
 Recommended rate-limit verification:
 

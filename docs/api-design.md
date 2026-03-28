@@ -337,10 +337,16 @@ Current MVP contract:
 
 Reserved for trusted automation and backend jobs.
 
-Examples:
+Current MVP contract:
+
+- `POST /api/internal/v1/publish-scheduled-content`
+  - protected by `INTERNAL_API_TOKEN`
+  - promotes due scheduled articles to `published`
+  - returns `published` and `skipped` item lists for the current run
+
+Reserved examples for later:
 
 - `POST /api/internal/v1/revalidate`
-- `POST /api/internal/v1/publish-scheduled-content`
 - `POST /api/internal/v1/sync-derived-content`
 
 Rules:

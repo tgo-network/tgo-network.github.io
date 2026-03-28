@@ -351,7 +351,10 @@ const validatePublishableTopic = (topic: typeof topics.$inferSelect) => {
   }
 };
 
-const validatePublishableArticle = (article: typeof articles.$inferSelect, topicIds: string[]) => {
+export const getPublishableArticleIssues = (
+  article: typeof articles.$inferSelect,
+  topicIds: string[]
+): AdminValidationIssue[] => {
   const issues: AdminValidationIssue[] = [];
 
   if (article.title.trim().length < 2) {
@@ -395,6 +398,12 @@ const validatePublishableArticle = (article: typeof articles.$inferSelect, topic
       message: "At least one topic is required before publishing."
     });
   }
+
+  return issues;
+};
+
+const validatePublishableArticle = (article: typeof articles.$inferSelect, topicIds: string[]) => {
+  const issues = getPublishableArticleIssues(article, topicIds);
 
   if (issues.length > 0) {
     throw new AdminContentError(400, "VALIDATION_ERROR", "Article is not ready to publish.", {

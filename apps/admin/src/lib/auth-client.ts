@@ -1,9 +1,9 @@
 import { createAuthClient } from "better-auth/vue";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
+import { getAdminApiBaseUrl } from "./runtime-config";
 
 export const authClient = createAuthClient({
-  baseURL,
+  baseURL: getAdminApiBaseUrl(),
   fetchOptions: {
     credentials: "include"
   }

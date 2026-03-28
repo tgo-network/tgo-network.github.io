@@ -20,6 +20,7 @@ export const getAuth = () => {
   authInstance = betterAuth({
     baseURL: env.betterAuthUrl,
     secret: env.betterAuthSecret,
+    trustedOrigins: env.corsAllowedOrigins,
     advanced: {
       database: {
         generateId: "uuid"

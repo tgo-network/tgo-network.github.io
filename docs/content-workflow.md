@@ -225,12 +225,14 @@ Do not overbuild this at first.
 Recommended MVP-compatible approach:
 
 - support `scheduled_at` on publishable entities
-- use an internal scheduled job later to promote records to `published`
+- use an internal scheduled job to promote due records to `published`
 
-If scheduling is not implemented immediately:
+Current MVP implementation:
 
-- keep the field in the schema
-- allow manual publish first
+- article upsert validation now requires `scheduledAt` when status is `scheduled`
+- article upsert validation also requires publish-ready fields before `scheduled` or `published`
+- `POST /api/internal/v1/publish-scheduled-content` promotes due scheduled articles
+- invalid scheduled records are skipped and returned with validation issues instead of being published blindly
 
 ## 13. Content Source Of Truth
 

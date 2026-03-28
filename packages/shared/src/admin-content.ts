@@ -887,6 +887,13 @@ export const validateAdminTopicInput = (payload: unknown): AdminValidationResult
     });
   }
 
+  if (status === "published" && summary.length === 0) {
+    issues.push({
+      field: "summary",
+      message: "Summary is required before publishing."
+    });
+  }
+
   if (issues.length > 0) {
     return {
       valid: false,
@@ -1001,6 +1008,41 @@ export const validateAdminArticleInput = (payload: unknown): AdminValidationResu
     issues.push({
       field: "topicIds",
       message: "Topics must be provided as an array."
+    });
+  }
+
+  if ((status === "published" || status === "scheduled") && excerpt.length === 0) {
+    issues.push({
+      field: "excerpt",
+      message: "Excerpt is required before publishing."
+    });
+  }
+
+  if ((status === "published" || status === "scheduled") && body.length === 0) {
+    issues.push({
+      field: "body",
+      message: "Body content is required before publishing."
+    });
+  }
+
+  if ((status === "published" || status === "scheduled") && !authorId) {
+    issues.push({
+      field: "authorId",
+      message: "Author is required before publishing."
+    });
+  }
+
+  if ((status === "published" || status === "scheduled") && topicIds.length === 0) {
+    issues.push({
+      field: "topicIds",
+      message: "At least one topic is required before publishing."
+    });
+  }
+
+  if (status === "scheduled" && scheduledAt.length === 0) {
+    issues.push({
+      field: "scheduledAt",
+      message: "Scheduled publish time is required when status is scheduled."
     });
   }
 
@@ -1194,6 +1236,34 @@ export const validateAdminEventInput = (payload: unknown): AdminValidationResult
         message: "Agenda item end time must be after the start time."
       });
     }
+  }
+
+  if (status === "published" && !cityId) {
+    issues.push({
+      field: "cityId",
+      message: "City is required before publishing."
+    });
+  }
+
+  if (status === "published" && (!startsAt || !endsAt)) {
+    issues.push({
+      field: "startsAt",
+      message: "Start and end time are required before publishing."
+    });
+  }
+
+  if (status === "published" && topicIds.length === 0) {
+    issues.push({
+      field: "topicIds",
+      message: "At least one topic is required before publishing."
+    });
+  }
+
+  if (status === "published" && agenda.length === 0) {
+    issues.push({
+      field: "agenda",
+      message: "At least one agenda item is required before publishing."
+    });
   }
 
   if (issues.length > 0) {

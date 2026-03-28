@@ -1,14 +1,25 @@
 node_modules/
-dist/
-.astro/
-.vite/
+.pnpm-store/
 .corepack/
-coverage/
 
 .env
 .env.*
+.env.local
+.env.*.local
 !.env.example
 
+dist/
+coverage/
+.astro/
+.vite/
+playwright-report/
+test-results/
+
 *.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.tsbuildinfo
+
 .DS_Store

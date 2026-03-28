@@ -26,6 +26,8 @@ export interface SessionRecord {
 
 export interface AppVariables {
   authReady: boolean;
+  requestId: string;
+  requestStartedAt: number;
   user: SessionUser | null;
   session: SessionRecord | null;
   staffAccount: {

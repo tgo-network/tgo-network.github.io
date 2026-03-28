@@ -25,11 +25,20 @@ import {
   topicSummaries
 } from "@tgo/shared";
 
-const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8787";
+type ImportMetaEnvWithPublicApi = ImportMeta & {
+  env?: {
+    PUBLIC_API_BASE_URL?: string;
+  };
+};
+
+const getConfiguredApiBaseUrl = () =>
+  (import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ??
+  process.env.PUBLIC_API_BASE_URL ??
+  "http://127.0.0.1:8787";
 
 const fetchPublic = async <T>(path: string): Promise<T | null> => {
   try {
-    const response = await fetch(new URL(path, apiBaseUrl), {
+    const response = await fetch(new URL(path, getConfiguredApiBaseUrl()), {
       headers: {
         Accept: "application/json"
       }
@@ -51,7 +60,7 @@ const fetchPublic = async <T>(path: string): Promise<T | null> => {
   }
 };
 
-export const getPublicApiBaseUrl = () => apiBaseUrl;
+export const getPublicApiBaseUrl = () => getConfiguredApiBaseUrl();
 
 export const getSiteConfig = async (): Promise<PublicSiteConfig> =>
   (await fetchPublic<PublicSiteConfig>("/api/public/v1/site-config")) ?? siteConfig;

@@ -119,6 +119,15 @@ Recommended MVP preference:
 
 - Dockerized Node deployment
 
+Reference artifact now available:
+
+- build command: `npm run docker:build:api`
+- Docker build target: `apps/api/Dockerfile`
+- health endpoints for container or platform probes:
+  - liveness: `GET /health`
+  - readiness: `GET /ready`
+  - release metadata: `GET /version`
+
 ## 8. Configuration Ownership
 
 Recommended configuration split:
@@ -136,6 +145,8 @@ Examples of backend runtime config:
 
 - `DATABASE_URL`
 - `BETTER_AUTH_SECRET`
+- `INTERNAL_API_TOKEN`
+- `LOG_FORMAT`
 - `S3_ENDPOINT`
 - `S3_BUCKET`
 - `S3_ACCESS_KEY_ID`
@@ -146,6 +157,35 @@ Examples of backend runtime config:
 - `ASSET_IMAGE_MAX_DIMENSION`
 - `ASSET_IMAGE_MAX_PIXELS`
 - `CORS_ALLOWED_ORIGINS`
+
+## 8.1 Recommended Environment Matrix
+
+Minimum environment matrix:
+
+| Variable | local | staging | production | Notes |
+| --- | --- | --- | --- | --- |
+| `DATABASE_URL` | required | required | required | Separate database per environment |
+| `BETTER_AUTH_SECRET` | required for auth | required | required | Rotate independently per environment |
+| `BETTER_AUTH_URL` | recommended | required | required | May fall back to `PUBLIC_API_BASE_URL`, but explicit is better |
+| `APP_ENV` | recommended | recommended | recommended | Helps runtime probes and operational logging |
+| `APP_VERSION` | optional | recommended | recommended | Exposed by `GET /version` |
+| `GIT_SHA` | optional | recommended | recommended | Exposed by `GET /version` |
+| `LOG_FORMAT` | optional | recommended | recommended | `json` is preferred for centralized logs; `logfmt` remains valid |
+| `PUBLIC_API_BASE_URL` | required for site/admin builds | required | required | Should point to the environment API origin |
+| `CORS_ALLOWED_ORIGINS` | required | required | required | Include `site` and `admin` origins only |
+| `INTERNAL_API_TOKEN` | recommended | required | required | Used by trusted schedulers and internal jobs |
+| `S3_BUCKET` | optional | recommended | recommended | Required if asset uploads are enabled |
+| `S3_ACCESS_KEY_ID` | optional | recommended | recommended | Required if asset uploads are enabled |
+| `S3_SECRET_ACCESS_KEY` | optional | recommended | recommended | Required if asset uploads are enabled |
+| `S3_ENDPOINT` | optional | provider dependent | provider dependent | Needed for MinIO or custom S3-compatible providers |
+| `S3_PUBLIC_BASE_URL` | optional | recommended | recommended | Prefer explicit public asset delivery URL |
+
+Operational helper:
+
+- run `npm run env:check:api`
+- or `npm run env:check:api -- production`
+
+This validates the most important runtime configuration before deployment.
 
 ## 9. Secret Management Rules
 
@@ -213,6 +253,24 @@ Critical validations:
 - article publish flow
 - event publish flow
 - asset upload flow
+- request log correlation via `X-Request-ID`
+
+Suggested deployment preflight:
+
+1. `npm run env:check:api -- production`
+2. `npm run docker:build:api`
+3. verify the image starts with the expected runtime variables
+
+Current repository automation:
+
+- `.github/workflows/ci.yml`
+  - builds the API Docker image on GitHub Actions to catch container regressions
+- `.github/workflows/publish-api-image.yml`
+  - manually publishes the API image to `ghcr.io` with `latest`, `sha-*`, and optional extra tags
+- `deploy/api.compose.yml`
+  - provides a portable Docker Compose runtime template for the published API image
+- `deploy/api.env.example`
+  - provides a runtime env template for staging or production API deployment
 
 ## 14. Migration Strategy
 
@@ -240,6 +298,7 @@ For object storage:
 Minimum operational baseline:
 
 - backend request logging
+- request correlation IDs
 - error tracking
 - deployment event visibility
 - database health visibility
@@ -250,6 +309,15 @@ Recommended later additions:
 - uptime checks
 - queue or job monitoring if jobs are added
 - admin activity dashboards
+
+Current MVP note:
+
+- if scheduled publishing is enabled, trigger `POST /api/internal/v1/publish-scheduled-content` from a trusted cron or platform scheduler using `INTERNAL_API_TOKEN`
+- use the existing runtime probes for platform checks:
+  - `GET /health` for liveness
+  - `GET /ready` for readiness
+  - `GET /version` for release verification
+- every API response should surface `X-Request-ID`, and error payloads should echo `error.requestId`
 
 ## 17. Rollback Strategy
 

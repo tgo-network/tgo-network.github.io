@@ -1,8 +1,11 @@
 import { serve } from "@hono/node-server";
 
 import { app } from "./app.js";
+import { getEnv } from "./lib/env.js";
+import { logInfo } from "./lib/observability.js";
 
 const port = Number(process.env.PORT ?? 8787);
+const env = getEnv();
 
 serve(
   {
@@ -10,6 +13,10 @@ serve(
     port
   },
   (info) => {
-    console.log(`@tgo/api listening on http://localhost:${info.port}`);
+    logInfo("server.started", {
+      port: info.port,
+      version: env.appVersion ?? "dev",
+      gitSha: env.gitSha
+    });
   }
 );
