@@ -3,18 +3,46 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { listBranches } from "../../lib/public-api";
 
 const branches = await listBranches();
+const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMembers.length, 0);
+const coveredCities = Array.from(new Set(branches.map((branch) => branch.cityName))).length;
+const coveredRegions = Array.from(new Set(branches.map((branch) => branch.region).filter(Boolean))).length;
 ---
 
 <BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会概况与董事会成员信息。">
   <main class="page-shell page-stack">
     <section class="hero">
-      <div class="hero-card">
+      <div class="hero-card branch-hero-card">
         <span class="eyebrow">分会董事会</span>
         <h1>覆盖不同城市节点的技术领导者网络</h1>
         <p>
           每个分会围绕本地技术管理者的交流需求，组织闭门讨论、标杆走访、专题工作坊和成员协作。
-          当前页面展示各分会简介与董事会成员信息。
+          当前页面重点展示分会概况与董事会成员，帮助访客快速理解组织的真实结构。
         </p>
+        <ul class="stat-row branch-hero-stats">
+          <li>{branches.length} 个分会</li>
+          <li>{coveredCities} 个城市</li>
+          <li>{coveredRegions} 个区域</li>
+          <li>{totalBoardMembers} 位董事会成员</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">快速跳转</div>
+          <h2>按城市查看分会</h2>
+        </div>
+      </div>
+
+      <div class="branch-chip-row">
+        {
+          branches.map((branch) => (
+            <a class="branch-chip" href={`#${branch.slug}`}>
+              {branch.cityName}
+            </a>
+          ))
+        }
       </div>
     </section>
 
@@ -23,17 +51,26 @@ const branches = await listBranches();
         branches.map((branch) => (
           <article id={branch.slug} class="panel branch-panel">
             <div class="branch-head">
-              <div>
+              <div class="branch-copy">
                 <div class="card-label">{branch.region || branch.cityName}</div>
                 <h2 class="card-title branch-title">{branch.name}</h2>
                 <p class="card-copy">{branch.summary}</p>
+                <ul class="meta-list branch-meta">
+                  <li>{branch.cityName}</li>
+                  <li>{branch.boardMembers.length} 位董事会成员</li>
+                </ul>
               </div>
-              <div class="branch-cover-wrap">
-                {branch.coverImage && <img class="branch-cover" src={branch.coverImage.url} alt={branch.coverImage.alt} loading="lazy" />}
-              </div>
+
+              {
+                branch.coverImage && (
+                  <div class="branch-cover-wrap">
+                    <img class="branch-cover" src={branch.coverImage.url} alt={branch.coverImage.alt} loading="lazy" />
+                  </div>
+                )
+              }
             </div>
 
-            <div class="panel-grid-home branch-body">
+            <div class="branch-body">
               <article class="panel panel-soft">
                 <div class="card-label">分会介绍</div>
                 <p class="card-copy">{branch.body}</p>
@@ -41,13 +78,25 @@ const branches = await listBranches();
 
               <article class="panel panel-soft">
                 <div class="card-label">董事会成员</div>
-                <div class="board-list">
+                <div class="board-grid">
                   {
                     branch.boardMembers.map((member) => (
                       <div class="board-item">
-                        <div>
-                          <h3>{member.displayName}</h3>
-                          <p class="card-copy">{member.company} · {member.title}</p>
+                        <div class="board-person">
+                          {
+                            member.avatar ? (
+                              <img class="board-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                            ) : (
+                              <div class="board-avatar board-avatar-fallback" aria-hidden="true">
+                                {member.displayName.slice(0, 1)}
+                              </div>
+                            )
+                          }
+
+                          <div>
+                            <h3>{member.displayName}</h3>
+                            <p class="card-copy">{member.company} · {member.title}</p>
+                          </div>
                         </div>
                         <p class="card-copy">{member.bio}</p>
                       </div>
@@ -64,6 +113,40 @@ const branches = await listBranches();
 </BaseLayout>
 
 <style>
+  .branch-hero-card {
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.14), transparent 24%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .branch-hero-stats {
+    margin-top: 22px;
+  }
+
+  .branch-chip-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .branch-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.1);
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--muted);
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .branch-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157, 111, 49, 0.3);
+    background: rgba(255, 249, 239, 0.92);
+  }
+
   .stack-list {
     display: grid;
     gap: 18px;
@@ -72,13 +155,18 @@ const branches = await listBranches();
   .branch-panel {
     display: grid;
     gap: 20px;
+    scroll-margin-top: 110px;
   }
 
   .branch-head {
     display: flex;
-    gap: 18px;
+    gap: 22px;
     justify-content: space-between;
     align-items: flex-start;
+  }
+
+  .branch-copy {
+    flex: 1;
   }
 
   .branch-title {
@@ -86,51 +174,92 @@ const branches = await listBranches();
     font-size: clamp(1.8rem, 3vw, 2.4rem);
   }
 
+  .branch-meta {
+    margin-top: 16px;
+  }
+
   .branch-cover-wrap {
-    width: min(320px, 100%);
+    width: min(340px, 100%);
     flex: 0 0 auto;
   }
 
   .branch-cover {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
     border-radius: 22px;
   }
 
   .branch-body {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   }
 
-  .board-list {
+  .board-grid {
     display: grid;
     gap: 14px;
     margin-top: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .board-item {
+    display: grid;
+    gap: 12px;
     padding: 16px;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid rgba(31, 26, 23, 0.08);
   }
 
-  .board-item h3 {
-    margin: 0 0 8px;
+  .board-person {
+    display: flex;
+    gap: 14px;
+    align-items: center;
   }
 
-  @media (max-width: 900px) {
-    .branch-head {
-      flex-direction: column;
-    }
+  .board-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: rgba(31, 26, 23, 0.08);
+  }
 
+  .board-avatar-fallback {
+    display: inline-grid;
+    place-items: center;
+    color: #fff7ef;
+    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(202, 155, 88, 0.9));
+    font-weight: 700;
+  }
+
+  .board-item h3 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+  }
+
+  .board-item p {
+    margin: 0;
+  }
+
+  @media (max-width: 980px) {
+    .branch-head,
     .branch-body {
       grid-template-columns: 1fr;
+      display: grid;
     }
 
     .branch-cover-wrap {
       width: 100%;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .board-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

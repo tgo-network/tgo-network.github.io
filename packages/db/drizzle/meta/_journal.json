@@ -22,6 +22,13 @@
       "when": 1774776210875,
       "tag": "0002_clammy_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774790106726,
+      "tag": "0003_unique_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

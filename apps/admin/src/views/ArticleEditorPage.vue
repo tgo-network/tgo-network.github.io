@@ -25,8 +25,7 @@ const router = useRouter();
 
 const emptyReferences = (): AdminArticleReferences => ({
   authors: [],
-  cities: [],
-  topics: []
+  branches: []
 });
 
 const createBlankForm = (): ArticleFormState => ({
@@ -36,9 +35,8 @@ const createBlankForm = (): ArticleFormState => ({
   body: "",
   status: "draft",
   authorId: null,
-  primaryCityId: null,
+  branchId: null,
   coverAssetId: null,
-  topicIds: [],
   seoTitle: "",
   seoDescription: "",
   scheduledAt: ""
@@ -76,9 +74,8 @@ const applyPayload = (payload: AdminArticleDetailPayload) => {
     body: payload.article.body,
     status: payload.article.status,
     authorId: payload.article.authorId,
-    primaryCityId: payload.article.primaryCityId,
+    branchId: payload.article.branchId,
     coverAssetId: payload.article.coverAssetId,
-    topicIds: [...payload.article.topicIds],
     seoTitle: payload.article.seoTitle,
     seoDescription: payload.article.seoDescription,
     scheduledAt: toDateTimeInputValue(payload.article.scheduledAt)
@@ -287,10 +284,28 @@ onMounted(() => {
           </label>
 
           <label class="field">
+            <span>所属分会</span>
+            <select v-model="form.branchId">
+              <option :value="null">暂不关联分会</option>
+              <option v-for="option in references.branches" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </option>
+            </select>
+            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
             <span>定时发布时间</span>
             <input v-model="form.scheduledAt" type="datetime-local" />
             <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
           </label>
+
+          <div class="panel panel-subtle">
+            <div class="brand-tag">归属信息</div>
+            <p>{{ references.branches.find((item) => item.id === form.branchId)?.label ?? "当前未关联分会" }}</p>
+          </div>
         </div>
 
         <label class="field">
@@ -343,7 +358,7 @@ onMounted(() => {
             <strong>{{ formatDateTime(article?.publishedAt) }}</strong>
           </div>
           <p>
-            文章在发布前必须具备标题、URL 标识、摘要、正文和作者。内容方向与关联地区不再是当前主线的必填项。
+            文章在发布前必须具备标题、URL 标识、摘要、正文和作者。分会归属是可选项，但建议补全以便前台展示组织关联。
           </p>
         </div>
       </aside>

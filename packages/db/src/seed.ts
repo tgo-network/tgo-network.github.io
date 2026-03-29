@@ -4,29 +4,22 @@ import { count, eq, inArray, sql } from "drizzle-orm";
 
 import {
   aboutPagePayload,
-  articleDetails,
   branchDetails,
-  cityDetails,
   joinPagePayload,
   memberDetails,
   platformName,
+  publicArticleDetailsV2,
   publicEventDetailsV2,
-  publicHomePayloadV2,
-  topicDetails
+  publicHomePayloadV2
 } from "@tgo/shared";
 
 import { createDb, type Database } from "./client.js";
 import {
-  applications,
-  articleTopicBindings,
   articles,
   authors,
   branchBoardMembers,
   branches,
-  cities,
-  cityTopicBindings,
   eventSessions,
-  eventTopicBindings,
   eventRegistrations,
   events,
   homepageSections,
@@ -35,9 +28,7 @@ import {
   permissions,
   rolePermissionBindings,
   roles,
-  sitePages,
-  siteSettings,
-  topics
+  sitePages
 } from "./schema/index.js";
 
 const permissionSeed = [
@@ -138,23 +129,11 @@ const demoJoinApplications = [
   }
 ];
 
-const legacyApplications = [
-  {
-    type: "membership" as const,
-    name: "示例兼容申请",
-    email: "legacy.application@example.com",
-    company: "兼容演示公司",
-    citySlug: "shanghai",
-    message: "这是一条为兼容旧 applications 路由保留的种子数据。",
-    status: "submitted" as const
-  }
-];
-
 export interface SeedDatabaseResult {
   seededRoles: number;
   seededPermissions: number;
-  seededCities: number;
-  seededTopics: number;
+  seededBranches: number;
+  seededMembers: number;
   seededArticles: number;
   seededEvents: number;
   seededApplications: number;
@@ -252,32 +231,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
   }
 
   await db
-    .insert(cities)
-    .values(
-      cityDetails.map((city) => ({
-        slug: city.slug,
-        name: city.name,
-        summary: city.summary,
-        bodyRichtext: city.body,
-        status: "published" as const,
-        seoTitle: `${city.name} | ${platformName}`,
-        seoDescription: city.summary
-      }))
-    )
-    .onConflictDoUpdate({
-      target: cities.slug,
-      set: {
-        name: sql`excluded.name`,
-        summary: sql`excluded.summary`,
-        bodyRichtext: sql`excluded.body_richtext`,
-        status: sql`excluded.status`,
-        seoTitle: sql`excluded.seo_title`,
-        seoDescription: sql`excluded.seo_description`,
-        updatedAt: new Date()
-      }
-    });
-
-  await db
     .insert(branches)
     .values(
       branchDetails.map((branch, index) => ({
@@ -310,46 +263,13 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
         updatedAt: new Date()
       }
     });
-
-  await db
-    .insert(topics)
-    .values(
-      topicDetails.map((topic) => ({
-        slug: topic.slug,
-        title: topic.title,
-        summary: topic.summary,
-        bodyRichtext: topic.body,
-        status: "published" as const,
-        seoTitle: `${topic.title} | ${platformName}`,
-        seoDescription: topic.summary,
-        publishedAt: new Date()
-      }))
-    )
-    .onConflictDoUpdate({
-      target: topics.slug,
-      set: {
-        title: sql`excluded.title`,
-        summary: sql`excluded.summary`,
-        bodyRichtext: sql`excluded.body_richtext`,
-        status: sql`excluded.status`,
-        seoTitle: sql`excluded.seo_title`,
-        seoDescription: sql`excluded.seo_description`,
-        publishedAt: sql`excluded.published_at`,
-        updatedAt: new Date()
-      }
-    });
-
-  const cityRows = await db.select().from(cities);
   const branchRows = await db.select().from(branches);
-  const topicRows = await db.select().from(topics);
-  const cityIdBySlug = new Map(cityRows.map((row) => [row.slug, row.id]));
   const branchIdBySlug = new Map(branchRows.map((row) => [row.slug, row.id]));
-  const topicIdBySlug = new Map(topicRows.map((row) => [row.slug, row.id]));
 
   const existingAuthors = await db.select().from(authors);
   const knownAuthorNames = new Set(existingAuthors.map((author) => author.displayName));
-  const authorRoleByName = new Map(articleDetails.map((article) => [article.author.name, article.author.role]));
-  const missingAuthors = Array.from(new Set(articleDetails.map((article) => article.author.name))).filter(
+  const authorRoleByName = new Map(publicArticleDetailsV2.map((article) => [article.author.name, article.author.role]));
+  const missingAuthors = Array.from(new Set(publicArticleDetailsV2.map((article) => article.author.name))).filter(
     (name) => !knownAuthorNames.has(name)
   );
 
@@ -371,14 +291,14 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
   await db
     .insert(articles)
     .values(
-      articleDetails.map((article) => ({
+      publicArticleDetailsV2.map((article) => ({
         slug: article.slug,
         title: article.title,
         excerpt: article.excerpt,
         bodyRichtext: article.body.join("\n\n"),
         status: "published" as const,
         authorId: authorIdByName.get(article.author.name) ?? null,
-        primaryCityId: cityIdBySlug.get(article.citySummary.slug) ?? null,
+        branchId: article.branch ? branchIdBySlug.get(article.branch.slug) ?? null : null,
         seoTitle: article.title,
         seoDescription: article.excerpt,
         publishedAt: new Date(article.publishedAt)
@@ -392,7 +312,7 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
         bodyRichtext: sql`excluded.body_richtext`,
         status: sql`excluded.status`,
         authorId: sql`excluded.author_id`,
-        primaryCityId: sql`excluded.primary_city_id`,
+        branchId: sql`excluded.branch_id`,
         seoTitle: sql`excluded.seo_title`,
         seoDescription: sql`excluded.seo_description`,
         publishedAt: sql`excluded.published_at`,
@@ -402,33 +322,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
 
   const articleRows = await db.select().from(articles);
   const articleIdBySlug = new Map(articleRows.map((row) => [row.slug, row.id]));
-
-  const articleTopicRows = articleDetails.flatMap((article) => {
-    const articleId = articleIdBySlug.get(article.slug);
-
-    if (!articleId) {
-      return [];
-    }
-
-    return article.topics
-      .map((topic) => {
-        const topicId = topicIdBySlug.get(topic.slug);
-
-        if (!topicId) {
-          return null;
-        }
-
-        return {
-          articleId,
-          topicId
-        };
-      })
-      .filter((value): value is { articleId: string; topicId: string } => value !== null);
-  });
-
-  if (articleTopicRows.length > 0) {
-    await db.insert(articleTopicBindings).values(articleTopicRows).onConflictDoNothing();
-  }
 
   await db
     .insert(members)
@@ -491,7 +384,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
         bodyRichtext: event.body,
         status: "published" as const,
         branchId: event.branch ? branchIdBySlug.get(event.branch.slug) ?? null : null,
-        cityId: event.branch ? cityIdBySlug.get(event.branch.slug) ?? null : null,
         venueName: event.venueName,
         venueAddress: event.venueAddress,
         startsAt: new Date(event.startsAt),
@@ -523,33 +415,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
 
   if (eventSessionRows.length > 0) {
     await db.insert(eventSessions).values(eventSessionRows).onConflictDoNothing();
-  }
-
-  const cityTopicRows = cityDetails.flatMap((city) => {
-    const cityId = cityIdBySlug.get(city.slug);
-
-    if (!cityId) {
-      return [];
-    }
-
-    return city.featuredTopics
-      .map((topic) => {
-        const topicId = topicIdBySlug.get(topic.slug);
-
-        if (!topicId) {
-          return null;
-        }
-
-        return {
-          cityId,
-          topicId
-        };
-      })
-      .filter((value): value is { cityId: string; topicId: string } => value !== null);
-  });
-
-  if (cityTopicRows.length > 0) {
-    await db.insert(cityTopicBindings).values(cityTopicRows).onConflictDoNothing();
   }
 
   await db
@@ -633,30 +498,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
       }
     });
 
-  await db
-    .insert(siteSettings)
-    .values([
-      {
-        key: "site.name",
-        valueJson: {
-          value: platformName
-        }
-      },
-      {
-        key: "site.footerTagline",
-        valueJson: {
-          value: "TGO 鲲鹏会公开站通过共享 API 契约连接前台、后台与运营流程。"
-        }
-      }
-    ])
-    .onConflictDoUpdate({
-      target: siteSettings.key,
-      set: {
-        valueJson: sql`excluded.value_json`,
-        updatedAt: new Date()
-      }
-    });
-
   const [seededJoinApplicationCount] = await db
     .select({ value: count() })
     .from(joinApplications)
@@ -674,26 +515,6 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
         targetBranchId: branchIdBySlug.get(application.targetBranchSlug) ?? null,
         status: application.status,
         reviewNotes: application.reviewNotes || "seed://demo"
-      }))
-    );
-  }
-
-  const [legacyApplicationCount] = await db
-    .select({ value: count() })
-    .from(applications)
-    .where(eq(applications.sourcePage, "seed://demo"));
-
-  if ((legacyApplicationCount?.value ?? 0) === 0) {
-    await db.insert(applications).values(
-      legacyApplications.map((application) => ({
-        type: application.type,
-        name: application.name,
-        email: application.email,
-        company: application.company,
-        cityId: cityIdBySlug.get(application.citySlug) ?? null,
-        message: application.message,
-        sourcePage: "seed://demo",
-        status: application.status
       }))
     );
   }
@@ -731,8 +552,8 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
   return {
     seededRoles: roleRows.length,
     seededPermissions: permissionRows.length,
-    seededCities: cityRows.length,
-    seededTopics: topicRows.length,
+    seededBranches: branchRows.length,
+    seededMembers: memberRows.length,
     seededArticles: articleCountRow?.value ?? 0,
     seededEvents: eventCountRow?.value ?? 0,
     seededApplications: applicationCountRow?.value ?? 0,

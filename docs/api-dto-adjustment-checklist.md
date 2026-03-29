@@ -12,26 +12,27 @@
 
 ## 2. 当前实现快照
 
-当前实现仍然带有较多旧主线痕迹，主要集中在：
+当前实现已经完成大部分 DTO 切换，当前快照应理解为“已完成 + 剩余兼容面”：
 
-- `packages/shared/src/public-content.ts`
 - `packages/shared/src/admin-content.ts`
+- `packages/shared/src/network-public.ts`
 - `packages/shared/src/ui.ts`
 - `apps/api/src/routes/public.ts`
 - `apps/api/src/routes/admin.ts`
-- `apps/api/src/lib/public-content.ts`
 - `apps/api/src/lib/admin-content.ts`
-- `apps/api/src/lib/platform-config.ts`
+- `packages/db/src/seed.ts`
 
-当前明显不再匹配收敛范围的内容包括：
+已完成的关键调整：
 
-- 公开 DTO 仍围绕 `TopicSummary`、`CitySummary`
-- `PublicApplicationInput` 仍是 `trial / membership / contact` 泛表单思路
-- 后台 DTO 仍以 `topics`、`cities` 为主
-- 公共导航仍指向 `/topics`、`/cities`
-- 后台导航仍有“主题”“推荐位”“设置”等旧原型一级菜单
-- API 路由仍暴露 `/topics`、`/cities`、`/applications`
-- 后台还没有 `/members`、`/branches` 这套新主线接口
+- 公开 DTO 已切换到 `Branch / Member / ArticleV2 / EventV2 / Join / About / HomeV2`
+- `apps/api/src/lib/public-content.ts` 与 `apps/api/src/lib/platform-config.ts` 已退场
+- `packages/shared/src/public-content.ts` 已收缩为最小公共原语
+
+当前仍需持续注意的兼容面包括：
+
+- 后台内容模型仍保留 `topics`、`cities` 作为编辑与兼容 schema
+- 数据库仍保留 `applications`、`featured_blocks`、`site_settings` 等历史表
+- 历史资源类型与旧路由兼容只允许读取，不应继续扩展字段和能力
 
 ## 3. 本轮接口改造必须遵守的业务前提
 
@@ -378,7 +379,7 @@
 
 说明：
 
-- `assets`、`homepage`、`pages`、`site-settings` 可以作为二级能力存在
+- `assets`、`homepage`、`pages` 可以作为二级能力存在
 - 不一定需要占一级导航
 
 ## 9. 推荐改造顺序

@@ -1,23 +1,87 @@
 ---
-import CollectionCard from "../../components/CollectionCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
 import { listEvents } from "../../lib/public-api";
 
 const events = await listEvents();
 const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityName).filter((value): value is string => Boolean(value))));
+const openCount = events.filter((event) => event.registrationState === "open").length;
+const waitlistCount = events.filter((event) => event.registrationState === "waitlist").length;
+const closedCount = events.filter((event) => event.registrationState === "closed").length;
 ---
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看近期活动、分会动态与公开报名入口。">
   <main class="page-shell page-stack">
     <section class="hero">
-      <div class="hero-card">
-        <span class="eyebrow">活动</span>
-        <h1>各地分会活动与公开报名入口</h1>
-        <p>
-          活动由工作人员后台发布，可展示城市、时间地点、议程与报名状态。
-          当前阶段活动支持开放报名，再由工作人员在后台进行审核确认。
-        </p>
+      <div class="hero-card event-hero-card">
+        <div class="event-hero-main">
+          <span class="eyebrow">活动</span>
+          <h1>各地分会活动与公开报名入口</h1>
+          <p>
+            活动由工作人员后台发布，前台面向成员与访客展示城市、时间、地点、议程与报名状态。
+            当前阶段活动支持开放报名，再由工作人员在后台进行审核确认。
+          </p>
+          <ul class="stat-row event-hero-stats">
+            <li>{events.length} 场活动</li>
+            <li>{cityOptions.length} 个城市</li>
+            <li>{openCount} 场开放报名</li>
+            <li>{waitlistCount} 场候补中</li>
+          </ul>
+        </div>
+
+        <aside class="event-hero-aside">
+          <div>
+            <div class="card-label card-label-on-dark">活动机制</div>
+            <h2>公开报名 + 后台审核</h2>
+            <p>
+              当前活动保持开放提交，但是否通过、是否进入候补，以及后续联系与确认，
+              都由工作人员在后台统一处理。
+            </p>
+          </div>
+
+          <div class="event-hero-meta-grid">
+            <article>
+              <strong>{openCount}</strong>
+              <span>开放报名</span>
+            </article>
+            <article>
+              <strong>{waitlistCount}</strong>
+              <span>候补中</span>
+            </article>
+            <article>
+              <strong>{closedCount}</strong>
+              <span>已关闭</span>
+            </article>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">活动形态</div>
+          <h2>围绕技术管理者成长组织不同层次的线下交流</h2>
+        </div>
+      </div>
+
+      <div class="format-grid">
+        <article class="panel format-card">
+          <div class="card-label">私密小组</div>
+          <p class="card-copy">适合更高频、更稳定的小范围同侪交流，强调问题复盘与长期关系。</p>
+        </article>
+        <article class="panel format-card">
+          <div class="card-label">闭门沙龙</div>
+          <p class="card-copy">围绕技术战略、组织治理、工程效率等关键问题进行定向讨论。</p>
+        </article>
+        <article class="panel format-card">
+          <div class="card-label">公开学习</div>
+          <p class="card-copy">适合拓展外部连接与扩大触达范围，仍然保持主题与人群筛选。</p>
+        </article>
+        <article class="panel format-card">
+          <div class="card-label">标杆走访</div>
+          <p class="card-copy">通过进入企业现场获得更具体的组织观察、工程经验与业务协作启发。</p>
+        </article>
       </div>
     </section>
 
@@ -42,22 +106,44 @@ const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityN
     </section>
 
     <section class="section">
-      <div class="grid grid-2">
+      <div class="event-grid">
         {
           events.map((event) => (
-            <div data-event-card data-city={event.branch?.cityName ?? ""}>
-              <CollectionCard
-                href={`/events/${event.slug}`}
-                label={event.branch?.cityName ?? "活动"}
-                title={event.title}
-                summary={event.summary}
-                image={event.coverImage}
-                meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName, formatRegistrationState(event.registrationState)]}
-              />
-            </div>
+            <article data-event-card data-city={event.branch?.cityName ?? ""} class="panel event-card">
+              <a class="event-card-link" href={`/events/${event.slug}`}>
+                {
+                  event.coverImage && (
+                    <div class="event-card-media-wrap">
+                      <img class="event-card-media" src={event.coverImage.url} alt={event.coverImage.alt} loading="lazy" />
+                    </div>
+                  )
+                }
+
+                <div class="event-card-head">
+                  <div>
+                    <div class="card-label">{event.branch?.cityName ?? "活动"}</div>
+                    <h3 class="event-card-title">{event.title}</h3>
+                  </div>
+                  <span class:list={["event-state", `event-state-${event.registrationState}`]}>
+                    {formatRegistrationState(event.registrationState)}
+                  </span>
+                </div>
+
+                <p class="card-copy">{event.summary}</p>
+
+                <ul class="event-meta-list">
+                  <li>{formatDateRange(event.startsAt, event.endsAt)}</li>
+                  <li>{event.venueName}</li>
+                  {event.branch?.name && <li>{event.branch.name}</li>}
+                </ul>
+
+                <span class="text-link">查看活动详情</span>
+              </a>
+            </article>
           ))
         }
       </div>
+
       <div class="panel panel-soft empty-state" data-event-empty hidden>
         <div class="card-label">暂无结果</div>
         <p class="card-copy">当前城市筛选下还没有可展示的活动，请切换到其他城市继续查看。</p>
@@ -118,6 +204,83 @@ const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityN
 </BaseLayout>
 
 <style>
+  .event-hero-card {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
+      linear-gradient(135deg, #171717 0%, #201c17 100%);
+    border-color: rgba(215, 179, 117, 0.14);
+    color: #f8f1e8;
+  }
+
+  .event-hero-card h1,
+  .event-hero-card h2 {
+    color: #fff7ef;
+  }
+
+  .event-hero-card p,
+  .event-hero-card .card-copy {
+    color: rgba(248, 241, 232, 0.76);
+  }
+
+  .event-hero-card .eyebrow {
+    color: #f1d5a0;
+    border-color: rgba(215, 179, 117, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .event-hero-aside {
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .event-hero-meta-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .event-hero-meta-grid article {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    text-align: center;
+  }
+
+  .event-hero-meta-grid strong {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    color: #fffdf8;
+  }
+
+  .event-hero-meta-grid span {
+    color: rgba(248, 241, 232, 0.7);
+    font-size: 0.9rem;
+  }
+
+  .event-hero-stats {
+    margin-top: 24px;
+  }
+
+  .format-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .format-card {
+    min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+  }
+
   .filter-bar {
     display: flex;
     gap: 10px;
@@ -137,16 +300,131 @@ const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityN
 
   .filter-chip:hover {
     transform: translateY(-1px);
-    border-color: rgba(122, 48, 34, 0.32);
+    border-color: rgba(157, 111, 49, 0.32);
   }
 
   .filter-chip.is-active {
-    background: linear-gradient(135deg, rgba(122, 48, 34, 0.95), rgba(167, 90, 63, 0.92));
+    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.92));
     border-color: transparent;
     color: #fff7ef;
   }
 
+  .event-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .event-card {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .event-card-link {
+    display: grid;
+    gap: 0;
+    height: 100%;
+  }
+
+  .event-card-media-wrap {
+    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
+  }
+
+  .event-card-media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .event-card-head,
+  .event-meta-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .event-card-link > :not(.event-card-media-wrap) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .event-card-head {
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+
+  .event-card-title {
+    margin: 10px 0 0;
+    font-size: 1.4rem;
+  }
+
+  .event-state {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .event-state-open {
+    background: rgba(71, 148, 104, 0.14);
+    color: #296847;
+  }
+
+  .event-state-waitlist {
+    background: rgba(186, 134, 39, 0.16);
+    color: #8a5a14;
+  }
+
+  .event-state-closed {
+    background: rgba(108, 94, 85, 0.14);
+    color: #5f5148;
+  }
+
+  .event-card .card-copy {
+    margin: 16px 0 0;
+  }
+
+  .event-meta-list {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0 24px 22px;
+  }
+
+  .event-meta-list li {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.66);
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .event-card .text-link {
+    padding-bottom: 24px;
+    font-weight: 600;
+  }
+
   .empty-state {
     margin-top: 18px;
+  }
+
+  @media (max-width: 1000px) {
+    .event-hero-card,
+    .event-grid,
+    .format-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .event-hero-meta-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

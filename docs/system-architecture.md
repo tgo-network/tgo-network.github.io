@@ -298,7 +298,7 @@ docs/
 
 ### Phase 2：范围收敛与契约冻结
 
-当前进行中：
+当前已完成：
 
 - 将产品范围收敛到 7 个前台模块和 8 个后台模块
 - 以 `branches` / `members` / `join_applications` 为主线重整数据模型和 API

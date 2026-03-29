@@ -43,12 +43,6 @@ export const eventRegistrationStatusEnum = pgEnum("event_registration_status", [
   "cancelled"
 ]);
 
-export const applicationTypeEnum = pgEnum("application_type", [
-  "trial",
-  "membership",
-  "contact"
-]);
-
 export const applicationStatusEnum = pgEnum("application_status", [
   "submitted",
   "in_review",
@@ -68,12 +62,6 @@ export const assetStatusEnum = pgEnum("asset_status", [
   "active",
   "archived",
   "deleted"
-]);
-
-export const featuredBlockStatusEnum = pgEnum("featured_block_status", [
-  "draft",
-  "active",
-  "archived"
 ]);
 
 export const users = pgTable("users", {
@@ -275,37 +263,6 @@ export const branchBoardMembers = pgTable("branch_board_members", {
   updatedAt
 }, (table) => [uniqueIndex("branch_board_members_branch_sort_idx").on(table.branchId, table.sortOrder)]);
 
-export const cities = pgTable("cities", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  shortName: text("short_name"),
-  region: text("region"),
-  summary: text("summary"),
-  bodyRichtext: text("body_richtext"),
-  status: contentStatusEnum("status").default("draft").notNull(),
-  coverAssetId: uuid("cover_asset_id").references(() => assets.id, { onDelete: "set null" }),
-  seoTitle: text("seo_title"),
-  seoDescription: text("seo_description"),
-  createdAt,
-  updatedAt
-});
-
-export const topics = pgTable("topics", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  summary: text("summary"),
-  bodyRichtext: text("body_richtext"),
-  status: contentStatusEnum("status").default("draft").notNull(),
-  coverAssetId: uuid("cover_asset_id").references(() => assets.id, { onDelete: "set null" }),
-  seoTitle: text("seo_title"),
-  seoDescription: text("seo_description"),
-  publishedAt: timestamp("published_at", { withTimezone: true }),
-  createdAt,
-  updatedAt
-});
-
 export const tags = pgTable("tags", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -333,7 +290,7 @@ export const articles = pgTable("articles", {
   bodyRichtext: text("body_richtext"),
   status: contentStatusEnum("status").default("draft").notNull(),
   authorId: uuid("author_id").references(() => authors.id, { onDelete: "set null" }),
-  primaryCityId: uuid("primary_city_id").references(() => cities.id, { onDelete: "set null" }),
+  branchId: uuid("branch_id").references(() => branches.id, { onDelete: "set null" }),
   coverAssetId: uuid("cover_asset_id").references(() => assets.id, { onDelete: "set null" }),
   seoTitle: text("seo_title"),
   seoDescription: text("seo_description"),
@@ -348,21 +305,6 @@ export const articles = pgTable("articles", {
   createdAt,
   updatedAt
 });
-
-export const articleTopicBindings = pgTable(
-  "article_topic_bindings",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    articleId: uuid("article_id")
-      .notNull()
-      .references(() => articles.id, { onDelete: "cascade" }),
-    topicId: uuid("topic_id")
-      .notNull()
-      .references(() => topics.id, { onDelete: "cascade" }),
-    createdAt
-  },
-  (table) => [uniqueIndex("article_topic_bindings_article_topic_idx").on(table.articleId, table.topicId)]
-);
 
 export const articleTagBindings = pgTable(
   "article_tag_bindings",
@@ -387,7 +329,6 @@ export const events = pgTable("events", {
   bodyRichtext: text("body_richtext"),
   status: contentStatusEnum("status").default("draft").notNull(),
   branchId: uuid("branch_id").references(() => branches.id, { onDelete: "set null" }),
-  cityId: uuid("city_id").references(() => cities.id, { onDelete: "set null" }),
   venueName: text("venue_name"),
   venueAddress: text("venue_address"),
   startsAt: timestamp("starts_at", { withTimezone: true }),
@@ -425,21 +366,6 @@ export const eventSessions = pgTable("event_sessions", {
   updatedAt
 }, (table) => [uniqueIndex("event_sessions_event_sort_idx").on(table.eventId, table.sortOrder)]);
 
-export const eventTopicBindings = pgTable(
-  "event_topic_bindings",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    eventId: uuid("event_id")
-      .notNull()
-      .references(() => events.id, { onDelete: "cascade" }),
-    topicId: uuid("topic_id")
-      .notNull()
-      .references(() => topics.id, { onDelete: "cascade" }),
-    createdAt
-  },
-  (table) => [uniqueIndex("event_topic_bindings_event_topic_idx").on(table.eventId, table.topicId)]
-);
-
 export const eventRegistrations = pgTable("event_registrations", {
   id: uuid("id").defaultRandom().primaryKey(),
   eventId: uuid("event_id")
@@ -465,71 +391,6 @@ export const eventRegistrations = pgTable("event_registrations", {
   submittedIp: text("submitted_ip"),
   submittedUserAgent: text("submitted_user_agent"),
   createdAt,
-  updatedAt
-});
-
-export const applications = pgTable("applications", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  type: applicationTypeEnum("type").default("trial").notNull(),
-  name: text("name").notNull(),
-  phoneNumber: text("phone_number"),
-  email: text("email"),
-  company: text("company"),
-  jobTitle: text("job_title"),
-  cityId: uuid("city_id").references(() => cities.id, { onDelete: "set null" }),
-  message: text("message"),
-  sourcePage: text("source_page").notNull(),
-  status: applicationStatusEnum("status").default("submitted").notNull(),
-  assignedToStaffId: uuid("assigned_to_staff_id").references(() => staffAccounts.id, {
-    onDelete: "set null"
-  }),
-  reviewedByStaffId: uuid("reviewed_by_staff_id").references(() => staffAccounts.id, {
-    onDelete: "set null"
-  }),
-  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-  internalNotes: text("internal_notes"),
-  createdAt,
-  updatedAt
-});
-
-export const cityTopicBindings = pgTable(
-  "city_topic_bindings",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    cityId: uuid("city_id")
-      .notNull()
-      .references(() => cities.id, { onDelete: "cascade" }),
-    topicId: uuid("topic_id")
-      .notNull()
-      .references(() => topics.id, { onDelete: "cascade" }),
-    createdAt
-  },
-  (table) => [uniqueIndex("city_topic_bindings_city_topic_idx").on(table.cityId, table.topicId)]
-);
-
-export const featuredBlocks = pgTable("featured_blocks", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  code: text("code").notNull().unique(),
-  name: text("name").notNull(),
-  status: featuredBlockStatusEnum("status").default("draft").notNull(),
-  payloadJson: jsonb("payload_json"),
-  createdByStaffId: uuid("created_by_staff_id").references(() => staffAccounts.id, {
-    onDelete: "set null"
-  }),
-  updatedByStaffId: uuid("updated_by_staff_id").references(() => staffAccounts.id, {
-    onDelete: "set null"
-  }),
-  createdAt,
-  updatedAt
-});
-
-export const siteSettings = pgTable("site_settings", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  key: text("key").notNull().unique(),
-  valueJson: jsonb("value_json"),
-  updatedByStaffId: uuid("updated_by_staff_id").references(() => staffAccounts.id, {
-    onDelete: "set null"
-  }),
   updatedAt
 });
 

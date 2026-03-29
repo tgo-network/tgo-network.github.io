@@ -26,7 +26,6 @@ import {
   createAdminAssetUploadIntent,
   getAdminArticle,
   getAdminArticleReferencesPayload,
-  getAdminEventReferencesPayload,
   listAdminAssets,
   listAdminArticles,
   publishAdminArticle,

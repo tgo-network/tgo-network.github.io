@@ -5,7 +5,7 @@ This document defines the default local workflow for the current monorepo.
 Important note:
 
 - The current product scope is defined by `docs/mvp-scope.md`
-- The repository still contains some earlier `topic/city` exploration routes and seed data; treat those as implementation history, not the current release target
+- The old `topic/city/applications` implementation has been retired from the active code path; remaining mentions are migration history and route-retirement tests
 
 ## 1. Goals
 

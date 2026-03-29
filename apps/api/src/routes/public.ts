@@ -38,8 +38,7 @@ import {
   listEventsV2FromDb,
   listMembersFromDb
 } from "../lib/network-public.js";
-import { getPublicSiteConfigFromDb } from "../lib/platform-config.js";
-import { PublicContentError } from "../lib/public-content.js";
+import { PublicContentError } from "../lib/public-errors.js";
 import { checkRateLimit, type RateLimitDecision } from "../lib/rate-limit.js";
 
 export const publicRoutes = new Hono();
@@ -146,11 +145,7 @@ const filterEvents = (events: PublicEventSummaryV2[], c: Context) => {
 };
 
 publicRoutes.get("/site-config", async (c) => {
-  try {
-    return c.json(ok(await getPublicSiteConfigFromDb()));
-  } catch {
-    return c.json(ok(siteConfig));
-  }
+  return c.json(ok(siteConfig));
 });
 
 publicRoutes.get("/home", async (c) => c.json(ok((await getHomePayloadV2FromDb()) ?? publicHomePayloadV2)));

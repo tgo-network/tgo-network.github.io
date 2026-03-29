@@ -1,11 +1,11 @@
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 
 import {
-  applications,
   articles,
   auditLogs,
   assets,
   events,
+  joinApplications,
   permissions,
   rolePermissionBindings,
   roles,
@@ -71,7 +71,7 @@ export const getDashboardStats = async () => {
 
   const [articleCount] = await db.select({ value: count() }).from(articles);
   const [eventCount] = await db.select({ value: count() }).from(events);
-  const [applicationCount] = await db.select({ value: count() }).from(applications);
+  const [applicationCount] = await db.select({ value: count() }).from(joinApplications);
   const [assetCount] = await db.select({ value: count() }).from(assets);
   const [auditLogCount] = await db.select({ value: count() }).from(auditLogs);
   const [staffCount] = await db.select({ value: count() }).from(staffAccounts);

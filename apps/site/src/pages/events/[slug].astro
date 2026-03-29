@@ -24,61 +24,89 @@ if (!event) {
 const registrationEnabled = event.registrationState === "open" || event.registrationState === "waitlist";
 const registrationTitle = event.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
 const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
+const participationNotes = [
+  "成员与非成员都可以提交公开活动报名。",
+  "工作人员会在后台审核报名记录，并决定通过、拒绝或转为候补。",
+  "提交信息越完整，越便于工作人员理解你的参会诉求与背景。"
+];
 ---
 
 <BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={event.summary}>
   <main class="page-shell page-stack">
     <section class="hero">
-      <div class:list={["hero-card", { "hero-split": Boolean(event.coverImage), "hero-card-media": Boolean(event.coverImage) }]}>
-        <div>
+      <div class="hero-card event-detail-hero">
+        <div class="event-detail-main">
           <span class="eyebrow">活动详情</span>
           <h1>{event.title}</h1>
           <p>{event.summary}</p>
           <ul class="stat-row">
             <li>{event.branch?.name ?? "活动"}</li>
-            <li>{event.venueName}</li>
             <li>{formatRegistrationState(event.registrationState)}</li>
+            <li>{event.venueName}</li>
           </ul>
         </div>
 
-        {
-          event.coverImage && (
-            <figure class="hero-figure">
-              <img class="hero-image" src={event.coverImage.url} alt={event.coverImage.alt} />
-            </figure>
-          )
-        }
+        <aside class="event-detail-side">
+          <div class="detail-side-block">
+            <div class="card-label card-label-on-dark">活动信息</div>
+            <ul class="detail-side-list">
+              <li>
+                <span>时间</span>
+                <strong>{formatDateRange(event.startsAt, event.endsAt)}</strong>
+              </li>
+              <li>
+                <span>地点</span>
+                <strong>{event.venueAddress || event.venueName}</strong>
+              </li>
+              <li>
+                <span>城市</span>
+                <strong>{event.branch?.cityName ?? "待补充"}</strong>
+              </li>
+              <li>
+                <span>报名状态</span>
+                <strong>{formatRegistrationState(event.registrationState)}</strong>
+              </li>
+            </ul>
+          </div>
+
+          {
+            event.coverImage && (
+              <figure class="event-detail-figure">
+                <img class="event-detail-image" src={event.coverImage.url} alt={event.coverImage.alt} />
+              </figure>
+            )
+          }
+        </aside>
       </div>
     </section>
 
-    <section class="section detail-grid">
+    <section class="section event-detail-grid">
       <article class="panel prose-panel">
         <div class="card-label">活动概览</div>
+        <h2 class="card-title">这场活动希望解决什么问题</h2>
         <p>{event.body}</p>
         <ul class="meta-list">
-          <li>{formatDateRange(event.startsAt, event.endsAt)}</li>
-          <li>{event.venueAddress || event.venueName}</li>
-          {event.branch?.cityName && <li>{event.branch.cityName}</li>}
+          <li>{event.branch?.name ?? "活动"}</li>
+          <li>{event.branch?.cityName ?? "待补充城市"}</li>
+          <li>{event.venueName}</li>
         </ul>
       </article>
 
-      <aside class="panel panel-soft stack-sm">
-        <div>
-          <div class="card-label">议程</div>
-          <ul class="agenda-list">
-            {
-              event.agenda.map((item) => (
-                <li>
-                  <strong>{item.time}</strong>
-                  <span>{item.title}</span>
-                  <em>{item.speaker}</em>
-                  <p>{item.summary}</p>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-      </aside>
+      <article class="panel panel-soft agenda-panel">
+        <div class="card-label">议程安排</div>
+        <ul class="agenda-list">
+          {
+            event.agenda.map((item) => (
+              <li>
+                <strong>{item.time}</strong>
+                <span>{item.title}</span>
+                <em>{item.speaker}</em>
+                <p>{item.summary}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </article>
     </section>
 
     <section class="section registration-shell">
@@ -86,7 +114,7 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
         <div class="card-label">活动报名</div>
         <h2>{registrationTitle}</h2>
         <p class="registration-copy">
-          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员可根据活动定位确认是否通过、拒绝或转为候补。
+          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员可根据活动定位、报名信息与活动容量确认是否通过、拒绝或转为候补。
         </p>
 
         {
@@ -126,7 +154,7 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
 
               <label>
                 <span>补充说明</span>
-                <textarea name="note" rows="5" placeholder="例如你的关注议题、参会目的或与活动主题的相关经验。"></textarea>
+                <textarea name="note" rows="5" placeholder="例如你的关注议题、参会目的，或你希望在活动中交流的问题。"></textarea>
               </label>
 
               <div class="form-actions">
@@ -147,12 +175,19 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
       </div>
 
       <aside class="panel panel-soft registration-side">
-        <div class="card-label">报名说明</div>
-        <ul class="meta-list vertical-list">
-          <li>成员与非成员都可以提交公开活动报名。</li>
-          <li>工作人员会在后台审核报名记录。</li>
-          <li>审核过程可附带备注并关联已有成员。</li>
-        </ul>
+        <div>
+          <div class="card-label">报名说明</div>
+          <ul class="meta-list vertical-list">
+            {participationNotes.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div>
+          <div class="card-label">建议填写内容</div>
+          <p class="card-copy">
+            如果你能补充当前职责、所在团队规模、关注议题或参会目的，工作人员会更容易判断这场活动是否适合你。
+          </p>
+        </div>
       </aside>
     </section>
   </main>
@@ -206,10 +241,92 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
 </BaseLayout>
 
 <style>
+  .event-detail-hero {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
+      linear-gradient(135deg, #171717 0%, #211d18 100%);
+    border-color: rgba(215, 179, 117, 0.14);
+    color: #f8f1e8;
+  }
+
+  .event-detail-hero h1,
+  .event-detail-hero h2 {
+    color: #fff7ef;
+  }
+
+  .event-detail-hero p {
+    color: rgba(248, 241, 232, 0.76);
+  }
+
+  .event-detail-hero .eyebrow {
+    color: #f1d5a0;
+    border-color: rgba(215, 179, 117, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .event-detail-side {
+    display: grid;
+    gap: 18px;
+  }
+
+  .detail-side-block {
+    padding: 22px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.14);
+  }
+
+  .detail-side-list {
+    display: grid;
+    gap: 14px;
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+  }
+
+  .detail-side-list li {
+    display: grid;
+    gap: 4px;
+  }
+
+  .detail-side-list span {
+    color: rgba(248, 241, 232, 0.6);
+    font-size: 0.84rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .detail-side-list strong {
+    color: #fff7ef;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .event-detail-figure {
+    margin: 0;
+  }
+
+  .event-detail-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: var(--shadow-strong);
+  }
+
+  .event-detail-grid,
   .registration-shell {
     display: grid;
     gap: 18px;
-    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+
+  .agenda-panel {
+    min-height: 100%;
   }
 
   .registration-panel h2 {
@@ -232,11 +349,19 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
     gap: 10px;
   }
 
+  .registration-side {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+  }
+
   .registration-note p {
     margin: 0 0 16px;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 980px) {
+    .event-detail-hero,
+    .event-detail-grid,
     .registration-shell {
       grid-template-columns: 1fr;
     }

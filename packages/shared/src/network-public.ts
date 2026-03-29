@@ -1,4 +1,5 @@
 import type { EventRegistrationStatus, PublicImageAsset, RegistrationState } from "./public-content.js";
+import { platformName, publicNav } from "./ui.js";
 
 export interface BranchReference {
   slug: string;
@@ -135,6 +136,17 @@ export interface JoinApplicationReceipt {
     wechatId?: string;
     email?: string;
   };
+}
+
+export interface PublicSiteConfig {
+  platformName: string;
+  navigation: Array<{
+    label: string;
+    href: string;
+  }>;
+  contentCollections: string[];
+  footerTagline: string;
+  supportEmail: string | null;
 }
 
 export interface JoinApplicationValidationIssue {
@@ -567,32 +579,36 @@ export const publicEventDetailsV2: PublicEventDetailV2[] = eventRecords.map((eve
 export const joinPagePayload: JoinPagePayload = {
   hero: {
     eyebrow: "加入 TGO 鲲鹏会",
-    title: "面向技术领导者的高质量交流网络",
-    summary: "我们希望连接不同城市的技术管理者，通过闭门交流、标杆走访、专题活动与长期陪伴，形成可信任的同侪网络。"
+    title: "面向技术领导者的高质量同侪网络",
+    summary: "我们希望连接不同城市的 CTO、技术 VP、研发负责人和关键技术管理者，通过分会活动、私密小组、公开学习与长期连接，形成真正有边界的社区。"
   },
   conditions: [
-    "具备明确的技术管理职责，能够持续参与高质量交流。",
+    "具备明确的技术管理职责，并愿意持续参与高质量交流。",
     "在技术战略、研发管理、架构演进或组织建设等方向有真实实践。",
-    "认可社区分享、互助与长期建设的价值。"
+    "认可分享、互助、长期建设与同侪信任的社区价值。"
   ],
   benefits: [
-    "进入跨城市技术领导者交流网络。",
-    "参与闭门活动、专题研讨与标杆企业走访。",
-    "获得成员之间的经验复盘与业务连接机会。"
+    "进入跨城市技术领导者交流网络，获得长期稳定的同侪连接。",
+    "参与闭门活动、专题研讨、私密小组与标杆企业走访。",
+    "获得成员之间的经验复盘、资源对接与组织实践交流机会。"
   ],
   process: [
-    "在线提交加入申请。",
-    "工作人员进行初步审核与联系。",
-    "根据分会安排完成进一步沟通与确认。"
+    "先阅读加入说明，确认是否适合当前阶段的组织定位。",
+    "在线提交加入申请，由工作人员进行初步审核与联系。",
+    "根据分会安排完成进一步沟通、确认与后续跟进。"
   ],
   faq: [
     {
-      question: "成员是否需要付费？",
-      answer: "当前阶段按线下沟通与运营规则执行，后续若有标准化政策会在后台配置并对外同步。"
+      question: "申请后多久会得到反馈？",
+      answer: "申请资料进入后台后，会由工作人员进行初步审核与联系，具体节奏取决于当前分会安排与运营节奏。"
     },
     {
       question: "不是成员能参加活动吗？",
       answer: "可以，当前活动报名为开放提交，由工作人员在后台进行审核确认。"
+    },
+    {
+      question: "成员和工作人员是什么关系？",
+      answer: "两者是完全独立的两套身份：成员用于前台组织参与，工作人员用于后台运营与审核。"
     }
   ],
   cta: {
@@ -604,39 +620,47 @@ export const joinPagePayload: JoinPagePayload = {
 export const aboutPagePayload: AboutPagePayload = {
   hero: {
     eyebrow: "关于我们",
-    title: "一个连接技术领导者、分会活动与长期交流的组织网络",
-    summary: "TGO 风格平台的前台承载组织介绍、成员展示、活动报名与内容传播，后台则支撑工作人员进行持续运营。"
+    title: "一个围绕技术领导者成长而组织起来的长期社区网络",
+    summary: "我们不是单纯的内容栏目集合，而是通过分会、成员、活动与公开内容形成彼此联动的组织化社区。"
   },
   sections: [
     {
       title: "组织形式",
       body: [
         "我们以分会为基本组织单元，围绕技术领导者构建长期交流网络。",
-        "每个分会都由董事会成员共同推动本地活动节奏与社群发展。"
+        "每个分会都由董事会成员共同推动本地活动节奏、成员连接与社群发展。"
       ]
     },
     {
       title: "活动形式",
       body: [
-        "活动包括闭门沙龙、专题工作坊、标杆走访与小范围圆桌。",
-        "核心目标是让技术管理者获得高价值、可复用的实践经验。"
+        "活动包括私密小组、闭门沙龙、专题工作坊、标杆走访与公开学习活动。",
+        "核心目标是让技术管理者获得高价值、可复用、可长期延续的实践经验。"
       ]
     },
     {
       title: "加入方式",
       body: [
-        "非成员可以通过前台提交加入申请。",
-        "工作人员会在后台进行审核、联系与后续跟进。"
+        "非成员可以通过前台提交加入申请，先完成公开资料填写与申请说明。",
+        "工作人员会在后台进行审核、联系与后续跟进，成员与工作人员不是同一套身份体系。"
       ]
     }
   ]
+};
+
+export const siteConfig: PublicSiteConfig = {
+  platformName,
+  navigation: [...publicNav],
+  contentCollections: ["branches", "members", "articles", "events", "join", "about"],
+  footerTagline: "TGO 鲲鹏会公开站聚焦组织介绍、分会网络、成员展示、学习活动与加入路径。",
+  supportEmail: null
 };
 
 export const publicHomePayloadV2: PublicHomePayloadV2 = {
   hero: {
     eyebrow: "TGO 鲲鹏会",
     title: "连接技术领导者、分会活动与长期交流网络",
-    summary: "前台聚焦组织介绍、分会董事会、成员列表、活动、文章、加入申请与关于我们；后台负责持续运营与审核。",
+    summary: "面向 CTO、技术 VP、研发负责人和关键技术管理者，通过分会网络、活动学习、成员连接与内容沉淀建立长期同侪社区。",
     actions: [
       {
         label: "了解加入方式",
@@ -649,8 +673,8 @@ export const publicHomePayloadV2: PublicHomePayloadV2 = {
     ]
   },
   intro: {
-    title: "围绕技术领导者建立可信任的长期连接",
-    summary: "我们希望把城市分会、成员网络、精选文章与活动沉淀成一套可以持续运营的公开站点与后台体系。"
+    title: "不止于内容发布，更强调技术领导者之间的长期协作关系",
+    summary: "TGO 鲲鹏会以城市分会和董事会为长期组织单元，把成员网络、学习活动与组织洞察连接起来，形成可持续运营的社区结构。"
   },
   audience: {
     title: "覆盖人群",
@@ -662,14 +686,14 @@ export const publicHomePayloadV2: PublicHomePayloadV2 = {
   },
   metrics: [
     {
-      label: "覆盖城市",
+      label: "重点分会",
       value: "3+",
-      description: "先从重点分会启动，后续继续扩展网络。"
+      description: "以城市分会承接长期连接，逐步扩展社区网络。"
     },
     {
       label: "活动形态",
       value: "4 类",
-      description: "闭门沙龙、专题工作坊、标杆走访与圆桌交流。"
+      description: "私密小组、闭门沙龙、专题工作坊与标杆走访。"
     },
     {
       label: "公开模块",
@@ -682,7 +706,7 @@ export const publicHomePayloadV2: PublicHomePayloadV2 = {
   branchHighlights: branchSummaries.slice(0, 3),
   joinCallout: {
     title: "成为下一位加入网络的技术领导者",
-    summary: "如果你希望进入高质量的技术管理者交流网络，可以先阅读加入说明，再提交正式申请。",
+    summary: "如果你希望进入高质量的技术管理者交流网络，可以先阅读加入说明，再提交正式申请，由工作人员继续审核与联系。",
     href: "/join"
   }
 };

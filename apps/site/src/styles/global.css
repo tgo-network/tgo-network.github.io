@@ -1,16 +1,25 @@
 :root {
   color-scheme: light;
-  --page-bg: #f3efe8;
-  --surface: rgba(255, 255, 255, 0.82);
-  --surface-strong: #fff8ee;
-  --surface-soft: rgba(255, 250, 244, 0.76);
-  --ink: #1f1a17;
-  --muted: #64584e;
-  --line: rgba(31, 26, 23, 0.12);
-  --accent: #b6572a;
-  --accent-strong: #7c3214;
-  --shadow: 0 22px 60px rgba(48, 30, 12, 0.14);
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --page-bg: #f4efe6;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-strong: #fffaf2;
+  --surface-soft: rgba(250, 244, 235, 0.82);
+  --ink: #1b1713;
+  --muted: #5d5248;
+  --line: rgba(27, 23, 19, 0.1);
+  --accent: #c8a15d;
+  --accent-strong: #9d6f31;
+  --accent-ink: #2c2012;
+  --shadow: 0 24px 64px rgba(40, 28, 18, 0.12);
+  --shadow-strong: 0 34px 80px rgba(24, 16, 10, 0.2);
+  --font-body:
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    sans-serif;
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", serif;
+  font-family: var(--font-body);
 }
 
 * {
@@ -26,9 +35,18 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(182, 87, 42, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(153, 111, 54, 0.14), transparent 22%),
-    linear-gradient(180deg, #f8f2e7 0%, var(--page-bg) 100%);
+    radial-gradient(circle at top left, rgba(200, 161, 93, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(157, 111, 49, 0.14), transparent 22%),
+    linear-gradient(180deg, #f8f3ea 0%, var(--page-bg) 100%);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
 }
 
 code {
@@ -54,8 +72,8 @@ a {
   top: 0;
   z-index: 10;
   backdrop-filter: blur(18px);
-  background: rgba(248, 242, 231, 0.7);
-  border-bottom: 1px solid rgba(31, 26, 23, 0.08);
+  background: rgba(248, 243, 234, 0.8);
+  border-bottom: 1px solid rgba(27, 23, 19, 0.08);
 }
 
 .site-header-inner,
@@ -79,7 +97,6 @@ a {
   display: inline-flex;
   gap: 12px;
   align-items: center;
-  font-weight: 700;
   letter-spacing: 0.02em;
 }
 
@@ -91,8 +108,24 @@ a {
   border-radius: 15px;
   color: white;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-strong);
   font-size: 0.92rem;
+}
+
+.site-brand-text {
+  display: grid;
+  gap: 2px;
+}
+
+.site-brand-text strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.site-brand-text small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
 }
 
 .site-nav {
@@ -111,12 +144,25 @@ a {
   border-radius: 999px;
   border: 1px solid transparent;
   font-size: 0.95rem;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
 
 .site-nav-link.active {
   color: var(--ink);
   border-color: var(--line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.site-nav-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(157, 111, 49, 0.22);
+  color: var(--ink);
+}
+
+.site-nav-link-cta {
+  border-color: rgba(200, 161, 93, 0.28);
+  background: rgba(255, 249, 239, 0.9);
+  color: var(--accent-ink);
 }
 
 .hero {
@@ -206,13 +252,13 @@ a {
 }
 
 .button.primary {
-  color: white;
+  color: #fff7ef;
   border-color: transparent;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
 }
 
 .button.secondary {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .grid {
@@ -300,7 +346,7 @@ a {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid rgba(31, 26, 23, 0.08);
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.66);
   color: var(--muted);
   font-size: 0.92rem;
 }

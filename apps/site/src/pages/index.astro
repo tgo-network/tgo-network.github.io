@@ -1,25 +1,112 @@
 ---
-import { platformName, publicModules } from "@tgo/shared";
-
 import CollectionCard from "../components/CollectionCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { formatDate, formatDateRange } from "../lib/format";
-import { getHomePayload } from "../lib/public-api";
+import { getHomePayload, listArticles, listBranches, listEvents, listMembers } from "../lib/public-api";
 
-const home = await getHomePayload();
+const [home, branches, members, articles, events] = await Promise.all([
+  getHomePayload(),
+  listBranches(),
+  listMembers(),
+  listArticles(),
+  listEvents()
+]);
+
+const networkStats = [
+  {
+    label: "重点分会",
+    value: String(branches.length),
+    description: "以城市节点组织长期交流"
+  },
+  {
+    label: "公开成员",
+    value: String(members.length),
+    description: "展示真实成员与组织结构"
+  },
+  {
+    label: "近期活动",
+    value: String(events.length),
+    description: "活动支持公开报名与后台审核"
+  },
+  {
+    label: "已发布文章",
+    value: String(articles.length),
+    description: "沉淀技术管理与组织实践"
+  }
+];
+
+const valuePillars = [
+  {
+    label: "组织形式",
+    title: "以分会和董事会构成长线组织网络",
+    summary: "每个分会围绕本地技术管理者的交流需求组织长期活动，由董事会成员协同推动节奏。"
+  },
+  {
+    label: "覆盖人群",
+    title: home.audience.title,
+    summary: home.audience.items.join("；")
+  },
+  {
+    label: "内容定位",
+    title: "内容是组织价值的延展，而不是唯一主体",
+    summary: "文章、活动回顾与成员观点用于强化品牌表达，真正核心仍然是成员之间的高质量连接。"
+  }
+];
+
+const activityFormats = [
+  {
+    code: "01",
+    title: "私密小组活动",
+    summary: "围绕真实技术管理议题进行小范围深聊，强调长期稳定的同侪关系。"
+  },
+  {
+    code: "02",
+    title: "闭门沙龙",
+    summary: "聚焦组织治理、工程效率、技术战略与团队协作等一线问题。"
+  },
+  {
+    code: "03",
+    title: "专题工作坊",
+    summary: "通过专题拆解与案例讨论，让经验可以被复用，而不是停留在口号层面。"
+  },
+  {
+    code: "04",
+    title: "标杆走访",
+    summary: "走进企业现场，围绕团队管理、平台工程与业务协同获得新的观察。"
+  }
+];
+
+const joinSteps = [
+  {
+    step: "01",
+    title: "先理解组织定位与加入条件",
+    summary: "确认你是否适合当前阶段的组织定位，再进入正式申请。"
+  },
+  {
+    step: "02",
+    title: "在线提交加入申请",
+    summary: "填写姓名、手机号、微信号、邮箱与个人介绍，让工作人员快速理解你的背景。"
+  },
+  {
+    step: "03",
+    title: "等待工作人员审核与联系",
+    summary: "申请进入后台后由工作人员跟进审核，必要时继续沟通与你的参与诉求。"
+  }
+];
 ---
 
 <BaseLayout
-  title={`${platformName} | 首页`}
+  title="TGO 鲲鹏会 | 首页"
   description="TGO 鲲鹏会面向技术领导者的公开站点，展示组织定位、分会网络、成员、活动与内容。"
 >
   <main class="page-shell page-stack">
-    <section class="hero">
-      <div class="hero-card hero-split">
-        <div>
+    <section class="hero hero-home">
+      <div class="hero-card hero-home-card">
+        <div class="hero-home-main">
           <span class="eyebrow">{home.hero.eyebrow}</span>
+          <p class="hero-kicker">科技领导者社区</p>
           <h1>{home.hero.title}</h1>
-          <p>{home.hero.summary}</p>
+          <p class="hero-summary">{home.hero.summary}</p>
 
           <div class="hero-actions">
             {
@@ -30,56 +117,98 @@ const home = await getHomePayload();
               ))
             }
           </div>
+
+          <div class="hero-stat-grid" aria-label="站点概览指标">
+            {
+              networkStats.map((stat) => (
+                <article class="hero-stat-card">
+                  <div class="hero-stat-label">{stat.label}</div>
+                  <div class="hero-stat-value">{stat.value}</div>
+                  <p>{stat.description}</p>
+                </article>
+              ))
+            }
+          </div>
         </div>
 
-        <aside class="hero-aside panel panel-soft">
-          <div class="card-label">组织速览</div>
-          <h2 class="card-title">围绕技术管理者成长，连接城市分会、成员网络与高质量活动。</h2>
-          <p class="card-copy">前台页面静态优先，真实数据统一来自 API，方便后续由后台持续运营。</p>
-          <ul class="meta-list">
+        <aside class="hero-home-aside">
+          <div>
+            <div class="card-label card-label-on-dark">社区定位</div>
+            <h2 class="hero-aside-title">高质量、长期、同侪式的学习网络</h2>
+            <p class="hero-aside-copy">
+              首页不再只是内容聚合，而是先回答“这是什么组织、面向谁、为什么值得加入”，
+              再承接分会、成员、活动与加入路径。
+            </p>
+          </div>
+
+          <div class="signal-grid">
+            {
+              home.metrics.map((metric) => (
+                <article class="signal-card">
+                  <div class="signal-label">{metric.label}</div>
+                  <div class="signal-value">{metric.value}</div>
+                  <p>{metric.description}</p>
+                </article>
+              ))
+            }
+          </div>
+
+          <ul class="hero-audience-list">
             {home.audience.items.map((item) => <li>{item}</li>)}
           </ul>
         </aside>
       </div>
     </section>
 
-    <section class="section">
+    <section id="intro" class="section">
       <div class="section-head">
         <div>
           <div class="card-label">TGO 介绍</div>
-          <h2>{home.intro.title}</h2>
+          <h2>围绕技术领导者成长，建立可信任的长期连接</h2>
         </div>
       </div>
 
-      <div class="panel-grid-home">
-        <article class="panel">
-          <p class="card-copy">{home.intro.summary}</p>
+      <div class="intro-grid">
+        <article class="panel intro-panel">
+          <div class="card-label">组织定位</div>
+          <h3 class="intro-title">{home.intro.title}</h3>
+          <p class="intro-lead">{home.intro.summary}</p>
+          <p class="card-copy">
+            相比普通内容站，当前首页更强调组织结构、成员网络、活动形态与加入逻辑，
+            让访客在第一屏和前几段内容里就能感受到这是一个有边界的社区型产品。
+          </p>
         </article>
-        <article class="panel">
-          <div class="card-label">覆盖人群</div>
-          <h3 class="card-title">{home.audience.title}</h3>
-          <ul class="meta-list">
-            {home.audience.items.map((item) => <li>{item}</li>)}
-          </ul>
-        </article>
+
+        <div class="value-grid">
+          {
+            valuePillars.map((item) => (
+              <article class="panel value-card">
+                <div class="card-label">{item.label}</div>
+                <h3>{item.title}</h3>
+                <p class="card-copy">{item.summary}</p>
+              </article>
+            ))
+          }
+        </div>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">关键指标</div>
-          <h2>组织网络与内容运营的当前状态</h2>
+          <div class="card-label">精彩活动</div>
+          <h2>围绕技术管理者成长的活动形态</h2>
         </div>
+        <a class="text-link" href="/events">查看活动日历</a>
       </div>
 
-      <div class="grid grid-3">
+      <div class="activity-grid">
         {
-          home.metrics.map((metric) => (
-            <article class="panel stat-card">
-              <div class="card-label">{metric.label}</div>
-              <h3 class="metric-value">{metric.value}</h3>
-              <p class="card-copy">{metric.description}</p>
+          activityFormats.map((item) => (
+            <article class="panel activity-card">
+              <div class="activity-code">{item.code}</div>
+              <h3 class="card-title">{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
             </article>
           ))
         }
@@ -90,7 +219,7 @@ const home = await getHomePayload();
       <div class="section-head">
         <div>
           <div class="card-label">分会董事会</div>
-          <h2>在城市节点中形成长期稳定的同侪连接</h2>
+          <h2>以城市节点构建长期稳定的同侪连接</h2>
         </div>
         <a class="text-link" href="/branches">查看全部分会</a>
       </div>
@@ -112,9 +241,31 @@ const home = await getHomePayload();
     </section>
 
     <section class="section">
+      <div class="dual-highlight-grid">
+        <article class="panel emphasis-panel">
+          <div class="card-label">成员网络</div>
+          <h2 class="card-title">公开展示成员信息，形成真实的人与组织结构</h2>
+          <p class="card-copy">
+            当前阶段成员不做认证，但前台会持续展示成员名单与详情，帮助访客理解组织的真实构成与覆盖范围。
+          </p>
+          <a class="text-link" href="/members">浏览成员列表</a>
+        </article>
+
+        <article class="panel emphasis-panel">
+          <div class="card-label">内容沉淀</div>
+          <h2 class="card-title">把活动后的观点与实践继续沉淀为长期内容资产</h2>
+          <p class="card-copy">
+            文章由后台统一发布，用来沉淀技术管理、组织实践与社区观察，强化组织认知，而不是喧宾夺主。
+          </p>
+          <a class="text-link" href="/articles">查看文章</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">精彩活动</div>
+          <div class="card-label">近期活动</div>
           <h2>近期活动与线下交流安排</h2>
         </div>
         <a class="text-link" href="/events">浏览活动</a>
@@ -162,58 +313,289 @@ const home = await getHomePayload();
     </section>
 
     <section class="section">
-      <div class="panel promo-panel">
-        <div>
-          <div class="card-label">加入申请</div>
-          <h2>{home.joinCallout.title}</h2>
-          <p class="card-copy">{home.joinCallout.summary}</p>
+      <div class="panel join-panel">
+        <div class="join-panel-head">
+          <div>
+            <div class="card-label">加入申请</div>
+            <h2>{home.joinCallout.title}</h2>
+            <p class="card-copy">{home.joinCallout.summary}</p>
+          </div>
+          <a class="button primary" href={home.joinCallout.href}>开始申请</a>
         </div>
-        <a class="button primary" href={home.joinCallout.href}>开始申请</a>
-      </div>
-    </section>
 
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">当前交付范围</div>
-          <h2>公开站与后台围绕当前 MVP 范围持续推进</h2>
+        <div class="join-step-grid">
+          {
+            joinSteps.map((item) => (
+              <article class="join-step-card">
+                <div class="join-step-index">{item.step}</div>
+                <h3>{item.title}</h3>
+                <p>{item.summary}</p>
+              </article>
+            ))
+          }
         </div>
-      </div>
-
-      <div class="grid grid-3">
-        {
-          publicModules.map((module) => (
-            <article class="panel">
-              <div class="card-label">{module.phase}</div>
-              <h3 class="card-title">{module.name}</h3>
-              <p class="card-copy">{module.summary}</p>
-            </article>
-          ))
-        }
       </div>
     </section>
   </main>
 </BaseLayout>
 
 <style>
-  .panel-grid-home {
+  .hero-home-card {
     display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 24px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+    padding: clamp(28px, 4vw, 44px);
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.2), transparent 26%),
+      linear-gradient(135deg, #111313 0%, #181714 44%, #231d17 100%);
+    border-color: rgba(215, 179, 117, 0.18);
+    box-shadow: 0 36px 90px rgba(18, 13, 9, 0.28);
+    color: #f7efe3;
+    overflow: hidden;
   }
 
-  .stat-card {
+  .hero-home-card :global(.button.secondary) {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f1e8;
+  }
+
+  .hero-home-card .eyebrow {
+    color: #f1d5a0;
+    border-color: rgba(215, 179, 117, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-kicker {
+    margin: 18px 0 0;
+    color: rgba(247, 239, 227, 0.72);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  .hero-home-card h1 {
+    max-width: 11ch;
+    margin: 16px 0 14px;
+    line-height: 1.02;
+  }
+
+  .hero-summary {
+    max-width: 60ch;
+    color: rgba(247, 239, 227, 0.82);
+    font-size: 1.06rem;
+    line-height: 1.8;
+  }
+
+  .hero-home-aside {
+    display: grid;
+    gap: 18px;
+    align-self: stretch;
+    padding: 24px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(215, 179, 117, 0.16);
+  }
+
+  .card-label-on-dark {
+    color: #f1d5a0;
+  }
+
+  .hero-aside-title {
+    margin: 12px 0 10px;
+    font-size: clamp(1.6rem, 2vw, 2rem);
+    color: #fff7ee;
+  }
+
+  .hero-aside-copy,
+  .signal-card p,
+  .join-step-card p,
+  .hero-stat-card p {
+    margin: 0;
+    color: rgba(247, 239, 227, 0.72);
+    line-height: 1.7;
+  }
+
+  .hero-stat-grid,
+  .signal-grid,
+  .activity-grid,
+  .join-step-grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .hero-stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 28px;
+  }
+
+  .hero-stat-card,
+  .signal-card {
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(215, 179, 117, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-stat-label,
+  .signal-label,
+  .join-step-index,
+  .activity-code {
+    color: rgba(215, 179, 117, 0.9);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hero-stat-value,
+  .signal-value {
+    margin: 10px 0 6px;
+    font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: #fffdf8;
+  }
+
+  .hero-audience-list {
+    display: grid;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .hero-audience-list li,
+  .join-step-card {
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(215, 179, 117, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(247, 239, 227, 0.78);
+  }
+
+  .intro-grid,
+  .dual-highlight-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+
+  .intro-panel {
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .intro-title,
+  .value-card h3,
+  .join-step-card h3 {
+    margin: 12px 0 10px;
+  }
+
+  .intro-lead {
+    margin: 0 0 18px;
+    font-size: 1.15rem;
+    line-height: 1.9;
+    color: #241c17;
+  }
+
+  .value-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .value-card {
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(250, 244, 235, 0.94));
+  }
+
+  .activity-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .activity-card {
+    background: linear-gradient(180deg, #171818 0%, #231d18 100%);
+    border-color: rgba(215, 179, 117, 0.12);
+  }
+
+  .activity-card :global(.card-title) {
+    color: #fff7ee;
+  }
+
+  .activity-card :global(.card-copy) {
+    color: rgba(247, 239, 227, 0.72);
+  }
+
+  .emphasis-panel {
+    display: grid;
+    gap: 10px;
+    align-content: start;
     min-height: 100%;
   }
 
-  .metric-value {
-    margin: 16px 0 10px;
-    font-size: clamp(2rem, 4vw, 3.2rem);
+  .join-panel {
+    display: grid;
+    gap: 20px;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
+  }
+
+  .join-panel-head {
+    display: flex;
+    gap: 18px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .join-panel-head h2 {
+    margin: 8px 0 10px;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+  }
+
+  .join-step-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .join-step-card {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(31, 26, 23, 0.08);
+    color: var(--muted);
+  }
+
+  .join-step-card h3 {
+    color: var(--ink);
+    font-size: 1.05rem;
+  }
+
+  .join-step-card p {
+    color: var(--muted);
+  }
+
+  @media (max-width: 1100px) {
+    .hero-stat-grid,
+    .activity-grid,
+    .join-step-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 900px) {
-    .panel-grid-home {
+    .hero-home-card,
+    .intro-grid,
+    .dual-highlight-grid {
       grid-template-columns: 1fr;
+    }
+
+    .join-panel-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .hero-stat-grid,
+    .activity-grid,
+    .join-step-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-home-card h1 {
+      max-width: none;
     }
   }
 </style>

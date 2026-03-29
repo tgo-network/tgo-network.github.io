@@ -6,7 +6,6 @@ import {
   authors,
   branchBoardMembers,
   branches,
-  cities,
   eventRegistrations,
   eventSessions,
   events,
@@ -43,11 +42,12 @@ import {
   memberSummaries,
   publicArticleSummariesV2,
   publicEventSummariesV2,
-  publicHomePayloadV2
+  publicHomePayloadV2,
+  siteConfig
 } from "@tgo/shared";
 
 import { getDb, isDatabaseConfigured } from "./db.js";
-import { PublicContentError } from "./public-content.js";
+import { PublicContentError } from "./public-errors.js";
 import { getAssetPublicUrl } from "./storage.js";
 
 const asIso = (value: Date | null | undefined) => (value ? value.toISOString() : null);
@@ -91,7 +91,7 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
   }
 
   const db = getDb();
-  const [articleRows, authorRows, assetRows, cityRows, branchRows] = await Promise.all([
+  const [articleRows, authorRows, assetRows, branchRows] = await Promise.all([
     db
       .select()
       .from(articles)
@@ -99,19 +99,16 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
       .orderBy(desc(articles.publishedAt), desc(articles.updatedAt)),
     db.select().from(authors),
     db.select().from(assets).where(and(eq(assets.status, "active"), eq(assets.visibility, "public"))),
-    db.select().from(cities),
     db.select().from(branches)
   ]);
 
   const authorById = new Map(authorRows.map((row) => [row.id, row]));
   const assetById = new Map(assetRows.map((row) => [row.id, row]));
-  const cityById = new Map(cityRows.map((row) => [row.id, row]));
-  const branchBySlug = new Map(branchRows.map((row) => [row.slug, row]));
+  const branchById = new Map(branchRows.map((row) => [row.id, row]));
 
   return articleRows.map((article) => {
     const author = article.authorId ? authorById.get(article.authorId) : null;
-    const city = article.primaryCityId ? cityById.get(article.primaryCityId) : null;
-    const branch = city ? branchBySlug.get(city.slug) ?? null : null;
+    const branch = article.branchId ? branchById.get(article.branchId) ?? null : null;
 
     return {
       id: article.id,
@@ -340,14 +337,11 @@ export const getArticleDetailV2FromDb = async (slug: string): Promise<PublicArti
     return null;
   }
 
-  const [author, coverAsset, city, branchRows] = await Promise.all([
+  const [author, coverAsset, branch] = await Promise.all([
     article.authorId ? db.query.authors.findFirst({ where: eq(authors.id, article.authorId) }) : Promise.resolve(null),
     article.coverAssetId ? db.query.assets.findFirst({ where: eq(assets.id, article.coverAssetId) }) : Promise.resolve(null),
-    article.primaryCityId ? db.query.cities.findFirst({ where: eq(cities.id, article.primaryCityId) }) : Promise.resolve(null),
-    db.select().from(branches)
+    article.branchId ? db.query.branches.findFirst({ where: eq(branches.id, article.branchId) }) : Promise.resolve(null)
   ]);
-
-  const branch = city ? branchRows.find((row) => row.slug === city.slug) ?? null : null;
 
   return {
     slug: article.slug,
@@ -356,7 +350,7 @@ export const getArticleDetailV2FromDb = async (slug: string): Promise<PublicArti
     publishedAt: asRequiredIso(article.publishedAt, article.updatedAt.toISOString()),
     authorName: author?.displayName ?? "TGO 编辑部",
     coverImage: toPublicImageAsset(coverAsset ?? undefined, `${article.title} cover image`),
-    branch: toBranchReference(branch),
+    branch: toBranchReference(branch ?? null),
     body: (article.bodyRichtext ?? "")
       .split(/\n\n+/)
       .map((paragraph) => paragraph.trim())

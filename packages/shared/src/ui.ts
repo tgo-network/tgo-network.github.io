@@ -7,10 +7,6 @@ export const publicNav = [
     href: "/"
   },
   {
-    label: "TGO 介绍",
-    href: "/"
-  },
-  {
     label: "分会董事会",
     href: "/branches"
   },

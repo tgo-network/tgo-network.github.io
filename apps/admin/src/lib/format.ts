@@ -1,22 +1,18 @@
 import {
   adminAssetTypeOptions,
   applicationStatusOptions,
-  applicationTypeOptions,
   assetStatusOptions,
   assetVisibilityOptions,
   contentStatusOptions,
   eventRegistrationStateOptions,
   eventRegistrationStatusOptions,
-  featuredBlockStatusOptions,
   staffAccountStatusOptions,
   type ApplicationStatus,
-  type ApplicationType,
   type AssetStatus,
   type AssetVisibility,
   type ContentStatus,
   type EventRegistrationState,
   type EventRegistrationStatus,
-  type FeaturedBlockStatus,
   type StaffAccountStatus,
   type AdminAssetType
 } from "@tgo/shared";
@@ -80,14 +76,8 @@ export const formatEventRegistrationStatus = (value: string | EventRegistrationS
 export const formatApplicationStatus = (value: string | ApplicationStatus | null | undefined) =>
   formatOptionLabel(applicationStatusOptions, value);
 
-export const formatApplicationType = (value: string | ApplicationType | null | undefined) =>
-  formatOptionLabel(applicationTypeOptions, value);
-
 export const formatStaffAccountStatus = (value: string | StaffAccountStatus | null | undefined) =>
   formatOptionLabel(staffAccountStatusOptions, value);
-
-export const formatFeaturedBlockStatus = (value: string | FeaturedBlockStatus | null | undefined) =>
-  formatOptionLabel(featuredBlockStatusOptions, value);
 
 export const formatAssetVisibility = (value: string | AssetVisibility | null | undefined) =>
   formatOptionLabel(assetVisibilityOptions, value);

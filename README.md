@@ -4,7 +4,7 @@ Current scope convergence:
 
 - The active release scope is now centered on `home`, `branches`, `members`, `events`, `articles`, `join`, and `about`
 - The active admin scope is now centered on dashboard, articles, events/registrations, applications, members, staff, roles, and audit logs
-- Some existing `topic/city` implementation work remains in the repository as earlier exploration, but it is no longer the target delivery boundary
+- Legacy `topic/city/applications` compatibility code has been retired from the active implementation path and remains only as migration history plus 404 retirement assertions in tests
 
 Current implementation status:
 
@@ -22,7 +22,7 @@ Current implementation status:
 - Asset management now supports protected asset listing plus signed S3-compatible upload and finalize flows in the admin console
 - Content and event editors now support selecting a cover asset, and the public site renders those images from API-provided asset metadata
 - Homepage featured content is now configurable from the admin console and drives the public `/api/public/v1/home` payload
-- Basic site settings now drive the public site header/footer configuration through `/api/public/v1/site-config`
+- Public `/api/public/v1/site-config` now returns the converged shared site contract without a separate legacy settings table
 - Sensitive admin mutations now write audit records and can be reviewed from the admin console audit log page
 - Staff account provisioning now supports protected list/create/update flows, and roles now support protected list/update flows in the admin console
 - Internal automation now supports `POST /api/internal/v1/publish-scheduled-content` for due scheduled articles
@@ -39,7 +39,7 @@ Current implementation status:
 - Playwright browser smoke tests now cover public homepage/forms plus admin login/navigation, and a dedicated E2E workflow is in place
 - Portable deployment templates now exist for the API container image and runtime env configuration
 - Retired legacy routes such as public `topics/cities/applications` and admin `topics/featured-blocks/site-settings` are no longer exposed
-- `npm run typecheck`, `npm run build`, `npm run test`, and `npm run test:api` pass, and the event registration, rate limiting, upload-hardening, public write, and staff/role management flows have been smoke-tested against the local API
+- `npm run typecheck`, `npm run build`, `npm run test`, and `npm run test:e2e` pass locally, and the event registration, rate limiting, upload-hardening, public write, and staff/role management flows have been smoke-tested against the local API
 
 Workspace commands:
 

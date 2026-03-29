@@ -8,7 +8,6 @@ import { and, eq, inArray } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import {
-  articleTopicBindings,
   articles,
   auditLogs,
   authors,
@@ -22,7 +21,6 @@ import {
   roles,
   staffAccounts,
   staffRoleBindings,
-  topics,
   users
 } from "@tgo/db";
 
@@ -359,9 +357,8 @@ describe("admin and internal API integration", () => {
         body: "文章正文已经准备完成，可由内容编辑直接创建并发布。",
         status: "draft",
         authorId: author.id,
-        primaryCityId: null,
+        branchId: null,
         coverAssetId: null,
-        topicIds: [],
         seoTitle: "",
         seoDescription: "",
         scheduledAt: null
@@ -468,9 +465,8 @@ describe("admin and internal API integration", () => {
         body: "文章正文已经准备完成，可直接发布到公开站。",
         status: "draft",
         authorId: author.id,
-        primaryCityId: null,
+        branchId: null,
         coverAssetId: null,
-        topicIds: [],
         seoTitle: "",
         seoDescription: "",
         scheduledAt: null
@@ -478,7 +474,7 @@ describe("admin and internal API integration", () => {
     });
 
     assert.equal(createResult.response.status, 201);
-    assert.equal(createResult.payload.data.article.topicIds.length, 0);
+    assert.equal(createResult.payload.data.article.branchId, null);
 
     const articleId = createResult.payload.data.article.id as string;
     const publishResult = await requestJson(`/api/admin/v1/articles/${articleId}/publish`, {
@@ -488,7 +484,7 @@ describe("admin and internal API integration", () => {
 
     assert.equal(publishResult.response.status, 200);
     assert.equal(publishResult.payload.data.article.status, "published");
-    assert.equal(publishResult.payload.data.article.topicIds.length, 0);
+    assert.equal(publishResult.payload.data.article.branchId, null);
 
     const savedArticle = await directDb.query.articles.findFirst({
       where: eq(articles.id, articleId)
@@ -650,10 +646,8 @@ describe("admin and internal API integration", () => {
   test("protects internal jobs and publishes due scheduled articles", async () => {
     const superAdmin = await createSignedInUser(["super_admin"]);
     const author = await directDb.query.authors.findFirst();
-    const topic = await directDb.query.topics.findFirst();
 
     assert.ok(author, "Expected at least one seeded author.");
-    assert.ok(topic, "Expected at least one seeded topic.");
 
     const validSlug = `scheduled-valid-${randomUUID()}`;
     const invalidSlug = `scheduled-invalid-${randomUUID()}`;
@@ -673,11 +667,6 @@ describe("admin and internal API integration", () => {
       .returning();
 
     assert.ok(validArticle, "Expected a valid scheduled article to be created.");
-
-    await directDb.insert(articleTopicBindings).values({
-      articleId: validArticle.id,
-      topicId: topic.id
-    });
 
     const [invalidArticle] = await directDb
       .insert(articles)

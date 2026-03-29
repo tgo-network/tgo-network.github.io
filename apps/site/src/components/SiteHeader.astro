@@ -21,13 +21,25 @@ const isActive = (href: string) => {
   <div class="page-shell site-header-inner">
     <a class="site-brand" href="/">
       <span class="site-brand-mark">TGO</span>
-      <span>{config.platformName}</span>
+      <span class="site-brand-text">
+        <strong>{config.platformName}</strong>
+        <small>科技领导者社区</small>
+      </span>
     </a>
 
     <nav class="site-nav" aria-label="主导航">
       {
         config.navigation.map((item) => (
-          <a class:list={["site-nav-link", { active: isActive(item.href) }]} href={item.href}>
+          <a
+            class:list={[
+              "site-nav-link",
+              {
+                active: isActive(item.href),
+                "site-nav-link-cta": item.href === "/join"
+              }
+            ]}
+            href={item.href}
+          >
             {item.label}
           </a>
         ))

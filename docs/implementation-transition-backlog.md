@@ -10,9 +10,26 @@
 - 新范围应该先改哪些文件，后改哪些文件
 - 哪些旧能力先兼容保留，哪些要在新链路稳定后退场
 
+## 1.1 最新状态（2026-03-29）
+
+当前主线已经完成以下收敛：
+
+- 公开站 DTO 与 fallback 已切到 `Branch / Member / ArticleV2 / EventV2 / Join / About / HomeV2`
+- `apps/api/src/lib/public-content.ts` 与 `apps/api/src/lib/platform-config.ts` 已退场
+- `packages/shared/src/public-content.ts` 已收缩为最小公共原语，不再承载旧 `Topic / City / PublicApplication` 兼容 DTO
+- `packages/db/src/seed.ts` 已改为围绕当前分会、成员、文章、活动主线生成演示数据
+- `packages/db/src/schema/index.ts` 与 `packages/db/drizzle/0003_unique_wilson_fisk.sql` 已移除旧 `topics / cities / applications / featured_blocks / site_settings` 主线依赖
+- `apps/api/src/lib/admin-content.ts` 已收缩为文章与资源管理的最小实现
+- `packages/shared/src/admin-content.ts` 已删除旧 `Topic / Event / Application` 后台兼容 DTO
+
+当前遗留仅剩：
+
+- Drizzle 迁移历史文件中仍保留旧表定义，作为历史迁移记录存在
+- API 与集成测试中保留对旧公开 / 后台路由返回 `404` 的退场断言
+
 ## 2. 当前代码基线
 
-当前仓库已经有较完整的工程骨架，但实现中心仍明显偏向旧主线。
+当前仓库已经完成主线收敛，以下内容主要作为状态记录而非待实现清单。
 
 ### 2.1 共享契约层
 
@@ -22,12 +39,11 @@
 - `packages/shared/src/admin-content.ts`
 - `packages/shared/src/ui.ts`
 
-当前问题：
+当前状态：
 
-- 公开 DTO 仍以 `Topic*`、`City*`、`PublicApplication*` 为主
-- 后台 DTO 仍围绕 `topics`、`cities`、`featured blocks`
-- 公共导航仍指向 `/topics`、`/cities`
-- 后台一级导航仍包含“主题 / 资源 / 推荐位 / 设置”等旧原型入口
+- 公开 DTO 已全部收敛到 `branches / members / articles / events / join / about / home`
+- 后台共享契约已移除旧 `topics / cities / featured blocks` DTO
+- 公共导航与后台一级导航都已对齐当前 7 个前台模块和 8 个后台模块
 
 ### 2.2 数据库与种子数据
 
@@ -37,12 +53,11 @@
 - `packages/db/src/seed.ts`
 - `packages/db/drizzle/*`
 
-当前问题：
+当前状态：
 
-- 主实体仍是 `cities`、`topics`、`applications`
-- 缺少 `branches`、`branch_board_members`、`members`、`join_applications`、`site_pages`、`homepage_sections`
-- 权限种子已收敛到当前后台所需权限，但更深层 schema 仍保留旧 `topic / city` 结构
-- 演示数据仍是旧主题/城市内容，不足以支撑当前 7 个前台模块
+- 主实体已经切到 `branches`、`branch_board_members`、`members`、`join_applications`、`site_pages`、`homepage_sections`
+- Drizzle migration 已补齐旧表退场与 `articles.branch_id` 回填逻辑
+- 演示数据已围绕分会、成员、文章、活动、加入申请主线生成
 
 ### 2.3 API 层
 
@@ -55,12 +70,12 @@
 - `apps/api/src/lib/platform-config.ts`
 - `apps/api/src/lib/access.ts`
 
-当前问题：
+当前状态：
 
-- 公开 API 仍以 `/topics`、`/cities`、`/applications` 为核心
-- 后台 API 仍缺少 `/members`、`/branches`、`/pages/:slug`、`/homepage`
-- 仪表盘统计仍围绕旧 `applications` 与资产数
-- 首页配置仍由 `featured_blocks` + `site_settings` 驱动，尚未对齐新的首页与单页内容模型
+- 公开 API 已围绕 `/home`、`/branches`、`/members`、`/events`、`/articles`、`/join`、`/about` 收敛
+- 后台 API 已提供 `/members`、`/branches`、`/pages/:slug`、`/homepage`
+- 仪表盘统计已切到 `join_applications` 等当前主线实体
+- 首页配置由 `homepage_sections` 驱动，`site-config` 走共享静态契约
 
 ### 2.4 前台与后台页面
 
@@ -69,12 +84,11 @@
 - 前台：`apps/site/src/pages/*`
 - 后台：`apps/admin/src/router.ts`、`apps/admin/src/lib/navigation.ts`、`apps/admin/src/views/*`
 
-当前问题：
+当前状态：
 
-- 前台仍存在 `apps/site/src/pages/topics/*`、`apps/site/src/pages/cities/*`
-- 前台还没有 `/branches`、`/members`、`/members/[slug]`、`/join`
-- 后台仍有 `TopicsPage.vue`、`TopicEditorPage.vue`、`FeaturedBlocksPage.vue`、`SiteSettingsPage.vue`
-- 后台还没有成员、分会/董事会相关页面与路由
+- 前台已提供 `/branches`、`/members`、`/members/[slug]`、`/join`
+- 后台旧 `topics / featured blocks / site settings` 页面与路由已退场
+- 成员、分会/董事会、首页配置、单页内容页面均已落地
 
 ## 3. 本轮迁移必须遵守的实施规则
 
@@ -83,7 +97,7 @@
 - 当前阶段成员不做登录认证，不补“成员中心”
 - 活动报名继续保持开放提交，由后台审核确认
 - 后台一级导航必须收敛到 8 个模块，但资源、页面配置等支持能力可以保留为二级页
-- 在前台和后台都切到新主线之前，不物理删除旧 `topics / cities / applications` 路由和表
+- 旧 `topics / cities / applications` 路由和表已经退场，后续仅保留退场测试与迁移历史，不再恢复
 
 ## 4. 推荐执行波次
 
