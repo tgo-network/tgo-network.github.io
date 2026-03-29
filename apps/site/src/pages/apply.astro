@@ -7,25 +7,25 @@ import { getPublicApiBaseUrl } from "../lib/public-api";
 const apiBaseUrl = getPublicApiBaseUrl();
 ---
 
-<BaseLayout title="Apply | TGO Network" description="Public application form wired to the shared applications API contract.">
+<BaseLayout title="申请 | TGO Network" description="接入共享申请 API 契约的公开申请表单。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card hero-split">
         <div>
-          <span class="eyebrow">Public Form</span>
-          <h1>Apply</h1>
+          <span class="eyebrow">公开表单</span>
+          <h1>申请</h1>
           <p>
-            This form submits against <code>/api/public/v1/applications</code>. Right now it validates the shared public
-            contract and returns a demo receipt, which keeps the frontend flow aligned with the future backend.
+            这个表单会提交到 <code>/api/public/v1/applications</code>。当前它已经接入共享公开契约校验，并会返回演示回执，
+            让前端流程可以提前和未来的正式后端保持一致。
           </p>
         </div>
 
         <aside class="panel panel-soft">
-          <div class="card-label">What this proves</div>
+          <div class="card-label">这证明了什么</div>
           <ul class="meta-list">
-            <li>Shared application input shape</li>
-            <li>API-side validation and friendly errors</li>
-            <li>Static Astro page with a real submission path</li>
+            <li>共享的申请输入结构</li>
+            <li>API 侧校验与友好的错误反馈</li>
+            <li>静态 Astro 页面也能拥有真实提交流程</li>
           </ul>
         </aside>
       </div>
@@ -35,41 +35,41 @@ const apiBaseUrl = getPublicApiBaseUrl();
       <form class="panel form-panel" data-application-form data-api-base={apiBaseUrl}>
         <div class="form-grid">
           <label>
-            <span>Application type</span>
+            <span>申请类型</span>
             <select name="type" required>
               {applicationTypeOptions.map((option) => <option value={option.value}>{option.label}</option>)}
             </select>
           </label>
 
           <label>
-            <span>Name</span>
+            <span>姓名</span>
             <input name="name" type="text" required minlength="2" />
           </label>
 
           <label>
-            <span>Email</span>
+            <span>邮箱</span>
             <input name="email" type="email" required />
           </label>
 
           <label>
-            <span>Company</span>
+            <span>公司</span>
             <input name="company" type="text" />
           </label>
 
           <label>
-            <span>City</span>
+            <span>城市</span>
             <input name="city" type="text" />
           </label>
         </div>
 
         <label>
-          <span>Why are you applying?</span>
+          <span>申请说明</span>
           <textarea name="message" rows="6" required minlength="20"></textarea>
         </label>
 
         <div class="form-actions">
-          <button class="button primary" type="submit">Submit application</button>
-          <p class="form-status" data-form-status>Ready to validate against the public API.</p>
+          <button class="button primary" type="submit">提交申请</button>
+          <p class="form-status" data-form-status>已准备好对接公开 API 进行校验。</p>
         </div>
       </form>
     </section>
@@ -82,7 +82,7 @@ const apiBaseUrl = getPublicApiBaseUrl();
     if (form instanceof HTMLFormElement && status instanceof HTMLElement) {
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        status.textContent = "Submitting...";
+        status.textContent = "提交中...";
 
         const formData = new FormData(form);
         const payload = Object.fromEntries(formData.entries());
@@ -101,14 +101,14 @@ const apiBaseUrl = getPublicApiBaseUrl();
 
           if (!response.ok) {
             const firstIssue = result.error?.details?.issues?.[0]?.message;
-            status.textContent = firstIssue ?? result.error?.message ?? "Unable to submit the application.";
+            status.textContent = firstIssue ?? result.error?.message ?? "申请提交失败，请稍后再试。";
             return;
           }
 
-          status.textContent = `Received application ${result.data.id}.`;
+          status.textContent = `已收到申请，编号 ${result.data.id}。`;
           form.reset();
         } catch {
-          status.textContent = "The API is currently unavailable. Start apps/api to test the full flow.";
+          status.textContent = "API 当前不可用，请先启动 apps/api 以测试完整流程。";
         }
       });
     }

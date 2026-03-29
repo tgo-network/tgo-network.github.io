@@ -10,13 +10,13 @@ interface Props {
 
 const {
   title,
-  description = "Static-first public site for the TGO Network platform."
+  description = "TGO Network 公开站：以静态优先方式呈现内容、城市与活动。"
 } = Astro.props;
 const config = await getSiteConfig();
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,8 +32,8 @@ const config = await getSiteConfig();
         <p>{config.footerTagline}</p>
         <div class="site-footer-links">
           {config.supportEmail && <a href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>}
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
+          <a href="/privacy">隐私说明</a>
+          <a href="/terms">使用条款</a>
         </div>
       </div>
     </footer>

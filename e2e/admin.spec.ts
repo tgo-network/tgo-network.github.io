@@ -7,23 +7,23 @@ const adminPassword = process.env.DEV_ADMIN_PASSWORD ?? "TgoAdmin123456!";
 test("admin redirects unauthenticated users to login and supports dashboard navigation", async ({ page }) => {
   await page.goto(`${adminUrl}/dashboard`);
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole("heading", { name: "Staff Login" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "工作人员登录" })).toBeVisible();
 
-  await page.getByLabel("Email").fill(adminEmail);
-  await page.getByLabel("Password").fill(adminPassword);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("邮箱").fill(adminEmail);
+  await page.getByLabel("密码").fill(adminPassword);
+  await page.getByRole("button", { name: "登录" }).click();
 
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "仪表盘" })).toBeVisible();
   await expect(page.getByText(adminEmail)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Topics" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Staff" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "主题" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "员工" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Topics" }).click();
+  await page.getByRole("link", { name: "主题" }).click();
   await expect(page).toHaveURL(/\/topics$/);
-  await expect(page.getByRole("heading", { name: "Topics" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "New Topic" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "主题" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "新建主题" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByRole("button", { name: "退出登录" }).click();
   await expect(page).toHaveURL(/\/login$/);
 });

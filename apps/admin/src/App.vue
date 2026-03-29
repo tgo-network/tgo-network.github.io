@@ -61,10 +61,10 @@ onMounted(() => {
   <div v-else class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand-tag">Admin MVP</span>
+        <span class="brand-tag">管理后台 MVP</span>
         <h1>{{ platformName }}</h1>
         <p>
-          Role-aware operations console for content, staff access, permissions, applications, assets, and site configuration.
+          面向工作人员的运营控制台，用于管理内容、员工权限、申请、资源与站点配置。
         </p>
       </div>
 
@@ -80,7 +80,7 @@ onMounted(() => {
       </nav>
 
       <button class="nav-link nav-button" type="button" @click="signOut">
-        Sign out
+        退出登录
       </button>
     </aside>
 

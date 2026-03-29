@@ -3,15 +3,15 @@ import { platformName, publicModules } from "@tgo/shared";
 
 import CollectionCard from "../components/CollectionCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { formatDate, formatDateRange } from "../lib/format";
+import { formatDate, formatDateRange, formatCount } from "../lib/format";
 import { getHomePayload } from "../lib/public-api";
 
 const home = await getHomePayload();
 ---
 
 <BaseLayout
-  title={`${platformName} | Public Site`}
-  description="Astro-powered public MVP routes backed by the shared TGO public API contract."
+  title={`${platformName} | 首页`}
+  description="基于 Astro 构建的 TGO Network 公开站 MVP，围绕主题、文章、活动与城市内容组织。"
 >
   <main class="page-shell page-stack">
     <section class="hero">
@@ -33,16 +33,15 @@ const home = await getHomePayload();
         </div>
 
         <aside class="hero-aside panel panel-soft">
-          <div class="card-label">Current Scope</div>
-          <h2 class="card-title">Public routes are now structured as real collections and details.</h2>
+          <div class="card-label">当前范围</div>
+          <h2 class="card-title">公开路由已经具备真实的列表与详情结构。</h2>
           <p class="card-copy">
-            The site can render from the API when it is available, while still falling back to shared demo data for
-            local static builds.
+            站点在 API 可用时可以直接渲染服务端数据；本地静态构建时，也仍然能够回退到共享演示数据。
           </p>
           <ul class="meta-list">
-            <li>Topics, articles, events, and cities</li>
-            <li>Shared DTOs between API and Astro</li>
-            <li>Application form contract ready for validation</li>
+            <li>主题、文章、活动与城市页面</li>
+            <li>API 与 Astro 共享 DTO 契约</li>
+            <li>申请表单契约已具备校验能力</li>
           </ul>
         </aside>
       </div>
@@ -51,10 +50,10 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Featured Topics</div>
-          <h2>Editorial themes that organize the first release</h2>
+          <div class="card-label">精选主题</div>
+          <h2>组织首个版本内容结构的核心主题</h2>
         </div>
-        <a class="text-link" href="/topics">View all topics</a>
+        <a class="text-link" href="/topics">查看全部主题</a>
       </div>
 
       <div class="grid grid-3">
@@ -62,11 +61,11 @@ const home = await getHomePayload();
           home.featuredTopics.map((topic) => (
             <CollectionCard
               href={`/topics/${topic.slug}`}
-              label={`${topic.articleCount} articles`}
+              label={formatCount(topic.articleCount, "篇文章")}
               title={topic.title}
               summary={topic.summary}
               image={topic.coverImage}
-              meta={[`${topic.eventCount} linked events`]}
+              meta={[formatCount(topic.eventCount, "场关联活动")]}
             />
           ))
         }
@@ -76,10 +75,10 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Latest Articles</div>
-          <h2>Long-form content ready for public browsing</h2>
+          <div class="card-label">最新文章</div>
+          <h2>已经可以面向公众浏览的长内容</h2>
         </div>
-        <a class="text-link" href="/articles">Browse articles</a>
+        <a class="text-link" href="/articles">浏览文章</a>
       </div>
 
       <div class="grid grid-3">
@@ -101,10 +100,10 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Upcoming Events</div>
-          <h2>Registration-aware event pages</h2>
+          <div class="card-label">近期活动</div>
+          <h2>可感知报名状态的活动页面</h2>
         </div>
-        <a class="text-link" href="/events">View events</a>
+        <a class="text-link" href="/events">查看活动</a>
       </div>
 
       <div class="grid grid-3">
@@ -126,10 +125,10 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">City Highlights</div>
-          <h2>Each city rolls up events, topics, and articles</h2>
+          <div class="card-label">城市亮点</div>
+          <h2>每座城市都会汇总活动、主题与文章</h2>
         </div>
-        <a class="text-link" href="/cities">Visit city pages</a>
+        <a class="text-link" href="/cities">进入城市页面</a>
       </div>
 
       <div class="grid grid-3">
@@ -137,11 +136,11 @@ const home = await getHomePayload();
           home.cityHighlights.map((city) => (
             <CollectionCard
               href={`/cities/${city.slug}`}
-              label={`${city.topicCount} topics`}
+              label={formatCount(city.topicCount, "个主题")}
               title={city.name}
               summary={city.summary}
               image={city.coverImage}
-              meta={[`${city.articleCount} articles`, `${city.eventCount} events`]}
+              meta={[formatCount(city.articleCount, "篇文章"), formatCount(city.eventCount, "场活动")]}
             />
           ))
         }
@@ -151,19 +150,19 @@ const home = await getHomePayload();
     <section class="section">
       <div class="panel promo-panel">
         <div>
-          <div class="card-label">Application Flow</div>
+          <div class="card-label">申请流程</div>
           <h2>{home.applicationCallout.title}</h2>
           <p class="card-copy">{home.applicationCallout.summary}</p>
         </div>
-        <a class="button primary" href={home.applicationCallout.href}>Open the form</a>
+        <a class="button primary" href={home.applicationCallout.href}>打开申请表</a>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Implementation Shape</div>
-          <h2>The public experience stays static-first, but not hard-coded.</h2>
+          <div class="card-label">实现形态</div>
+          <h2>公开体验坚持静态优先，但不是写死的数据页面。</h2>
         </div>
       </div>
 

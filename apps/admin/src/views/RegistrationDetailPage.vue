@@ -10,7 +10,7 @@ import {
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime, formatEventRegistrationState, formatEventRegistrationStatus } from "../lib/format";
 
 const route = useRoute();
 
@@ -27,7 +27,7 @@ const form = reactive<AdminEventRegistrationUpdateInput>({
 
 const registrationId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const answersJson = computed(() =>
-  registration.value?.answersJson ? JSON.stringify(registration.value.answersJson, null, 2) : "No extra answers submitted."
+  registration.value?.answersJson ? JSON.stringify(registration.value.answersJson, null, 2) : "没有提交额外信息。"
 );
 
 const loadRegistration = async () => {
@@ -42,7 +42,7 @@ const loadRegistration = async () => {
     eventInfo.value = payload.event;
     form.status = payload.registration.status;
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load registration.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载报名详情。";
   } finally {
     loading.value = false;
   }
@@ -62,10 +62,10 @@ const save = async () => {
     registration.value = payload.registration;
     eventInfo.value = payload.event;
     form.status = payload.registration.status;
-    successMessage.value = "Registration status updated.";
+    successMessage.value = "报名状态已更新。";
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to update registration.";
+    errorMessage.value = error instanceof Error ? error.message : "无法更新报名状态。";
   } finally {
     saving.value = false;
   }
@@ -87,118 +87,118 @@ onMounted(() => {
   <section>
     <header class="page-header page-header-row">
       <div>
-        <h2>{{ registration ? registration.name : "Registration Detail" }}</h2>
-        <p>Review attendee information and keep the registration decision aligned with the event operations workflow.</p>
+        <h2>{{ registration ? registration.name : "报名详情" }}</h2>
+        <p>审核报名人信息，并让报名决策与活动运营流程保持一致。</p>
       </div>
 
       <div class="page-actions">
         <RouterLink v-if="eventInfo" class="button-link" :to="`/events/${eventInfo.id}/registrations`">
-          Back to Registrations
+          返回报名列表
         </RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
-          {{ saving ? "Saving..." : "Save Status" }}
+          {{ saving ? "保存中..." : "保存状态" }}
         </button>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Action Error</div>
+      <div class="brand-tag">操作错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Preparing registration detail...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在准备报名详情...</p>
     </div>
 
     <div v-else-if="registration && eventInfo" class="editor-grid">
       <div class="panel editor-main stacked-gap">
-        <div class="brand-tag">Attendee</div>
+        <div class="brand-tag">报名人</div>
         <div class="field-grid field-grid-2">
           <div class="info-card">
-            <span>Name</span>
+            <span>姓名</span>
             <strong>{{ registration.name }}</strong>
           </div>
           <div class="info-card">
-            <span>Status</span>
-            <strong>{{ registration.status }}</strong>
+            <span>状态</span>
+            <strong>{{ formatEventRegistrationStatus(registration.status) }}</strong>
           </div>
           <div class="info-card">
-            <span>Email</span>
+            <span>邮箱</span>
             <strong>{{ registration.email || "-" }}</strong>
           </div>
           <div class="info-card">
-            <span>Phone</span>
+            <span>手机号</span>
             <strong>{{ registration.phoneNumber || "-" }}</strong>
           </div>
           <div class="info-card">
-            <span>Company</span>
+            <span>公司</span>
             <strong>{{ registration.company || "-" }}</strong>
           </div>
           <div class="info-card">
-            <span>Job Title</span>
+            <span>职位</span>
             <strong>{{ registration.jobTitle || "-" }}</strong>
           </div>
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">Extra Answers</div>
+          <div class="brand-tag">扩展信息</div>
           <pre class="json-preview">{{ answersJson }}</pre>
         </div>
       </div>
 
       <aside class="editor-side stacked-gap">
         <div class="panel stacked-gap">
-          <div class="brand-tag">Review</div>
+          <div class="brand-tag">审核</div>
           <label class="field">
-            <span>Status</span>
+            <span>状态</span>
             <select v-model="form.status">
               <option v-for="option in eventRegistrationStatusOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>
-            <small class="field-hint">Use waitlisted when the event is full but the attendee should stay in the queue.</small>
+            <small class="field-hint">当活动已满但仍希望保留报名顺位时，请使用“候补中”。</small>
             <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
           </label>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">Event</div>
+          <div class="brand-tag">活动</div>
           <div class="info-card">
-            <span>Title</span>
+            <span>标题</span>
             <strong>{{ eventInfo.title }}</strong>
           </div>
           <div class="info-row">
-            <span>Slug</span>
+            <span>URL 标识</span>
             <strong>/{{ eventInfo.slug }}</strong>
           </div>
           <div class="info-row">
-            <span>Venue</span>
+            <span>场地</span>
             <strong>{{ eventInfo.venueName || "-" }}</strong>
           </div>
           <div class="info-row">
-            <span>Registration state</span>
-            <strong class="status-pill">{{ eventInfo.registrationState }}</strong>
+            <span>报名状态</span>
+            <strong class="status-pill">{{ formatEventRegistrationState(eventInfo.registrationState) }}</strong>
           </div>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">Audit</div>
+          <div class="brand-tag">审计</div>
           <div class="info-row">
-            <span>Source</span>
+            <span>来源</span>
             <strong>{{ registration.source }}</strong>
           </div>
           <div class="info-row">
-            <span>Submitted</span>
+            <span>提交时间</span>
             <strong>{{ formatDateTime(registration.createdAt) }}</strong>
           </div>
           <div class="info-row">
-            <span>Reviewed</span>
+            <span>审核时间</span>
             <strong>{{ formatDateTime(registration.reviewedAt) }}</strong>
           </div>
         </div>

@@ -1,15 +1,15 @@
 import type { RegistrationState } from "@tgo/shared";
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
   month: "short",
-  day: "numeric",
-  year: "numeric"
+  day: "numeric"
 });
 
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "short",
   day: "numeric",
-  hour: "numeric",
+  hour: "2-digit",
   minute: "2-digit"
 });
 
@@ -25,14 +25,14 @@ export const formatDateRange = (startsAt: string, endsAt: string) => {
 export const formatRegistrationState = (state: RegistrationState) => {
   switch (state) {
     case "open":
-      return "Registration open";
+      return "报名开放中";
     case "waitlist":
-      return "Waitlist";
+      return "候补中";
     case "closed":
-      return "Registration closed";
+      return "报名已关闭";
     default:
-      return "Registration not open";
+      return "报名未开放";
   }
 };
 
-export const formatCount = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+export const formatCount = (count: number, noun: string) => `${count}${noun}`;

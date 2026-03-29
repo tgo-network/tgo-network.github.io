@@ -14,6 +14,30 @@ const form = reactive({
 const loading = ref(false);
 const errorMessage = ref("");
 
+const localizeAuthErrorMessage = (message: string | null | undefined) => {
+  if (!message) {
+    return "登录失败，请检查账号信息后重试。";
+  }
+
+  if (/[\u4e00-\u9fff]/.test(message)) {
+    return message;
+  }
+
+  switch (message?.trim()) {
+    case "Invalid email or password":
+    case "Invalid email or password.":
+      return "邮箱或密码错误。";
+    case "Email is required":
+    case "Email is required.":
+      return "请输入邮箱。";
+    case "Password is required":
+    case "Password is required.":
+      return "请输入密码。";
+    default:
+      return "登录失败，请检查账号信息后重试。";
+  }
+};
+
 const signIn = async () => {
   loading.value = true;
   errorMessage.value = "";
@@ -25,13 +49,13 @@ const signIn = async () => {
     });
 
     if (result.error) {
-      errorMessage.value = result.error.message ?? "Unable to sign in.";
+      errorMessage.value = localizeAuthErrorMessage(result.error.message);
       return;
     }
 
     await router.push("/dashboard");
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to sign in.";
+    errorMessage.value = error instanceof Error ? localizeAuthErrorMessage(error.message) : "登录失败。";
   } finally {
     loading.value = false;
   }
@@ -49,15 +73,15 @@ const signIn = async () => {
   >
     <section class="panel" style="width: min(440px, 100%);">
       <div class="brand-tag">Better Auth</div>
-      <h1 style="margin: 14px 0 10px;">Staff Login</h1>
+      <h1 style="margin: 14px 0 10px;">工作人员登录</h1>
       <p style="margin: 0 0 16px;">
-        The admin app is now wired for the Better Auth email/password flow. Once
-        the backend has a real database and a bootstrapped admin account, this
-        form can authenticate actual operators.
+        管理后台已经接入 Better Auth 的邮箱密码登录流程。
+        当后端接入真实数据库并完成管理员账号初始化后，
+        这个表单就可以用于真实工作人员登录。
       </p>
 
       <p style="margin: 0 0 16px; color: var(--muted);">
-        Local bootstrap defaults: <code>admin@tgo.local</code> /
+        本地初始化默认账号： <code>admin@tgo.local</code> /
         <code>TgoAdmin123456!</code>
       </p>
 
@@ -66,7 +90,7 @@ const signIn = async () => {
         style="display: grid; gap: 12px;"
       >
         <label style="display: grid; gap: 6px;">
-          <span>Email</span>
+          <span>邮箱</span>
           <input
             v-model="form.email"
             type="email"
@@ -77,7 +101,7 @@ const signIn = async () => {
         </label>
 
         <label style="display: grid; gap: 6px;">
-          <span>Password</span>
+          <span>密码</span>
           <input
             v-model="form.password"
             type="password"
@@ -93,7 +117,7 @@ const signIn = async () => {
           class="nav-link router-link-active"
           style="cursor: pointer;"
         >
-          {{ loading ? "Signing in..." : "Sign in" }}
+          {{ loading ? "登录中..." : "登录" }}
         </button>
       </form>
 

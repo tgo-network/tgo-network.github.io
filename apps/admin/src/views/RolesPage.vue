@@ -69,7 +69,7 @@ const loadRoles = async (preferredRoleId?: string) => {
     selectedRoleId.value = nextSelectedId;
     applySelectedRole(payload.roles.find((role) => role.id === nextSelectedId) ?? null);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load roles.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载角色列表。";
   } finally {
     loading.value = false;
   }
@@ -97,17 +97,17 @@ const saveRole = async () => {
       body: form
     });
 
-    successMessage.value = `Role updated: ${updated.name}.`;
+    successMessage.value = `角色已更新：${updated.name}。`;
     await loadRoles(updated.id);
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to update the role.";
+    errorMessage.value = error instanceof Error ? error.message : "无法更新角色。";
   } finally {
     saving.value = false;
   }
 };
 
-const formatPermissionNames = (role: AdminRoleListItem) => role.permissionCodes.join(", ") || "No permissions";
+const formatPermissionNames = (role: AdminRoleListItem) => role.permissionCodes.join(", ") || "无权限";
 const isSelectedRoleSystem = computed(() => selectedRole.value?.isSystem ?? false);
 const isSuperAdmin = computed(() => selectedRole.value?.code === "super_admin");
 
@@ -119,41 +119,41 @@ onMounted(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header">
-      <h2>Roles</h2>
-      <p>Manage permission bundles centrally, then keep staff access simple by assigning roles instead of one-off grants.</p>
+      <h2>角色</h2>
+      <p>集中管理权限组合，通过分配角色而不是零散授权来简化员工访问控制。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Action Error</div>
+      <div class="brand-tag">操作错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel panel-success stacked-gap">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching roles and permission references...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载角色与权限信息...</p>
     </div>
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
         <article class="panel stat-panel">
-          <div class="brand-tag">Roles</div>
+          <div class="brand-tag">角色</div>
           <strong>{{ roles.length }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Permissions</div>
+          <div class="brand-tag">权限</div>
           <strong>{{ permissions.length }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">System</div>
+          <div class="brand-tag">系统角色</div>
           <strong>{{ systemRoleCount }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Bindings</div>
+          <div class="brand-tag">权限绑定</div>
           <strong>{{ permissionAssignmentCount }}</strong>
         </article>
       </div>
@@ -162,9 +162,9 @@ onMounted(() => {
         <div class="panel editor-main stacked-gap">
           <div class="page-header-row compact-row">
             <div>
-              <div class="brand-tag">Role Catalog</div>
-              <h3>Permission bundles</h3>
-              <p class="section-copy">Use stable role definitions so staff provisioning stays predictable and auditable.</p>
+              <div class="brand-tag">角色目录</div>
+              <h3>权限组合</h3>
+              <p class="section-copy">通过稳定的角色定义，让员工开通流程保持可预测、可审计。</p>
             </div>
           </div>
 
@@ -172,10 +172,10 @@ onMounted(() => {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Role</th>
-                  <th>Staff</th>
-                  <th>Permissions</th>
-                  <th>Updated</th>
+                  <th>角色</th>
+                  <th>员工数</th>
+                  <th>权限数</th>
+                  <th>更新时间</th>
                   <th></th>
                 </tr>
               </thead>
@@ -190,7 +190,7 @@ onMounted(() => {
                   <td>{{ formatDateTime(role.updatedAt) }}</td>
                   <td class="table-actions-cell">
                     <button class="button-link button-compact" type="button" @click="selectRole(role)">
-                      {{ selectedRoleId === role.id ? "Editing" : "Edit" }}
+                      {{ selectedRoleId === role.id ? "编辑中" : "编辑" }}
                     </button>
                   </td>
                 </tr>
@@ -201,7 +201,7 @@ onMounted(() => {
 
         <aside class="editor-side stacked-gap">
           <div class="panel stacked-gap">
-            <div class="brand-tag">Edit Role</div>
+            <div class="brand-tag">编辑角色</div>
 
             <template v-if="selectedRole">
               <div class="page-header-row compact-row">
@@ -211,61 +211,61 @@ onMounted(() => {
                 </div>
 
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
-                  {{ saving ? "Saving..." : "Save Role" }}
+                  {{ saving ? "保存中..." : "保存角色" }}
                 </button>
               </div>
 
               <label class="field">
-                <span>Role Name</span>
+                <span>角色名称</span>
                 <input v-model="form.name" type="text" />
                 <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
               </label>
 
               <label class="field">
-                <span>Description</span>
+                <span>描述</span>
                 <textarea v-model="form.description" rows="4"></textarea>
                 <small v-if="fieldIssues.description" class="field-error">{{ fieldIssues.description }}</small>
               </label>
 
               <label class="field">
-                <span>Permissions</span>
+                <span>权限</span>
                 <select v-model="form.permissionIds" multiple>
                   <option v-for="permission in permissions" :key="permission.id" :value="permission.id">
                     {{ permission.code }} - {{ permission.name }}
                   </option>
                 </select>
-                <small class="field-hint">Permission checks happen in the API layer; the admin UI only mirrors them.</small>
+                <small class="field-hint">权限校验发生在 API 层，后台界面只负责把结果呈现出来。</small>
                 <small v-if="fieldIssues.permissionIds" class="field-error">{{ fieldIssues.permissionIds }}</small>
               </label>
 
               <div class="panel inset-panel stacked-gap">
                 <div class="info-row">
-                  <span>Assigned staff</span>
+                  <span>已分配员工</span>
                   <strong>{{ selectedRole.assignedStaffCount }}</strong>
                 </div>
                 <div class="info-row">
-                  <span>System role</span>
-                  <strong>{{ isSelectedRoleSystem ? "Yes" : "No" }}</strong>
+                  <span>系统角色</span>
+                  <strong>{{ isSelectedRoleSystem ? "是" : "否" }}</strong>
                 </div>
                 <div class="info-row">
-                  <span>Updated</span>
+                  <span>更新时间</span>
                   <strong>{{ formatDateTime(selectedRole.updatedAt) }}</strong>
                 </div>
               </div>
 
               <div class="panel inset-panel stacked-gap">
-                <div class="brand-tag">Current Permission Codes</div>
+                <div class="brand-tag">当前权限代码</div>
                 <p>{{ formatPermissionNames(selectedRole) }}</p>
               </div>
 
               <div v-if="isSuperAdmin" class="panel inset-panel stacked-gap">
-                <div class="brand-tag">Safety Rule</div>
-                <p>The `super_admin` role must retain the full permission set so at least one unrestricted operator always exists.</p>
+                <div class="brand-tag">安全规则</div>
+                <p>`super_admin` 角色必须保留完整权限集，确保系统中始终至少存在一个不受限的操作员。</p>
               </div>
             </template>
 
             <template v-else>
-              <p>No role is selected yet.</p>
+              <p>还没有选中任何角色。</p>
             </template>
           </div>
         </aside>

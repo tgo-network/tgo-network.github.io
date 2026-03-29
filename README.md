@@ -131,3 +131,4 @@ Project planning documents:
 - [Deployment and environments](docs/deployment-and-environments.md)
 - [Testing strategy](docs/testing-strategy.md)
 - [Operations runbook](docs/operations-runbook.md)
+- [TGO target site benchmark](docs/benchmark-tgo-site.md)

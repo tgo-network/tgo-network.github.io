@@ -29,28 +29,28 @@ import {
 } from "./schema/index.js";
 
 const permissionSeed = [
-  ["dashboard.read", "Dashboard Read", "dashboard", "read"],
-  ["article.read", "Article Read", "article", "read"],
-  ["article.write", "Article Write", "article", "write"],
-  ["article.publish", "Article Publish", "article", "publish"],
-  ["topic.manage", "Topic Manage", "topic", "manage"],
-  ["event.manage", "Event Manage", "event", "manage"],
-  ["registration.read", "Registration Read", "registration", "read"],
-  ["application.review", "Application Review", "application", "review"],
-  ["asset.manage", "Asset Manage", "asset", "manage"],
-  ["featured_block.manage", "Featured Block Manage", "featured_block", "manage"],
-  ["settings.manage", "Settings Manage", "settings", "manage"],
-  ["audit_log.read", "Audit Log Read", "audit_log", "read"],
-  ["staff.manage", "Staff Manage", "staff", "manage"],
-  ["role.manage", "Role Manage", "role", "manage"]
+  ["dashboard.read", "仪表盘读取", "dashboard", "read"],
+  ["article.read", "文章读取", "article", "read"],
+  ["article.write", "文章编辑", "article", "write"],
+  ["article.publish", "文章发布", "article", "publish"],
+  ["topic.manage", "主题管理", "topic", "manage"],
+  ["event.manage", "活动管理", "event", "manage"],
+  ["registration.read", "报名读取", "registration", "read"],
+  ["application.review", "申请审核", "application", "review"],
+  ["asset.manage", "资源管理", "asset", "manage"],
+  ["featured_block.manage", "推荐位管理", "featured_block", "manage"],
+  ["settings.manage", "设置管理", "settings", "manage"],
+  ["audit_log.read", "审计日志读取", "audit_log", "read"],
+  ["staff.manage", "员工管理", "staff", "manage"],
+  ["role.manage", "角色管理", "role", "manage"]
 ] as const;
 
 const roleSeed = [
-  ["super_admin", "Super Admin", "Full internal access"],
-  ["content_editor", "Content Editor", "Manage articles, topics, and featured blocks"],
-  ["event_manager", "Event Manager", "Manage events and registration review"],
-  ["reviewer", "Reviewer", "Review inbound applications"],
-  ["media_manager", "Media Manager", "Manage uploaded assets"]
+  ["super_admin", "超级管理员", "拥有全部后台权限"],
+  ["content_editor", "内容编辑", "管理文章、主题与推荐位"],
+  ["event_manager", "活动经理", "管理活动与报名审核"],
+  ["reviewer", "审核员", "审核新提交的申请"],
+  ["media_manager", "资源管理员", "管理已上传资源"]
 ] as const;
 
 const rolePermissions: Record<string, string[]> = {
@@ -77,29 +77,29 @@ const rolePermissions: Record<string, string[]> = {
 const demoApplications = [
   {
     type: "trial" as const,
-    name: "Lin Qiao",
+    name: "林桥",
     email: "lin.qiao@example.com",
-    company: "Studio North",
+    company: "北岸工作室",
     citySlug: "shanghai",
-    message: "I want to join the next operator cohort and help shape the first launch playbook.",
+    message: "我希望加入下一批运营伙伴计划，并一起打磨首发阶段的执行手册。",
     status: "submitted" as const
   },
   {
     type: "membership" as const,
-    name: "Mina Xu",
+    name: "徐米娜",
     email: "mina.xu@example.com",
-    company: "Lakehouse Labs",
+    company: "湖屋实验室",
     citySlug: "hangzhou",
-    message: "Our team wants to contribute recurring event formats and editorial material to the network.",
+    message: "我们的团队希望为这个网络提供可持续复用的活动形式和内容素材。",
     status: "in_review" as const
   },
   {
     type: "contact" as const,
-    name: "Bo Zhang",
+    name: "张博",
     email: "bo.zhang@example.com",
-    company: "East Garden Forum",
+    company: "东园论坛",
     citySlug: "beijing",
-    message: "We are exploring venue and community partnership opportunities for the city kickoff series.",
+    message: "我们正在为城市启动系列活动评估场地与社群合作机会。",
     status: "contacted" as const
   }
 ];
@@ -222,7 +222,7 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
       .values(
         missingAuthors.map((name) => ({
           displayName: name,
-          bio: authorRoleByName.get(name) ?? "Contributor",
+          bio: authorRoleByName.get(name) ?? "作者",
           status: "active"
         }))
       );
@@ -317,7 +317,7 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
     return event.agenda.map((entry, index) => ({
       eventId,
       title: entry.title,
-      summary: `${entry.title} by ${entry.speaker}`,
+      summary: `${entry.title} · 主讲：${entry.speaker}`,
       speakerName: entry.speaker,
       sortOrder: index
     }));

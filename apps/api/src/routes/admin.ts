@@ -91,7 +91,7 @@ const getStaffAccountId = (c: AdminContext) => {
   const staffAccount = c.get("staffAccount");
 
   if (!staffAccount) {
-    throw new AdminContentError(403, "FORBIDDEN", "Active staff access is required.");
+    throw new AdminContentError(403, "FORBIDDEN", "需要启用中的员工账号权限。");
   }
 
   return staffAccount.id;
@@ -143,7 +143,7 @@ adminRoutes.post("/topics", requireActiveStaff("topic.manage"), async (c) => {
   const result = validateAdminTopicInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -159,7 +159,7 @@ adminRoutes.get("/topics/:id", requireActiveStaff("topic.manage"), async (c) => 
   const topic = await getAdminTopic(c.req.param("id"));
 
   if (!topic) {
-    return jsonError(c, 404, "NOT_FOUND", "Topic not found.");
+    return jsonError(c, 404, "NOT_FOUND", "主题不存在。");
   }
 
   return c.json(ok(topic));
@@ -170,7 +170,7 @@ adminRoutes.patch("/topics/:id", requireActiveStaff("topic.manage"), async (c) =
   const result = validateAdminTopicInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -213,7 +213,7 @@ adminRoutes.post("/articles", requireActiveStaff("article.write"), async (c) => 
   const result = validateAdminArticleInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -229,7 +229,7 @@ adminRoutes.get("/articles/:id", requireActiveStaff("article.read"), async (c) =
   const article = await getAdminArticle(c.req.param("id"));
 
   if (!article) {
-    return jsonError(c, 404, "NOT_FOUND", "Article not found.");
+    return jsonError(c, 404, "NOT_FOUND", "文章不存在。");
   }
 
   return c.json(ok(article));
@@ -240,7 +240,7 @@ adminRoutes.patch("/articles/:id", requireActiveStaff("article.write"), async (c
   const result = validateAdminArticleInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -283,7 +283,7 @@ adminRoutes.post("/events", requireActiveStaff("event.manage"), async (c) => {
   const result = validateAdminEventInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -299,7 +299,7 @@ adminRoutes.get("/events/:id", requireActiveStaff("event.manage"), async (c) => 
   const event = await getAdminEvent(c.req.param("id"));
 
   if (!event) {
-    return jsonError(c, 404, "NOT_FOUND", "Event not found.");
+    return jsonError(c, 404, "NOT_FOUND", "活动不存在。");
   }
 
   return c.json(ok(event));
@@ -310,7 +310,7 @@ adminRoutes.patch("/events/:id", requireActiveStaff("event.manage"), async (c) =
   const result = validateAdminEventInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -351,7 +351,7 @@ adminRoutes.get("/registrations/:id", requireActiveStaff("registration.read"), a
     const registration = await getAdminEventRegistration(c.req.param("id"));
 
     if (!registration) {
-      return jsonError(c, 404, "NOT_FOUND", "Registration not found.");
+      return jsonError(c, 404, "NOT_FOUND", "报名记录不存在。");
     }
 
     return c.json(ok(registration));
@@ -365,7 +365,7 @@ adminRoutes.patch("/registrations/:id", requireActiveStaff("registration.read"),
   const result = validateAdminEventRegistrationInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -387,7 +387,7 @@ adminRoutes.get("/applications/:id", requireActiveStaff("application.review"), a
   const application = await getAdminApplication(c.req.param("id"));
 
   if (!application) {
-    return jsonError(c, 404, "NOT_FOUND", "Application not found.");
+    return jsonError(c, 404, "NOT_FOUND", "申请记录不存在。");
   }
 
   return c.json(ok(application));
@@ -398,7 +398,7 @@ adminRoutes.patch("/applications/:id", requireActiveStaff("application.review"),
   const result = validateAdminApplicationInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -421,7 +421,7 @@ adminRoutes.post("/assets/uploads", requireActiveStaff("asset.manage"), async (c
   const result = validateAdminAssetUploadIntentInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -438,7 +438,7 @@ adminRoutes.post("/assets/uploads/complete", requireActiveStaff("asset.manage"),
   const result = validateAdminAssetUploadCompleteInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -463,7 +463,7 @@ adminRoutes.post("/staff", requireActiveStaff("staff.manage"), async (c) => {
   const result = validateAdminStaffCreateInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -480,7 +480,7 @@ adminRoutes.patch("/staff/:id", requireActiveStaff("staff.manage"), async (c) =>
   const result = validateAdminStaffUpdateInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -499,7 +499,7 @@ adminRoutes.patch("/roles/:id", requireActiveStaff("role.manage"), async (c) => 
   const result = validateAdminRoleInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -520,7 +520,7 @@ adminRoutes.patch("/featured-blocks/homepage", requireActiveStaff("featured_bloc
   const result = validateAdminFeaturedBlockInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -541,7 +541,7 @@ adminRoutes.patch("/site-settings", requireActiveStaff("settings.manage"), async
   const result = validateAdminSiteSettingsInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }

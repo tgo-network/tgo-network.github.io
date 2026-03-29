@@ -83,7 +83,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => {
       c,
       503,
       "AUTH_NOT_CONFIGURED",
-      "Authentication is not configured. Set DATABASE_URL and BETTER_AUTH_SECRET."
+      "认证尚未配置，请先设置 DATABASE_URL 与 BETTER_AUTH_SECRET。"
     );
   }
 
@@ -95,7 +95,7 @@ app.route("/api/public/v1", publicRoutes);
 app.route("/api/admin/v1", adminRoutes);
 app.route("/api/internal/v1", internalRoutes);
 
-app.notFound((c) => jsonError(c, 404, "NOT_FOUND", "Route not found."));
+app.notFound((c) => jsonError(c, 404, "NOT_FOUND", "请求的路由不存在。"));
 
 app.onError((error, c) => {
   const { errorMessage, errorName, stack } = serializeError(error);
@@ -118,5 +118,5 @@ app.onError((error, c) => {
     stack: env.appEnvironment === "production" ? undefined : stack
   });
 
-  return jsonError(c, 500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
+  return jsonError(c, 500, "INTERNAL_SERVER_ERROR", "发生了未预期的服务端错误。");
 });

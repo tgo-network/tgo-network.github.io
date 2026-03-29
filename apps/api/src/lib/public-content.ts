@@ -512,11 +512,11 @@ export const createPublicEventRegistrationFromDb = async (
   const event = await getPublishedEventForRegistration(eventIdentifier);
 
   if (!event) {
-    throw new PublicContentError(404, "NOT_FOUND", "Event not found.");
+    throw new PublicContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   if (event.registrationState !== "open" && event.registrationState !== "waitlist") {
-    throw new PublicContentError(409, "REGISTRATION_CLOSED", "Event registration is not currently open.");
+    throw new PublicContentError(409, "REGISTRATION_CLOSED", "当前活动尚未开放报名。");
   }
 
   const status = resolvePublicEventRegistrationStatus(event.registrationState);

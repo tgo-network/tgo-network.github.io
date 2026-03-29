@@ -1,16 +1,44 @@
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
+import {
+  adminAssetTypeOptions,
+  applicationStatusOptions,
+  applicationTypeOptions,
+  assetStatusOptions,
+  assetVisibilityOptions,
+  contentStatusOptions,
+  eventRegistrationStateOptions,
+  eventRegistrationStatusOptions,
+  featuredBlockStatusOptions,
+  staffAccountStatusOptions,
+  type ApplicationStatus,
+  type ApplicationType,
+  type AssetStatus,
+  type AssetVisibility,
+  type ContentStatus,
+  type EventRegistrationState,
+  type EventRegistrationStatus,
+  type FeaturedBlockStatus,
+  type StaffAccountStatus,
+  type AdminAssetType
+} from "@tgo/shared";
+
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
   month: "short",
-  day: "numeric",
-  year: "numeric"
+  day: "numeric"
 });
 
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
   month: "short",
   day: "numeric",
-  year: "numeric",
-  hour: "numeric",
+  hour: "2-digit",
   minute: "2-digit"
 });
+
+const formatOptionLabel = <T extends string>(
+  options: ReadonlyArray<{ value: T; label: string }>,
+  value: string | null | undefined
+) => options.find((option) => option.value === value)?.label ?? value ?? "-";
 
 export const formatDate = (value: string | Date | null | undefined) => {
   if (!value) {
@@ -39,6 +67,36 @@ export const formatBytes = (value: number | null | undefined) => {
 
   return `${amount >= 10 || exponent === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[exponent]}`;
 };
+
+export const formatContentStatus = (value: string | ContentStatus | null | undefined) =>
+  formatOptionLabel(contentStatusOptions, value);
+
+export const formatEventRegistrationState = (value: string | EventRegistrationState | null | undefined) =>
+  formatOptionLabel(eventRegistrationStateOptions, value);
+
+export const formatEventRegistrationStatus = (value: string | EventRegistrationStatus | null | undefined) =>
+  formatOptionLabel(eventRegistrationStatusOptions, value);
+
+export const formatApplicationStatus = (value: string | ApplicationStatus | null | undefined) =>
+  formatOptionLabel(applicationStatusOptions, value);
+
+export const formatApplicationType = (value: string | ApplicationType | null | undefined) =>
+  formatOptionLabel(applicationTypeOptions, value);
+
+export const formatStaffAccountStatus = (value: string | StaffAccountStatus | null | undefined) =>
+  formatOptionLabel(staffAccountStatusOptions, value);
+
+export const formatFeaturedBlockStatus = (value: string | FeaturedBlockStatus | null | undefined) =>
+  formatOptionLabel(featuredBlockStatusOptions, value);
+
+export const formatAssetVisibility = (value: string | AssetVisibility | null | undefined) =>
+  formatOptionLabel(assetVisibilityOptions, value);
+
+export const formatAssetStatus = (value: string | AssetStatus | null | undefined) =>
+  formatOptionLabel(assetStatusOptions, value);
+
+export const formatAdminAssetType = (value: string | AdminAssetType | null | undefined) =>
+  formatOptionLabel(adminAssetTypeOptions, value);
 
 export const slugify = (value: string) =>
   value

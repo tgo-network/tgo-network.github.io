@@ -5,13 +5,13 @@ import { RouterLink, useRoute } from "vue-router";
 import type { AdminEventRegistrationListPayload, AdminEventRegistrationListItem } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime, formatEventRegistrationStatus } from "../lib/format";
 
 const route = useRoute();
 
 const loading = ref(true);
 const errorMessage = ref("");
-const eventTitle = ref("Event Registrations");
+const eventTitle = ref("活动报名");
 const eventId = ref("");
 const eventSlug = ref("");
 const registrations = ref<AdminEventRegistrationListItem[]>([]);
@@ -30,7 +30,7 @@ const loadRegistrations = async () => {
     eventSlug.value = payload.event.slug;
     registrations.value = payload.registrations;
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load event registrations.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载活动报名列表。";
   } finally {
     loading.value = false;
   }
@@ -53,64 +53,64 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>{{ eventTitle }}</h2>
-        <p>Review inbound registrations for this event and move each attendee through the registration status flow.</p>
+        <p>审核这场活动的报名信息，并推动报名人在状态流转中继续前进。</p>
       </div>
 
       <div class="page-actions">
         <RouterLink class="button-link" to="/events">
-          Back to Events
+          返回活动列表
         </RouterLink>
         <RouterLink v-if="eventId" class="button-link button-primary" :to="`/events/${eventId}/edit`">
-          Edit Event
+          编辑活动
         </RouterLink>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API Error</div>
+      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching event registrations...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载活动报名...</p>
     </div>
 
     <template v-else>
       <div class="panel-grid panel-grid-4" style="margin-bottom: 18px;">
         <article class="panel stat-panel">
-          <div class="brand-tag">Event</div>
+          <div class="brand-tag">活动</div>
           <strong>{{ eventSlug || "-" }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Registrations</div>
+          <div class="brand-tag">报名数</div>
           <strong>{{ registrations.length }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Reviewed</div>
+          <div class="brand-tag">已审核</div>
           <strong>{{ reviewedCount }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Pending</div>
+          <div class="brand-tag">待处理</div>
           <strong>{{ registrations.length - reviewedCount }}</strong>
         </article>
       </div>
 
       <div v-if="registrations.length === 0" class="panel">
-        <div class="brand-tag">No Registrations Yet</div>
-        <p>No attendee submissions have been received for this event yet.</p>
+        <div class="brand-tag">暂无报名</div>
+        <p>这场活动暂时还没有收到报名提交。</p>
       </div>
 
       <div v-else class="panel table-panel">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Attendee</th>
-              <th>Contact</th>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Reviewed</th>
+              <th>报名人</th>
+              <th>联系方式</th>
+              <th>公司</th>
+              <th>状态</th>
+              <th>提交时间</th>
+              <th>审核时间</th>
               <th></th>
             </tr>
           </thead>
@@ -118,19 +118,19 @@ onMounted(() => {
             <tr v-for="row in registrations" :key="row.id">
               <td>
                 <strong>{{ row.name }}</strong>
-                <div class="muted-row">{{ row.jobTitle || "No job title" }}</div>
+                <div class="muted-row">{{ row.jobTitle || "未填写职位" }}</div>
               </td>
               <td>
                 <div>{{ row.email || row.phoneNumber || "-" }}</div>
                 <div v-if="row.email && row.phoneNumber" class="muted-row">{{ row.phoneNumber }}</div>
               </td>
               <td>{{ row.company || "-" }}</td>
-              <td><span class="status-pill">{{ row.status }}</span></td>
+              <td><span class="status-pill">{{ formatEventRegistrationStatus(row.status) }}</span></td>
               <td>{{ formatDateTime(row.createdAt) }}</td>
               <td>{{ formatDateTime(row.reviewedAt) }}</td>
               <td class="table-actions-cell">
                 <RouterLink class="table-link" :to="`/registrations/${row.id}`">
-                  Review
+                  审核
                 </RouterLink>
               </td>
             </tr>

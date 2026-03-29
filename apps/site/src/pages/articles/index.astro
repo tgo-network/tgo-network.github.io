@@ -1,21 +1,21 @@
 ---
 import CollectionCard from "../../components/CollectionCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { formatDate } from "../../lib/format";
+import { formatDate, formatCount } from "../../lib/format";
 import { listArticles } from "../../lib/public-api";
 
 const articles = await listArticles();
 ---
 
-<BaseLayout title="Articles | TGO Network" description="Published article listing backed by the TGO public API contract.">
+<BaseLayout title="文章 | TGO Network" description="由 TGO 公开 API 契约支撑的已发布文章列表。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">Public Route</span>
-        <h1>Articles</h1>
+        <span class="eyebrow">公开路由</span>
+        <h1>文章</h1>
         <p>
-          Articles are rendered as static-first detail pages, but their content contract already lives in the shared API
-          layer so admin publishing can take over without reshaping the frontend.
+          文章会以静态优先的详情页形式交付，但它们的内容契约已经放进共享 API 层，后续即使由后台发布接管，
+          也不需要重新塑造前端页面结构。
         </p>
       </div>
     </section>
@@ -30,7 +30,7 @@ const articles = await listArticles();
               title={article.title}
               summary={article.excerpt}
               image={article.coverImage}
-              meta={[article.authorName, article.city.name, `${article.topicSlugs.length} linked topics`]}
+              meta={[article.authorName, article.city.name, formatCount(article.topicSlugs.length, "个关联主题")]}
             />
           ))
         }

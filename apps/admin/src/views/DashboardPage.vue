@@ -24,7 +24,7 @@ onMounted(async () => {
     me.value = mePayload;
     dashboard.value = dashboardPayload;
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load dashboard data.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载仪表盘数据。";
   } finally {
     loading.value = false;
   }
@@ -34,66 +34,65 @@ onMounted(async () => {
 <template>
   <section>
     <header class="page-header">
-      <h2>Dashboard</h2>
-      <p>Protected admin APIs are now wired into the Vue console, so the shell can reflect real staff access.</p>
+      <h2>仪表盘</h2>
+      <p>受保护的管理 API 已经接入 Vue 控制台，因此当前壳层能够反映真实的员工访问权限。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API Error</div>
+      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching staff profile and dashboard stats...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在获取员工资料与仪表盘统计...</p>
     </div>
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
         <article class="panel stat-panel">
-          <div class="brand-tag">Articles</div>
+          <div class="brand-tag">文章</div>
           <strong>{{ dashboard?.stats.articles ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Events</div>
+          <div class="brand-tag">活动</div>
           <strong>{{ dashboard?.stats.events ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Applications</div>
+          <div class="brand-tag">申请</div>
           <strong>{{ dashboard?.stats.applications ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Assets</div>
+          <div class="brand-tag">资源</div>
           <strong>{{ dashboard?.stats.assets ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Audit Logs</div>
+          <div class="brand-tag">审计日志</div>
           <strong>{{ dashboard?.stats.auditLogs ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Staff</div>
+          <div class="brand-tag">员工</div>
           <strong>{{ dashboard?.stats.staff ?? 0 }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Roles</div>
+          <div class="brand-tag">角色</div>
           <strong>{{ dashboard?.stats.roles ?? 0 }}</strong>
         </article>
       </div>
 
       <div class="panel-grid panel-grid-2" style="margin-top: 18px;">
         <article class="panel">
-          <div class="brand-tag">Current Staff Session</div>
-          <h3>{{ me?.user?.name ?? "Unknown user" }}</h3>
-          <p>{{ me?.user?.email ?? "No email" }}</p>
-          <p>Roles: {{ me?.roles.join(", ") || "-" }}</p>
-          <p>Permissions: {{ me?.permissions.join(", ") || "-" }}</p>
+          <div class="brand-tag">当前员工会话</div>
+          <h3>{{ me?.user?.name ?? "未知用户" }}</h3>
+          <p>{{ me?.user?.email ?? "未提供邮箱" }}</p>
+          <p>角色数量：{{ me?.roles.length ?? 0 }}</p>
+          <p>权限数量：{{ me?.permissions.length ?? 0 }}</p>
         </article>
 
         <article class="panel">
-          <div class="brand-tag">Execution Status</div>
+          <div class="brand-tag">当前状态</div>
           <p>
-            The admin shell is now running on authenticated Hono APIs, with content operations, event review flows, and
-            an audit trail for sensitive admin mutations.
+            管理后台已经运行在带认证能力的 Hono API 之上，能够支撑内容运营、活动审核流程，以及对敏感后台操作的审计追踪。
           </p>
         </article>
       </div>

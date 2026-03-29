@@ -21,7 +21,7 @@ export const requireInternalAccess = (): MiddlewareHandler =>
         c,
         503,
         "INTERNAL_API_NOT_CONFIGURED",
-        "Internal automation is not configured. Set INTERNAL_API_TOKEN first."
+        "内部自动化尚未配置，请先设置 INTERNAL_API_TOKEN。"
       );
     }
 
@@ -31,7 +31,7 @@ export const requireInternalAccess = (): MiddlewareHandler =>
     );
 
     if (!requestToken || requestToken !== env.internalApiToken) {
-      return jsonError(c, 401, "UNAUTHORIZED", "A valid internal API token is required.");
+      return jsonError(c, 401, "UNAUTHORIZED", "需要提供有效的内部 API 令牌。");
     }
 
     await next();

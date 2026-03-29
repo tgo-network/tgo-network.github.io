@@ -17,6 +17,7 @@ Recommended reading order:
 11. `deployment-and-environments.md`
 12. `testing-strategy.md`
 13. `operations-runbook.md`
+14. `benchmark-tgo-site.md`
 
 Document roles:
 
@@ -46,6 +47,8 @@ Document roles:
   - Test layers, critical coverage, and milestone quality gates
 - `operations-runbook.md`
   - Release execution, rollback, backup/restore, and operational checks
+- `benchmark-tgo-site.md`
+  - Public benchmark against the target TGO site, gap analysis, and product calibration guidance
 
 Suggested implementation order:
 

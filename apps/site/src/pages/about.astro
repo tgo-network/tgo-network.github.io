@@ -2,39 +2,36 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="About | TGO Network" description="Brand and organization overview for the TGO Network prototype.">
+<BaseLayout title="关于 | TGO Network" description="TGO Network 原型的品牌与组织说明。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">Static Page</span>
-        <h1>About</h1>
+        <span class="eyebrow">静态页面</span>
+        <h1>关于</h1>
         <p>
-          TGO Network is being shaped as a content-led platform with city pages, editorial programming, events, and a
-          staff admin workflow. The first implementation goal is not feature breadth, but a system that can evolve
-          cleanly without replacing its foundations later.
+          TGO Network 正在被塑造成一个以内容为核心的平台，围绕城市页面、编辑策划、活动运营以及工作人员后台展开。
+          第一阶段实现的重点并不是功能数量，而是一套未来可以平滑演进、不必推倒重来的系统基础。
         </p>
       </div>
     </section>
 
     <section class="section detail-grid">
       <article class="panel prose-panel">
-        <div class="card-label">What is being built</div>
+        <div class="card-label">我们正在构建什么</div>
         <p>
-          The platform separates the public site, admin console, and API so content delivery, operations, and business
-          rules can scale independently.
+          平台将公开站、管理后台与 API 明确拆分，让内容交付、运营协作与业务规则能够独立扩展。
         </p>
         <p>
-          Astro handles the public presentation layer, Vue powers the staff workflows, and Hono owns the application
-          boundary for data, auth, and permissions.
+          Astro 负责面向用户的展示层，Vue 承担工作人员工作流，而 Hono 则承担数据、认证与权限的应用边界。
         </p>
       </article>
 
       <aside class="panel panel-soft">
-        <div class="card-label">Current focus</div>
+        <div class="card-label">当前重点</div>
         <ul class="meta-list">
-          <li>Shared contracts between frontend and backend</li>
-          <li>Static-first public routes with real API shapes</li>
-          <li>Admin and auth groundwork for later operations</li>
+          <li>前后端共享契约</li>
+          <li>静态优先但具备真实 API 形态的公开路由</li>
+          <li>为后续运营铺路的后台与认证基础</li>
         </ul>
       </aside>
     </section>

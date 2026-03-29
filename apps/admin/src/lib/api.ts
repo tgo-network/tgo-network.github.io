@@ -56,14 +56,14 @@ export const adminRequest = async <T>(path: string, options: AdminRequestOptions
   const payload = (text ? JSON.parse(text) : null) as ApiSuccess<T> | ApiErrorShape | null;
 
   if (!response.ok || (payload && "error" in payload)) {
-    const message = payload && "error" in payload ? payload.error.message : `Request failed with status ${response.status}`;
+    const message = payload && "error" in payload ? payload.error.message : `请求失败，状态码 ${response.status}`;
     const code = payload && "error" in payload ? payload.error.code : undefined;
     const details = payload && "error" in payload ? payload.error.details : undefined;
     throw new AdminApiError(message, response.status, code, details);
   }
 
   if (!payload || !("data" in payload)) {
-    throw new AdminApiError("Response payload is missing data.", response.status);
+    throw new AdminApiError("响应内容缺少 data 字段。", response.status);
   }
 
   return payload.data;

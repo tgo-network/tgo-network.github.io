@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { AdminAssetListItem } from "@tgo/shared";
 
-import { formatBytes } from "../lib/format";
+import { formatAssetVisibility, formatBytes } from "../lib/format";
 
 const props = withDefaults(
   defineProps<{
@@ -14,8 +14,8 @@ const props = withDefaults(
     error?: string;
   }>(),
   {
-    label: "Cover Asset",
-    help: "Attach a public image asset that the public site can render as cover media.",
+    label: "封面资源",
+    help: "选择一个公开图片资源，让公开站可以将其作为封面媒体展示。",
     error: ""
   }
 );
@@ -54,9 +54,9 @@ const selectedValue = computed({
     <div class="brand-tag">{{ label }}</div>
 
     <label class="field">
-      <span>Select asset</span>
+      <span>选择资源</span>
       <select v-model="selectedValue">
-        <option value="">No cover image</option>
+        <option value="">暂不设置封面图</option>
         <option v-for="asset in selectableAssets" :key="asset.id" :value="asset.id">
           {{ asset.originalFilename }}
         </option>
@@ -73,22 +73,22 @@ const selectedValue = computed({
           :alt="selectedAsset.altText || selectedAsset.originalFilename"
           class="asset-thumb"
         />
-        <div v-else class="asset-thumb asset-thumb-file">FILE</div>
+        <div v-else class="asset-thumb asset-thumb-file">文件</div>
 
         <div class="asset-meta">
           <strong>{{ selectedAsset.originalFilename }}</strong>
-          <div class="muted-row">{{ formatBytes(selectedAsset.byteSize) }} · {{ selectedAsset.visibility }}</div>
+          <div class="muted-row">{{ formatBytes(selectedAsset.byteSize) }} · {{ formatAssetVisibility(selectedAsset.visibility) }}</div>
           <div class="muted-row">{{ selectedAsset.objectKey }}</div>
-          <div v-if="selectedAsset.altText" class="muted-row">Alt: {{ selectedAsset.altText }}</div>
+          <div v-if="selectedAsset.altText" class="muted-row">替代文本：{{ selectedAsset.altText }}</div>
           <div v-if="!isSelectableAsset(selectedAsset)" class="field-error">
-            This asset is not an active public image and should be replaced.
+            当前资源不是可用中的公开图片，建议替换。
           </div>
         </div>
       </div>
     </div>
 
     <p v-else class="section-copy">
-      No cover asset selected yet.
+      尚未选择封面资源。
     </p>
   </div>
 </template>

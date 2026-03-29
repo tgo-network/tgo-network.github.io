@@ -18,22 +18,22 @@ const slug = Astro.params.slug!;
 const city = await getCity(slug);
 
 if (!city) {
-  throw new Error(`City not found: ${slug}`);
+  throw new Error(`城市不存在：${slug}`);
 }
 ---
 
-<BaseLayout title={`${city.name} | Cities | TGO Network`} description={city.summary}>
+<BaseLayout title={`${city.name} | 城市 | TGO Network`} description={city.summary}>
   <main class="page-shell page-stack">
     <section class="hero">
       <div class:list={["hero-card", { "hero-split": Boolean(city.coverImage), "hero-card-media": Boolean(city.coverImage) }]}>
         <div>
-          <span class="eyebrow">City Detail</span>
+          <span class="eyebrow">城市详情</span>
           <h1>{city.name}</h1>
           <p>{city.summary}</p>
           <ul class="stat-row">
-            <li>{formatCount(city.topicCount, "topic")}</li>
-            <li>{formatCount(city.articleCount, "article")}</li>
-            <li>{formatCount(city.eventCount, "event")}</li>
+            <li>{formatCount(city.topicCount, "个主题")}</li>
+            <li>{formatCount(city.articleCount, "篇文章")}</li>
+            <li>{formatCount(city.eventCount, "场活动")}</li>
           </ul>
         </div>
 
@@ -49,15 +49,14 @@ if (!city) {
 
     <section class="section detail-grid">
       <article class="panel prose-panel">
-        <div class="card-label">City Story</div>
+        <div class="card-label">城市叙事</div>
         <p>{city.body}</p>
       </article>
 
       <aside class="panel panel-soft">
-        <div class="card-label">Operational Angle</div>
+        <div class="card-label">运营视角</div>
         <p class="card-copy">
-          City pages are where editorial, event, and community data meet. They should stay fresh through admin-managed
-          links rather than hand-edited templates.
+          城市页是内容、活动与社群数据汇合的地方。它应该通过后台维护的关联关系保持更新，而不是依赖手工改模板。
         </p>
       </aside>
     </section>
@@ -65,8 +64,8 @@ if (!city) {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Featured Articles</div>
-          <h2>Local editorial highlights</h2>
+          <div class="card-label">精选文章</div>
+          <h2>城市内容亮点</h2>
         </div>
       </div>
       <div class="grid grid-2">
@@ -88,8 +87,8 @@ if (!city) {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Upcoming Events</div>
-          <h2>Public event pages tied to this city</h2>
+          <div class="card-label">近期活动</div>
+          <h2>与这座城市绑定的公开活动页面</h2>
         </div>
       </div>
       <div class="grid grid-2">
@@ -111,8 +110,8 @@ if (!city) {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Featured Topics</div>
-          <h2>Themes that define this city page</h2>
+          <div class="card-label">精选主题</div>
+          <h2>定义这座城市页面的核心主题</h2>
         </div>
       </div>
       <div class="grid grid-3">
@@ -120,11 +119,11 @@ if (!city) {
           city.featuredTopics.map((topic) => (
             <CollectionCard
               href={`/topics/${topic.slug}`}
-              label={formatCount(topic.articleCount, "article")}
+              label={formatCount(topic.articleCount, "篇文章")}
               title={topic.title}
               summary={topic.summary}
               image={topic.coverImage}
-              meta={[formatCount(topic.eventCount, "event")]}
+              meta={[formatCount(topic.eventCount, "场活动")]}
             />
           ))
         }

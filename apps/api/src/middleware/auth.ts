@@ -90,22 +90,22 @@ export const requireActiveStaff = (requiredPermission?: string): MiddlewareHandl
         c,
         503,
         "AUTH_NOT_CONFIGURED",
-        "Authentication is not configured. Set DATABASE_URL and BETTER_AUTH_SECRET."
+        "认证尚未配置，请先设置 DATABASE_URL 与 BETTER_AUTH_SECRET。"
       );
     }
 
     if (!c.get("user") || !c.get("session")) {
-      return jsonError(c, 401, "UNAUTHENTICATED", "You must sign in to access this resource.");
+      return jsonError(c, 401, "UNAUTHENTICATED", "请先登录后再访问此资源。");
     }
 
     const staffAccount = c.get("staffAccount");
 
     if (!staffAccount || staffAccount.status !== "active") {
-      return jsonError(c, 403, "FORBIDDEN", "Active staff access is required.");
+      return jsonError(c, 403, "FORBIDDEN", "需要启用中的员工账号权限。");
     }
 
     if (requiredPermission && !c.get("permissionCodes").includes(requiredPermission)) {
-      return jsonError(c, 403, "FORBIDDEN", `Missing required permission: ${requiredPermission}.`);
+      return jsonError(c, 403, "FORBIDDEN", `缺少所需权限：${requiredPermission}。`);
     }
 
     await next();

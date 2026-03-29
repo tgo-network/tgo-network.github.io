@@ -29,7 +29,7 @@ const { href, label, title, summary, meta = [], image = null } = Astro.props;
 
     {
       meta.length > 0 && (
-        <ul class="meta-list" aria-label="Card metadata">
+        <ul class="meta-list" aria-label="卡片元数据">
           {meta.map((item) => <li>{item}</li>)}
         </ul>
       )

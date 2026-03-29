@@ -12,7 +12,7 @@ import {
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import CoverAssetField from "../components/CoverAssetField.vue";
-import { formatDateTime, slugify } from "../lib/format";
+import { formatContentStatus, formatDateTime, slugify } from "../lib/format";
 
 const route = useRoute();
 const router = useRouter();
@@ -41,7 +41,7 @@ const slugTouched = ref(false);
 
 const topicId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => topicId.value.length === 0);
-const pageTitle = computed(() => (isNew.value ? "Create Topic" : `Edit Topic: ${topic.value?.title ?? "Loading..."}`));
+const pageTitle = computed(() => (isNew.value ? "新建主题" : `编辑主题：${topic.value?.title ?? "加载中..."}`));
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -82,7 +82,7 @@ const loadTopic = async () => {
     const payload = await adminFetch<AdminTopicDetailPayload>(`/api/admin/v1/topics/${topicId.value}`);
     applyTopic(payload.topic);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load topic.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载主题详情。";
   } finally {
     loading.value = false;
   }
@@ -112,7 +112,7 @@ const save = async () => {
     );
 
     applyTopic(payload.topic);
-    successMessage.value = isNew.value ? "Topic created." : "Topic saved.";
+    successMessage.value = isNew.value ? "主题已创建。" : "主题已保存。";
 
     if (isNew.value) {
       await router.replace({
@@ -124,7 +124,7 @@ const save = async () => {
     }
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to save topic.";
+    errorMessage.value = error instanceof Error ? error.message : "无法保存主题。";
   } finally {
     saving.value = false;
   }
@@ -144,10 +144,10 @@ const runAction = async (action: "publish" | "archive") => {
     });
 
     applyTopic(payload.topic);
-    successMessage.value = action === "publish" ? "Topic published." : "Topic archived.";
+    successMessage.value = action === "publish" ? "主题已发布。" : "主题已归档。";
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : `Unable to ${action} topic.`;
+    errorMessage.value = error instanceof Error ? error.message : `无法执行主题${action === "publish" ? "发布" : "归档"}操作。`;
   } finally {
     actioning.value = false;
   }
@@ -172,16 +172,16 @@ onMounted(() => {
       <div>
         <h2>{{ pageTitle }}</h2>
         <p>
-          Draft, refine, and publish topic landing pages without leaving the admin console.
+          无需离开管理后台，即可起草、打磨并发布主题落地页。
         </p>
       </div>
 
       <div class="page-actions">
         <RouterLink class="button-link" to="/topics">
-          Back to Topics
+          返回主题列表
         </RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
-          {{ saving ? "Saving..." : isNew ? "Create Topic" : "Save Changes" }}
+          {{ saving ? "保存中..." : isNew ? "创建主题" : "保存修改" }}
         </button>
         <button
           class="button-link button-subtle"
@@ -189,7 +189,7 @@ onMounted(() => {
           :disabled="!topic || actioning"
           @click="runAction('publish')"
         >
-          {{ actioning ? "Working..." : "Publish" }}
+          {{ actioning ? "处理中..." : "发布" }}
         </button>
         <button
           class="button-link button-danger"
@@ -197,37 +197,37 @@ onMounted(() => {
           :disabled="!topic || actioning"
           @click="runAction('archive')"
         >
-          Archive
+          归档
         </button>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Action Error</div>
+      <div class="brand-tag">操作错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Preparing topic editor...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在准备主题编辑器...</p>
     </div>
 
     <div v-else class="editor-grid">
       <div class="panel editor-main stacked-gap">
         <div class="field-grid field-grid-2">
           <label class="field">
-            <span>Title</span>
-            <input v-model="form.title" type="text" placeholder="Platform Architecture" @input="onTitleInput" />
+            <span>标题</span>
+            <input v-model="form.title" type="text" placeholder="平台架构" @input="onTitleInput" />
             <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
           </label>
 
           <label class="field">
-            <span>Status</span>
+            <span>状态</span>
             <select v-model="form.status">
               <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -238,20 +238,20 @@ onMounted(() => {
         </div>
 
         <label class="field">
-          <span>Slug</span>
+          <span>URL 标识</span>
           <input v-model="form.slug" type="text" placeholder="platform-architecture" @input="onSlugInput" />
           <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
         </label>
 
         <label class="field">
-          <span>Summary</span>
-          <textarea v-model="form.summary" rows="4" placeholder="Short topic summary for listings and SEO fallback." />
+          <span>摘要</span>
+          <textarea v-model="form.summary" rows="4" placeholder="用于列表展示与 SEO 回退的简短主题摘要。" />
           <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
         </label>
 
         <label class="field">
-          <span>Body</span>
-          <textarea v-model="form.body" rows="12" placeholder="Topic landing page narrative and editorial framing." />
+          <span>正文</span>
+          <textarea v-model="form.body" rows="12" placeholder="主题页叙事内容与编辑视角。" />
           <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
         </label>
       </div>
@@ -261,39 +261,39 @@ onMounted(() => {
           v-model="form.coverAssetId"
           :assets="coverAssets"
           :error="fieldIssues.coverAssetId"
-          label="Cover Media"
+          label="封面资源"
         />
 
         <div class="panel stacked-gap">
           <div class="brand-tag">SEO</div>
           <label class="field">
-            <span>SEO Title</span>
-            <input v-model="form.seoTitle" type="text" placeholder="Platform Architecture | TGO Network" />
+            <span>SEO 标题</span>
+            <input v-model="form.seoTitle" type="text" placeholder="平台架构 | TGO Network" />
             <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
           </label>
           <label class="field">
-            <span>SEO Description</span>
-            <textarea v-model="form.seoDescription" rows="4" placeholder="Search and social summary." />
+            <span>SEO 描述</span>
+            <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
             <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
           </label>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">Workflow</div>
+          <div class="brand-tag">工作流</div>
           <div class="info-row">
-            <span>Current status</span>
-            <strong class="status-pill">{{ topic?.status ?? form.status }}</strong>
+            <span>当前状态</span>
+            <strong class="status-pill">{{ formatContentStatus(topic?.status ?? form.status) }}</strong>
           </div>
           <div class="info-row">
-            <span>Updated</span>
+            <span>更新时间</span>
             <strong>{{ formatDateTime(topic?.updatedAt) }}</strong>
           </div>
           <div class="info-row">
-            <span>Published</span>
+            <span>发布时间</span>
             <strong>{{ formatDateTime(topic?.publishedAt) }}</strong>
           </div>
           <p>
-            Topics need a title, slug, and summary before they can be published to the public site.
+            主题在发布到公开站之前，至少需要填写标题、URL 标识与摘要。
           </p>
         </div>
       </aside>

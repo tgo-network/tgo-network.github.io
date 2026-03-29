@@ -124,7 +124,7 @@ const getSigningSecret = () => {
   const { betterAuthSecret } = getEnv();
 
   if (!betterAuthSecret) {
-    throw new StorageError("STORAGE_NOT_CONFIGURED", "Storage signing requires BETTER_AUTH_SECRET.");
+    throw new StorageError("STORAGE_NOT_CONFIGURED", "生成存储签名必须配置 BETTER_AUTH_SECRET。");
   }
 
   return betterAuthSecret;
@@ -138,7 +138,7 @@ const getS3Client = () => {
   const env = getEnv();
 
   if (!isStorageConfigured()) {
-    throw new StorageError("STORAGE_NOT_CONFIGURED", "Object storage is not configured.");
+    throw new StorageError("STORAGE_NOT_CONFIGURED", "对象存储尚未配置。");
   }
 
   s3Client = new S3Client({
@@ -236,7 +236,7 @@ export const createSignedAssetUpload = async (
   const env = getEnv();
 
   if (!isStorageConfigured()) {
-    throw new StorageError("STORAGE_NOT_CONFIGURED", "Object storage is not configured.");
+    throw new StorageError("STORAGE_NOT_CONFIGURED", "对象存储尚未配置。");
   }
 
   const assetId = randomUUID();
@@ -287,23 +287,23 @@ export const readAssetUploadIntent = (intentToken: string): AssetUploadIntentSta
   const [encodedState, signature] = intentToken.split(".");
 
   if (!encodedState || !signature) {
-    throw new StorageError("UPLOAD_INTENT_INVALID", "Upload intent token is invalid.");
+    throw new StorageError("UPLOAD_INTENT_INVALID", "上传意图令牌无效。");
   }
 
   const expectedSignature = signToken(encodedState);
 
   if (!isSignatureMatch(signature, expectedSignature)) {
-    throw new StorageError("UPLOAD_INTENT_INVALID", "Upload intent token is invalid.");
+    throw new StorageError("UPLOAD_INTENT_INVALID", "上传意图令牌无效。");
   }
 
   const payload = JSON.parse(Buffer.from(encodedState, "base64url").toString("utf8")) as AssetUploadIntentState;
 
   if (payload.version !== 1) {
-    throw new StorageError("UPLOAD_INTENT_INVALID", "Upload intent token version is unsupported.");
+    throw new StorageError("UPLOAD_INTENT_INVALID", "上传意图令牌版本不受支持。");
   }
 
   if (new Date(payload.expiresAt).getTime() <= Date.now()) {
-    throw new StorageError("UPLOAD_INTENT_EXPIRED", "Upload intent has expired.");
+    throw new StorageError("UPLOAD_INTENT_EXPIRED", "上传意图已过期。");
   }
 
   return payload;
@@ -327,9 +327,9 @@ export const inspectUploadedObject = async (
     };
   } catch (error) {
     if (isNotFoundError(error)) {
-      throw new StorageError("UPLOAD_NOT_FOUND", "Uploaded object could not be found in storage.");
+      throw new StorageError("UPLOAD_NOT_FOUND", "对象存储中未找到已上传文件。");
     }
 
-    throw new StorageError("STORAGE_UNAVAILABLE", "Object storage is unavailable.");
+    throw new StorageError("STORAGE_UNAVAILABLE", "对象存储当前不可用。");
   }
 };

@@ -186,7 +186,7 @@ const assertSelectedReferences = async (payload: AdminHomepageFeaturedBlockPaylo
     if (rows.length !== ids.length) {
       issues.push({
         field,
-        message: "One or more selected items are missing or not currently published."
+        message: "所选内容中存在缺失项，或尚未处于已发布状态。"
       });
     }
   };
@@ -231,7 +231,7 @@ const assertSelectedReferences = async (payload: AdminHomepageFeaturedBlockPaylo
   ]);
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Homepage featured selections are invalid.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "首页推荐位配置中存在无效选择。", {
       issues
     });
   }
@@ -304,7 +304,7 @@ export const updateAdminHomepageFeaturedBlock = async (
   await assertSelectedReferences(input.payload);
 
   if (!actor.actorStaffAccountId) {
-    throw new AdminContentError(403, "FORBIDDEN", "Active staff access is required.");
+    throw new AdminContentError(403, "FORBIDDEN", "需要启用中的员工账号权限。");
   }
 
   const db = getDb();
@@ -368,7 +368,7 @@ export const updateAdminSiteSettings = async (
   actor: AuditActorContext
 ): Promise<AdminSiteSettingsPayload> => {
   if (!actor.actorStaffAccountId) {
-    throw new AdminContentError(403, "FORBIDDEN", "Active staff access is required.");
+    throw new AdminContentError(403, "FORBIDDEN", "需要启用中的员工账号权限。");
   }
 
   const before = mapSiteSettingsRecord(await loadSiteSettingRows());

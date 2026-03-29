@@ -184,28 +184,28 @@ export interface EventRegistrationValidationIssue {
 const topicRecords = [
   {
     slug: "platform-architecture",
-    title: "Platform Architecture",
-    summary: "How editorial platforms stay portable while keeping delivery fast.",
+    title: "平台架构",
+    summary: "如何在保持交付效率的同时，让内容平台具备良好的可迁移性。",
     body:
-      "This track focuses on service boundaries, content pipelines, deployment portability, and the tradeoffs between static delivery and dynamic operations. It is the backbone for the first release of the platform.",
+      "这一主题聚焦服务边界、内容流水线、部署可迁移性，以及静态交付与动态运营之间的取舍。它会成为平台首个版本的骨架。",
     articleSlugs: ["shipping-an-editorial-platform", "from-events-to-knowledge"],
     eventSlugs: ["spring-platform-workshop"]
   },
   {
     slug: "content-operations",
-    title: "Content Operations",
-    summary: "Editorial workflow, publishing discipline, and reusable content systems.",
+    title: "内容运营",
+    summary: "编辑工作流、发布纪律，以及可复用的内容系统。",
     body:
-      "Content operations turns scattered publishing into a repeatable machine. The first release will use this topic to connect articles, event recaps, application calls to action, and admin workflow decisions.",
+      "内容运营会把零散发布变成可重复运转的机制。首个版本会通过这个主题串联文章、活动回顾、申请转化入口，以及后台工作流中的关键决策。",
     articleSlugs: ["shipping-an-editorial-platform", "what-a-city-hub-needs"],
     eventSlugs: ["content-ops-roundtable"]
   },
   {
     slug: "city-community",
-    title: "City Community",
-    summary: "How local chapters, recurring events, and city pages reinforce each other.",
+    title: "城市社群",
+    summary: "本地分会、周期活动与城市页面如何彼此增强。",
     body:
-      "City chapters should feel like part of one network, not isolated microsites. This topic groups the patterns for local landing pages, community events, and editorial highlights that help each city stay active.",
+      "城市分会应当像同一张网络中的节点，而不是彼此割裂的小站。这个主题会沉淀本地落地页、社区活动与编辑精选的模式，帮助每座城市持续保持活跃。",
     articleSlugs: ["from-events-to-knowledge", "what-a-city-hub-needs"],
     eventSlugs: ["city-chapter-kickoff"]
   }
@@ -214,30 +214,30 @@ const topicRecords = [
 const cityRecords = [
   {
     slug: "shanghai",
-    name: "Shanghai",
-    summary: "The launch city for flagship editorial events and platform experiments.",
+    name: "上海",
+    summary: "旗舰内容活动与平台试验的启动城市。",
     body:
-      "Shanghai acts as the lead city for the initial public launch. It combines flagship events, editorial pilots, and staff workflows that later expand to the wider network.",
+      "上海将作为首次公开发布的领航城市，承载旗舰活动、编辑试点，以及后续可以复制到更大网络中的工作人员流程。",
     articleSlugs: ["shipping-an-editorial-platform"],
     eventSlugs: ["spring-platform-workshop"],
     topicSlugs: ["platform-architecture", "content-operations"]
   },
   {
     slug: "hangzhou",
-    name: "Hangzhou",
-    summary: "A city page shape focused on maker communities and operator gatherings.",
+    name: "杭州",
+    summary: "一座更偏向创作者社群与运营者聚会的城市样板。",
     body:
-      "Hangzhou is a strong proving ground for the city-page template because it naturally mixes product operators, engineering leaders, and workshop-driven events.",
+      "杭州非常适合作为城市页模板的试验场，因为这里天然汇聚了产品运营者、工程负责人以及工作坊驱动的活动。",
     articleSlugs: ["from-events-to-knowledge"],
     eventSlugs: ["content-ops-roundtable"],
     topicSlugs: ["platform-architecture", "city-community"]
   },
   {
     slug: "beijing",
-    name: "Beijing",
-    summary: "A policy-and-practice chapter that connects community scale with editorial depth.",
+    name: "北京",
+    summary: "一座把社群规模与内容深度连接起来的城市节点。",
     body:
-      "Beijing brings larger partner networks and a wider editorial reach. The city page needs to highlight how articles, events, and featured topics can all roll up into one local story.",
+      "北京拥有更大的合作伙伴网络和更广的内容辐射范围。城市页面需要展示文章、活动与精选主题如何汇聚成一条完整的本地叙事。",
     articleSlugs: ["what-a-city-hub-needs"],
     eventSlugs: ["city-chapter-kickoff"],
     topicSlugs: ["content-operations", "city-community"]
@@ -247,50 +247,50 @@ const cityRecords = [
 const articleRecords = [
   {
     slug: "shipping-an-editorial-platform",
-    title: "Shipping an Editorial Platform Without Locking the Stack",
+    title: "在不锁死技术栈的前提下交付内容平台",
     excerpt:
-      "Why the first release should look production-shaped even when the content is still curated by hand.",
+      "为什么首个版本即使仍以人工整理内容为主，也应该具备接近生产环境的形态。",
     publishedAt: "2026-03-12T08:00:00.000Z",
-    authorName: "Morgan Lee",
-    authorRole: "Platform Editor",
+    authorName: "李墨言",
+    authorRole: "平台编辑",
     topicSlugs: ["platform-architecture", "content-operations"],
     citySlug: "shanghai",
     body: [
-      "The platform should start with the final architecture shape even if the data is still seeded. That keeps the delivery team from building throwaway flows that later need a rewrite.",
-      "Static-first pages, a dedicated admin console, and an API-owned business layer give the public site room to scale while keeping editorial operations explicit.",
-      "The first release should therefore prove contracts, permissions, and content status rules before it chases advanced growth features."
+      "即使当前数据仍来自种子数据，平台也应该从最终架构形态起步。这样可以避免交付团队先搭一套临时流程，后面又不得不整体重写。",
+      "静态优先的页面、独立的管理后台，以及由 API 承担业务规则的分层方式，可以让公开站在扩展时依然保持内容运营的清晰边界。",
+      "因此首个版本应优先验证契约、权限和内容状态规则，而不是一开始就追逐更复杂的增长能力。"
     ]
   },
   {
     slug: "from-events-to-knowledge",
-    title: "Turning Event Energy into Searchable Knowledge",
+    title: "把活动热度转化为可检索的知识资产",
     excerpt:
-      "A public content model should make every event a reusable knowledge asset, not a one-night announcement.",
+      "公开内容模型应该让每一场活动都成为可复用的知识资产，而不是只在当天生效的一次性通知。",
     publishedAt: "2026-03-18T08:00:00.000Z",
-    authorName: "Avery Chen",
-    authorRole: "Community Producer",
+    authorName: "陈以维",
+    authorRole: "社区制作人",
     topicSlugs: ["platform-architecture", "city-community"],
     citySlug: "hangzhou",
     body: [
-      "Events often disappear after registration closes, but the platform should preserve their value through recap articles, city highlights, and topic-level curation.",
-      "A shared schema for events, articles, and topics lets editorial teams reuse the same source material across the home page, topic hubs, and city pages.",
-      "That reuse is especially important for early-stage teams that need leverage more than feature count."
+      "很多活动在报名结束后就迅速消失，但平台应该通过回顾文章、城市精选和主题策展把它们的价值沉淀下来。",
+      "活动、文章和主题共享一套 schema 后，编辑团队就能在首页、专题页和城市页之间复用同一批原始内容素材。",
+      "对于早期团队来说，这种复用能力比单纯堆功能更重要，因为它直接决定运营杠杆。"
     ]
   },
   {
     slug: "what-a-city-hub-needs",
-    title: "What a City Hub Needs Before It Feels Alive",
+    title: "一座城市主页在真正活起来之前需要什么",
     excerpt:
-      "City pages work best when they connect editorial cadence, local events, and a clear invitation to participate.",
+      "当城市页面能够把内容节奏、本地活动和明确的参与邀请连接起来时，它才真正具备生命力。",
     publishedAt: "2026-03-24T08:00:00.000Z",
-    authorName: "Jordan Park",
-    authorRole: "City Program Lead",
+    authorName: "朴乔安",
+    authorRole: "城市项目负责人",
     topicSlugs: ["content-operations", "city-community"],
     citySlug: "beijing",
     body: [
-      "A city page should not be a dead directory entry. It should explain the local chapter, highlight active topics, and surface the next meaningful call to action.",
-      "That means city records need summaries, cover assets later, linked events, and linked editorial pieces from day one.",
-      "Once the admin console can manage these links, the public site becomes much easier to keep fresh without code edits."
+      "城市页不应只是一个沉寂的目录入口。它应该解释本地分会的状态、突出当前活跃主题，并呈现下一步有意义的行动入口。",
+      "这意味着从第一天开始，城市数据就需要摘要、后续可接入的封面资源、关联活动以及关联内容文章。",
+      "当管理后台能够维护这些关联关系后，公开站就能在不改代码的前提下持续更新。"
     ]
   }
 ] as const;
@@ -298,94 +298,94 @@ const articleRecords = [
 const eventRecords = [
   {
     slug: "spring-platform-workshop",
-    title: "Spring Platform Workshop",
-    summary: "A hands-on session for shaping the first release architecture and public publishing loop.",
+    title: "春季平台工作坊",
+    summary: "围绕首发架构与公开发布闭环展开的一场实战型工作坊。",
     startsAt: "2026-04-10T10:00:00.000Z",
     endsAt: "2026-04-10T17:00:00.000Z",
-    venueName: "North Bund Studio",
+    venueName: "北外滩工作室",
     citySlug: "shanghai",
     registrationState: "open",
     registrationUrl: "",
     body:
-      "This workshop pulls together product, engineering, and editorial operators to finalize the launch-ready surface area of the platform. The focus is not on flashy features, but on the durable workflows that make the system maintainable.",
+      "这场工作坊会把产品、工程和内容运营同学聚在一起，共同敲定平台首发时真正需要上线的范围。重点不在花哨功能，而在能让系统长期可维护的稳健工作流。",
     topicSlugs: ["platform-architecture"],
     agenda: [
       {
         time: "10:00",
-        title: "Architecture briefing",
-        speaker: "Morgan Lee"
+        title: "架构简报",
+        speaker: "李墨言"
       },
       {
         time: "13:30",
-        title: "Publishing workflow review",
-        speaker: "Avery Chen"
+        title: "发布工作流复盘",
+        speaker: "陈以维"
       },
       {
         time: "15:30",
-        title: "Delivery checklist",
-        speaker: "Jordan Park"
+        title: "交付清单检查",
+        speaker: "朴乔安"
       }
     ]
   },
   {
     slug: "content-ops-roundtable",
-    title: "Content Ops Roundtable",
-    summary: "A smaller operator session on editorial workflow, reuse, and publish-state discipline.",
+    title: "内容运营圆桌",
+    summary: "一场围绕编辑流程、内容复用与发布状态纪律的小型运营讨论。",
     startsAt: "2026-04-22T14:00:00.000Z",
     endsAt: "2026-04-22T18:00:00.000Z",
-    venueName: "Lakefront Workshop Room",
+    venueName: "湖畔工作坊",
     citySlug: "hangzhou",
     registrationState: "waitlist",
     registrationUrl: "",
     body:
-      "The roundtable examines how one piece of content should travel through admin review, public publishing, event amplification, and city curation without forking the workflow.",
+      "这场圆桌会讨论一份内容如何在不分叉流程的前提下，贯穿后台审核、公开发布、活动放大与城市策展。",
     topicSlugs: ["content-operations"],
     agenda: [
       {
         time: "14:00",
-        title: "Editorial queue design",
-        speaker: "Avery Chen"
+        title: "编辑队列设计",
+        speaker: "陈以维"
       },
       {
         time: "15:45",
-        title: "Asset and metadata reuse",
-        speaker: "Morgan Lee"
+        title: "资源与元数据复用",
+        speaker: "李墨言"
       },
       {
         time: "17:00",
-        title: "Publishing QA",
-        speaker: "Jordan Park"
+        title: "发布质检",
+        speaker: "朴乔安"
       }
     ]
   },
   {
     slug: "city-chapter-kickoff",
-    title: "City Chapter Kickoff",
-    summary: "A practical launch event for the first cross-city editorial and event operating rhythm.",
+    title: "城市分会启动会",
+    summary: "为首个跨城市内容与活动协作节奏准备的实践型启动活动。",
     startsAt: "2026-05-08T09:30:00.000Z",
     endsAt: "2026-05-08T16:30:00.000Z",
-    venueName: "East Garden Forum",
+    venueName: "东园论坛",
     citySlug: "beijing",
     registrationState: "not_open",
     registrationUrl: "",
     body:
-      "This kickoff establishes a repeatable template for local chapter pages, recurring events, and the operational loop between content editors and city operators.",
+      "这场启动会将沉淀本地分会页面、周期活动，以及内容编辑与城市运营之间的协作闭环，形成可重复复用的模板。",
     topicSlugs: ["city-community"],
     agenda: [
       {
         time: "09:30",
-        title: "City launch narrative",
-        speaker: "Jordan Park"
+        title: "城市启动叙事",
+        speaker: "朴乔安"
       },
       {
         time: "11:00",
-        title: "Topic and event alignment",
-        speaker: "Morgan Lee"
+        title: "主题与活动协同",
+        speaker: "李墨言"
       },
       {
         time: "14:30",
-        title: "Community activation plan",
-        speaker: "Avery Chen"
+        title: "社群激活计划",
+        speaker: "陈以维"
       }
     ]
   }
@@ -508,17 +508,17 @@ export const cityDetails: CityDetail[] = cityRecords.map((city) => ({
 
 export const homePayload: HomePayload = {
   hero: {
-    eyebrow: "Phase 2 Public MVP",
-    title: "Static-first presentation, API-owned content, and a clear path to staff operations.",
+    eyebrow: "第二阶段公开站 MVP",
+    title: "以静态优先呈现、由 API 承载内容，并为工作人员运营留出清晰的演进路径。",
     summary:
-      "The public site now has real list and detail routes for topics, articles, events, and cities. Each surface is ready to switch from demo data to API-backed content without changing the page architecture.",
+      "公开站现在已经具备主题、文章、活动与城市的真实列表页和详情页。每个页面都可以在不改页面架构的前提下，从演示数据切换到 API 驱动的数据来源。",
     actions: [
       {
-        label: "Explore articles",
+        label: "浏览文章",
         href: "/articles"
       },
       {
-        label: "View upcoming events",
+        label: "查看近期活动",
         href: "/events"
       }
     ]
@@ -528,9 +528,9 @@ export const homePayload: HomePayload = {
   upcomingEvents: eventSummaries.slice(0, 3),
   cityHighlights: citySummaries.slice(0, 3),
   applicationCallout: {
-    title: "Ready for the next operator cohort",
+    title: "准备迎接下一批运营伙伴",
     summary:
-      "The application flow is now shaped as a public API contract, so the form can move from placeholder UI to a real intake path without rewriting the site.",
+      "申请流程现在已经被抽象为公开 API 契约，因此表单后续可以从占位界面平滑升级为真实的线索入口，而不需要重写站点。",
     href: "/apply"
   }
 };
@@ -539,74 +539,74 @@ export const siteConfig: PublicSiteConfig = {
   platformName: "TGO Network",
   navigation: [
     {
-      label: "Home",
+      label: "首页",
       href: "/"
     },
     {
-      label: "Topics",
+      label: "主题",
       href: "/topics"
     },
     {
-      label: "Articles",
+      label: "文章",
       href: "/articles"
     },
     {
-      label: "Events",
+      label: "活动",
       href: "/events"
     },
     {
-      label: "Cities",
+      label: "城市",
       href: "/cities"
     },
     {
-      label: "Apply",
+      label: "申请",
       href: "/apply"
     },
     {
-      label: "About",
+      label: "关于",
       href: "/about"
     }
   ],
   contentCollections: ["topics", "articles", "events", "cities"],
-  footerTagline: "TGO Network public prototype built with Astro and fed by the shared public API contract.",
+  footerTagline: "TGO Network 公开站原型基于 Astro 构建，并由共享的公开 API 契约驱动。",
   supportEmail: null
 };
 
 export const eventRegistrationStatusOptions: Array<{ value: EventRegistrationStatus; label: string }> = [
   {
     value: "submitted",
-    label: "Submitted"
+    label: "已提交"
   },
   {
     value: "approved",
-    label: "Approved"
+    label: "已通过"
   },
   {
     value: "rejected",
-    label: "Rejected"
+    label: "已拒绝"
   },
   {
     value: "waitlisted",
-    label: "Waitlisted"
+    label: "候补中"
   },
   {
     value: "cancelled",
-    label: "Cancelled"
+    label: "已取消"
   }
 ];
 
 export const applicationTypeOptions: Array<{ value: ApplicationType; label: string }> = [
   {
     value: "trial",
-    label: "Trial"
+    label: "试用"
   },
   {
     value: "membership",
-    label: "Membership"
+    label: "会员"
   },
   {
     value: "contact",
-    label: "Contact"
+    label: "联系我们"
   }
 ];
 
@@ -634,7 +634,7 @@ export const validatePublicApplicationInput = (
       issues: [
         {
           field: "message",
-          message: "Application payload must be an object."
+          message: "申请请求体必须是对象。"
         }
       ]
     };
@@ -652,28 +652,28 @@ export const validatePublicApplicationInput = (
   if (!applicationTypeOptions.some((option) => option.value === type)) {
     issues.push({
       field: "type",
-      message: "Choose a supported application type."
+      message: "请选择支持的申请类型。"
     });
   }
 
   if (name.length < 2) {
     issues.push({
       field: "name",
-      message: "Name must be at least 2 characters long."
+      message: "姓名至少需要 2 个字符。"
     });
   }
 
   if (!email.includes("@") || email.length < 5) {
     issues.push({
       field: "email",
-      message: "Provide a valid email address."
+      message: "请输入有效的邮箱地址。"
     });
   }
 
   if (message.length < 20) {
     issues.push({
       field: "message",
-      message: "Message must be at least 20 characters long."
+      message: "申请说明至少需要 20 个字符。"
     });
   }
 
@@ -714,7 +714,7 @@ export const validatePublicEventRegistrationInput = (
       issues: [
         {
           field: "name",
-          message: "Registration payload must be an object."
+          message: "报名请求体必须是对象。"
         }
       ]
     };
@@ -731,46 +731,46 @@ export const validatePublicEventRegistrationInput = (
   if (name.length < 2) {
     issues.push({
       field: "name",
-      message: "Name must be at least 2 characters long."
+      message: "姓名至少需要 2 个字符。"
     });
   }
 
   if (email.length > 0 && (!email.includes("@") || email.length < 5)) {
     issues.push({
       field: "email",
-      message: "Provide a valid email address."
+      message: "请输入有效的邮箱地址。"
     });
   }
 
   if (phoneNumber.length > 0 && phoneNumber.replace(/\D/g, "").length < 6) {
     issues.push({
       field: "phoneNumber",
-      message: "Provide a valid phone number."
+      message: "请输入有效的手机号。"
     });
   }
 
   if (email.length === 0 && phoneNumber.length === 0) {
     issues.push({
       field: "email",
-      message: "Provide at least one contact method: email or phone."
+      message: "请至少填写一种联系方式：邮箱或手机号。"
     });
     issues.push({
       field: "phoneNumber",
-      message: "Provide at least one contact method: email or phone."
+      message: "请至少填写一种联系方式：邮箱或手机号。"
     });
   }
 
   if (company.length > 160) {
     issues.push({
       field: "company",
-      message: "Company must be 160 characters or fewer."
+      message: "公司名称不能超过 160 个字符。"
     });
   }
 
   if (jobTitle.length > 160) {
     issues.push({
       field: "jobTitle",
-      message: "Job title must be 160 characters or fewer."
+      message: "职位名称不能超过 160 个字符。"
     });
   }
 

@@ -15,7 +15,7 @@ export const getDb = () => {
   const { databaseUrl } = getEnv();
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is required for database-backed API features.");
+    throw new Error("启用数据库能力前必须配置 DATABASE_URL。");
   }
 
   const created = createDb(databaseUrl);

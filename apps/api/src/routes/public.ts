@@ -72,7 +72,7 @@ const enforcePublicWriteRateLimit = (c: Context, scope: "applications" | "event-
 
   c.header("Retry-After", String(decision.retryAfterSeconds));
 
-  return jsonError(c, 429, "RATE_LIMITED", "Too many write requests. Please retry later.", {
+  return jsonError(c, 429, "RATE_LIMITED", "写入请求过于频繁，请稍后再试。", {
     limit,
     windowSeconds: env.publicWriteRateLimitWindowSeconds,
     retryAfterSeconds: decision.retryAfterSeconds
@@ -100,7 +100,7 @@ publicRoutes.get("/topics/:slug", async (c) => {
   const topic = topicFromDb === undefined ? getTopicDetail(c.req.param("slug")) : topicFromDb;
 
   if (!topic) {
-    return jsonError(c, 404, "NOT_FOUND", "Topic not found.");
+    return jsonError(c, 404, "NOT_FOUND", "主题不存在。");
   }
 
   return c.json(ok(topic));
@@ -117,7 +117,7 @@ publicRoutes.get("/articles/:slug", async (c) => {
   const article = articleFromDb === undefined ? getArticleDetail(c.req.param("slug")) : articleFromDb;
 
   if (!article) {
-    return jsonError(c, 404, "NOT_FOUND", "Article not found.");
+    return jsonError(c, 404, "NOT_FOUND", "文章不存在。");
   }
 
   return c.json(ok(article));
@@ -134,7 +134,7 @@ publicRoutes.get("/events/:slug", async (c) => {
   const event = eventFromDb === undefined ? getEventDetail(c.req.param("slug")) : eventFromDb;
 
   if (!event) {
-    return jsonError(c, 404, "NOT_FOUND", "Event not found.");
+    return jsonError(c, 404, "NOT_FOUND", "活动不存在。");
   }
 
   return c.json(ok(event));
@@ -151,7 +151,7 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
   const result = validatePublicEventRegistrationInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }
@@ -163,11 +163,11 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
         const event = getEventDetail(c.req.param("eventId"));
 
         if (!event) {
-          throw new PublicContentError(404, "NOT_FOUND", "Event not found.");
+          throw new PublicContentError(404, "NOT_FOUND", "活动不存在。");
         }
 
         if (event.registrationState !== "open" && event.registrationState !== "waitlist") {
-          throw new PublicContentError(409, "REGISTRATION_CLOSED", "Event registration is not currently open.");
+          throw new PublicContentError(409, "REGISTRATION_CLOSED", "当前活动尚未开放报名。");
         }
 
         const status = event.registrationState === "waitlist" ? "waitlisted" : "submitted";
@@ -217,7 +217,7 @@ publicRoutes.get("/cities/:slug", async (c) => {
   const city = cityFromDb === undefined ? getCityDetail(c.req.param("slug")) : cityFromDb;
 
   if (!city) {
-    return jsonError(c, 404, "NOT_FOUND", "City not found.");
+    return jsonError(c, 404, "NOT_FOUND", "城市不存在。");
   }
 
   return c.json(ok(city));
@@ -234,7 +234,7 @@ publicRoutes.post("/applications", async (c) => {
   const result = validatePublicApplicationInput(payload);
 
   if (!result.valid) {
-    return jsonError(c, 400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
       issues: result.issues
     });
   }

@@ -5,7 +5,7 @@ import { RouterLink } from "vue-router";
 import type { AdminArticleListItem } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
-import { formatDate } from "../lib/format";
+import { formatContentStatus, formatDate } from "../lib/format";
 
 const rows = ref<AdminArticleListItem[]>([]);
 const loading = ref(true);
@@ -18,7 +18,7 @@ onMounted(async () => {
   try {
     rows.value = await adminFetch<AdminArticleListItem[]>("/api/admin/v1/articles");
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load articles.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载文章列表。";
   } finally {
     loading.value = false;
   }
@@ -29,37 +29,37 @@ onMounted(async () => {
   <section>
     <header class="page-header page-header-row">
       <div>
-        <h2>Articles</h2>
-        <p>Write, link, and publish editorial content with authors, city placement, and topic taxonomy.</p>
+        <h2>文章</h2>
+        <p>围绕作者、城市归属与主题体系，编写、关联并发布内容文章。</p>
       </div>
 
       <div class="page-actions">
         <RouterLink class="button-link button-primary" to="/articles/new">
-          New Article
+          新建文章
         </RouterLink>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API Error</div>
+      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching articles...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载文章...</p>
     </div>
 
     <div v-else class="panel table-panel">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Author</th>
-            <th>City</th>
-            <th>Topics</th>
-            <th>Published</th>
+            <th>标题</th>
+            <th>状态</th>
+            <th>作者</th>
+            <th>城市</th>
+            <th>主题数</th>
+            <th>发布时间</th>
             <th></th>
           </tr>
         </thead>
@@ -69,14 +69,14 @@ onMounted(async () => {
               <strong>{{ row.title }}</strong>
               <div class="muted-row">/{{ row.slug }}</div>
             </td>
-            <td><span class="status-pill">{{ row.status }}</span></td>
+            <td><span class="status-pill">{{ formatContentStatus(row.status) }}</span></td>
             <td>{{ row.authorName ?? "-" }}</td>
             <td>{{ row.cityName ?? "-" }}</td>
             <td>{{ row.topicCount }}</td>
             <td>{{ formatDate(row.publishedAt) }}</td>
             <td class="table-actions-cell">
               <RouterLink class="table-link" :to="`/articles/${row.id}/edit`">
-                Edit
+                编辑
               </RouterLink>
             </td>
           </tr>

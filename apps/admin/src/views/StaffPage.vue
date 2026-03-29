@@ -11,7 +11,7 @@ import {
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime, formatStaffAccountStatus } from "../lib/format";
 
 const rows = ref<AdminStaffListItem[]>([]);
 const roles = ref<AdminRoleSummary[]>([]);
@@ -95,7 +95,7 @@ const loadStaff = async (preferredStaffId?: string) => {
     selectedStaffId.value = nextSelectedId;
     applySelectedStaff(payload.staff.find((row) => row.id === nextSelectedId) ?? null);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load staff accounts.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载员工账号。";
   } finally {
     loading.value = false;
   }
@@ -119,12 +119,12 @@ const createStaff = async () => {
       body: createForm
     });
 
-    successMessage.value = `Staff account created for ${created.name}.`;
+    successMessage.value = `已为 ${created.name} 创建员工账号。`;
     resetCreateForm();
     await loadStaff(created.id);
   } catch (error) {
     createIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to create the staff account.";
+    errorMessage.value = error instanceof Error ? error.message : "无法创建员工账号。";
   } finally {
     creating.value = false;
   }
@@ -145,11 +145,11 @@ const saveStaff = async () => {
       body: editForm
     });
 
-    successMessage.value = `Staff account updated for ${updated.name}.`;
+    successMessage.value = `已更新 ${updated.name} 的员工账号。`;
     await loadStaff(updated.id);
   } catch (error) {
     editIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to update the staff account.";
+    errorMessage.value = error instanceof Error ? error.message : "无法更新员工账号。";
   } finally {
     saving.value = false;
   }
@@ -165,41 +165,41 @@ onMounted(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header">
-      <h2>Staff</h2>
-      <p>Provision internal operators, control account status, and keep role assignments inside the application schema.</p>
+      <h2>员工</h2>
+      <p>创建内部工作人员账号、管理账户状态，并把角色分配收敛在应用自身的权限模型中。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Action Error</div>
+      <div class="brand-tag">操作错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel panel-success stacked-gap">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching staff accounts and role references...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载员工账号与角色信息...</p>
     </div>
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
         <article class="panel stat-panel">
-          <div class="brand-tag">Staff</div>
+          <div class="brand-tag">员工</div>
           <strong>{{ rows.length }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Active</div>
+          <div class="brand-tag">启用中</div>
           <strong>{{ activeCount }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Invited</div>
+          <div class="brand-tag">已邀请</div>
           <strong>{{ invitedCount }}</strong>
         </article>
         <article class="panel stat-panel">
-          <div class="brand-tag">Roles</div>
+          <div class="brand-tag">角色</div>
           <strong>{{ roles.length }}</strong>
         </article>
       </div>
@@ -208,27 +208,27 @@ onMounted(() => {
         <div class="panel editor-main stacked-gap">
           <div class="page-header-row compact-row">
             <div>
-              <div class="brand-tag">Create Staff</div>
-              <h3>New internal account</h3>
-              <p class="section-copy">Create a credential-backed user, then attach internal roles and staff status.</p>
+              <div class="brand-tag">创建员工</div>
+              <h3>新建内部账号</h3>
+              <p class="section-copy">先创建具备登录凭证的用户，再绑定内部角色与员工状态。</p>
             </div>
 
             <div class="page-actions">
               <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
-                {{ creating ? "Creating..." : "Create Staff" }}
+                {{ creating ? "创建中..." : "创建员工" }}
               </button>
             </div>
           </div>
 
           <div class="field-grid field-grid-2">
             <label class="field">
-              <span>Name</span>
-              <input v-model="createForm.name" type="text" placeholder="Operations Lead" />
+              <span>姓名</span>
+              <input v-model="createForm.name" type="text" placeholder="运营负责人" />
               <small v-if="createIssues.name" class="field-error">{{ createIssues.name }}</small>
             </label>
 
             <label class="field">
-              <span>Email</span>
+              <span>邮箱</span>
               <input v-model="createForm.email" type="email" placeholder="ops@example.com" />
               <small v-if="createIssues.email" class="field-error">{{ createIssues.email }}</small>
             </label>
@@ -236,14 +236,14 @@ onMounted(() => {
 
           <div class="field-grid field-grid-2">
             <label class="field">
-              <span>Temporary Password</span>
-              <input v-model="createForm.password" type="password" placeholder="At least 12 characters" />
-              <small class="field-hint">This is only used when the email does not already belong to an existing user.</small>
+              <span>临时密码</span>
+              <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
+              <small class="field-hint">只有当该邮箱尚未绑定现有用户时，才会使用这个密码。</small>
               <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
             </label>
 
             <label class="field">
-              <span>Status</span>
+              <span>状态</span>
               <select v-model="createForm.status">
                 <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
@@ -254,26 +254,26 @@ onMounted(() => {
           </div>
 
           <label class="field">
-            <span>Roles</span>
+            <span>角色</span>
             <select v-model="createForm.roleIds" multiple>
               <option v-for="role in roles" :key="role.id" :value="role.id">
                 {{ role.name }} ({{ role.code }})
               </option>
             </select>
-            <small class="field-hint">Assign one or more roles. Effective permissions are derived from these bundles.</small>
+            <small class="field-hint">可以分配一个或多个角色，最终生效权限会从这些角色包中计算得出。</small>
             <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
           </label>
 
           <label class="field">
-            <span>Notes</span>
-            <textarea v-model="createForm.notes" rows="4" placeholder="Why this staff account exists, onboarding context, or operational notes."></textarea>
+            <span>备注</span>
+            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个员工账号的用途、入职背景或运营备注。"></textarea>
             <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
           </label>
         </div>
 
         <aside class="editor-side stacked-gap">
           <div class="panel stacked-gap">
-            <div class="brand-tag">Edit Staff</div>
+            <div class="brand-tag">编辑员工</div>
 
             <template v-if="selectedStaff">
               <div class="page-header-row compact-row">
@@ -283,24 +283,24 @@ onMounted(() => {
                 </div>
 
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveStaff">
-                  {{ saving ? "Saving..." : "Save Changes" }}
+                  {{ saving ? "保存中..." : "保存修改" }}
                 </button>
               </div>
 
               <label class="field">
-                <span>Name</span>
+                <span>姓名</span>
                 <input v-model="editForm.name" type="text" />
                 <small v-if="editIssues.name" class="field-error">{{ editIssues.name }}</small>
               </label>
 
               <label class="field">
-                <span>Email</span>
+                <span>邮箱</span>
                 <input v-model="editForm.email" type="email" />
                 <small v-if="editIssues.email" class="field-error">{{ editIssues.email }}</small>
               </label>
 
               <label class="field">
-                <span>Status</span>
+                <span>状态</span>
                 <select v-model="editForm.status">
                   <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
@@ -310,7 +310,7 @@ onMounted(() => {
               </label>
 
               <label class="field">
-                <span>Roles</span>
+                <span>角色</span>
                 <select v-model="editForm.roleIds" multiple>
                   <option v-for="role in roles" :key="role.id" :value="role.id">
                     {{ role.name }} ({{ role.code }})
@@ -320,29 +320,29 @@ onMounted(() => {
               </label>
 
               <label class="field">
-                <span>Notes</span>
+                <span>备注</span>
                 <textarea v-model="editForm.notes" rows="5"></textarea>
                 <small v-if="editIssues.notes" class="field-error">{{ editIssues.notes }}</small>
               </label>
 
               <div class="panel inset-panel stacked-gap">
                 <div class="info-row">
-                  <span>Invited</span>
+                  <span>邀请时间</span>
                   <strong>{{ formatDateTime(selectedStaff.invitedAt) }}</strong>
                 </div>
                 <div class="info-row">
-                  <span>Activated</span>
+                  <span>激活时间</span>
                   <strong>{{ formatDateTime(selectedStaff.activatedAt) }}</strong>
                 </div>
                 <div class="info-row">
-                  <span>Last login</span>
+                  <span>最后登录</span>
                   <strong>{{ formatDateTime(selectedStaff.lastLoginAt) }}</strong>
                 </div>
               </div>
             </template>
 
             <template v-else>
-              <p>No staff account is selected yet.</p>
+              <p>还没有选中任何员工账号。</p>
             </template>
           </div>
         </aside>
@@ -352,11 +352,11 @@ onMounted(() => {
         <table class="data-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Roles</th>
-              <th>Last Login</th>
-              <th>Updated</th>
+              <th>姓名</th>
+              <th>状态</th>
+              <th>角色</th>
+              <th>最后登录</th>
+              <th>更新时间</th>
               <th></th>
             </tr>
           </thead>
@@ -366,13 +366,13 @@ onMounted(() => {
                 <strong>{{ row.name }}</strong>
                 <div class="muted-row">{{ row.email }}</div>
               </td>
-              <td><span class="status-pill">{{ row.status }}</span></td>
+              <td><span class="status-pill">{{ formatStaffAccountStatus(row.status) }}</span></td>
               <td>{{ formatRoleNames(row) }}</td>
               <td>{{ formatDateTime(row.lastLoginAt) }}</td>
               <td>{{ formatDateTime(row.updatedAt) }}</td>
               <td class="table-actions-cell">
                 <button class="button-link button-compact" type="button" @click="selectStaff(row)">
-                  {{ selectedStaffId === row.id ? "Editing" : "Edit" }}
+                  {{ selectedStaffId === row.id ? "编辑中" : "编辑" }}
                 </button>
               </td>
             </tr>

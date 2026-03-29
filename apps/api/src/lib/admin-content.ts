@@ -70,7 +70,7 @@ const asNullableText = (value: string) => {
 const now = () => new Date();
 const getActorStaffAccountId = (actor: AuditActorContext) => {
   if (!actor.actorStaffAccountId) {
-    throw new AdminContentError(403, "FORBIDDEN", "Active staff access is required.");
+    throw new AdminContentError(403, "FORBIDDEN", "需要启用中的员工账号权限。");
   }
 
   return actor.actorStaffAccountId;
@@ -250,7 +250,7 @@ const withUniqueGuard = async <T>(work: () => Promise<T>) => {
     return await work();
   } catch (error) {
     if (isUniqueViolation(error)) {
-      throw new AdminContentError(409, "CONFLICT", "A record with the same slug already exists.");
+      throw new AdminContentError(409, "CONFLICT", "已存在相同 URL 标识的记录。");
     }
 
     throw error;
@@ -326,26 +326,26 @@ const validatePublishableTopic = (topic: typeof topics.$inferSelect) => {
   if (topic.title.trim().length < 2) {
     issues.push({
       field: "title",
-      message: "Title is required before publishing."
+      message: "发布前必须填写标题。"
     });
   }
 
   if (topic.slug.trim().length < 2) {
     issues.push({
       field: "slug",
-      message: "Slug is required before publishing."
+      message: "发布前必须填写 URL 标识。"
     });
   }
 
   if ((topic.summary ?? "").trim().length === 0) {
     issues.push({
       field: "summary",
-      message: "Summary is required before publishing."
+      message: "发布前必须填写摘要。"
     });
   }
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Topic is not ready to publish.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "主题尚未满足发布条件。", {
       issues
     });
   }
@@ -360,42 +360,42 @@ export const getPublishableArticleIssues = (
   if (article.title.trim().length < 2) {
     issues.push({
       field: "title",
-      message: "Title is required before publishing."
+      message: "发布前必须填写标题。"
     });
   }
 
   if (article.slug.trim().length < 2) {
     issues.push({
       field: "slug",
-      message: "Slug is required before publishing."
+      message: "发布前必须填写 URL 标识。"
     });
   }
 
   if ((article.excerpt ?? "").trim().length === 0) {
     issues.push({
       field: "excerpt",
-      message: "Excerpt is required before publishing."
+      message: "发布前必须填写摘要导语。"
     });
   }
 
   if ((article.bodyRichtext ?? "").trim().length === 0) {
     issues.push({
       field: "body",
-      message: "Body content is required before publishing."
+      message: "发布前必须填写正文内容。"
     });
   }
 
   if (!article.authorId) {
     issues.push({
       field: "authorId",
-      message: "Author is required before publishing."
+      message: "发布前必须选择作者。"
     });
   }
 
   if (topicIds.length === 0) {
     issues.push({
       field: "topicIds",
-      message: "At least one topic is required before publishing."
+      message: "发布前至少需要关联一个主题。"
     });
   }
 
@@ -406,7 +406,7 @@ const validatePublishableArticle = (article: typeof articles.$inferSelect, topic
   const issues = getPublishableArticleIssues(article, topicIds);
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Article is not ready to publish.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "文章尚未满足发布条件。", {
       issues
     });
   }
@@ -422,47 +422,47 @@ const validatePublishableEvent = (
   if (event.title.trim().length < 2) {
     issues.push({
       field: "title",
-      message: "Title is required before publishing."
+      message: "发布前必须填写标题。"
     });
   }
 
   if (event.slug.trim().length < 2) {
     issues.push({
       field: "slug",
-      message: "Slug is required before publishing."
+      message: "发布前必须填写 URL 标识。"
     });
   }
 
   if (!event.cityId) {
     issues.push({
       field: "cityId",
-      message: "City is required before publishing."
+      message: "发布前必须选择城市。"
     });
   }
 
   if (!event.startsAt || !event.endsAt) {
     issues.push({
       field: "startsAt",
-      message: "Start and end time are required before publishing."
+      message: "发布前必须填写开始与结束时间。"
     });
   }
 
   if (topicIds.length === 0) {
     issues.push({
       field: "topicIds",
-      message: "At least one topic is required before publishing."
+      message: "发布前至少需要关联一个主题。"
     });
   }
 
   if (agenda.length === 0) {
     issues.push({
       field: "agenda",
-      message: "At least one agenda item is required before publishing."
+      message: "发布前至少需要填写一个议程环节。"
     });
   }
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Event is not ready to publish.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "活动尚未满足发布条件。", {
       issues
     });
   }
@@ -485,14 +485,14 @@ const assertArticleReferences = async (input: AdminArticleUpsertInput) => {
   if (input.authorId && authorRows.length === 0) {
     issues.push({
       field: "authorId",
-      message: "Selected author does not exist."
+      message: "所选作者不存在。"
     });
   }
 
   if (input.primaryCityId && cityRows.length === 0) {
     issues.push({
       field: "primaryCityId",
-      message: "Selected city does not exist."
+      message: "所选城市不存在。"
     });
   }
 
@@ -503,13 +503,13 @@ const assertArticleReferences = async (input: AdminArticleUpsertInput) => {
     if (missingTopicCount > 0) {
       issues.push({
         field: "topicIds",
-        message: "One or more selected topics do not exist."
+        message: "所选主题中存在无效项。"
       });
     }
   }
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Article references are invalid.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "文章关联数据无效。", {
       issues
     });
   }
@@ -528,7 +528,7 @@ const assertEventReferences = async (input: AdminEventUpsertInput) => {
   if (input.cityId && cityRows.length === 0) {
     issues.push({
       field: "cityId",
-      message: "Selected city does not exist."
+      message: "所选城市不存在。"
     });
   }
 
@@ -539,13 +539,13 @@ const assertEventReferences = async (input: AdminEventUpsertInput) => {
     if (missingTopicCount > 0) {
       issues.push({
         field: "topicIds",
-        message: "One or more selected topics do not exist."
+        message: "所选主题中存在无效项。"
       });
     }
   }
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Event references are invalid.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "活动关联数据无效。", {
       issues
     });
   }
@@ -565,33 +565,33 @@ const assertCoverAsset = async (coverAssetId: string | null) => {
   if (!coverAsset) {
     issues.push({
       field: "coverAssetId",
-      message: "Selected cover asset does not exist."
+      message: "所选封面资源不存在。"
     });
   } else {
     if (coverAsset.status !== "active") {
       issues.push({
         field: "coverAssetId",
-        message: "Selected cover asset must be active."
+        message: "所选封面资源必须处于启用状态。"
       });
     }
 
     if (coverAsset.visibility !== "public") {
       issues.push({
         field: "coverAssetId",
-        message: "Selected cover asset must be public."
+        message: "所选封面资源必须为公开资源。"
       });
     }
 
     if (!coverAsset.mimeType.startsWith("image/")) {
       issues.push({
         field: "coverAssetId",
-        message: "Selected cover asset must be an image."
+        message: "所选封面资源必须是图片。"
       });
     }
   }
 
   if (issues.length > 0) {
-    throw new AdminContentError(400, "VALIDATION_ERROR", "Cover asset selection is invalid.", {
+    throw new AdminContentError(400, "VALIDATION_ERROR", "封面资源选择无效。", {
       issues
     });
   }
@@ -679,7 +679,7 @@ export const updateAdminTopic = async (
     });
 
     if (!existing) {
-      throw new AdminContentError(404, "NOT_FOUND", "Topic not found.");
+      throw new AdminContentError(404, "NOT_FOUND", "主题不存在。");
     }
 
     const [topic] = await db
@@ -719,7 +719,7 @@ export const publishAdminTopic = async (id: string, actor: AuditActorContext): P
   });
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Topic not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "主题不存在。");
   }
 
   validatePublishableTopic(existing);
@@ -754,7 +754,7 @@ export const archiveAdminTopic = async (id: string, actor: AuditActorContext): P
   });
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Topic not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "主题不存在。");
   }
 
   const [topic] = await db
@@ -909,7 +909,7 @@ export const updateAdminArticle = async (
     ]);
 
     if (!existing) {
-      throw new AdminContentError(404, "NOT_FOUND", "Article not found.");
+      throw new AdminContentError(404, "NOT_FOUND", "文章不存在。");
     }
 
     const updated = await db.transaction(async (tx) => {
@@ -981,7 +981,7 @@ export const publishAdminArticle = async (
   ]);
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Article not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "文章不存在。");
   }
 
   const topicIds = bindings.map((binding) => binding.topicId);
@@ -1026,7 +1026,7 @@ export const archiveAdminArticle = async (
   ]);
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Article not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "文章不存在。");
   }
 
   const [article] = await db
@@ -1208,7 +1208,7 @@ export const updateAdminEvent = async (
     ]);
 
     if (!existing) {
-      throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+      throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
     }
 
     const updated = await db.transaction(async (tx) => {
@@ -1308,7 +1308,7 @@ export const publishAdminEvent = async (
   ]);
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   const topicIds = bindings.map((binding) => binding.topicId);
@@ -1361,7 +1361,7 @@ export const archiveAdminEvent = async (
   ]);
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   const [event] = await db
@@ -1420,7 +1420,7 @@ export const listAdminEventRegistrations = async (eventId: string): Promise<Admi
   ]);
 
   if (!event) {
-    throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   return {
@@ -1444,7 +1444,7 @@ export const getAdminEventRegistration = async (id: string): Promise<AdminEventR
   });
 
   if (!event) {
-    throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   return {
@@ -1465,7 +1465,7 @@ export const updateAdminEventRegistration = async (
   });
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Registration not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "报名记录不存在。");
   }
 
   const [registration] = await db
@@ -1484,7 +1484,7 @@ export const updateAdminEventRegistration = async (
   });
 
   if (!event) {
-    throw new AdminContentError(404, "NOT_FOUND", "Event not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "活动不存在。");
   }
 
   await writeAuditLog(actor, {
@@ -1557,7 +1557,7 @@ export const updateAdminApplication = async (
   ]);
 
   if (!existing) {
-    throw new AdminContentError(404, "NOT_FOUND", "Application not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "申请记录不存在。");
   }
 
   const [application] = await db
@@ -1630,19 +1630,19 @@ export const completeAdminAssetUpload = async (
     const isImageAsset = imageAssetTypes.has(intent.assetType);
 
     if (intent.uploadedByStaffId !== staffAccountId) {
-      throw new AdminContentError(403, "FORBIDDEN", "This upload intent belongs to a different staff member.");
+      throw new AdminContentError(403, "FORBIDDEN", "该上传意图不属于当前员工账号。");
     }
 
     if (isImageAsset && (input.width === null || input.height === null)) {
-      throw new AdminContentError(400, "VALIDATION_ERROR", "Image uploads must include width and height metadata.", {
+      throw new AdminContentError(400, "VALIDATION_ERROR", "图片上传必须包含宽高元数据。", {
         issues: [
           {
             field: "width",
-            message: "Image uploads must include width metadata."
+            message: "图片上传必须包含宽度元数据。"
           },
           {
             field: "height",
-            message: "Image uploads must include height metadata."
+            message: "图片上传必须包含高度元数据。"
           }
         ]
       });
@@ -1652,16 +1652,16 @@ export const completeAdminAssetUpload = async (
       throw new AdminContentError(
         400,
         "VALIDATION_ERROR",
-        "Document uploads must not include image dimensions.",
+        "文档上传不能包含图片尺寸信息。",
         {
           issues: [
             {
               field: "width",
-              message: "Document uploads must not include image dimensions."
+              message: "文档上传不能包含图片尺寸信息。"
             },
             {
               field: "height",
-              message: "Document uploads must not include image dimensions."
+              message: "文档上传不能包含图片尺寸信息。"
             }
           ]
         }
@@ -1673,12 +1673,12 @@ export const completeAdminAssetUpload = async (
         throw new AdminContentError(
           400,
           "VALIDATION_ERROR",
-          "Image dimensions exceed the configured upload limit.",
+          "图片尺寸超出当前上传限制。",
           {
             issues: [
               {
                 field: "width",
-                message: `Image dimensions must be ${env.assetImageMaxDimension}px or smaller on each side.`
+                message: `图片宽高都不能超过 ${env.assetImageMaxDimension} 像素。`
               }
             ]
           }
@@ -1689,12 +1689,12 @@ export const completeAdminAssetUpload = async (
         throw new AdminContentError(
           400,
           "VALIDATION_ERROR",
-          "Image pixel count exceeds the configured upload limit.",
+          "图片像素总量超出当前上传限制。",
           {
             issues: [
               {
                 field: "width",
-                message: `Image pixel count must be ${env.assetImageMaxPixels.toLocaleString()} or fewer.`
+                message: `图片像素总量不能超过 ${env.assetImageMaxPixels.toLocaleString()}。`
               }
             ]
           }
@@ -1708,7 +1708,7 @@ export const completeAdminAssetUpload = async (
       throw new AdminContentError(
         400,
         "UPLOAD_MISMATCH",
-        "Uploaded object size does not match the upload intent.",
+        "上传对象大小与上传意图不一致。",
         {
           expectedByteSize: intent.byteSize,
           actualByteSize: uploadedObject.byteSize
@@ -1723,7 +1723,7 @@ export const completeAdminAssetUpload = async (
       throw new AdminContentError(
         400,
         "UPLOAD_MISMATCH",
-        "Uploaded object media type does not match the upload intent.",
+        "上传对象的媒体类型与上传意图不一致。",
         {
           expectedMimeType: intent.mimeType,
           actualMimeType: uploadedObject.mimeType
@@ -1767,7 +1767,7 @@ export const completeAdminAssetUpload = async (
       };
     } catch (error) {
       if (isUniqueViolation(error)) {
-        throw new AdminContentError(409, "CONFLICT", "This upload has already been finalized.");
+        throw new AdminContentError(409, "CONFLICT", "该上传已完成登记，不能重复提交。");
       }
 
       throw error;

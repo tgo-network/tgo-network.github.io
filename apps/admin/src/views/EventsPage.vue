@@ -5,7 +5,7 @@ import { RouterLink } from "vue-router";
 import type { AdminEventListItem } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
-import { formatDate } from "../lib/format";
+import { formatContentStatus, formatDate, formatEventRegistrationState } from "../lib/format";
 
 const rows = ref<AdminEventListItem[]>([]);
 const loading = ref(true);
@@ -18,7 +18,7 @@ onMounted(async () => {
   try {
     rows.value = await adminFetch<AdminEventListItem[]>("/api/admin/v1/events");
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load events.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载活动列表。";
   } finally {
     loading.value = false;
   }
@@ -29,36 +29,36 @@ onMounted(async () => {
   <section>
     <header class="page-header page-header-row">
       <div>
-        <h2>Events</h2>
-        <p>Plan city-linked events, manage registration state, and shape agendas before publishing.</p>
+        <h2>活动</h2>
+        <p>规划与城市绑定的活动，管理报名状态，并在发布前完善活动议程。</p>
       </div>
 
       <div class="page-actions">
         <RouterLink class="button-link button-primary" to="/events/new">
-          New Event
+          新建活动
         </RouterLink>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API Error</div>
+      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching events...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载活动...</p>
     </div>
 
     <div v-else class="panel table-panel">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Status</th>
-            <th>City</th>
-            <th>Registration</th>
-            <th>Starts</th>
+            <th>标题</th>
+            <th>状态</th>
+            <th>城市</th>
+            <th>报名状态</th>
+            <th>开始时间</th>
             <th></th>
           </tr>
         </thead>
@@ -68,9 +68,9 @@ onMounted(async () => {
               <strong>{{ row.title }}</strong>
               <div class="muted-row">/{{ row.slug }}</div>
             </td>
-            <td><span class="status-pill">{{ row.status }}</span></td>
+            <td><span class="status-pill">{{ formatContentStatus(row.status) }}</span></td>
             <td>{{ row.cityName ?? "-" }}</td>
-            <td><span class="status-pill">{{ row.registrationState }}</span></td>
+            <td><span class="status-pill">{{ formatEventRegistrationState(row.registrationState) }}</span></td>
             <td>{{ formatDate(row.startsAt) }}</td>
             <td class="table-actions-cell">
               <div class="table-action-list">
@@ -78,7 +78,7 @@ onMounted(async () => {
                   Edit
                 </RouterLink>
                 <RouterLink class="table-link" :to="`/events/${row.id}/registrations`">
-                  Registrations
+                  报名
                 </RouterLink>
               </div>
             </td>

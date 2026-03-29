@@ -9,6 +9,7 @@ import {
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
+import { formatFeaturedBlockStatus } from "../lib/format";
 
 const loading = ref(true);
 const saving = ref(false);
@@ -67,7 +68,7 @@ const loadBlock = async () => {
     form.payload.applicationSummary = payload.block.payload.applicationSummary;
     form.payload.applicationHref = payload.block.payload.applicationHref;
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load homepage featured content.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载首页推荐位配置。";
   } finally {
     loading.value = false;
   }
@@ -85,10 +86,10 @@ const save = async () => {
       body: form
     });
     references.value = payload.references;
-    successMessage.value = "Homepage featured content updated.";
+    successMessage.value = "首页推荐位配置已更新。";
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "Unable to update homepage featured content.";
+    errorMessage.value = error instanceof Error ? error.message : "无法更新首页推荐位配置。";
   } finally {
     saving.value = false;
   }
@@ -110,90 +111,90 @@ onMounted(() => {
   <section class="stacked-gap">
     <header class="page-header page-header-row">
       <div>
-        <h2>Featured Blocks</h2>
-        <p>Control the homepage hero and the curated content mixes that shape the first impression of the public site.</p>
+        <h2>推荐位</h2>
+        <p>管理首页头图与内容编排，决定公开站给用户的第一印象。</p>
       </div>
 
       <div class="page-actions">
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
-          {{ saving ? "Saving..." : "Save Homepage Block" }}
+          {{ saving ? "保存中..." : "保存首页推荐位" }}
         </button>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Action Error</div>
+      <div class="brand-tag">操作错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Preparing homepage featured configuration...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在准备首页推荐位配置...</p>
     </div>
 
     <div v-else class="editor-grid">
       <div class="panel editor-main stacked-gap">
         <div class="field-grid">
           <label class="field">
-            <span>Status</span>
+            <span>状态</span>
             <select v-model="form.status">
               <option v-for="option in featuredBlockStatusOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>
-            <small class="field-hint">Only an active homepage block overrides the automatic public homepage fallback.</small>
+            <small class="field-hint">只有启用中的首页推荐位会覆盖公开首页的自动回退逻辑。</small>
             <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
           </label>
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">Hero Copy</div>
+          <div class="brand-tag">头图区文案</div>
           <div class="field-grid">
             <label class="field">
-              <span>Eyebrow</span>
-              <input v-model="form.payload.heroEyebrow" type="text" placeholder="Phase 3 Admin MVP" />
+              <span>眉标</span>
+              <input v-model="form.payload.heroEyebrow" type="text" placeholder="第三阶段管理后台 MVP" />
               <small v-if="fieldIssues['payload.heroEyebrow']" class="field-error">{{ fieldIssues["payload.heroEyebrow"] }}</small>
             </label>
 
             <label class="field">
-              <span>Title</span>
-              <textarea v-model="form.payload.heroTitle" rows="3" placeholder="Homepage title"></textarea>
+              <span>标题</span>
+              <textarea v-model="form.payload.heroTitle" rows="3" placeholder="首页主标题"></textarea>
               <small v-if="fieldIssues['payload.heroTitle']" class="field-error">{{ fieldIssues["payload.heroTitle"] }}</small>
             </label>
 
             <label class="field">
-              <span>Summary</span>
-              <textarea v-model="form.payload.heroSummary" rows="5" placeholder="Explain the current focus of the platform."></textarea>
+              <span>摘要</span>
+              <textarea v-model="form.payload.heroSummary" rows="5" placeholder="说明平台当前阶段的重点。"></textarea>
               <small v-if="fieldIssues['payload.heroSummary']" class="field-error">{{ fieldIssues["payload.heroSummary"] }}</small>
             </label>
           </div>
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">Hero Actions</div>
+          <div class="brand-tag">头图区按钮</div>
           <div class="field-grid field-grid-2">
             <label class="field">
-              <span>Primary label</span>
-              <input v-model="form.payload.primaryActionLabel" type="text" placeholder="Explore articles" />
+              <span>主按钮文案</span>
+              <input v-model="form.payload.primaryActionLabel" type="text" placeholder="浏览文章" />
               <small v-if="fieldIssues['payload.primaryActionLabel']" class="field-error">{{ fieldIssues["payload.primaryActionLabel"] }}</small>
             </label>
             <label class="field">
-              <span>Primary href</span>
+              <span>主按钮链接</span>
               <input v-model="form.payload.primaryActionHref" type="text" placeholder="/articles" />
               <small v-if="fieldIssues['payload.primaryActionHref']" class="field-error">{{ fieldIssues["payload.primaryActionHref"] }}</small>
             </label>
             <label class="field">
-              <span>Secondary label</span>
-              <input v-model="form.payload.secondaryActionLabel" type="text" placeholder="View upcoming events" />
+              <span>次按钮文案</span>
+              <input v-model="form.payload.secondaryActionLabel" type="text" placeholder="查看近期活动" />
               <small v-if="fieldIssues['payload.secondaryActionLabel']" class="field-error">{{ fieldIssues["payload.secondaryActionLabel"] }}</small>
             </label>
             <label class="field">
-              <span>Secondary href</span>
+              <span>次按钮链接</span>
               <input v-model="form.payload.secondaryActionHref" type="text" placeholder="/events" />
               <small v-if="fieldIssues['payload.secondaryActionHref']" class="field-error">{{ fieldIssues["payload.secondaryActionHref"] }}</small>
             </label>
@@ -201,49 +202,49 @@ onMounted(() => {
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">Homepage Collections</div>
+          <div class="brand-tag">首页内容分组</div>
           <div class="field-grid field-grid-2">
             <label class="field">
-              <span>Featured topics</span>
+              <span>精选主题</span>
               <select v-model="form.payload.featuredTopicIds" multiple size="6">
                 <option v-for="option in references.topics" :key="option.id" :value="option.id">
                   {{ option.label }}
                 </option>
               </select>
-              <small class="field-hint">Pick the published topics that should appear in the homepage topic band.</small>
+              <small class="field-hint">选择要出现在首页主题区块中的已发布主题。</small>
               <small v-if="topicIssue" class="field-error">{{ topicIssue }}</small>
             </label>
 
             <label class="field">
-              <span>Featured articles</span>
+              <span>精选文章</span>
               <select v-model="form.payload.featuredArticleIds" multiple size="6">
                 <option v-for="option in references.articles" :key="option.id" :value="option.id">
                   {{ option.label }}
                 </option>
               </select>
-              <small class="field-hint">Use published articles only so the homepage stays aligned with public content.</small>
+              <small class="field-hint">请只选择已发布文章，以保证首页与公开内容保持一致。</small>
               <small v-if="articleIssue" class="field-error">{{ articleIssue }}</small>
             </label>
 
             <label class="field">
-              <span>Upcoming events</span>
+              <span>近期活动</span>
               <select v-model="form.payload.featuredEventIds" multiple size="6">
                 <option v-for="option in references.events" :key="option.id" :value="option.id">
                   {{ option.label }}
                 </option>
               </select>
-              <small class="field-hint">These populate the event band on the homepage.</small>
+              <small class="field-hint">这些内容会填充首页的活动区块。</small>
               <small v-if="eventIssue" class="field-error">{{ eventIssue }}</small>
             </label>
 
             <label class="field">
-              <span>City highlights</span>
+              <span>城市亮点</span>
               <select v-model="form.payload.cityHighlightIds" multiple size="6">
                 <option v-for="option in references.cities" :key="option.id" :value="option.id">
                   {{ option.label }}
                 </option>
               </select>
-              <small class="field-hint">Curate the city cards shown near the bottom of the homepage.</small>
+              <small class="field-hint">配置首页底部展示的城市卡片。</small>
               <small v-if="cityIssue" class="field-error">{{ cityIssue }}</small>
             </label>
           </div>
@@ -252,54 +253,54 @@ onMounted(() => {
 
       <aside class="editor-side stacked-gap">
         <div class="panel stacked-gap">
-          <div class="brand-tag">Application Callout</div>
+          <div class="brand-tag">申请引导区</div>
           <label class="field">
-            <span>Title</span>
-            <input v-model="form.payload.applicationTitle" type="text" placeholder="Ready for the next operator cohort" />
+            <span>标题</span>
+            <input v-model="form.payload.applicationTitle" type="text" placeholder="准备迎接下一批运营伙伴" />
             <small v-if="fieldIssues['payload.applicationTitle']" class="field-error">{{ fieldIssues["payload.applicationTitle"] }}</small>
           </label>
 
           <label class="field">
-            <span>Summary</span>
-            <textarea v-model="form.payload.applicationSummary" rows="6" placeholder="Invite visitors into the next conversion step."></textarea>
+            <span>摘要</span>
+            <textarea v-model="form.payload.applicationSummary" rows="6" placeholder="引导访客进入下一步转化路径。"></textarea>
             <small v-if="fieldIssues['payload.applicationSummary']" class="field-error">{{ fieldIssues["payload.applicationSummary"] }}</small>
           </label>
 
           <label class="field">
-            <span>Href</span>
+            <span>链接</span>
             <input v-model="form.payload.applicationHref" type="text" placeholder="/apply" />
             <small v-if="fieldIssues['payload.applicationHref']" class="field-error">{{ fieldIssues["payload.applicationHref"] }}</small>
           </label>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">Selection Counts</div>
+          <div class="brand-tag">选择数量</div>
           <div class="info-row">
-            <span>Topics</span>
+            <span>主题</span>
             <strong>{{ form.payload.featuredTopicIds.length }}</strong>
           </div>
           <div class="info-row">
-            <span>Articles</span>
+            <span>文章</span>
             <strong>{{ form.payload.featuredArticleIds.length }}</strong>
           </div>
           <div class="info-row">
-            <span>Events</span>
+            <span>活动</span>
             <strong>{{ form.payload.featuredEventIds.length }}</strong>
           </div>
           <div class="info-row">
-            <span>Cities</span>
+            <span>城市</span>
             <strong>{{ form.payload.cityHighlightIds.length }}</strong>
           </div>
           <div class="info-row">
-            <span>Homepage state</span>
-            <strong class="status-pill">{{ form.status }}</strong>
+            <span>首页状态</span>
+            <strong class="status-pill">{{ formatFeaturedBlockStatus(form.status) }}</strong>
           </div>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">How it works</div>
-          <p>When this block is active, the public homepage uses this curated order instead of automatic fallback slices.</p>
-          <p>All selections are validated against currently published content before the block can be saved.</p>
+          <div class="brand-tag">工作方式</div>
+          <p>当这个推荐位启用后，公开首页会优先使用这里配置的顺序，而不是自动回退切片。</p>
+          <p>所有选择都会在保存前校验是否仍然对应已发布内容。</p>
         </div>
       </aside>
     </div>

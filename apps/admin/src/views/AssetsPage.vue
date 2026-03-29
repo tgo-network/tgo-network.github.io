@@ -12,7 +12,7 @@ import {
 } from "@tgo/shared";
 
 import { AdminApiError, adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatBytes, formatDateTime } from "../lib/format";
+import { formatAdminAssetType, formatAssetStatus, formatAssetVisibility, formatBytes, formatDateTime } from "../lib/format";
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
@@ -44,7 +44,7 @@ const visibilityLocked = computed(() => form.assetType === "application-attachme
 const acceptedMimeTypes = computed(() =>
   isImageAssetType.value ? "image/jpeg,image/png,image/webp" : "application/pdf,text/plain"
 );
-const selectedFileName = computed(() => selectedFile.value?.name ?? "No file selected yet.");
+const selectedFileName = computed(() => selectedFile.value?.name ?? "尚未选择文件。");
 const selectedFileSize = computed(() => formatBytes(selectedFile.value?.size ?? 0));
 
 const resetFeedback = () => {
@@ -80,7 +80,7 @@ const loadAssets = async () => {
   try {
     rows.value = await adminFetch<AdminAssetListItem[]>("/api/admin/v1/assets");
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to load assets.";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载资源列表。";
   } finally {
     loading.value = false;
   }
@@ -106,7 +106,7 @@ const readImageDimensions = async (file: File, mimeType: string) => {
         });
       };
       image.onerror = () => {
-        reject(new Error("Unable to inspect image dimensions."));
+        reject(new Error("无法读取图片尺寸。"));
       };
       image.src = objectUrl;
     });
@@ -122,9 +122,9 @@ const uploadAsset = async () => {
 
   if (!selectedFile.value) {
     fieldIssues.value = {
-      filename: "Please choose a file to upload."
+      filename: "请选择需要上传的文件。"
     };
-    errorMessage.value = "Select a file before uploading.";
+    errorMessage.value = "请先选择文件再上传。";
     return;
   }
 
@@ -151,7 +151,7 @@ const uploadAsset = async () => {
     });
 
     if (!uploadResponse.ok) {
-      throw new Error(`Upload failed with status ${uploadResponse.status}.`);
+      throw new Error(`上传失败，状态码 ${uploadResponse.status}。`);
     }
 
     const dimensions = await readImageDimensions(file, mimeType);
@@ -167,14 +167,14 @@ const uploadAsset = async () => {
     });
 
     rows.value = [payload.asset, ...rows.value.filter((row) => row.id !== payload.asset.id)];
-    successMessage.value = "Asset uploaded and indexed.";
+    successMessage.value = "资源已上传并完成登记。";
     resetForm();
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
     if (error instanceof AdminApiError || error instanceof Error) {
       errorMessage.value = error.message;
     } else {
-      errorMessage.value = "Unable to upload asset.";
+      errorMessage.value = "无法上传资源。";
     }
   } finally {
     uploading.value = false;
@@ -210,24 +210,24 @@ onMounted(() => {
   <section class="stacked-gap">
     <header class="page-header page-header-row">
       <div>
-        <h2>Assets</h2>
-        <p>Upload editorial media through signed storage URLs and keep asset metadata inside the admin system.</p>
+        <h2>资源</h2>
+        <p>通过签名上传地址上传内容资源，并将资源元数据保存在后台系统中。</p>
       </div>
 
       <div class="page-actions">
         <button class="button-link button-primary" type="button" :disabled="uploading" @click="uploadAsset">
-          {{ uploading ? "Uploading..." : "Upload Asset" }}
+          {{ uploading ? "上传中..." : "上传资源" }}
         </button>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">Upload Error</div>
+      <div class="brand-tag">上传错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">Saved</div>
+      <div class="brand-tag">已保存</div>
       <p>{{ successMessage }}</p>
     </div>
 
@@ -235,7 +235,7 @@ onMounted(() => {
       <div class="panel editor-main stacked-gap">
         <div class="field-grid field-grid-2">
           <label class="field">
-            <span>Asset Type</span>
+            <span>资源类型</span>
             <select v-model="form.assetType">
               <option v-for="option in adminAssetTypeOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -245,19 +245,19 @@ onMounted(() => {
           </label>
 
           <label class="field">
-            <span>Visibility</span>
+            <span>可见性</span>
             <select v-model="form.visibility" :disabled="visibilityLocked">
               <option v-for="option in assetVisibilityOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>
-            <small v-if="visibilityLocked" class="field-hint">Application attachments stay private by policy.</small>
+            <small v-if="visibilityLocked" class="field-hint">按照策略，申请附件必须保持私有。</small>
             <small v-if="fieldIssues.visibility" class="field-error">{{ fieldIssues.visibility }}</small>
           </label>
         </div>
 
         <label class="field">
-          <span>Choose File</span>
+          <span>选择文件</span>
           <input
             ref="fileInput"
             class="file-input"
@@ -265,65 +265,65 @@ onMounted(() => {
             :accept="acceptedMimeTypes"
             @change="onFileSelected"
           />
-          <small class="field-hint">Accepted types depend on the selected asset type.</small>
+          <small class="field-hint">可接受的文件类型会根据所选资源类型变化。</small>
           <small v-if="fieldIssues.filename" class="field-error">{{ fieldIssues.filename }}</small>
           <small v-if="fieldIssues.mimeType" class="field-error">{{ fieldIssues.mimeType }}</small>
           <small v-if="fieldIssues.byteSize" class="field-error">{{ fieldIssues.byteSize }}</small>
         </label>
 
         <label class="field">
-          <span>Alt Text</span>
+          <span>替代文本</span>
           <textarea
             v-model="form.altText"
             rows="4"
-            placeholder="Describe the image for accessibility and editorial reuse."
+            placeholder="描述图片内容，便于无障碍访问与后续复用。"
           />
-          <small class="field-hint">Recommended for all image assets; optional for documents.</small>
+          <small class="field-hint">建议为所有图片资源填写；文档类型可以选填。</small>
           <small v-if="fieldIssues.altText" class="field-error">{{ fieldIssues.altText }}</small>
         </label>
       </div>
 
       <aside class="editor-side stacked-gap">
         <div class="panel stacked-gap">
-          <div class="brand-tag">Selected File</div>
+          <div class="brand-tag">已选文件</div>
           <div class="info-card">
-            <span>Name</span>
+            <span>文件名</span>
             <strong>{{ selectedFileName }}</strong>
           </div>
           <div class="info-row">
-            <span>Size</span>
+            <span>大小</span>
             <strong>{{ selectedFileSize }}</strong>
           </div>
           <div class="info-row">
-            <span>Accepted</span>
+            <span>允许类型</span>
             <strong>{{ acceptedMimeTypes }}</strong>
           </div>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">Storage Flow</div>
-          <p>1. Request a signed upload URL from the API.</p>
-          <p>2. Upload the file directly to object storage.</p>
-          <p>3. Finalize the asset so PostgreSQL stores stable metadata and IDs.</p>
+          <div class="brand-tag">存储流程</div>
+          <p>1. 先向 API 申请签名上传地址。</p>
+          <p>2. 再把文件直接上传到对象存储。</p>
+          <p>3. 最后完成登记，让 PostgreSQL 保存稳定的资源元数据与 ID。</p>
         </div>
       </aside>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">Loading</div>
-      <p>Fetching uploaded assets...</p>
+      <div class="brand-tag">加载中</div>
+      <p>正在加载已上传资源...</p>
     </div>
 
     <div v-else class="panel table-panel">
       <table class="data-table assets-table">
         <thead>
           <tr>
-            <th>Asset</th>
-            <th>Type</th>
-            <th>Visibility</th>
-            <th>Size</th>
-            <th>Status</th>
-            <th>Added</th>
+            <th>资源</th>
+            <th>类型</th>
+            <th>可见性</th>
+            <th>大小</th>
+            <th>状态</th>
+            <th>添加时间</th>
           </tr>
         </thead>
         <tbody>
@@ -337,25 +337,25 @@ onMounted(() => {
                   class="asset-thumb"
                 />
                 <div v-else class="asset-thumb asset-thumb-file">
-                  {{ row.mimeType === 'application/pdf' ? 'PDF' : 'FILE' }}
+                  {{ row.mimeType === 'application/pdf' ? 'PDF' : '文件' }}
                 </div>
 
                 <div class="asset-meta">
                   <strong>{{ row.originalFilename }}</strong>
                   <div class="muted-row">{{ row.objectKey }}</div>
-                  <div class="muted-row" v-if="row.altText">Alt: {{ row.altText }}</div>
+                  <div class="muted-row" v-if="row.altText">替代文本：{{ row.altText }}</div>
                 </div>
               </div>
             </td>
-            <td>{{ row.assetType }}</td>
-            <td><span class="status-pill">{{ row.visibility }}</span></td>
+            <td>{{ formatAdminAssetType(row.assetType) }}</td>
+            <td><span class="status-pill">{{ formatAssetVisibility(row.visibility) }}</span></td>
             <td>{{ formatBytes(row.byteSize) }}</td>
-            <td><span class="status-pill">{{ row.status }}</span></td>
+            <td><span class="status-pill">{{ formatAssetStatus(row.status) }}</span></td>
             <td>{{ formatDateTime(row.createdAt) }}</td>
           </tr>
           <tr v-if="rows.length === 0">
             <td colspan="6">
-              <div class="muted-row">No assets uploaded yet.</div>
+              <div class="muted-row">还没有上传任何资源。</div>
             </td>
           </tr>
         </tbody>

@@ -7,15 +7,14 @@ import { listCities } from "../../lib/public-api";
 const cities = await listCities();
 ---
 
-<BaseLayout title="Cities | TGO Network" description="City landing pages and local network highlights.">
+<BaseLayout title="城市 | TGO Network" description="城市落地页与本地网络亮点。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">Public Route</span>
-        <h1>Cities</h1>
+        <span class="eyebrow">公开路由</span>
+        <h1>城市</h1>
         <p>
-          City pages are designed as curated hubs, not simple directories. Each one can roll up local events, related
-          articles, and topic-led programming under a single route.
+          城市页被设计成带策展能力的内容中心，而不是简单的目录。每个城市都可以在同一路由下汇总本地活动、相关文章与主题编排。
         </p>
       </div>
     </section>
@@ -26,11 +25,11 @@ const cities = await listCities();
           cities.map((city) => (
             <CollectionCard
               href={`/cities/${city.slug}`}
-              label={formatCount(city.topicCount, "topic")}
+              label={formatCount(city.topicCount, "个主题")}
               title={city.name}
               summary={city.summary}
               image={city.coverImage}
-              meta={[formatCount(city.articleCount, "article"), formatCount(city.eventCount, "event")]}
+              meta={[formatCount(city.articleCount, "篇文章"), formatCount(city.eventCount, "场活动")]}
             />
           ))
         }

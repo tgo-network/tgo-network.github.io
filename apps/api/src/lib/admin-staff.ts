@@ -32,7 +32,7 @@ const now = () => new Date();
 
 const getActorStaffAccountId = (actor: AuditActorContext) => {
   if (!actor.actorStaffAccountId) {
-    throw new AdminContentError(403, "FORBIDDEN", "Active staff access is required.");
+    throw new AdminContentError(403, "FORBIDDEN", "需要启用中的员工账号权限。");
   }
 
   return actor.actorStaffAccountId;
@@ -42,7 +42,7 @@ const isUniqueViolation = (error: unknown): error is { code: string } =>
   typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "23505";
 
 const validationError = (issues: AdminValidationIssue[]): AdminContentError =>
-  new AdminContentError(400, "VALIDATION_ERROR", "One or more fields are invalid.", {
+  new AdminContentError(400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
     issues
   });
 
@@ -126,7 +126,7 @@ const assertRoleIds = async (roleIds: string[]) => {
     throw validationError([
       {
         field: "roleIds",
-        message: "One or more selected roles do not exist."
+        message: "所选角色中存在无效项。"
       }
     ]);
   }
@@ -141,7 +141,7 @@ const assertPermissionIds = async (permissionIds: string[]) => {
     throw validationError([
       {
         field: "permissionIds",
-        message: "One or more selected permissions do not exist."
+        message: "所选权限中存在无效项。"
       }
     ]);
   }
@@ -205,7 +205,7 @@ const ensureSuperAdminSafety = async (
     throw validationError([
       {
         field: "roleIds",
-        message: "At least one active super admin must remain assigned."
+        message: "系统中至少需要保留一名启用中的超级管理员。"
       }
     ]);
   }
@@ -303,7 +303,7 @@ const getStaffRecordById = async (staffAccountId: string): Promise<AdminStaffLis
   ]);
 
   if (!staffRow) {
-    throw new AdminContentError(404, "NOT_FOUND", "Staff account not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "员工账号不存在。");
   }
 
   const roleById = new Map(roleRows.map((role) => [role.id, role]));
@@ -330,7 +330,7 @@ const getRoleRecordById = async (roleId: string): Promise<AdminRoleListItem> => 
   ]);
 
   if (!role) {
-    throw new AdminContentError(404, "NOT_FOUND", "Role not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "角色不存在。");
   }
 
   const permissionById = new Map(permissionRows.map((permission) => [permission.id, permission]));
@@ -364,13 +364,13 @@ export const createAdminStaff = async (
     });
 
     if (existingStaff) {
-      throw conflictError("A staff account already exists for this email.");
+      throw conflictError("该邮箱已绑定员工账号。");
     }
   } else {
     const auth = getAuth();
 
     if (!auth) {
-      throw new AdminContentError(503, "AUTH_NOT_CONFIGURED", "Authentication is not configured.");
+      throw new AdminContentError(503, "AUTH_NOT_CONFIGURED", "认证能力尚未配置。");
     }
 
     try {
@@ -385,7 +385,7 @@ export const createAdminStaff = async (
       throw new AdminContentError(
         422,
         "USER_CREATE_FAILED",
-        "Unable to create the credential-backed user for this staff account."
+        "无法为该员工账号创建登录凭证用户。"
       );
     }
 
@@ -394,14 +394,14 @@ export const createAdminStaff = async (
     });
 
     if (!createdUser) {
-      throw new AdminContentError(500, "INTERNAL_ERROR", "Unable to load the newly created user.");
+      throw new AdminContentError(500, "INTERNAL_ERROR", "无法读取刚创建的用户记录。");
     }
 
     userId = createdUser.id;
   }
 
   if (!userId) {
-    throw new AdminContentError(500, "INTERNAL_ERROR", "Unable to resolve the staff user.");
+    throw new AdminContentError(500, "INTERNAL_ERROR", "无法解析对应的员工用户。");
   }
 
   try {
@@ -452,7 +452,7 @@ export const createAdminStaff = async (
     return createdRecord;
   } catch (error) {
     if (isUniqueViolation(error)) {
-      throw conflictError("The email is already in use by another user.");
+      throw conflictError("该邮箱已被其他用户使用。");
     }
 
     throw error;
@@ -482,14 +482,14 @@ export const updateAdminStaff = async (
   ]);
 
   if (!existingRow) {
-    throw new AdminContentError(404, "NOT_FOUND", "Staff account not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "员工账号不存在。");
   }
 
   if (existingRow.staff.id === actorStaffAccountId && input.status !== "active") {
     throw validationError([
       {
         field: "status",
-        message: "You cannot deactivate your own current staff account."
+        message: "你不能停用当前登录的员工账号。"
       }
     ]);
   }
@@ -553,7 +553,7 @@ export const updateAdminStaff = async (
     return after;
   } catch (error) {
     if (isUniqueViolation(error)) {
-      throw conflictError("The email is already in use by another user.");
+      throw conflictError("该邮箱已被其他用户使用。");
     }
 
     throw error;
@@ -575,7 +575,7 @@ export const updateAdminRole = async (
   });
 
   if (!existingRole) {
-    throw new AdminContentError(404, "NOT_FOUND", "Role not found.");
+    throw new AdminContentError(404, "NOT_FOUND", "角色不存在。");
   }
 
   if (existingRole.code === "super_admin") {
@@ -585,7 +585,7 @@ export const updateAdminRole = async (
       throw validationError([
         {
           field: "permissionIds",
-          message: "Super Admin must retain all permissions."
+          message: "超级管理员必须保留全部权限。"
         }
       ]);
     }

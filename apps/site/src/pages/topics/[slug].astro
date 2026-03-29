@@ -18,21 +18,21 @@ const slug = Astro.params.slug!;
 const topic = await getTopic(slug);
 
 if (!topic) {
-  throw new Error(`Topic not found: ${slug}`);
+  throw new Error(`主题不存在：${slug}`);
 }
 ---
 
-<BaseLayout title={`${topic.title} | Topics | TGO Network`} description={topic.summary}>
+<BaseLayout title={`${topic.title} | 主题 | TGO Network`} description={topic.summary}>
   <main class="page-shell page-stack">
     <section class="hero">
       <div class:list={["hero-card", { "hero-split": Boolean(topic.coverImage), "hero-card-media": Boolean(topic.coverImage) }]}>
         <div>
-          <span class="eyebrow">Topic Detail</span>
+          <span class="eyebrow">主题详情</span>
           <h1>{topic.title}</h1>
           <p>{topic.summary}</p>
           <ul class="stat-row">
-            <li>{formatCount(topic.articleCount, "article")}</li>
-            <li>{formatCount(topic.eventCount, "event")}</li>
+            <li>{formatCount(topic.articleCount, "篇文章")}</li>
+            <li>{formatCount(topic.eventCount, "场活动")}</li>
           </ul>
         </div>
 
@@ -48,16 +48,15 @@ if (!topic) {
 
     <section class="section detail-grid">
       <article class="panel prose-panel">
-        <div class="card-label">Editorial Framing</div>
+        <div class="card-label">编辑视角</div>
         <p>{topic.body}</p>
       </article>
 
       <aside class="panel panel-soft">
-        <div class="card-label">Why it matters</div>
-        <h2 class="card-title">This topic can drive multiple public surfaces.</h2>
+        <div class="card-label">为什么重要</div>
+        <h2 class="card-title">一个主题可以驱动多个面向用户的展示层。</h2>
         <p class="card-copy">
-          The same topic can power a hub page, related article blocks, featured event placement, and city-level
-          curation.
+          同一个主题既可以成为主题页本身，也可以驱动相关文章区块、精选活动位置，以及城市级别的内容策展。
         </p>
       </aside>
     </section>
@@ -65,8 +64,8 @@ if (!topic) {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Related Articles</div>
-          <h2>Published pieces already linked to this topic</h2>
+          <div class="card-label">关联文章</div>
+          <h2>已经与该主题绑定的已发布内容</h2>
         </div>
       </div>
       <div class="grid grid-2">
@@ -88,8 +87,8 @@ if (!topic) {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">Related Events</div>
-          <h2>Event pages that reinforce this theme</h2>
+          <div class="card-label">关联活动</div>
+          <h2>与这一主题相互强化的活动页面</h2>
         </div>
       </div>
       <div class="grid grid-2">

@@ -5,23 +5,23 @@ export type ContentStatus = "draft" | "in_review" | "scheduled" | "published" | 
 export const contentStatusOptions = [
   {
     value: "draft",
-    label: "Draft"
+    label: "草稿"
   },
   {
     value: "in_review",
-    label: "In Review"
+    label: "审核中"
   },
   {
     value: "scheduled",
-    label: "Scheduled"
+    label: "定时发布"
   },
   {
     value: "published",
-    label: "Published"
+    label: "已发布"
   },
   {
     value: "archived",
-    label: "Archived"
+    label: "已归档"
   }
 ] as const;
 
@@ -32,19 +32,19 @@ export type EventRegistrationState = "not_open" | "open" | "waitlist" | "closed"
 export const eventRegistrationStateOptions = [
   {
     value: "not_open",
-    label: "Not Open"
+    label: "未开放"
   },
   {
     value: "open",
-    label: "Open"
+    label: "开放中"
   },
   {
     value: "waitlist",
-    label: "Waitlist"
+    label: "候补中"
   },
   {
     value: "closed",
-    label: "Closed"
+    label: "已关闭"
   }
 ] as const;
 
@@ -57,27 +57,27 @@ export type ApplicationStatus = "submitted" | "in_review" | "contacted" | "appro
 export const applicationStatusOptions = [
   {
     value: "submitted",
-    label: "Submitted"
+    label: "已提交"
   },
   {
     value: "in_review",
-    label: "In Review"
+    label: "审核中"
   },
   {
     value: "contacted",
-    label: "Contacted"
+    label: "已联系"
   },
   {
     value: "approved",
-    label: "Approved"
+    label: "已通过"
   },
   {
     value: "rejected",
-    label: "Rejected"
+    label: "已拒绝"
   },
   {
     value: "closed",
-    label: "Closed"
+    label: "已关闭"
   }
 ] as const;
 
@@ -88,19 +88,19 @@ export type StaffAccountStatus = "invited" | "active" | "suspended" | "disabled"
 export const staffAccountStatusOptions = [
   {
     value: "invited",
-    label: "Invited"
+    label: "已邀请"
   },
   {
     value: "active",
-    label: "Active"
+    label: "启用中"
   },
   {
     value: "suspended",
-    label: "Suspended"
+    label: "已暂停"
   },
   {
     value: "disabled",
-    label: "Disabled"
+    label: "已停用"
   }
 ] as const;
 
@@ -111,15 +111,15 @@ export type FeaturedBlockStatus = "draft" | "active" | "archived";
 export const featuredBlockStatusOptions = [
   {
     value: "draft",
-    label: "Draft"
+    label: "草稿"
   },
   {
     value: "active",
-    label: "Active"
+    label: "启用中"
   },
   {
     value: "archived",
-    label: "Archived"
+    label: "已归档"
   }
 ] as const;
 
@@ -130,11 +130,11 @@ export type AssetVisibility = "public" | "private";
 export const assetVisibilityOptions = [
   {
     value: "public",
-    label: "Public"
+    label: "公开"
   },
   {
     value: "private",
-    label: "Private"
+    label: "私有"
   }
 ] as const;
 
@@ -145,19 +145,19 @@ export type AssetStatus = "uploaded" | "active" | "archived" | "deleted";
 export const assetStatusOptions = [
   {
     value: "uploaded",
-    label: "Uploaded"
+    label: "已上传"
   },
   {
     value: "active",
-    label: "Active"
+    label: "启用中"
   },
   {
     value: "archived",
-    label: "Archived"
+    label: "已归档"
   },
   {
     value: "deleted",
-    label: "Deleted"
+    label: "已删除"
   }
 ] as const;
 
@@ -175,39 +175,39 @@ export type AdminAssetType =
 export const adminAssetTypeOptions = [
   {
     value: "site-banner",
-    label: "Site Banner"
+    label: "站点横幅"
   },
   {
     value: "topic-cover",
-    label: "Topic Cover"
+    label: "主题封面"
   },
   {
     value: "article-cover",
-    label: "Article Cover"
+    label: "文章封面"
   },
   {
     value: "article-inline",
-    label: "Article Inline"
+    label: "文章内图"
   },
   {
     value: "city-cover",
-    label: "City Cover"
+    label: "城市封面"
   },
   {
     value: "event-poster",
-    label: "Event Poster"
+    label: "活动海报"
   },
   {
     value: "speaker-avatar",
-    label: "Speaker Avatar"
+    label: "嘉宾头像"
   },
   {
     value: "application-attachment",
-    label: "Application Attachment"
+    label: "申请附件"
   },
   {
     value: "generic-file",
-    label: "Generic File"
+    label: "通用文件"
   }
 ] as const;
 
@@ -824,7 +824,7 @@ export const validateAdminTopicInput = (payload: unknown): AdminValidationResult
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -843,54 +843,54 @@ export const validateAdminTopicInput = (payload: unknown): AdminValidationResult
   if (slug.length < 2 || slug.length > 120) {
     issues.push({
       field: "slug",
-      message: "Slug must be between 2 and 120 characters."
+      message: "Slug 长度必须在 2 到 120 个字符之间。"
     });
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     issues.push({
       field: "slug",
-      message: "Slug must use lowercase letters, numbers, and hyphens only."
+      message: "Slug 只能包含小写字母、数字和连字符。"
     });
   }
 
   if (title.length < 2 || title.length > 160) {
     issues.push({
       field: "title",
-      message: "Title must be between 2 and 160 characters."
+      message: "标题长度必须在 2 到 160 个字符之间。"
     });
   }
 
   if (summary.length > 400) {
     issues.push({
       field: "summary",
-      message: "Summary must be 400 characters or fewer."
+      message: "摘要不能超过 400 个字符。"
     });
   }
 
   if (seoTitle.length > 160) {
     issues.push({
       field: "seoTitle",
-      message: "SEO title must be 160 characters or fewer."
+      message: "SEO 标题不能超过 160 个字符。"
     });
   }
 
   if (seoDescription.length > 320) {
     issues.push({
       field: "seoDescription",
-      message: "SEO description must be 320 characters or fewer."
+      message: "SEO 描述不能超过 320 个字符。"
     });
   }
 
   if (!contentStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (status === "published" && summary.length === 0) {
     issues.push({
       field: "summary",
-      message: "Summary is required before publishing."
+      message: "发布前必须填写摘要。"
     });
   }
 
@@ -923,7 +923,7 @@ export const validateAdminArticleInput = (payload: unknown): AdminValidationResu
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -953,96 +953,96 @@ export const validateAdminArticleInput = (payload: unknown): AdminValidationResu
   if (slug.length < 2 || slug.length > 120) {
     issues.push({
       field: "slug",
-      message: "Slug must be between 2 and 120 characters."
+      message: "Slug 长度必须在 2 到 120 个字符之间。"
     });
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     issues.push({
       field: "slug",
-      message: "Slug must use lowercase letters, numbers, and hyphens only."
+      message: "Slug 只能包含小写字母、数字和连字符。"
     });
   }
 
   if (title.length < 2 || title.length > 200) {
     issues.push({
       field: "title",
-      message: "Title must be between 2 and 200 characters."
+      message: "标题长度必须在 2 到 200 个字符之间。"
     });
   }
 
   if (excerpt.length > 500) {
     issues.push({
       field: "excerpt",
-      message: "Excerpt must be 500 characters or fewer."
+      message: "摘要不能超过 500 个字符。"
     });
   }
 
   if (seoTitle.length > 160) {
     issues.push({
       field: "seoTitle",
-      message: "SEO title must be 160 characters or fewer."
+      message: "SEO 标题不能超过 160 个字符。"
     });
   }
 
   if (seoDescription.length > 320) {
     issues.push({
       field: "seoDescription",
-      message: "SEO description must be 320 characters or fewer."
+      message: "SEO 描述不能超过 320 个字符。"
     });
   }
 
   if (!contentStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (scheduledAt.length > 0 && !isIsoDate(scheduledAt)) {
     issues.push({
       field: "scheduledAt",
-      message: "Scheduled publish time must be a valid date."
+      message: "定时发布时间必须是有效日期。"
     });
   }
 
   if (!Array.isArray(payload.topicIds)) {
     issues.push({
       field: "topicIds",
-      message: "Topics must be provided as an array."
+      message: "主题必须以数组形式提供。"
     });
   }
 
   if ((status === "published" || status === "scheduled") && excerpt.length === 0) {
     issues.push({
       field: "excerpt",
-      message: "Excerpt is required before publishing."
+      message: "发布前必须填写摘要。"
     });
   }
 
   if ((status === "published" || status === "scheduled") && body.length === 0) {
     issues.push({
       field: "body",
-      message: "Body content is required before publishing."
+      message: "发布前必须填写正文内容。"
     });
   }
 
   if ((status === "published" || status === "scheduled") && !authorId) {
     issues.push({
       field: "authorId",
-      message: "Author is required before publishing."
+      message: "发布前必须选择作者。"
     });
   }
 
   if ((status === "published" || status === "scheduled") && topicIds.length === 0) {
     issues.push({
       field: "topicIds",
-      message: "At least one topic is required before publishing."
+      message: "发布前至少需要关联一个主题。"
     });
   }
 
   if (status === "scheduled" && scheduledAt.length === 0) {
     issues.push({
       field: "scheduledAt",
-      message: "Scheduled publish time is required when status is scheduled."
+      message: "状态为定时发布时，必须填写发布时间。"
     });
   }
 
@@ -1079,7 +1079,7 @@ export const validateAdminEventInput = (payload: unknown): AdminValidationResult
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1129,82 +1129,82 @@ export const validateAdminEventInput = (payload: unknown): AdminValidationResult
   if (slug.length < 2 || slug.length > 120) {
     issues.push({
       field: "slug",
-      message: "Slug must be between 2 and 120 characters."
+      message: "Slug 长度必须在 2 到 120 个字符之间。"
     });
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     issues.push({
       field: "slug",
-      message: "Slug must use lowercase letters, numbers, and hyphens only."
+      message: "Slug 只能包含小写字母、数字和连字符。"
     });
   }
 
   if (title.length < 2 || title.length > 200) {
     issues.push({
       field: "title",
-      message: "Title must be between 2 and 200 characters."
+      message: "标题长度必须在 2 到 200 个字符之间。"
     });
   }
 
   if (summary.length > 500) {
     issues.push({
       field: "summary",
-      message: "Summary must be 500 characters or fewer."
+      message: "摘要不能超过 500 个字符。"
     });
   }
 
   if (!contentStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (startsAt.length > 0 && !isIsoDate(startsAt)) {
     issues.push({
       field: "startsAt",
-      message: "Start time must be a valid date."
+      message: "开始时间必须是有效日期。"
     });
   }
 
   if (endsAt.length > 0 && !isIsoDate(endsAt)) {
     issues.push({
       field: "endsAt",
-      message: "End time must be a valid date."
+      message: "结束时间必须是有效日期。"
     });
   }
 
   if (startsAt.length > 0 && endsAt.length > 0 && new Date(endsAt) < new Date(startsAt)) {
     issues.push({
       field: "endsAt",
-      message: "End time must be after the start time."
+      message: "结束时间必须晚于开始时间。"
     });
   }
 
   if (!eventRegistrationStateSet.has(registrationState)) {
     issues.push({
       field: "registrationState",
-      message: "Registration state is invalid."
+      message: "报名状态无效。"
     });
   }
 
   if (!Array.isArray(payload.topicIds)) {
     issues.push({
       field: "topicIds",
-      message: "Topics must be provided as an array."
+      message: "主题必须以数组形式提供。"
     });
   }
 
   if (!Array.isArray(payload.agenda)) {
     issues.push({
       field: "agenda",
-      message: "Agenda must be provided as an array."
+      message: "议程必须以数组形式提供。"
     });
   }
 
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) {
     issues.push({
       field: "capacity",
-      message: "Capacity must be a positive whole number."
+      message: "容量必须是正整数。"
     });
   }
 
@@ -1212,28 +1212,28 @@ export const validateAdminEventInput = (payload: unknown): AdminValidationResult
     if (item.title.length === 0) {
       issues.push({
         field: `agenda.${index}.title`,
-        message: "Agenda item title is required."
+        message: "议程项标题不能为空。"
       });
     }
 
     if (item.startsAt && !isIsoDate(item.startsAt)) {
       issues.push({
         field: `agenda.${index}.startsAt`,
-        message: "Agenda item start time must be a valid date."
+        message: "议程项开始时间必须是有效日期。"
       });
     }
 
     if (item.endsAt && !isIsoDate(item.endsAt)) {
       issues.push({
         field: `agenda.${index}.endsAt`,
-        message: "Agenda item end time must be a valid date."
+        message: "议程项结束时间必须是有效日期。"
       });
     }
 
     if (item.startsAt && item.endsAt && new Date(item.endsAt) < new Date(item.startsAt)) {
       issues.push({
         field: `agenda.${index}.endsAt`,
-        message: "Agenda item end time must be after the start time."
+        message: "议程项结束时间必须晚于开始时间。"
       });
     }
   }
@@ -1241,28 +1241,28 @@ export const validateAdminEventInput = (payload: unknown): AdminValidationResult
   if (status === "published" && !cityId) {
     issues.push({
       field: "cityId",
-      message: "City is required before publishing."
+      message: "发布前必须选择城市。"
     });
   }
 
   if (status === "published" && (!startsAt || !endsAt)) {
     issues.push({
       field: "startsAt",
-      message: "Start and end time are required before publishing."
+      message: "发布前必须填写开始与结束时间。"
     });
   }
 
   if (status === "published" && topicIds.length === 0) {
     issues.push({
       field: "topicIds",
-      message: "At least one topic is required before publishing."
+      message: "发布前至少需要关联一个主题。"
     });
   }
 
   if (status === "published" && agenda.length === 0) {
     issues.push({
       field: "agenda",
-      message: "At least one agenda item is required before publishing."
+      message: "发布前至少需要一个议程项。"
     });
   }
 
@@ -1306,7 +1306,7 @@ export const validateAdminEventRegistrationInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1318,7 +1318,7 @@ export const validateAdminEventRegistrationInput = (
   if (!eventRegistrationStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Registration status is invalid."
+      message: "报名结果状态无效。"
     });
   }
 
@@ -1346,7 +1346,7 @@ export const validateAdminApplicationInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1359,14 +1359,14 @@ export const validateAdminApplicationInput = (
   if (!applicationStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Application status is invalid."
+      message: "申请状态无效。"
     });
   }
 
   if (internalNotes.length > 4000) {
     issues.push({
       field: "internalNotes",
-      message: "Internal notes must be 4000 characters or fewer."
+      message: "内部备注不能超过 4000 个字符。"
     });
   }
 
@@ -1395,7 +1395,7 @@ export const validateAdminAssetUploadIntentInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1416,35 +1416,35 @@ export const validateAdminAssetUploadIntentInput = (
   if (filename.length === 0 || filename.length > 240) {
     issues.push({
       field: "filename",
-      message: "Filename is required and must be 240 characters or fewer."
+      message: "文件名不能为空，且不能超过 240 个字符。"
     });
   }
 
   if (mimeType.length === 0 || mimeType.length > 120 || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(mimeType)) {
     issues.push({
       field: "mimeType",
-      message: "Mime type must be a valid media type."
+      message: "MIME 类型必须是有效的媒体类型。"
     });
   }
 
   if (!adminAssetTypeSet.has(assetType)) {
     issues.push({
       field: "assetType",
-      message: "Asset type is invalid."
+      message: "资源类型无效。"
     });
   }
 
   if (!assetVisibilitySet.has(visibility)) {
     issues.push({
       field: "visibility",
-      message: "Visibility is invalid."
+      message: "可见性无效。"
     });
   }
 
   if (!Number.isInteger(byteSize) || byteSize <= 0) {
     issues.push({
       field: "byteSize",
-      message: "Byte size must be a positive whole number."
+      message: "文件大小必须是正整数。"
     });
   }
 
@@ -1455,21 +1455,21 @@ export const validateAdminAssetUploadIntentInput = (
     if (isImageAsset && mimeType.length > 0 && !imageMimeTypeSet.has(mimeType)) {
       issues.push({
         field: "mimeType",
-        message: "This asset type only supports JPEG, PNG, or WebP images."
+        message: "该资源类型仅支持 JPEG、PNG 或 WebP 图片。"
       });
     }
 
     if (!isImageAsset && mimeType.length > 0 && !documentMimeTypeSet.has(mimeType)) {
       issues.push({
         field: "mimeType",
-        message: "This asset type only supports PDF or plain text files."
+        message: "该资源类型仅支持 PDF 或纯文本文件。"
       });
     }
 
     if (normalizedAssetType === "application-attachment" && visibility !== "private") {
       issues.push({
         field: "visibility",
-        message: "Application attachments must be private."
+        message: "申请附件必须为私有资源。"
       });
     }
 
@@ -1515,7 +1515,7 @@ export const validateAdminAssetUploadCompleteInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1531,35 +1531,35 @@ export const validateAdminAssetUploadCompleteInput = (
   if (intentToken.length < 24) {
     issues.push({
       field: "intentToken",
-      message: "Upload intent token is required."
+      message: "必须提供上传意图令牌。"
     });
   }
 
   if (altText.length > 320) {
     issues.push({
       field: "altText",
-      message: "Alt text must be 320 characters or fewer."
+      message: "替代文本不能超过 320 个字符。"
     });
   }
 
   if (checksum.length > 200) {
     issues.push({
       field: "checksum",
-      message: "Checksum must be 200 characters or fewer."
+      message: "校验和不能超过 200 个字符。"
     });
   }
 
   if (width !== null && (!Number.isInteger(width) || width <= 0)) {
     issues.push({
       field: "width",
-      message: "Width must be a positive whole number."
+      message: "宽度必须是正整数。"
     });
   }
 
   if (height !== null && (!Number.isInteger(height) || height <= 0)) {
     issues.push({
       field: "height",
-      message: "Height must be a positive whole number."
+      message: "高度必须是正整数。"
     });
   }
 
@@ -1591,7 +1591,7 @@ export const validateAdminFeaturedBlockInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1619,14 +1619,14 @@ export const validateAdminFeaturedBlockInput = (
     if (values.length > maxSize) {
       issues.push({
         field,
-        message: `Select no more than ${maxSize} items.`
+        message: `最多只能选择 ${maxSize} 项。`
       });
     }
 
     if (new Set(values).size !== values.length) {
       issues.push({
         field,
-        message: "Duplicate selections are not allowed."
+        message: "不允许重复选择。"
       });
     }
   };
@@ -1634,28 +1634,28 @@ export const validateAdminFeaturedBlockInput = (
   if (!featuredBlockStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (heroEyebrow.length > 80) {
     issues.push({
       field: "payload.heroEyebrow",
-      message: "Hero eyebrow must be 80 characters or fewer."
+      message: "Hero 眉标不能超过 80 个字符。"
     });
   }
 
   if (heroTitle.length < 4 || heroTitle.length > 180) {
     issues.push({
       field: "payload.heroTitle",
-      message: "Hero title must be between 4 and 180 characters."
+      message: "Hero 标题长度必须在 4 到 180 个字符之间。"
     });
   }
 
   if (heroSummary.length < 12 || heroSummary.length > 400) {
     issues.push({
       field: "payload.heroSummary",
-      message: "Hero summary must be between 12 and 400 characters."
+      message: "Hero 摘要长度必须在 12 到 400 个字符之间。"
     });
   }
 
@@ -1663,14 +1663,14 @@ export const validateAdminFeaturedBlockInput = (
     if (primaryActionLabel.length < 2 || primaryActionLabel.length > 60) {
       issues.push({
         field: "payload.primaryActionLabel",
-        message: "Primary action label must be between 2 and 60 characters."
+        message: "主按钮文案长度必须在 2 到 60 个字符之间。"
       });
     }
 
     if (primaryActionHref.length < 1 || primaryActionHref.length > 240 || !isRelativeOrAbsoluteHref(primaryActionHref)) {
       issues.push({
         field: "payload.primaryActionHref",
-        message: "Primary action link must be a relative path or an absolute http(s) URL."
+        message: "主按钮链接必须是相对路径或绝对 http(s) URL。"
       });
     }
   }
@@ -1679,7 +1679,7 @@ export const validateAdminFeaturedBlockInput = (
     if (secondaryActionLabel.length < 2 || secondaryActionLabel.length > 60) {
       issues.push({
         field: "payload.secondaryActionLabel",
-        message: "Secondary action label must be between 2 and 60 characters."
+        message: "次按钮文案长度必须在 2 到 60 个字符之间。"
       });
     }
 
@@ -1690,7 +1690,7 @@ export const validateAdminFeaturedBlockInput = (
     ) {
       issues.push({
         field: "payload.secondaryActionHref",
-        message: "Secondary action link must be a relative path or an absolute http(s) URL."
+        message: "次按钮链接必须是相对路径或绝对 http(s) URL。"
       });
     }
   }
@@ -1703,21 +1703,21 @@ export const validateAdminFeaturedBlockInput = (
   if (applicationTitle.length < 4 || applicationTitle.length > 140) {
     issues.push({
       field: "payload.applicationTitle",
-      message: "Application callout title must be between 4 and 140 characters."
+      message: "申请引导标题长度必须在 4 到 140 个字符之间。"
     });
   }
 
   if (applicationSummary.length < 12 || applicationSummary.length > 320) {
     issues.push({
       field: "payload.applicationSummary",
-      message: "Application callout summary must be between 12 and 320 characters."
+      message: "申请引导摘要长度必须在 12 到 320 个字符之间。"
     });
   }
 
   if (applicationHref.length < 1 || applicationHref.length > 240 || !isRelativeOrAbsoluteHref(applicationHref)) {
     issues.push({
       field: "payload.applicationHref",
-      message: "Application callout link must be a relative path or an absolute http(s) URL."
+      message: "申请引导链接必须是相对路径或绝对 http(s) URL。"
     });
   }
 
@@ -1761,7 +1761,7 @@ export const validateAdminSiteSettingsInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1775,21 +1775,21 @@ export const validateAdminSiteSettingsInput = (
   if (siteName.length < 2 || siteName.length > 120) {
     issues.push({
       field: "siteName",
-      message: "Site name must be between 2 and 120 characters."
+      message: "站点名称长度必须在 2 到 120 个字符之间。"
     });
   }
 
   if (footerTagline.length > 240) {
     issues.push({
       field: "footerTagline",
-      message: "Footer tagline must be 240 characters or fewer."
+      message: "页脚标语不能超过 240 个字符。"
     });
   }
 
   if (supportEmail.length > 0 && !emailPattern.test(supportEmail)) {
     issues.push({
       field: "supportEmail",
-      message: "Support email must be a valid email address."
+      message: "支持邮箱必须是有效的邮箱地址。"
     });
   }
 
@@ -1819,7 +1819,7 @@ export const validateAdminStaffCreateInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1836,47 +1836,47 @@ export const validateAdminStaffCreateInput = (
   if (!emailPattern.test(email)) {
     issues.push({
       field: "email",
-      message: "Email must be a valid email address."
+      message: "邮箱必须是有效的邮箱地址。"
     });
   }
 
   if (name.length < 2 || name.length > 120) {
     issues.push({
       field: "name",
-      message: "Name must be between 2 and 120 characters."
+      message: "名称长度必须在 2 到 120 个字符之间。"
     });
   }
 
   if (password.length < 12 || password.length > 128) {
     issues.push({
       field: "password",
-      message: "Password must be between 12 and 128 characters."
+      message: "密码长度必须在 12 到 128 个字符之间。"
     });
   }
 
   if (!staffAccountStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (!Array.isArray(payload.roleIds)) {
     issues.push({
       field: "roleIds",
-      message: "Roles must be provided as an array."
+      message: "角色必须以数组形式提供。"
     });
   } else if (roleIds.length === 0) {
     issues.push({
       field: "roleIds",
-      message: "Select at least one role."
+      message: "至少需要选择一个角色。"
     });
   }
 
   if (notes.length > 1000) {
     issues.push({
       field: "notes",
-      message: "Notes must be 1000 characters or fewer."
+      message: "备注不能超过 1000 个字符。"
     });
   }
 
@@ -1909,7 +1909,7 @@ export const validateAdminStaffUpdateInput = (
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -1925,40 +1925,40 @@ export const validateAdminStaffUpdateInput = (
   if (!emailPattern.test(email)) {
     issues.push({
       field: "email",
-      message: "Email must be a valid email address."
+      message: "邮箱必须是有效的邮箱地址。"
     });
   }
 
   if (name.length < 2 || name.length > 120) {
     issues.push({
       field: "name",
-      message: "Name must be between 2 and 120 characters."
+      message: "名称长度必须在 2 到 120 个字符之间。"
     });
   }
 
   if (!staffAccountStatusSet.has(status)) {
     issues.push({
       field: "status",
-      message: "Status is invalid."
+      message: "状态无效。"
     });
   }
 
   if (!Array.isArray(payload.roleIds)) {
     issues.push({
       field: "roleIds",
-      message: "Roles must be provided as an array."
+      message: "角色必须以数组形式提供。"
     });
   } else if (roleIds.length === 0) {
     issues.push({
       field: "roleIds",
-      message: "Select at least one role."
+      message: "至少需要选择一个角色。"
     });
   }
 
   if (notes.length > 1000) {
     issues.push({
       field: "notes",
-      message: "Notes must be 1000 characters or fewer."
+      message: "备注不能超过 1000 个字符。"
     });
   }
 
@@ -1988,7 +1988,7 @@ export const validateAdminRoleInput = (payload: unknown): AdminValidationResult<
       issues: [
         {
           field: "payload",
-          message: "A JSON object is required."
+          message: "请求体必须是 JSON 对象。"
         }
       ]
     };
@@ -2002,21 +2002,21 @@ export const validateAdminRoleInput = (payload: unknown): AdminValidationResult<
   if (name.length < 2 || name.length > 120) {
     issues.push({
       field: "name",
-      message: "Role name must be between 2 and 120 characters."
+      message: "角色名称长度必须在 2 到 120 个字符之间。"
     });
   }
 
   if (description.length > 320) {
     issues.push({
       field: "description",
-      message: "Description must be 320 characters or fewer."
+      message: "描述不能超过 320 个字符。"
     });
   }
 
   if (!Array.isArray(payload.permissionIds)) {
     issues.push({
       field: "permissionIds",
-      message: "Permissions must be provided as an array."
+      message: "权限必须以数组形式提供。"
     });
   }
 
