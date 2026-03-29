@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 
 import {
-  articleSummaries,
+  getPublicArticleDetailV2,
   joinPagePayload,
-  getArticleDetail,
   memberSummaries,
+  publicArticleSummariesV2,
   publicHomePayloadV2,
   siteConfig
 } from "@tgo/shared";
@@ -42,7 +42,7 @@ test("uses the configured PUBLIC_API_BASE_URL when fetching public data", async 
 
     return new Response(
       JSON.stringify({
-        data: articleSummaries
+        data: publicArticleSummariesV2
       }),
       {
         status: 200,
@@ -57,7 +57,7 @@ test("uses the configured PUBLIC_API_BASE_URL when fetching public data", async 
 
   assert.equal(getPublicApiBaseUrl(), "http://example.test:9999");
   assert.equal(requestedUrl, "http://example.test:9999/api/public/v1/articles");
-  assert.deepEqual(result, articleSummaries);
+  assert.deepEqual(result, publicArticleSummariesV2);
 });
 
 test("reads the converged home payload from the configured public API base URL", async () => {
@@ -125,5 +125,5 @@ test("falls back to shared article detail when the API returns a non-ok response
 
   const result = await getArticle("shipping-an-editorial-platform");
 
-  assert.deepEqual(result, getArticleDetail("shipping-an-editorial-platform"));
+  assert.deepEqual(result, getPublicArticleDetailV2("shipping-an-editorial-platform"));
 });

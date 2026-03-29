@@ -1,13 +1,13 @@
 import {
   aboutPagePayload,
-  articleSummaries,
   branchDetails,
-  getArticleDetail,
   getBranchDetail,
   getMemberDetail,
+  getPublicArticleDetailV2,
   getPublicEventDetailV2,
   joinPagePayload,
   memberSummaries,
+  publicArticleSummariesV2,
   publicEventSummariesV2,
   publicHomePayloadV2,
   siteConfig,
@@ -26,22 +26,20 @@ import { jsonError } from "../lib/errors.js";
 import { ok } from "../lib/http.js";
 import {
   createJoinApplicationFromDb,
+  getArticleDetailV2FromDb,
   createPublicEventRegistrationV2FromDb,
   getAboutPageFromDb,
   getEventDetailV2FromDb,
   getHomePayloadV2FromDb,
   getJoinPageFromDb,
   getMemberDetailFromDb,
+  listArticlesV2FromDb,
   listBranchesFromDb,
   listEventsV2FromDb,
   listMembersFromDb
 } from "../lib/network-public.js";
 import { getPublicSiteConfigFromDb } from "../lib/platform-config.js";
-import {
-  getArticleDetailFromDb,
-  listArticleSummariesFromDb,
-  PublicContentError
-} from "../lib/public-content.js";
+import { PublicContentError } from "../lib/public-content.js";
 import { checkRateLimit, type RateLimitDecision } from "../lib/rate-limit.js";
 
 export const publicRoutes = new Hono();
@@ -196,14 +194,15 @@ publicRoutes.get("/join", async (c) => c.json(ok((await getJoinPageFromDb()) ?? 
 publicRoutes.get("/about", async (c) => c.json(ok((await getAboutPageFromDb()) ?? aboutPagePayload)));
 
 publicRoutes.get("/articles", async (c) => {
-  const data = (await listArticleSummariesFromDb()) ?? articleSummaries;
+  const data = (await listArticlesV2FromDb()) ?? publicArticleSummariesV2;
 
   return c.json(ok(data, { total: data.length }));
 });
 
 publicRoutes.get("/articles/:slug", async (c) => {
-  const articleFromDb = await getArticleDetailFromDb(c.req.param("slug"));
-  const article = articleFromDb === undefined ? getArticleDetail(c.req.param("slug")) : articleFromDb;
+  const articleFromDb = await getArticleDetailV2FromDb(c.req.param("slug"));
+  const article =
+    articleFromDb === undefined ? getPublicArticleDetailV2(c.req.param("slug")) : articleFromDb;
 
   if (!article) {
     return jsonError(c, 404, "NOT_FOUND", "文章不存在。");

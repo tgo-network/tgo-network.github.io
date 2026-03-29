@@ -2,13 +2,13 @@ import type {
   AboutPagePayload,
   ApiErrorShape,
   ApiSuccess,
-  ArticleDetail,
-  ArticleSummary,
   BranchDetail,
   JoinApplicationReceipt,
   JoinPagePayload,
   MemberDetail,
   MemberSummary,
+  PublicArticleDetailV2,
+  PublicArticleSummaryV2,
   PublicEventDetailV2,
   PublicEventRegistrationReceiptV2,
   PublicEventSummaryV2,
@@ -17,14 +17,14 @@ import type {
 } from "@tgo/shared";
 import {
   aboutPagePayload,
-  articleSummaries,
   branchDetails,
-  getArticleDetail,
   getBranchDetail,
   getMemberDetail,
+  getPublicArticleDetailV2,
   getPublicEventDetailV2,
   joinPagePayload,
   memberSummaries,
+  publicArticleSummariesV2,
   publicEventSummariesV2,
   publicHomePayloadV2,
   siteConfig
@@ -91,11 +91,11 @@ export const getJoinPage = async (): Promise<JoinPagePayload> =>
 export const getAboutPage = async (): Promise<AboutPagePayload> =>
   (await fetchPublic<AboutPagePayload>("/api/public/v1/about")) ?? aboutPagePayload;
 
-export const listArticles = async (): Promise<ArticleSummary[]> =>
-  (await fetchPublic<ArticleSummary[]>("/api/public/v1/articles")) ?? articleSummaries;
+export const listArticles = async (): Promise<PublicArticleSummaryV2[]> =>
+  (await fetchPublic<PublicArticleSummaryV2[]>("/api/public/v1/articles")) ?? publicArticleSummariesV2;
 
-export const getArticle = async (slug: string): Promise<ArticleDetail | null> =>
-  (await fetchPublic<ArticleDetail>(`/api/public/v1/articles/${slug}`)) ?? getArticleDetail(slug);
+export const getArticle = async (slug: string): Promise<PublicArticleDetailV2 | null> =>
+  (await fetchPublic<PublicArticleDetailV2>(`/api/public/v1/articles/${slug}`)) ?? getPublicArticleDetailV2(slug);
 
 export const listEvents = async (): Promise<PublicEventSummaryV2[]> =>
   (await fetchPublic<PublicEventSummaryV2[]>("/api/public/v1/events")) ?? publicEventSummariesV2;

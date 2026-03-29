@@ -6,6 +6,7 @@ import {
   authors,
   branchBoardMembers,
   branches,
+  cities,
   eventRegistrations,
   eventSessions,
   events,
@@ -16,7 +17,6 @@ import {
 } from "@tgo/db";
 import type {
   AboutPagePayload,
-  ArticleSummary,
   BranchDetail,
   BranchSummary,
   JoinApplicationInput,
@@ -24,6 +24,8 @@ import type {
   JoinPagePayload,
   MemberDetail,
   MemberSummary,
+  PublicArticleDetailV2,
+  PublicArticleSummaryV2,
   PublicEventDetailV2,
   PublicEventRegistrationInputV2,
   PublicEventRegistrationReceiptV2,
@@ -34,12 +36,12 @@ import type {
 import {
   aboutPagePayload,
   branchDetails,
-  branchSummaries,
   getMemberDetail,
+  getPublicArticleDetailV2,
   getPublicEventDetailV2,
   joinPagePayload,
   memberSummaries,
-  publicEventDetailsV2,
+  publicArticleSummariesV2,
   publicEventSummariesV2,
   publicHomePayloadV2
 } from "@tgo/shared";
@@ -74,13 +76,22 @@ const toPublicImageAsset = (
   };
 };
 
-const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string; summary: ArticleSummary }> | undefined> => {
+const toBranchReference = (branch: typeof branches.$inferSelect | null) =>
+  branch
+    ? {
+        slug: branch.slug,
+        name: branch.name,
+        cityName: branch.cityName
+      }
+    : null;
+
+const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string; summary: PublicArticleSummaryV2 }> | undefined> => {
   if (!isDatabaseConfigured()) {
     return undefined;
   }
 
   const db = getDb();
-  const [articleRows, authorRows, assetRows, branchRows] = await Promise.all([
+  const [articleRows, authorRows, assetRows, cityRows, branchRows] = await Promise.all([
     db
       .select()
       .from(articles)
@@ -88,16 +99,19 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
       .orderBy(desc(articles.publishedAt), desc(articles.updatedAt)),
     db.select().from(authors),
     db.select().from(assets).where(and(eq(assets.status, "active"), eq(assets.visibility, "public"))),
+    db.select().from(cities),
     db.select().from(branches)
   ]);
 
   const authorById = new Map(authorRows.map((row) => [row.id, row]));
   const assetById = new Map(assetRows.map((row) => [row.id, row]));
+  const cityById = new Map(cityRows.map((row) => [row.id, row]));
   const branchBySlug = new Map(branchRows.map((row) => [row.slug, row]));
 
   return articleRows.map((article) => {
     const author = article.authorId ? authorById.get(article.authorId) : null;
-    const branch = branchBySlug.get("shanghai");
+    const city = article.primaryCityId ? cityById.get(article.primaryCityId) : null;
+    const branch = city ? branchBySlug.get(city.slug) ?? null : null;
 
     return {
       id: article.id,
@@ -107,13 +121,8 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
         excerpt: article.excerpt ?? "",
         publishedAt: asRequiredIso(article.publishedAt, article.updatedAt.toISOString()),
         authorName: author?.displayName ?? "TGO 编辑部",
-        topicSlugs: [],
         coverImage: toPublicImageAsset(assetById.get(article.coverAssetId ?? ""), `${article.title} cover image`),
-        city: {
-          slug: branch?.slug ?? "shanghai",
-          name: branch?.cityName ?? "上海",
-          summary: branch?.summary ?? ""
-        }
+        branch: toBranchReference(branch)
       }
     };
   });
@@ -308,6 +317,54 @@ export const getMemberDetailFromDb = async (slug: string): Promise<MemberDetail 
         }
       : null,
     joinedAt: asRequiredIso(member.joinedAt, member.createdAt.toISOString())
+  };
+};
+
+export const listArticlesV2FromDb = async (): Promise<PublicArticleSummaryV2[] | undefined> => {
+  const rows = await listPublishedArticleSummariesFromDb();
+
+  return rows?.map((row) => row.summary);
+};
+
+export const getArticleDetailV2FromDb = async (slug: string): Promise<PublicArticleDetailV2 | null | undefined> => {
+  if (!isDatabaseConfigured()) {
+    return undefined;
+  }
+
+  const db = getDb();
+  const article = await db.query.articles.findFirst({
+    where: and(eq(articles.status, "published"), eq(articles.slug, slug.trim()))
+  });
+
+  if (!article) {
+    return null;
+  }
+
+  const [author, coverAsset, city, branchRows] = await Promise.all([
+    article.authorId ? db.query.authors.findFirst({ where: eq(authors.id, article.authorId) }) : Promise.resolve(null),
+    article.coverAssetId ? db.query.assets.findFirst({ where: eq(assets.id, article.coverAssetId) }) : Promise.resolve(null),
+    article.primaryCityId ? db.query.cities.findFirst({ where: eq(cities.id, article.primaryCityId) }) : Promise.resolve(null),
+    db.select().from(branches)
+  ]);
+
+  const branch = city ? branchRows.find((row) => row.slug === city.slug) ?? null : null;
+
+  return {
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt ?? "",
+    publishedAt: asRequiredIso(article.publishedAt, article.updatedAt.toISOString()),
+    authorName: author?.displayName ?? "TGO 编辑部",
+    coverImage: toPublicImageAsset(coverAsset ?? undefined, `${article.title} cover image`),
+    branch: toBranchReference(branch),
+    body: (article.bodyRichtext ?? "")
+      .split(/\n\n+/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean),
+    author: {
+      name: author?.displayName ?? "TGO 编辑部",
+      role: author?.bio ?? "工作人员"
+    }
   };
 };
 
@@ -517,7 +574,9 @@ export const getHomePayloadV2FromDb = async (): Promise<PublicHomePayloadV2 | un
         : publicHomePayloadV2.audience.items
     },
     metrics: metrics.length > 0 ? metrics : publicHomePayloadV2.metrics,
-    featuredArticles: featuredArticleIds.map((id) => articleById.get(id)).filter((value): value is ArticleSummary => Boolean(value)),
+    featuredArticles: featuredArticleIds
+      .map((id) => articleById.get(id))
+      .filter((value): value is PublicArticleSummaryV2 => Boolean(value)),
     featuredEvents: featuredEventIds.map((id) => eventById.get(id)).filter((value): value is PublicEventSummaryV2 => Boolean(value)),
     branchHighlights: branchHighlightIds.map((id) => branchById.get(id)).filter((value): value is BranchSummary => Boolean(value)),
     joinCallout: {
@@ -653,6 +712,8 @@ export const publicFallback = {
   branches: branchDetails,
   members: memberSummaries,
   getMemberDetail,
+  articles: publicArticleSummariesV2,
+  getArticleDetail: getPublicArticleDetailV2,
   events: publicEventSummariesV2,
   getEventDetail: getPublicEventDetailV2,
   joinPage: joinPagePayload,

@@ -143,6 +143,26 @@
 - `GET /api/public/v1/articles/:slug`
   - 返回文章详情
 
+当前文章 DTO 应收敛到当前公开站主线：
+
+- 列表至少包含
+  - `slug`
+  - `title`
+  - `excerpt`
+  - `publishedAt`
+  - `authorName`
+  - `coverImage`
+  - `branch`
+- 详情至少包含
+  - 列表全部字段
+  - `body`
+  - `author`
+
+说明：
+
+- 当前公开文章接口不再以 `topicSlugs`、`citySummary` 作为前台主结构
+- 如底层 schema 仍保留旧字段，应仅作为兼容实现细节，不应继续外扩到当前前台契约
+
 ### 6.6 加入申请
 
 - `GET /api/public/v1/join`

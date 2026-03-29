@@ -797,14 +797,26 @@ describe("public API integration", () => {
     const articleListResult = await requestJson("/api/public/v1/articles");
 
     assert.equal(articleListResult.response.status, 200);
-    assert.ok(
-      articleListResult.payload.data.some(
-        (article: { slug: string }) => article.slug === "shipping-an-editorial-platform"
-      )
-    );
+    const visibleArticle = articleListResult.payload.data.find(
+      (article: { slug: string }) => article.slug === "shipping-an-editorial-platform"
+    ) as Record<string, unknown> | undefined;
+
+    assert.ok(visibleArticle, "Expected a published article in the public list.");
+    assert.equal(visibleArticle.authorName, "李墨言");
+    assert.ok(!("topicSlugs" in visibleArticle));
+    assert.ok(!("city" in visibleArticle));
     assert.ok(
       articleListResult.payload.data.every((article: { slug: string }) => article.slug !== hiddenSlug)
     );
+
+    const visibleDetailResult = await requestJson("/api/public/v1/articles/shipping-an-editorial-platform");
+
+    assert.equal(visibleDetailResult.response.status, 200);
+    assert.equal(visibleDetailResult.payload.data.slug, "shipping-an-editorial-platform");
+    assert.equal(visibleDetailResult.payload.data.author.name, "李墨言");
+    assert.ok(Array.isArray(visibleDetailResult.payload.data.body));
+    assert.ok(!("citySummary" in visibleDetailResult.payload.data));
+    assert.ok(!("topics" in visibleDetailResult.payload.data));
 
     const hiddenDetailResult = await request("/api/public/v1/articles/" + hiddenSlug);
     const hiddenDetailPayload = await getJson(hiddenDetailResult);

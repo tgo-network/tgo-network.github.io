@@ -1,5 +1,4 @@
-import type { ArticleDetail, ArticleSummary, EventRegistrationStatus, PublicImageAsset, RegistrationState } from "./public-content.js";
-import { articleDetails, articleSummaries } from "./public-content.js";
+import type { EventRegistrationStatus, PublicImageAsset, RegistrationState } from "./public-content.js";
 
 export interface BranchReference {
   slug: string;
@@ -42,6 +41,24 @@ export interface MemberSummary {
 
 export interface MemberDetail extends MemberSummary {
   bio: string;
+}
+
+export interface PublicArticleSummaryV2 {
+  slug: string;
+  title: string;
+  excerpt: string;
+  publishedAt: string;
+  authorName: string;
+  coverImage: PublicImageAsset | null;
+  branch: BranchReference | null;
+}
+
+export interface PublicArticleDetailV2 extends PublicArticleSummaryV2 {
+  body: string[];
+  author: {
+    name: string;
+    role: string;
+  };
 }
 
 export interface PublicEventSummaryV2 {
@@ -182,7 +199,7 @@ export interface PublicHomePayloadV2 {
     value: string;
     description: string;
   }>;
-  featuredArticles: ArticleSummary[];
+  featuredArticles: PublicArticleSummaryV2[];
   featuredEvents: PublicEventSummaryV2[];
   branchHighlights: BranchSummary[];
   joinCallout: {
@@ -348,6 +365,51 @@ const memberRecords = [
   }
 ] as const;
 
+const articleRecords = [
+  {
+    slug: "shipping-an-editorial-platform",
+    title: "在不锁死技术栈的前提下交付内容平台",
+    excerpt: "为什么首个版本即使仍以人工整理内容为主，也应该具备接近生产环境的形态。",
+    publishedAt: "2026-03-12T08:00:00.000Z",
+    authorName: "李墨言",
+    authorRole: "平台编辑",
+    branchSlug: "shanghai",
+    body: [
+      "即使当前数据仍来自种子数据，平台也应该从最终架构形态起步。这样可以避免交付团队先搭一套临时流程，后面又不得不整体重写。",
+      "静态优先的页面、独立的管理后台，以及由 API 承担业务规则的分层方式，可以让公开站在扩展时依然保持内容运营的清晰边界。",
+      "因此首个版本应优先验证契约、权限和内容状态规则，而不是一开始就追逐更复杂的增长能力。"
+    ]
+  },
+  {
+    slug: "from-events-to-knowledge",
+    title: "把活动热度转化为可检索的知识资产",
+    excerpt: "公开内容模型应该让每一场活动都成为可复用的知识资产，而不是只在当天生效的一次性通知。",
+    publishedAt: "2026-03-18T08:00:00.000Z",
+    authorName: "陈以维",
+    authorRole: "社区制作人",
+    branchSlug: "hangzhou",
+    body: [
+      "很多活动在报名结束后就迅速消失，但平台应该通过回顾文章、城市精选和主题策展把它们的价值沉淀下来。",
+      "活动、文章和主题共享一套 schema 后，编辑团队就能在首页、专题页和城市页之间复用同一批原始内容素材。",
+      "对于早期团队来说，这种复用能力比单纯堆功能更重要，因为它直接决定运营杠杆。"
+    ]
+  },
+  {
+    slug: "what-a-city-hub-needs",
+    title: "一座城市主页在真正活起来之前需要什么",
+    excerpt: "当城市页面能够把内容节奏、本地活动和明确的参与邀请连接起来时，它才真正具备生命力。",
+    publishedAt: "2026-03-24T08:00:00.000Z",
+    authorName: "朴乔安",
+    authorRole: "城市项目负责人",
+    branchSlug: "beijing",
+    body: [
+      "分会页不应只是一个沉寂的目录入口。它应该解释本地分会的状态，突出当前活跃成员与近期活动，并呈现下一步有意义的行动入口。",
+      "这意味着从第一天开始，文章内容就需要和分会、活动、成员体系形成稳定的公开叙事，而不是仅仅挂在旧的主题和城市原型之下。",
+      "当管理后台能够持续维护这些公开内容后，前台就能在不改代码的前提下稳定更新。"
+    ]
+  }
+] as const;
+
 const eventRecords = [
   {
     slug: "shanghai-ai-leadership-salon",
@@ -461,6 +523,25 @@ export const memberSummaries: MemberSummary[] = memberRecords.map((member) => ({
 export const memberDetails: MemberDetail[] = memberRecords.map((member) => ({
   ...memberSummaries.find((item) => item.slug === member.slug)!,
   bio: member.bio
+}));
+
+export const publicArticleSummariesV2: PublicArticleSummaryV2[] = articleRecords.map((article) => ({
+  slug: article.slug,
+  title: article.title,
+  excerpt: article.excerpt,
+  publishedAt: article.publishedAt,
+  authorName: article.authorName,
+  coverImage: null,
+  branch: branchReferenceMap.get(article.branchSlug) ?? null
+}));
+
+export const publicArticleDetailsV2: PublicArticleDetailV2[] = articleRecords.map((article) => ({
+  ...publicArticleSummariesV2.find((item) => item.slug === article.slug)!,
+  body: [...article.body],
+  author: {
+    name: article.authorName,
+    role: article.authorRole
+  }
 }));
 
 export const publicEventSummariesV2: PublicEventSummaryV2[] = eventRecords.map((event) => ({
@@ -596,7 +677,7 @@ export const publicHomePayloadV2: PublicHomePayloadV2 = {
       description: "围绕组织介绍、成员、活动、文章与加入路径展开。"
     }
   ],
-  featuredArticles: articleSummaries.slice(0, 3),
+  featuredArticles: publicArticleSummariesV2.slice(0, 3),
   featuredEvents: publicEventSummariesV2.slice(0, 3),
   branchHighlights: branchSummaries.slice(0, 3),
   joinCallout: {
@@ -608,10 +689,10 @@ export const publicHomePayloadV2: PublicHomePayloadV2 = {
 
 export const getBranchDetail = (slug: string) => branchDetails.find((branch) => branch.slug === slug) ?? null;
 export const getMemberDetail = (slug: string) => memberDetails.find((member) => member.slug === slug) ?? null;
+export const getPublicArticleDetailV2 = (slug: string) =>
+  publicArticleDetailsV2.find((article) => article.slug === slug) ?? null;
 export const getPublicEventDetailV2 = (slug: string) =>
   publicEventDetailsV2.find((event) => event.slug === slug) ?? null;
-export const getArticleDetailForHome = (slug: string): ArticleDetail | null =>
-  articleDetails.find((article) => article.slug === slug) ?? null;
 
 const readString = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
