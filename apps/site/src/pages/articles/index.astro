@@ -1,21 +1,21 @@
 ---
 import CollectionCard from "../../components/CollectionCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { formatDate, formatCount } from "../../lib/format";
+import { formatDate } from "../../lib/format";
 import { listArticles } from "../../lib/public-api";
 
 const articles = await listArticles();
 ---
 
-<BaseLayout title="文章 | TGO Network" description="由 TGO 公开 API 契约支撑的已发布文章列表。">
+<BaseLayout title="文章 | TGO 鲲鹏会" description="由工作人员在后台发布的文章内容与社区观点。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">公开路由</span>
+        <span class="eyebrow">文章</span>
         <h1>文章</h1>
         <p>
-          文章会以静态优先的详情页形式交付，但它们的内容契约已经放进共享 API 层，后续即使由后台发布接管，
-          也不需要重新塑造前端页面结构。
+          文章由工作人员后台统一发布，前台以静态优先方式呈现技术管理、组织实践与社区观察等内容，
+          让成员和访客都能持续了解 TGO 鲲鹏会的活动进展与组织思考。
         </p>
       </div>
     </section>
@@ -30,7 +30,7 @@ const articles = await listArticles();
               title={article.title}
               summary={article.excerpt}
               image={article.coverImage}
-              meta={[article.authorName, article.city.name, formatCount(article.topicSlugs.length, "个关联主题")]}
+              meta={[article.authorName, "工作人员发布"]}
             />
           ))
         }

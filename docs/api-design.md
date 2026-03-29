@@ -1,48 +1,47 @@
-# TGO Network API Design Draft
+# TGO Network API 设计草案
 
-## 1. Purpose
+## 1. 目的
 
-This document defines the API conventions and endpoint groups for the platform.
+本文档用于明确前台、后台与后端之间的接口边界，避免：
 
-Goals:
+- 前后台各自猜测数据结构
+- 权限逻辑散落在多个应用里
+- 未来切换部署平台时 API 契约跟着变形
 
-- provide stable boundaries between frontends and backend
-- reduce drift between public site, admin, and API
-- clarify authentication and authorization expectations
+## 2. 设计原则
 
-## 2. API Design Principles
+- 所有业务数据都通过 API 层流转
+- 公开 API 与后台 API 按访问意图拆分
+- Better Auth 挂载在独立的认证路由下
+- DTO、校验规则与错误码应由 monorepo 共享
+- 写接口必须先校验输入，再校验权限，再执行业务
 
-- All business data flows through the API layer
-- Public and admin APIs are separated by intent and permission level
-- Authentication endpoints are delegated to Better Auth
-- Contracts should be typed and shared through the monorepo
-- Mutating endpoints must validate input and enforce authorization
+## 3. URL 分组
 
-## 3. URL Structure
-
-Recommended grouping:
+推荐保持以下结构：
 
 - `/api/public/v1/*`
 - `/api/admin/v1/*`
 - `/api/internal/v1/*`
 - `/api/auth/*`
 
-Notes:
+说明：
 
-- `public` endpoints serve the Astro site and open form submissions
-- `admin` endpoints serve the Vue admin console
-- `internal` endpoints are reserved for trusted jobs or maintenance tasks
-- `auth` endpoints are mounted from Better Auth
+- `public` 供 `apps/site` 和公开表单使用
+- `public` 主要服务前台页面与公开提交能力
+- `admin` 供 `apps/admin` 使用
+- `internal` 供定时任务或受信内部调用使用
+- `auth` 由 Better Auth 挂载
 
-## 4. Transport And Format Rules
+## 4. 通用传输规则
 
-- JSON request and response bodies by default
-- UTF-8 encoding
-- `UUID` for identifiers
-- ISO 8601 timestamps
-- standard HTTP status codes
+- 默认使用 JSON
+- 编码使用 UTF-8
+- 标识符使用 `UUID`
+- 时间使用 ISO 8601
+- 统一返回标准 HTTP 状态码
 
-Recommended JSON success shape:
+推荐成功响应：
 
 ```json
 {
@@ -51,397 +50,319 @@ Recommended JSON success shape:
 }
 ```
 
-Recommended JSON error shape:
+推荐错误响应：
 
 ```json
 {
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "One or more fields are invalid",
+    "message": "请求参数不合法",
     "details": {}
   }
 }
 ```
 
-## 5. Common Query Conventions
+## 5. 通用查询约定
 
-Recommended list parameters:
+列表接口建议支持：
 
 - `page`
 - `pageSize`
+- `q`
+- `status`
 - `sort`
 - `order`
-- `status`
-- `q`
 
-Recommended pagination response:
+当前项目常用的额外筛选字段：
 
-```json
-{
-  "data": [],
-  "meta": {
-    "page": 1,
-    "pageSize": 20,
-    "total": 100,
-    "hasNext": true
-  }
-}
-```
+- `branchId`
+- `branchSlug`
+- `city`
+- `featured`
 
-## 6. Public API Group
+## 6. 公开 API
 
-### Site Configuration
+### 6.1 站点基础配置
 
 - `GET /api/public/v1/site-config`
-  - public branding and simple global settings
-  - current MVP includes site name, navigation, footer tagline, and support email
+  - 返回站点名称、导航、页脚、基础联系信息
 - `GET /api/public/v1/home`
-  - homepage payload including featured blocks
-  - current MVP reads from an active homepage featured block when configured, then falls back to automatic published-content slices
+  - 返回首页区块数据，如 Hero、介绍、指标、精选活动、精选文章、加入 CTA
 
-### Topics
+### 6.2 分会董事会
 
-- `GET /api/public/v1/topics`
-  - published topic list
-- `GET /api/public/v1/topics/:slug`
-  - topic detail with related content summary
-  - list and detail responses include `coverImage` when a public asset is linked
+- `GET /api/public/v1/branches`
+  - 返回公开分会列表及董事会成员摘要
+- `GET /api/public/v1/branches/:slug`
+  - 预留分会详情接口；即使当前前台不单独开放页面，也建议保留能力
 
-### Articles
+### 6.3 成员
 
-- `GET /api/public/v1/articles`
-  - published article list
-- `GET /api/public/v1/articles/:slug`
-  - article detail
-  - list and detail responses include `coverImage` when a public asset is linked
+- `GET /api/public/v1/members`
+  - 返回公开成员列表
+  - 建议支持 `page`、`pageSize`、`q`、`branchSlug`、`city`
+- `GET /api/public/v1/members/:slug`
+  - 返回成员详情
 
-### Events
+补充原则：
+
+- 成员资料展示是前台成员域能力
+- 是否允许非成员查看全部成员信息，应由 `visibility` 或页面策略决定
+- 这里的“成员”不是后台工作人员角色
+
+### 6.4 活动
 
 - `GET /api/public/v1/events`
-  - published event list
+  - 返回公开活动列表
+  - 建议支持 `page`、`pageSize`、`branchSlug`、`city`、`upcoming`
 - `GET /api/public/v1/events/:slug`
-  - event detail
-  - list and detail responses include `coverImage` when a public asset is linked
-  - event payloads also include `registrationUrl` so the site can show an external fallback CTA when needed
+  - 返回活动详情、议程、报名状态
 - `POST /api/public/v1/events/:eventId/registrations`
-  - public event registration
-  - validates `name` plus at least one contact method: `email` or `phoneNumber`
-  - returns a lightweight receipt with the persisted registration status
+  - 活动报名
 
-### Cities
+当前报名建议字段：
 
-- `GET /api/public/v1/cities`
-  - published city list
-- `GET /api/public/v1/cities/:slug`
-  - city detail with related content summary
+- `name`
+- `phoneNumber`
+- `wechatId` optional
+- `email` optional
+- `company` optional
+- `title` optional
+- `note` optional
 
-### Applications
+活动报名规则建议补充：
 
-- `POST /api/public/v1/applications`
-  - submit trial, join, or contact application
+- 当前阶段活动报名统一采用开放提交
+- 报名人是否符合活动要求，由工作人员在后台审核确认
+- 这样可以避免在 MVP 阶段引入成员认证复杂度
 
-### Public Validation Rules
+### 6.5 文章
 
-- only published content should be returned
-- archived or draft records must not leak into public responses
-- public write endpoints should enforce rate limits and input validation
-- current baseline rate limiting is in-memory and keyed by requester IP plus user agent
-- rate-limited responses should return `429 RATE_LIMITED` plus `Retry-After` and `X-RateLimit-*` headers
+- `GET /api/public/v1/articles`
+  - 返回公开文章列表
+- `GET /api/public/v1/articles/:slug`
+  - 返回文章详情
 
-## 7. Admin API Group
+### 6.6 加入申请
 
-All admin endpoints require:
+- `GET /api/public/v1/join`
+  - 返回加入说明页内容，包括申请条件、流程、FAQ、权益等
+- `POST /api/public/v1/join-applications`
+  - 提交加入申请
 
-- authenticated session
-- active staff account
-- required permission code
+当前表单字段至少包含：
 
-### Session And Current User
+- `name`
+- `phoneNumber`
+- `wechatId`
+- `email`
+- `introduction`
+- `applicationMessage`
+- `targetBranchId` optional
+
+### 6.7 关于我们
+
+- `GET /api/public/v1/about`
+  - 返回关于我们页内容
+
+### 6.8 公开接口规则
+
+- 只能返回已发布内容
+- 草稿、归档内容不得泄露到公开接口
+- 公开写接口必须做限流和输入校验
+- 公开写接口建议记录 `requestId`、IP、User-Agent
+- 成员相关前台能力不得复用后台 `role` 作为判断依据
+- 当前阶段活动报名不依赖成员认证
+
+## 7. 后台 API
+
+所有后台接口都要求：
+
+- 有效会话
+- 有效 `staff_account`
+- 满足对应权限码
+
+这里的后台 `roles` 只服务于工作人员 RBAC，不参与成员身份判断。
+
+### 7.1 当前用户
 
 - `GET /api/admin/v1/me`
-  - current user profile, staff account, roles, permissions
+  - 返回当前工作人员、角色、权限
 
-### Dashboard
+### 7.2 仪表盘
 
 - `GET /api/admin/v1/dashboard`
-  - minimal operations summary for MVP
+  - 返回文章总数、活动总数、申请数量、系统状态摘要
 
-### Articles
+建议返回字段：
+
+- `articleCount`
+- `eventCount`
+- `applicationCount`
+- `pendingApplicationCount`
+- `pendingRegistrationCount`
+- `systemHealth`
+- `appVersion`
+
+### 7.3 文章管理
 
 - `GET /api/admin/v1/articles`
-- `GET /api/admin/v1/articles/references`
 - `POST /api/admin/v1/articles`
 - `GET /api/admin/v1/articles/:id`
 - `PATCH /api/admin/v1/articles/:id`
 - `POST /api/admin/v1/articles/:id/publish`
 - `POST /api/admin/v1/articles/:id/archive`
 
-### Topics
+当前阶段补充约束：
 
-- `GET /api/admin/v1/topics`
-- `POST /api/admin/v1/topics`
-- `GET /api/admin/v1/topics/:id`
-- `PATCH /api/admin/v1/topics/:id`
-- `POST /api/admin/v1/topics/:id/publish`
-- `POST /api/admin/v1/topics/:id/archive`
+- 文章发布主线只要求标题、摘要、正文、作者与发布状态
+- 旧 `topic / city` 关联字段如果仍存在于历史模型中，应视为兼容字段，而不是当前主线必填项
 
-### Events
+### 7.4 活动管理
 
 - `GET /api/admin/v1/events`
-- `GET /api/admin/v1/events/references`
 - `POST /api/admin/v1/events`
 - `GET /api/admin/v1/events/:id`
 - `PATCH /api/admin/v1/events/:id`
 - `POST /api/admin/v1/events/:id/publish`
 - `POST /api/admin/v1/events/:id/archive`
 
-### Event Registrations
+### 7.5 活动报名审核
 
 - `GET /api/admin/v1/events/:id/registrations`
 - `GET /api/admin/v1/registrations/:id`
 - `PATCH /api/admin/v1/registrations/:id`
 
-Current MVP contract:
+`PATCH` 至少支持修改：
 
-- public registration receipt returns:
-  - `id`
-  - `receivedAt`
-  - `status`
-  - `event`
-  - `attendee`
-- admin event registration list returns:
-  - the event summary used by the review queue
-  - attendee rows with `status`, `createdAt`, and `reviewedAt`
-- admin event registration detail returns:
-  - full attendee fields
-  - `answersJson`
-  - review metadata such as `reviewedByStaffId`
-- admin registration update currently mutates:
-  - `status`
-  - and stamps `reviewedAt` plus `reviewedByStaffId`
+- `status`
+- `reviewNotes`
 
-### Audit Logs
+并自动写入：
 
-- `GET /api/admin/v1/audit-logs`
+- `reviewedAt`
+- `reviewedByStaffId`
 
-Current MVP contract:
-
-- returns recent sensitive admin mutations in reverse chronological order
-- each record includes:
-  - `action`
-  - `targetType`
-  - `targetId`
-  - actor identity
-  - request metadata
-  - `beforeJson`
-  - `afterJson`
-
-### Applications
+### 7.6 加入申请审核
 
 - `GET /api/admin/v1/applications`
 - `GET /api/admin/v1/applications/:id`
 - `PATCH /api/admin/v1/applications/:id`
 
-### Assets
+`PATCH` 至少支持修改：
 
-- `GET /api/admin/v1/assets`
-- `POST /api/admin/v1/assets/uploads`
-  - create upload intent or signed upload
-- `POST /api/admin/v1/assets/uploads/complete`
-  - finalize asset metadata after upload
-- `PATCH /api/admin/v1/assets/:id`
-- `DELETE /api/admin/v1/assets/:id`
+- `status`
+- `reviewNotes`
 
-Current MVP integration:
+### 7.7 成员域管理
 
-- topic, article, and event create/update payloads accept `coverAssetId`
-- the API validates that selected cover assets exist, are active, are public, and are image files
-- public responses resolve `coverAssetId` into `coverImage`
+成员模块除了成员本身，还需要承接分会与董事会维护能力。
 
-Current MVP contract:
+成员接口：
 
-- `POST /api/admin/v1/assets/uploads`
-  - request body:
-    - `filename`
-    - `mimeType`
-    - `byteSize`
-    - `assetType`
-    - `visibility`
-  - response body:
-    - `assetId`
-    - `objectKey`
-    - `uploadUrl`
-    - `uploadMethod`
-    - `uploadHeaders`
-    - `intentToken`
-    - `expiresAt`
-    - `previewUrl`
-- `POST /api/admin/v1/assets/uploads/complete`
-  - request body:
-    - `intentToken`
-    - `altText`
-    - `width`
-    - `height`
-    - `checksum`
-  - behavior:
-    - verify upload intent token
-    - verify object presence in storage
-    - persist asset metadata into `assets`
-  - hardening rules:
-    - object keys prefer server-approved extensions derived from the validated mime type
-    - image uploads must include width and height metadata
-    - document uploads must not include image dimensions
-    - image uploads must stay within configured max dimension and max pixel limits
+- `GET /api/admin/v1/members`
+- `POST /api/admin/v1/members`
+- `GET /api/admin/v1/members/:id`
+- `PATCH /api/admin/v1/members/:id`
 
-### Featured Blocks
+成员接口应允许维护：
 
-- `GET /api/admin/v1/featured-blocks`
-- `POST /api/admin/v1/featured-blocks`
-- `PATCH /api/admin/v1/featured-blocks/:id`
+- 基本公开资料
+- `membershipStatus`
+- 公开可见性
 
-Current MVP contract:
+分会接口：
 
-- `GET /api/admin/v1/featured-blocks/homepage`
-  - returns the homepage featured block plus selectable published references
-- `PATCH /api/admin/v1/featured-blocks/homepage`
-  - saves hero copy, CTA labels/links, and curated topic/article/event/city selections
+- `GET /api/admin/v1/branches`
+- `POST /api/admin/v1/branches`
+- `GET /api/admin/v1/branches/:id`
+- `PATCH /api/admin/v1/branches/:id`
 
-### Site Settings
+董事会接口：
 
-- `GET /api/admin/v1/site-settings`
-- `PATCH /api/admin/v1/site-settings`
+- `GET /api/admin/v1/branches/:id/board-members`
+- `PUT /api/admin/v1/branches/:id/board-members`
 
-Current MVP contract:
+说明：
 
-- `GET /api/admin/v1/site-settings`
-  - returns basic public branding values
-- `PATCH /api/admin/v1/site-settings`
-  - updates site name, footer tagline, and support email
+- 这些接口可以在后台的“成员”一级菜单下实现
+- 不要求额外新增“分会”一级菜单
 
-### Staff And Roles
-
-Current MVP contract:
+### 7.8 工作人员与角色权限
 
 - `GET /api/admin/v1/staff`
-  - returns staff rows plus the available role catalog for assignment
 - `POST /api/admin/v1/staff`
-  - creates a staff account for an existing user or a newly created Better Auth user
+- `GET /api/admin/v1/staff/:id`
 - `PATCH /api/admin/v1/staff/:id`
-  - updates staff status, notes, email/name, and role bindings
 - `GET /api/admin/v1/roles`
-  - returns role records plus the full permission catalog
+- `GET /api/admin/v1/roles/:id`
 - `PATCH /api/admin/v1/roles/:id`
-  - updates role name, description, and permission bindings
 
-## 8. Internal API Group
+### 7.9 审计日志
 
-Reserved for trusted automation and backend jobs.
+- `GET /api/admin/v1/audit-logs`
 
-Current MVP contract:
+每条记录至少应包含：
+
+- `action`
+- `targetType`
+- `targetId`
+- 操作人
+- `requestId`
+- 操作时间
+- `beforeJson` optional
+- `afterJson` optional
+
+### 7.10 支撑性后台接口
+
+为了支撑首页、单页与图片能力，建议保留下列接口，即使它们不在一级导航中单独出现：
+
+- `GET /api/admin/v1/homepage`
+- `PATCH /api/admin/v1/homepage`
+- `GET /api/admin/v1/pages/:slug`
+- `PATCH /api/admin/v1/pages/:slug`
+- `GET /api/admin/v1/assets`
+- `POST /api/admin/v1/assets/uploads`
+- `POST /api/admin/v1/assets/uploads/complete`
+
+说明：
+
+- 当前阶段支持 `slug=join|about`
+- `site-config` 仍由系统配置与种子数据驱动，但暂不作为独立后台模块暴露
+
+## 8. 内部 API
+
+保留给定时任务或内部自动化调用。
+
+当前建议至少保留：
 
 - `POST /api/internal/v1/publish-scheduled-content`
-  - protected by `INTERNAL_API_TOKEN`
-  - promotes due scheduled articles to `published`
-  - returns `published` and `skipped` item lists for the current run
+  - 用于发布到点文章或活动
 
-Reserved examples for later:
+后续可扩展：
 
-- `POST /api/internal/v1/revalidate`
-- `POST /api/internal/v1/sync-derived-content`
+- `POST /api/internal/v1/revalidate-site`
+- `POST /api/internal/v1/export-audit-report`
 
-Rules:
+## 9. 认证 API
 
-- never expose these routes to public frontend clients
-- protect them with service credentials or internal network rules
-
-## 9. Auth API Group
-
-Mount Better Auth under:
+Better Auth 挂载在：
 
 - `/api/auth/*`
 
-This group should handle:
+当前后台登录主要使用邮箱密码。
+未来如果增加手机号 OTP，应继续挂在同一认证体系中，而不是新增第二套身份 API。
 
-- sign in
-- sign out
-- session validation
-- password reset
-- future phone OTP flows
+补充说明：
 
-Do not reimplement Better Auth primitives as custom business endpoints unless needed for policy wrappers.
+- 当前认证主线以工作人员后台登录为主
+- 成员体系与工作人员体系按分离模型处理
+- 当前不为成员提供认证能力
+- 如果未来要增加成员认证，应单独设计成员认证与成员校验机制
 
-## 10. Validation Strategy
+## 10. 兼容性与版本策略
 
-Recommended structure:
-
-- request schemas in `packages/shared`
-- server-side validation in `apps/api`
-- response DTOs shared with frontends
-
-Use validation for:
-
-- body payloads
-- query parameters
-- route params
-
-## 11. Authorization Strategy
-
-Recommended pattern:
-
-- define required permission per admin route
-- centralize auth context loading in middleware
-- check business preconditions in service layer
-
-Examples:
-
-- article publish requires `article.publish`
-- event edit requires `event.manage`
-- application update requires `application.review`
-
-## 12. Error Code Conventions
-
-Recommended stable error codes:
-
-- `UNAUTHENTICATED`
-- `FORBIDDEN`
-- `NOT_FOUND`
-- `VALIDATION_ERROR`
-- `CONFLICT`
-- `RATE_LIMITED`
-- `UNSUPPORTED_MEDIA_TYPE`
-- `PAYLOAD_TOO_LARGE`
-- `INTERNAL_ERROR`
-
-## 13. Caching And Freshness Rules
-
-Public GET endpoints may use caching if:
-
-- content is published
-- mutation invalidation is possible
-
-Admin endpoints should default to fresh reads.
-
-When published content changes:
-
-- invalidate cache
-- or trigger Astro rebuild or revalidation
-
-## 14. Audit Expectations
-
-Admin mutations that should generate audit records:
-
-- article create, edit, publish, archive
-- topic create, edit, publish, archive
-- event create, edit, publish, archive
-- application review changes
-- asset deletion or replacement
-- staff and role changes
-
-## 15. Recommended Next Use
-
-This document should directly drive:
-
-- Hono route modules
-- shared DTO packages
-- frontend API clients
-- permission middleware
+- 当前版本以 `v1` 为主
+- 如果旧原型中仍保留 `topics`、`cities` 等接口，应视为历史探索接口
+- 在当前收敛版本里，不应继续扩张这些旧接口的范围
+- 前后台契约变更时，优先更新 `packages/shared` 中的 DTO 与校验模型

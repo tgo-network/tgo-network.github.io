@@ -220,6 +220,61 @@ export const assets = pgTable("assets", {
   updatedAt
 });
 
+export const branches = pgTable("branches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  cityName: text("city_name").notNull(),
+  region: text("region"),
+  summary: text("summary"),
+  bodyRichtext: text("body_richtext"),
+  status: contentStatusEnum("status").default("draft").notNull(),
+  coverAssetId: uuid("cover_asset_id").references(() => assets.id, { onDelete: "set null" }),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  createdAt,
+  updatedAt
+});
+
+export const members = pgTable("members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  company: text("company").notNull(),
+  title: text("title").notNull(),
+  bio: text("bio"),
+  joinedAt: timestamp("joined_at", { withTimezone: true }),
+  branchId: uuid("branch_id").references(() => branches.id, { onDelete: "set null" }),
+  avatarAssetId: uuid("avatar_asset_id").references(() => assets.id, { onDelete: "set null" }),
+  featured: boolean("featured").default(false).notNull(),
+  membershipStatus: text("membership_status").default("active").notNull(),
+  visibility: text("visibility").default("public").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  createdAt,
+  updatedAt
+});
+
+export const branchBoardMembers = pgTable("branch_board_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  branchId: uuid("branch_id")
+    .notNull()
+    .references(() => branches.id, { onDelete: "cascade" }),
+  memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
+  displayName: text("display_name").notNull(),
+  company: text("company").notNull(),
+  title: text("title").notNull(),
+  bio: text("bio"),
+  avatarAssetId: uuid("avatar_asset_id").references(() => assets.id, { onDelete: "set null" }),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  status: contentStatusEnum("status").default("draft").notNull(),
+  createdAt,
+  updatedAt
+}, (table) => [uniqueIndex("branch_board_members_branch_sort_idx").on(table.branchId, table.sortOrder)]);
+
 export const cities = pgTable("cities", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -331,6 +386,7 @@ export const events = pgTable("events", {
   summary: text("summary"),
   bodyRichtext: text("body_richtext"),
   status: contentStatusEnum("status").default("draft").notNull(),
+  branchId: uuid("branch_id").references(() => branches.id, { onDelete: "set null" }),
   cityId: uuid("city_id").references(() => cities.id, { onDelete: "set null" }),
   venueName: text("venue_name"),
   venueAddress: text("venue_address"),
@@ -392,16 +448,22 @@ export const eventRegistrations = pgTable("event_registrations", {
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   name: text("name").notNull(),
   phoneNumber: text("phone_number"),
+  wechatId: text("wechat_id"),
   email: text("email"),
   company: text("company"),
   jobTitle: text("job_title"),
+  note: text("note"),
   answersJson: jsonb("answers_json"),
   status: eventRegistrationStatusEnum("status").default("submitted").notNull(),
   source: text("source").default("public_form").notNull(),
+  reviewNotes: text("review_notes"),
+  matchedMemberId: uuid("matched_member_id").references(() => members.id, { onDelete: "set null" }),
   reviewedByStaffId: uuid("reviewed_by_staff_id").references(() => staffAccounts.id, {
     onDelete: "set null"
   }),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  submittedIp: text("submitted_ip"),
+  submittedUserAgent: text("submitted_user_agent"),
   createdAt,
   updatedAt
 });
@@ -468,6 +530,54 @@ export const siteSettings = pgTable("site_settings", {
   updatedByStaffId: uuid("updated_by_staff_id").references(() => staffAccounts.id, {
     onDelete: "set null"
   }),
+  updatedAt
+});
+
+export const sitePages = pgTable("site_pages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary"),
+  bodyRichtext: text("body_richtext"),
+  status: contentStatusEnum("status").default("draft").notNull(),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  updatedByStaffId: uuid("updated_by_staff_id").references(() => staffAccounts.id, {
+    onDelete: "set null"
+  }),
+  createdAt,
+  updatedAt
+});
+
+export const homepageSections = pgTable("homepage_sections", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: text("code").notNull().unique(),
+  payloadJson: jsonb("payload_json"),
+  status: contentStatusEnum("status").default("draft").notNull(),
+  updatedByStaffId: uuid("updated_by_staff_id").references(() => staffAccounts.id, {
+    onDelete: "set null"
+  }),
+  createdAt,
+  updatedAt
+});
+
+export const joinApplications = pgTable("join_applications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  wechatId: text("wechat_id"),
+  email: text("email"),
+  introduction: text("introduction").notNull(),
+  applicationMessage: text("application_message").notNull(),
+  targetBranchId: uuid("target_branch_id").references(() => branches.id, { onDelete: "set null" }),
+  status: applicationStatusEnum("status").default("submitted").notNull(),
+  reviewedByStaffId: uuid("reviewed_by_staff_id").references(() => staffAccounts.id, {
+    onDelete: "set null"
+  }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewNotes: text("review_notes"),
+  createdAt,
   updatedAt
 });
 

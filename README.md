@@ -1,20 +1,26 @@
 # home.tgo.network
 
+Current scope convergence:
+
+- The active release scope is now centered on `home`, `branches`, `members`, `events`, `articles`, `join`, and `about`
+- The active admin scope is now centered on dashboard, articles, events/registrations, applications, members, staff, roles, and audit logs
+- Some existing `topic/city` implementation work remains in the repository as earlier exploration, but it is no longer the target delivery boundary
+
 Current implementation status:
 
 - Monorepo scaffold is in place for `apps/site`, `apps/admin`, `apps/api`, `packages/shared`, and `packages/db`
 - Root scripts use `corepack pnpm` so the workspace does not depend on a healthy global `pnpm` shim
 - Better Auth baseline, staff permission middleware, Drizzle schema, and seed scripts are wired into the API layer
-- Public MVP routes now exist for topic, article, event, and city list/detail pages in `apps/site`
-- Public API detail routes and the `/api/public/v1/applications` validation flow are backed by shared DTOs in `packages/shared`
+- Public Astro routes now converge on home, branches, members, events, articles, join, about, and the legal pages
+- The `/join` page now combines the join guide and application form, while `/apply` remains a compatibility redirect
 - Public event detail pages now include an API-backed registration form for `open` and `waitlist` events
-- Protected admin read APIs now return real authenticated data for dashboard, topics, articles, events, and applications
-- Admin authoring now supports topic/article create, edit, publish, and archive flows through protected Hono endpoints and Vue editor screens
+- Protected admin read APIs now return real authenticated data for dashboard, core content, events, and applications
+- Admin authoring now supports content create, edit, publish, and archive flows through protected Hono endpoints and Vue editor screens
 - Event operations now support create, edit, publish, archive, registration-state management, and agenda editing
 - Event registration now supports public submissions plus staff review/update flows in the admin console
 - Application review now supports detail pages, status updates, and internal review notes in the admin console
 - Asset management now supports protected asset listing plus signed S3-compatible upload and finalize flows in the admin console
-- Topic, article, and event editors now support selecting a cover asset, and the public site renders those images from API-provided asset metadata
+- Content and event editors now support selecting a cover asset, and the public site renders those images from API-provided asset metadata
 - Homepage featured content is now configurable from the admin console and drives the public `/api/public/v1/home` payload
 - Basic site settings now drive the public site header/footer configuration through `/api/public/v1/site-config`
 - Sensitive admin mutations now write audit records and can be reviewed from the admin console audit log page
@@ -32,6 +38,7 @@ Current implementation status:
 - GitHub Actions now also verifies the API Docker build and includes a manual GHCR image publish workflow
 - Playwright browser smoke tests now cover public homepage/forms plus admin login/navigation, and a dedicated E2E workflow is in place
 - Portable deployment templates now exist for the API container image and runtime env configuration
+- Retired legacy routes such as public `topics/cities/applications` and admin `topics/featured-blocks/site-settings` are no longer exposed
 - `npm run typecheck`, `npm run build`, `npm run test`, and `npm run test:api` pass, and the event registration, rate limiting, upload-hardening, public write, and staff/role management flows have been smoke-tested against the local API
 
 Workspace commands:
@@ -123,11 +130,14 @@ Project planning documents:
 - [MVP scope](docs/mvp-scope.md)
 - [Route map](docs/route-map.md)
 - [Data model](docs/data-model.md)
+- [Schema adjustment checklist](docs/schema-adjustment-checklist.md)
 - [Auth and permission](docs/auth-and-permission.md)
 - [API design](docs/api-design.md)
+- [API and DTO adjustment checklist](docs/api-dto-adjustment-checklist.md)
 - [Content workflow](docs/content-workflow.md)
 - [Media storage](docs/media-storage.md)
 - [Implementation roadmap](docs/implementation-roadmap.md)
+- [Implementation transition backlog](docs/implementation-transition-backlog.md)
 - [Deployment and environments](docs/deployment-and-environments.md)
 - [Testing strategy](docs/testing-strategy.md)
 - [Operations runbook](docs/operations-runbook.md)

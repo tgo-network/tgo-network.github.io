@@ -1,57 +1,49 @@
-# TGO Network Media And Object Storage Design
+# TGO Network 媒体与对象存储设计
 
-## 1. Purpose
+## 1. 目的
 
-This document defines:
+本文档定义：
 
-- what belongs in object storage
-- what belongs in the relational database
-- how uploads should flow through the system
+- 哪些资源应该进对象存储
+- 哪些信息应该进数据库
+- 上传流程如何受 API 控制
 
-## 2. Design Principles
+## 2. 设计原则
 
-- Store binary files in object storage
-- Store file metadata in PostgreSQL
-- Avoid vendor-locked file access patterns
-- Upload through API-controlled flows
-- Keep asset references stable through internal asset IDs
+- 文件二进制放对象存储
+- 文件元数据与业务引用放 PostgreSQL
+- 前端不直持长期存储密钥
+- 资源引用统一使用内部 `asset_id`
+- 不把业务记录写死为特定云厂商 URL
 
-## 3. What Belongs In Object Storage
+## 3. 当前版本需要对象存储的内容
 
-Recommended object storage assets:
+当前版本主要需要存储的都是公开展示图片：
 
-- homepage banners
-- topic cover images
-- article cover images
-- article inline images
-- city page covers
-- event posters
-- speaker photos
-- application attachments
-- future user-uploaded files
+- 首页主视觉图
+- 首页精选卡片图
+- 分会封面图
+- 董事会成员头像
+- 成员头像
+- 文章封面图
+- 文章正文插图
+- 活动海报
+- 活动嘉宾或议程配图
 
-## 4. What Does Not Belong In Object Storage
+当前版本通常不需要对象存储的内容：
 
-These should remain in PostgreSQL:
+- 成员列表文本信息
+- 分会介绍文本
+- 文章正文结构数据
+- 活动时间地点等结构化字段
+- 加入申请表单数据本身
+- 角色权限与审计记录
 
-- article titles and bodies
-- topic metadata
-- event records and registration states
-- user identities
-- role and permission data
-- asset metadata
+## 4. 元数据模型
 
-These can remain in frontend source control when stable:
+使用 `assets` 表作为资源元数据中心。
 
-- brand logo
-- fixed icons
-- developer-managed placeholder graphics
-
-## 5. Metadata Model
-
-Use the `assets` table as the file metadata source of truth.
-
-Minimum metadata fields:
+建议至少保存：
 
 - `id`
 - `storage_provider`
@@ -61,200 +53,152 @@ Minimum metadata fields:
 - `asset_type`
 - `mime_type`
 - `byte_size`
-- `width`
-- `height`
+- `width` nullable
+- `height` nullable
 - `original_filename`
-- `alt_text`
+- `alt_text` nullable
 - `uploaded_by_staff_id`
 - `status`
 - `created_at`
+- `updated_at`
 
-## 6. Asset Types
+## 5. 资源类型建议
 
-Recommended initial asset types:
+当前阶段后台上传入口推荐使用：
 
 - `site-banner`
-- `topic-cover`
+- `branch-cover`
+- `member-avatar`
 - `article-cover`
 - `article-inline`
-- `city-cover`
 - `event-poster`
 - `speaker-avatar`
 - `application-attachment`
 - `generic-file`
 
-These types can drive:
+兼容说明：
 
-- validation
-- size limits
-- editor UI labels
-- lifecycle rules later
+- 历史资产记录里仍可能存在 `topic-cover`、`city-cover`
+- 当前上传入口不再暴露这两类旧类型，但读取与展示仍应保持兼容
 
-## 7. Visibility Model
+这些类型可以驱动：
 
-Recommended visibility values:
+- 上传限制
+- UI 标签
+- 预览规则
+- 未来清理策略
+
+## 6. 可见性模型
+
+当前版本以公开图片为主，建议先保留两种可见性：
 
 - `public`
 - `private`
 
-Use `public` for:
+当前实际高频使用：
 
-- cover images
-- inline editorial images
-- public event posters
+- 首页图、分会图、成员头像、文章图、活动图：`public`
 
-Use `private` for:
+为后续预留：
 
-- application attachments
-- internal-only documents
-- future user-submitted sensitive files
+- 内部材料或敏感附件：`private`
 
-## 8. Storage Key Strategy
+## 7. 对象键策略
 
-Recommended key shape:
+推荐格式：
 
 ```text
-{environment}/{domain}/{asset-type}/{yyyy}/{mm}/{asset-id}-{slugified-name}.{ext}
+{env}/{domain}/{asset-type}/{yyyy}/{mm}/{asset-id}-{slugified-name}.{ext}
 ```
 
-Example:
+示例：
 
 ```text
-prod/content/article-cover/2026/03/8f6d...-ai-architecture.webp
+prod/content/member-avatar/2026/03/uuid-zhang-san.webp
 ```
 
-Benefits:
+这样做的好处：
 
-- environment isolation
-- easier debugging
-- predictable bucket hygiene
-- avoids filename collisions
+- 环境隔离清晰
+- 便于问题排查
+- 避免重名冲突
 
-## 9. Upload Flow
+## 8. 上传流
 
-Recommended upload flow:
+推荐流转：
 
-1. admin client requests upload intent from API
-2. API validates asset type and permissions
-3. API returns signed upload data or upload credentials
-4. client uploads directly to object storage
-5. client calls upload-complete endpoint
-6. API verifies object presence and writes asset metadata
-7. business entity stores `asset_id` reference
+1. 后台向 API 请求上传意图
+2. API 校验权限、资源类型、文件大小与 MIME
+3. API 返回签名上传信息
+4. 前端直传对象存储
+5. 前端调用完成接口
+6. API 校验对象存在并落库 `assets`
+7. 业务表保存 `asset_id` 引用
 
-Benefits:
+这样做的好处：
 
-- backend remains the control point
-- frontend does not need long-lived storage secrets
-- storage provider can change without changing business data relations
+- 权限控制集中在 API
+- 前端不需要长期存储密钥
+- 更换对象存储服务时无需改业务表结构
 
-Current MVP implementation:
+## 9. 校验规则
 
-- upload intent returns a signed `PUT` URL plus an `intentToken`
-- completion uses `intentToken` to verify the expected object key and metadata
-- asset records are inserted only after the object exists in storage
-- public asset preview URLs are derived from storage configuration, not stored in business entities
-- topics, articles, and events store `cover_asset_id` references instead of raw asset URLs
-- public APIs resolve those references into runtime `coverImage` URLs for Astro pages
+当前阶段至少校验：
 
-## 10. Validation Rules
+- 文件大小
+- MIME 类型
+- 扩展名
+- 资源类型是否允许
+- 图片尺寸元数据是否合理
 
-At minimum validate:
+当前建议允许：
 
-- file size
-- mime type
-- allowed extension
-- visibility class
-- asset type authorization
+- `image/jpeg`
+- `image/png`
+- `image/webp`
 
-Recommended MVP examples:
+当前建议拒绝：
 
-- editorial images:
-  - allow `image/jpeg`, `image/png`, `image/webp`
-- attachments:
-  - allow a small explicit set such as `application/pdf`
+- 可执行文件
+- 未知二进制类型
+- 超大图片
+- 与资源类型不匹配的 MIME
 
-Reject:
+## 10. 安全规则
 
-- executable formats
-- unknown content types
-- oversized files
+- 上传签名必须短时有效
+- 上传接口必须要求工作人员身份
+- 业务记录里只保存 `asset_id`，不硬编码供应商 URL
+- 公开 URL 应由资源元数据在运行时推导
 
-## 11. Security Rules
+## 11. 删除策略
 
-- signed uploads should be short-lived
-- admin upload endpoints require staff authentication
-- private files should be delivered using signed download URLs or proxied access
-- public URLs should be generated from metadata, not hardcoded into business records
+当前建议：
 
-## 12. Deletion Strategy
+- 先做归档，不做立即物理删除
+- 真正删除对象存储文件应作为受控运维动作
 
-Recommended MVP rule:
+理由：
 
-- deleting an asset from the UI should archive it first
-- hard deletion from storage should be a controlled maintenance operation
+- 防止误删后导致公开页面瞬间失图
+- 便于后续实现引用检查与恢复
 
-Reasons:
+## 12. 当前阶段范围
 
-- avoids breaking published pages immediately
-- reduces accidental loss of still-referenced files
+当前阶段必须支持：
 
-## 13. Asset Usage Tracking
+- 首页图片上传
+- 分会封面图上传
+- 董事会成员头像上传
+- 成员头像上传
+- 文章封面与正文插图上传
+- 活动海报上传
+- 元数据落库与回显
 
-Asset usage tracking is optional for MVP but recommended later.
+当前阶段可以暂缓：
 
-Benefits:
-
-- detect unused files
-- warn before deleting referenced assets
-- support cleanup policies
-
-If implemented, use `asset_usages` with:
-
-- `asset_id`
-- `entity_type`
-- `entity_id`
-- `usage_type`
-
-## 14. CDN And Delivery
-
-Recommended delivery model:
-
-- object storage for origin
-- optional CDN in front of public assets
-
-Do not make business logic depend on CDN-specific URLs.
-
-Store:
-
-- bucket or provider metadata
-- object key
-- visibility
-
-Derive public or signed access URLs at runtime.
-
-## 15. MVP Scope
-
-Required in MVP:
-
-- editorial image uploads
-- event poster uploads
-- application attachment uploads if forms require files
-- asset metadata persistence
-- cover asset selection inside topic, article, and event admin editors
-
-Can wait until later:
-
-- image transformations
-- responsive image variants
-- media deduplication
-- lifecycle retention policies
-
-## 16. Recommended Next Use
-
-This document should directly drive:
-
-- asset schema design
-- upload endpoints
-- admin media library behavior
-- frontend image integration rules
+- 图片裁剪工作流
+- 多尺寸变体
+- 去重与压缩流水线
+- 生命周期自动清理
+- 面向公开用户的文件上传

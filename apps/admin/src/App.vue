@@ -61,10 +61,10 @@ onMounted(() => {
   <div v-else class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand-tag">管理后台 MVP</span>
+        <span class="brand-tag">工作人员后台</span>
         <h1>{{ platformName }}</h1>
         <p>
-          面向工作人员的运营控制台，用于管理内容、员工权限、申请、资源与站点配置。
+          面向工作人员的运营控制台，用于管理文章、活动、成员、申请、权限和站点内容配置。
         </p>
       </div>
 

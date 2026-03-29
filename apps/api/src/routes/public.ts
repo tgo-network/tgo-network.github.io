@@ -1,18 +1,22 @@
 import {
+  aboutPagePayload,
   articleSummaries,
-  citySummaries,
-  eventSummaries,
+  branchDetails,
   getArticleDetail,
-  getCityDetail,
-  getEventDetail,
-  getTopicDetail,
-  homePayload,
+  getBranchDetail,
+  getMemberDetail,
+  getPublicEventDetailV2,
+  joinPagePayload,
+  memberSummaries,
+  publicEventSummariesV2,
+  publicHomePayloadV2,
   siteConfig,
-  topicSummaries,
-  validatePublicApplicationInput,
-  validatePublicEventRegistrationInput,
-  type PublicEventRegistrationReceipt,
-  type PublicApplicationReceipt
+  validateJoinApplicationInput,
+  validatePublicEventRegistrationInputV2,
+  type JoinApplicationReceipt,
+  type MemberSummary,
+  type PublicEventRegistrationReceiptV2,
+  type PublicEventSummaryV2
 } from "@tgo/shared";
 import { Hono } from "hono";
 import type { Context } from "hono";
@@ -20,20 +24,23 @@ import type { Context } from "hono";
 import { getEnv } from "../lib/env.js";
 import { jsonError } from "../lib/errors.js";
 import { ok } from "../lib/http.js";
+import {
+  createJoinApplicationFromDb,
+  createPublicEventRegistrationV2FromDb,
+  getAboutPageFromDb,
+  getEventDetailV2FromDb,
+  getHomePayloadV2FromDb,
+  getJoinPageFromDb,
+  getMemberDetailFromDb,
+  listBranchesFromDb,
+  listEventsV2FromDb,
+  listMembersFromDb
+} from "../lib/network-public.js";
 import { getPublicSiteConfigFromDb } from "../lib/platform-config.js";
 import {
-  createPublicApplicationFromDb,
-  createPublicEventRegistrationFromDb,
   getArticleDetailFromDb,
-  getCityDetailFromDb,
-  getEventDetailFromDb,
-  getHomePayloadFromDb,
-  PublicContentError,
-  getTopicDetailFromDb,
   listArticleSummariesFromDb,
-  listCitySummariesFromDb,
-  listEventSummariesFromDb,
-  listTopicSummariesFromDb
+  PublicContentError
 } from "../lib/public-content.js";
 import { checkRateLimit, type RateLimitDecision } from "../lib/rate-limit.js";
 
@@ -45,13 +52,19 @@ const setRateLimitHeaders = (c: Context, decision: RateLimitDecision) => {
   c.header("X-RateLimit-Reset", decision.resetAt);
 };
 
-const getRequesterKey = (c: Context) => {
+const getRequesterContext = (c: Context) => {
   const forwardedFor = c.req.header("x-forwarded-for");
   const requestIp = forwardedFor?.split(",")[0]?.trim() || c.req.header("x-real-ip") || "anonymous";
   const userAgent = c.req.header("user-agent") ?? "unknown";
 
-  return `${requestIp}:${userAgent}`;
+  return {
+    requestIp,
+    userAgent,
+    key: `${requestIp}:${userAgent}`
+  };
 };
+
+const getQueryValue = (c: Context, key: string) => c.req.query(key)?.trim() ?? "";
 
 const enforcePublicWriteRateLimit = (c: Context, scope: "applications" | "event-registrations") => {
   const env = getEnv();
@@ -59,7 +72,7 @@ const enforcePublicWriteRateLimit = (c: Context, scope: "applications" | "event-
     scope === "applications" ? env.publicApplicationRateLimitMax : env.publicEventRegistrationRateLimitMax;
   const decision = checkRateLimit({
     scope,
-    key: getRequesterKey(c),
+    key: getRequesterContext(c).key,
     limit,
     windowMs: env.publicWriteRateLimitWindowSeconds * 1000
   });
@@ -79,6 +92,61 @@ const enforcePublicWriteRateLimit = (c: Context, scope: "applications" | "event-
   });
 };
 
+const matchesKeyword = (keyword: string, ...fields: Array<string | null | undefined>) => {
+  if (!keyword) {
+    return true;
+  }
+
+  const normalized = keyword.toLowerCase();
+  return fields.some((field) => field?.toLowerCase().includes(normalized));
+};
+
+const filterMembers = (members: MemberSummary[], c: Context) => {
+  const keyword = getQueryValue(c, "q").toLowerCase();
+  const branchSlug = getQueryValue(c, "branchSlug").toLowerCase();
+  const city = getQueryValue(c, "city").toLowerCase();
+
+  return members.filter((member) => {
+    const branch = member.branch;
+
+    if (branchSlug && branch?.slug.toLowerCase() !== branchSlug) {
+      return false;
+    }
+
+    if (city && branch?.cityName.toLowerCase() !== city) {
+      return false;
+    }
+
+    return matchesKeyword(keyword, member.name, member.company, member.title, branch?.name, branch?.cityName);
+  });
+};
+
+const filterEvents = (events: PublicEventSummaryV2[], c: Context) => {
+  const branchSlug = getQueryValue(c, "branchSlug").toLowerCase();
+  const city = getQueryValue(c, "city").toLowerCase();
+  const upcoming = getQueryValue(c, "upcoming").toLowerCase() === "true";
+  const now = Date.now();
+
+  return events.filter((event) => {
+    if (branchSlug && event.branch?.slug.toLowerCase() !== branchSlug) {
+      return false;
+    }
+
+    if (city && event.branch?.cityName.toLowerCase() !== city) {
+      return false;
+    }
+
+    if (upcoming) {
+      const endsAt = Date.parse(event.endsAt || event.startsAt);
+      if (!Number.isNaN(endsAt) && endsAt < now) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
+
 publicRoutes.get("/site-config", async (c) => {
   try {
     return c.json(ok(await getPublicSiteConfigFromDb()));
@@ -87,24 +155,45 @@ publicRoutes.get("/site-config", async (c) => {
   }
 });
 
-publicRoutes.get("/home", async (c) => c.json(ok((await getHomePayloadFromDb()) ?? homePayload)));
+publicRoutes.get("/home", async (c) => c.json(ok((await getHomePayloadV2FromDb()) ?? publicHomePayloadV2)));
 
-publicRoutes.get("/topics", async (c) => {
-  const data = (await listTopicSummariesFromDb()) ?? topicSummaries;
+publicRoutes.get("/branches", async (c) => {
+  const data = (await listBranchesFromDb()) ?? branchDetails;
 
   return c.json(ok(data, { total: data.length }));
 });
 
-publicRoutes.get("/topics/:slug", async (c) => {
-  const topicFromDb = await getTopicDetailFromDb(c.req.param("slug"));
-  const topic = topicFromDb === undefined ? getTopicDetail(c.req.param("slug")) : topicFromDb;
+publicRoutes.get("/branches/:slug", async (c) => {
+  const branchRows = await listBranchesFromDb();
+  const branch = branchRows === undefined ? getBranchDetail(c.req.param("slug")) : branchRows.find((item) => item.slug === c.req.param("slug")) ?? null;
 
-  if (!topic) {
-    return jsonError(c, 404, "NOT_FOUND", "主题不存在。");
+  if (!branch) {
+    return jsonError(c, 404, "NOT_FOUND", "分会不存在。");
   }
 
-  return c.json(ok(topic));
+  return c.json(ok(branch));
 });
+
+publicRoutes.get("/members", async (c) => {
+  const data = filterMembers((await listMembersFromDb()) ?? memberSummaries, c);
+
+  return c.json(ok(data, { total: data.length }));
+});
+
+publicRoutes.get("/members/:slug", async (c) => {
+  const memberFromDb = await getMemberDetailFromDb(c.req.param("slug"));
+  const member = memberFromDb === undefined ? getMemberDetail(c.req.param("slug")) : memberFromDb;
+
+  if (!member) {
+    return jsonError(c, 404, "NOT_FOUND", "成员不存在。");
+  }
+
+  return c.json(ok(member));
+});
+
+publicRoutes.get("/join", async (c) => c.json(ok((await getJoinPageFromDb()) ?? joinPagePayload)));
+
+publicRoutes.get("/about", async (c) => c.json(ok((await getAboutPageFromDb()) ?? aboutPagePayload)));
 
 publicRoutes.get("/articles", async (c) => {
   const data = (await listArticleSummariesFromDb()) ?? articleSummaries;
@@ -124,14 +213,14 @@ publicRoutes.get("/articles/:slug", async (c) => {
 });
 
 publicRoutes.get("/events", async (c) => {
-  const data = (await listEventSummariesFromDb()) ?? eventSummaries;
+  const data = filterEvents((await listEventsV2FromDb()) ?? publicEventSummariesV2, c);
 
   return c.json(ok(data, { total: data.length }));
 });
 
 publicRoutes.get("/events/:slug", async (c) => {
-  const eventFromDb = await getEventDetailFromDb(c.req.param("slug"));
-  const event = eventFromDb === undefined ? getEventDetail(c.req.param("slug")) : eventFromDb;
+  const eventFromDb = await getEventDetailV2FromDb(c.req.param("slug"));
+  const event = eventFromDb === undefined ? getPublicEventDetailV2(c.req.param("slug")) : eventFromDb;
 
   if (!event) {
     return jsonError(c, 404, "NOT_FOUND", "活动不存在。");
@@ -148,7 +237,7 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
   }
 
   const payload = await c.req.json().catch(() => null);
-  const result = validatePublicEventRegistrationInput(payload);
+  const result = validatePublicEventRegistrationInputV2(payload);
 
   if (!result.valid) {
     return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
@@ -157,10 +246,14 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
   }
 
   try {
+    const requester = getRequesterContext(c);
     const receipt =
-      (await createPublicEventRegistrationFromDb(c.req.param("eventId"), result.data)) ??
+      (await createPublicEventRegistrationV2FromDb(c.req.param("eventId"), result.data, {
+        submittedIp: requester.requestIp,
+        submittedUserAgent: requester.userAgent
+      })) ??
       (() => {
-        const event = getEventDetail(c.req.param("eventId"));
+        const event = getPublicEventDetailV2(c.req.param("eventId"));
 
         if (!event) {
           throw new PublicContentError(404, "NOT_FOUND", "活动不存在。");
@@ -182,12 +275,14 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
           },
           attendee: {
             name: result.data.name,
+            phoneNumber: result.data.phoneNumber,
+            ...(result.data.wechatId ? { wechatId: result.data.wechatId } : {}),
             ...(result.data.email ? { email: result.data.email } : {}),
-            ...(result.data.phoneNumber ? { phoneNumber: result.data.phoneNumber } : {}),
             ...(result.data.company ? { company: result.data.company } : {}),
-            ...(result.data.jobTitle ? { jobTitle: result.data.jobTitle } : {})
+            ...(result.data.title ? { title: result.data.title } : {}),
+            ...(result.data.note ? { note: result.data.note } : {})
           }
-        } satisfies PublicEventRegistrationReceipt;
+        } satisfies PublicEventRegistrationReceiptV2;
       })();
 
     return c.json(ok(receipt), 201);
@@ -206,24 +301,7 @@ publicRoutes.post("/events/:eventId/registrations", async (c) => {
   }
 });
 
-publicRoutes.get("/cities", async (c) => {
-  const data = (await listCitySummariesFromDb()) ?? citySummaries;
-
-  return c.json(ok(data, { total: data.length }));
-});
-
-publicRoutes.get("/cities/:slug", async (c) => {
-  const cityFromDb = await getCityDetailFromDb(c.req.param("slug"));
-  const city = cityFromDb === undefined ? getCityDetail(c.req.param("slug")) : cityFromDb;
-
-  if (!city) {
-    return jsonError(c, 404, "NOT_FOUND", "城市不存在。");
-  }
-
-  return c.json(ok(city));
-});
-
-publicRoutes.post("/applications", async (c) => {
+publicRoutes.post("/join-applications", async (c) => {
   const rateLimitResponse = enforcePublicWriteRateLimit(c, "applications");
 
   if (rateLimitResponse) {
@@ -231,7 +309,7 @@ publicRoutes.post("/applications", async (c) => {
   }
 
   const payload = await c.req.json().catch(() => null);
-  const result = validatePublicApplicationInput(payload);
+  const result = validateJoinApplicationInput(payload);
 
   if (!result.valid) {
     return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
@@ -239,18 +317,18 @@ publicRoutes.post("/applications", async (c) => {
     });
   }
 
-  const receipt = (await createPublicApplicationFromDb(result.data)) ??
+  const receipt =
+    (await createJoinApplicationFromDb(result.data)) ??
     ({
-      id: `demo_${Date.now()}`,
+      id: `demo_join_${Date.now()}`,
       receivedAt: new Date().toISOString(),
-      type: result.data.type,
       applicant: {
         name: result.data.name,
-        email: result.data.email,
-        ...(result.data.company ? { company: result.data.company } : {}),
-        ...(result.data.city ? { city: result.data.city } : {})
+        phoneNumber: result.data.phoneNumber,
+        ...(result.data.wechatId ? { wechatId: result.data.wechatId } : {}),
+        ...(result.data.email ? { email: result.data.email } : {})
       }
-    } satisfies PublicApplicationReceipt);
+    } satisfies JoinApplicationReceipt);
 
   return c.json(ok(receipt), 201);
 });

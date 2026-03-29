@@ -1,245 +1,165 @@
-# TGO Network Implementation Roadmap
+# TGO Network 实施路线图
 
-## 1. Purpose
+## 1. 目的
 
-This document converts the architecture and design set into an execution order.
+本文档把已经确定的架构与范围，转化为接下来的执行顺序。
 
-It focuses on:
+重点关注：
 
-- build sequence
-- dependency order
-- milestone outputs
-- what should be proven before moving forward
+- 当前所处阶段
+- 接下来优先做什么
+- 哪些事项会阻塞多个模块
 
-## 2. Execution Principles
+## 2. 执行原则
 
-- Build in vertical slices, not isolated layers
-- Prove end-to-end integration early
-- Keep the final architecture stable while limiting feature scope per milestone
-- Prefer production-shaped infrastructure and fake content over fake architecture
+- 按纵向业务切片推进，而不是孤立堆技术层
+- 优先冻结边界，再进行界面与逻辑实现
+- 不在旧 `topic/city` 原型上继续扩张需求
+- 优先完成公开站点与后台的最小运营闭环
 
-## 3. Milestone Overview
+## 3. 当前里程碑概览
 
-| Milestone | Goal | Primary output |
-| --- | --- | --- |
-| M0 | Scaffold the monorepo baseline | Running workspace with three apps and shared packages |
-| M1 | Establish backend foundation | Database schema, migrations, auth, permission middleware |
-| M2 | Deliver public content MVP | Real public pages backed by API-managed data |
-| M3 | Deliver admin operations MVP | Staff admin for content, events, applications, and assets |
-| M4 | Harden for production use | Logging, validation, monitoring, deploy flow, backups |
-| M5 | Expand product capabilities | Phone OTP and richer operational features |
+| 里程碑 | 状态 | 目标 | 主要输出 |
+| --- | --- | --- | --- |
+| M0 | 已完成 | 架构与文档基线 | 技术栈、边界、规划文档 |
+| M1 | 已完成 | 工程骨架与基础设施 | monorepo、认证、数据库、CI |
+| M2 | 当前进行中 | 范围收敛与契约冻结 | 新版范围、路由、数据模型、API 设计 |
+| M3 | 下一步 | 前台 7 模块落地 | 首页、分会、成员、活动、文章、加入、关于 |
+| M4 | 下一步 | 后台 8 模块落地 | 仪表盘、文章、活动、申请、成员、工作人员、角色、审计 |
+| M5 | 后续 | 生产加固 | 审计完善、监控、备份恢复、部署稳定性 |
+| M6 | 后续 | 增长能力 | 手机号登录、签到、通知、分析 |
 
-## 4. Milestone Details
+## 4. 当前阶段的关键任务
 
-### M0: Monorepo Baseline
+### M2：范围收敛与契约冻结
 
-Goal:
+当前必须先完成：
 
-- create a clean workspace matching the planned architecture
+- 冻结前台 7 个模块的页面边界
+- 冻结后台 8 个模块的职责边界
+- 冻结 `branches` / `members` / `join_applications` 的数据模型
+- 冻结非成员、成员、工作人员三类身份边界
+- 冻结成员体系与工作人员体系的分离建模原则
+- 冻结新的公开 API 与后台 API
+- 将旧 `topics` / `cities` 降为历史探索
 
-Deliverables:
+完成标准：
 
-- `apps/site`
-- `apps/admin`
-- `apps/api`
-- `packages/db`
-- `packages/shared`
-- root workspace config
-- shared TypeScript config
-- root scripts for install, dev, build, lint, test
+- 产品范围不再继续扩张
+- 路由图、数据模型、API 设计相互一致
+- 后续实现可以直接按文档分工
 
-Definition of done:
+## 5. 下一阶段交付顺序
 
-- all apps install and start
-- shared package imports resolve correctly
-- basic CI or local build commands work
+### M3：前台能力对齐
 
-### M1: Backend Foundation
+推荐先后顺序：
 
-Goal:
+1. 首页
+2. 加入说明与申请表
+3. 分会董事会
+4. 成员列表与详情
+5. 活动列表与详情/报名
+6. 文章列表与详情
+7. 关于我们
 
-- make the backend trustworthy enough for real feature work
+这样排序的原因：
 
-Deliverables:
+- 首页与加入路径最影响整体产品表达
+- 分会/成员结构会反向验证数据模型是否正确
+- 活动和文章依赖较成熟的内容模型，可稍后接入
 
-- Drizzle schema baseline
-- migration generation and apply flow
-- Better Auth integration
-- staff account lookup and permission middleware
-- seed data for initial roles and permissions
-- API health check
-- authenticated admin `me` endpoint
+### M4：后台能力对齐
 
-Definition of done:
+推荐先后顺序：
 
-- database migrations can be applied from scratch
-- auth session validation works
-- protected routes reject unauthorized users correctly
+1. 仪表盘
+2. 文章管理
+3. 活动管理与报名审核
+4. 加入申请审核
+5. 成员管理
+6. 分会与董事会维护
+7. 工作人员管理
+8. 角色与权限配置
+9. 审计日志
 
-### M2: Public Content MVP
+说明：
 
-Goal:
+- 分会与董事会虽然不一定是一级菜单，但在实现顺序上必须跟成员模块同时完成
+- 审计日志应伴随敏感模块一起接入，而不是最后再补
 
-- ship the public-facing browsing experience on real backend-managed data
+## 6. 仓库内推荐施工顺序
 
-Deliverables:
+1. `packages/shared`
+2. `packages/db`
+3. `apps/api`
+4. `apps/admin`
+5. `apps/site`
 
-- homepage
-- topics list and detail
-- articles list and detail
-- events list and detail
-- cities list and detail
-- application form
-- SEO basics
-- public API endpoints for all public content
+原因：
 
-Definition of done:
+- 共享 DTO 和 schema 决定上下游契约
+- API 是前后台共同依赖的业务边界
+- 后台先稳定内容录入，前台再对接真实数据
 
-- Astro pages render from API data
-- published-only filters work consistently
-- site content can be updated without code edits
+## 7. 当前最关键的阻塞项
 
-### M3: Admin Operations MVP
+以下事项如果不先定，会导致多处返工：
 
-Goal:
+- `branches` 是否完全取代旧 `cities`
+- 成员体系与工作人员体系是否完全分离
+- “成员身份”与“工作人员角色”如何彻底分离
+- 加入申请是否先采用单表审核模型
+- 后台“成员”模块是否承接分会与董事会维护
+- 首页是否采用结构化区块而不是普通文章
 
-- allow staff to run the site without developer intervention
+当前文档已经默认给出答案，后续实现应按此推进。
 
-Deliverables:
+## 8. 可并行推进的工作
 
-- admin login
-- permission-aware shell
-- article CRUD and publish flow
-- topic CRUD and publish flow
-- event CRUD and publish flow
-- application review
-- asset upload and selection
-- featured blocks and site settings basics
+在数据模型和 API 契约冻结后，可以并行：
 
-Definition of done:
+- 后台信息架构与表单原型
+- 前台页面布局与组件拆分
+- API 路由与 DTO 落地
+- 图片上传与资源引用流程
+- 测试用例改写与收敛
 
-- staff can create and publish content
-- public site changes flow from admin-managed data
-- asset upload and reuse work in real forms
+并行的前提是：
 
-### M4: Production Hardening
+- DTO 已稳定
+- 权限码已稳定
+- 路由命名已稳定
 
-Goal:
+## 9. 每个功能切片的完成定义
 
-- reduce operational risk before or after launch
+每个切片至少要包含：
 
-Deliverables:
+- 必要的 schema 调整
+- API 查询或写接口
+- 后台录入或审核能力
+- 前台展示或提交能力
+- 对应权限校验
+- 最小测试覆盖
+- 文档同步
 
-- audit logs on sensitive mutations
-- structured error handling
-- rate limiting on public write endpoints
-- upload validation hardening
-- environment-specific config
-- deployment runbook
-- backup and restore process
-- monitoring baseline
+## 10. 当前最大的实施风险
 
-Definition of done:
+- 继续沿旧 `topic/city` 路线增加实现，导致主线再次发散
+- 先做页面再补数据模型，导致字段反复返工
+- 前台直接拼装业务逻辑，绕开 API
+- 后台模块名称与实际职责不一致
+- 测试仍覆盖旧原型，而未覆盖新范围
 
-- major operational risks have baseline mitigations
-- deployment and rollback are documented
+## 11. 文档收敛后的直接下一步
 
-### M5: Growth Features
+当前这一步已经进入“从文档冻结走向实现迁移”的阶段。
 
-Goal:
+现在最合适的下一步不是继续扩需求，而是按执行清单开始收敛实现：
 
-- extend capability after the core publishing loop is stable
+1. 以 `schema-adjustment-checklist.md` 冻结数据库增量改造顺序
+2. 以 `api-dto-adjustment-checklist.md` 冻结共享契约与 API 切换顺序
+3. 以 `implementation-transition-backlog.md` 按 `shared -> db -> api -> admin -> site` 的顺序实施
+4. 新主线跑通后，再安排旧 `topic / city` 原型退场
 
-Candidate items:
-
-- phone OTP login
-- event check-in
-- richer reporting
-- notifications
-- member-only areas
-
-## 5. Recommended Task Order
-
-Recommended order inside the repo:
-
-1. root workspace and package manager config
-2. `packages/shared`
-3. `packages/db`
-4. `apps/api`
-5. `apps/admin`
-6. `apps/site`
-
-Reasoning:
-
-- backend contracts should exist before frontend integration
-- admin depends most directly on mutation APIs
-- site can be integrated cleanly after public APIs stabilize
-
-## 6. Critical Dependency Chain
-
-Some items should not be delayed because they gate many later tasks:
-
-- database schema conventions
-- auth integration
-- permission middleware
-- asset upload contract
-- publish-state filtering rules
-
-If any of these drift late, multiple apps will need rework.
-
-## 7. Parallelizable Work
-
-Once M1 exists, these can proceed in parallel:
-
-- Astro public page implementation
-- Vue admin shell and forms
-- API route expansion by domain
-- asset upload UI and metadata handling
-
-Parallel work is safe only if:
-
-- DTOs are shared
-- API contracts are stable
-- permissions are defined per route
-
-## 8. Definition Of Ready
-
-Before implementing a domain area, all of the following should exist:
-
-- relevant data model
-- API contract
-- permission expectation
-- page ownership
-- state transitions
-
-## 9. Definition Of Done For Each Feature Slice
-
-Each implemented slice should include:
-
-- schema or model updates if needed
-- API endpoint or service logic
-- frontend integration
-- auth and permission enforcement
-- tests at the appropriate layer
-- documentation updates when contracts change
-
-## 10. Early Engineering Risks
-
-Watch these areas closely:
-
-- auth and permission logic split across too many layers
-- public pages accidentally reading draft content
-- uploads becoming vendor-specific too early
-- admin routes implemented before permission mapping is enforced
-- Astro and Vue drifting from shared DTOs
-
-## 11. Recommended Immediate Next Step
-
-The next concrete work item after documentation is:
-
-- scaffold the monorepo and shared package layout
-
-Reason:
-
-- the documentation set is now sufficient to start implementation
-- delaying scaffolding will not meaningfully improve planning quality
+只有这样，前后台实现才不会再大范围返工。

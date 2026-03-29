@@ -1,179 +1,116 @@
-# TGO Network Data Model Draft
+# TGO Network 数据模型草案
 
-## 1. Purpose
+## 1. 目的
 
-This document defines the initial domain model for the platform.
+本文档用于冻结当前版本的核心实体与关系，避免在实现阶段反复改表。
 
-The goal is not to finalize every column in advance.
+目标不是一次定义所有字段，而是先稳定：
 
-The goal is to:
+- 哪些实体一定存在
+- 实体之间如何关联
+- 认证、业务数据、媒体数据如何分层
 
-- stabilize the core entities
-- clarify ownership between auth, business data, and media
-- reduce schema rework when implementation starts
+## 2. 建模原则
 
-## 2. Modeling Principles
+- 主键统一使用 `UUID`
+- 核心表统一带 `created_at` 与 `updated_at`
+- 公开路由使用 `slug`，关系引用使用内部 `id`
+- 业务授权与认证表分离
+- 文件二进制不进入 `PostgreSQL`
+- 对公开实体尽量使用状态流转代替硬删除
 
-- Use `UUID` primary keys
-- Use `created_at` and `updated_at` on all core tables
-- Prefer explicit relation tables for many-to-many relationships
-- Keep authentication data separated from business authorization
-- Keep file binaries out of the relational database
-- Prefer stable internal IDs over human-readable identifiers in relations
-- Use slugs for public URLs and names for display
-
-## 3. Global Conventions
-
-Recommended shared conventions:
-
-- IDs: `uuid`
-- Timestamps: `timestamptz`
-- Text status values: enum or constrained text
-- Public URL identifiers: `slug`
-- Deletion strategy:
-  - use soft deletion only where operational recovery matters
-  - prefer status transitions over hard delete for published business entities
-
-## 4. Domain Overview
-
-Core domains:
-
-- Identity
-- Staff and permissions
-- Content
-- Events
-- Applications
-- Media
-- Operations
-
-High-level relation summary:
+## 3. 当前核心域总览
 
 ```text
-users
+Better Auth users
   -> staff_accounts
-  -> user_profiles
-  -> articles (as author, optional)
-  -> event_registrations
+
+staff_accounts
+  -> staff_role_bindings
+  -> audit_logs
 
 roles
   -> role_permission_bindings
-staff_accounts
-  -> staff_role_bindings
 
-topics
-  -> article_topic_bindings
+branches
+  -> branch_board_members
+  -> members
+  -> events
+  -> join_applications
+
+members
+  -> branch_board_members (optional reference)
+  -> event_registrations (optional member linkage)
+
 articles
-  -> article_tag_bindings
   -> assets
 
-cities
-  -> articles
-  -> events
-  -> applications
-
 events
-  -> event_sessions
-  -> event_speaker_bindings
+  -> event_agenda_items
   -> event_registrations
+  -> assets
 
-assets
-  -> asset_usages
+join_applications
+  -> branches
 
-users or staff_accounts
-  -> audit_logs
+site_pages / homepage_sections
+  -> assets
 ```
 
-## 5. Auth-Owned Versus App-Owned Tables
+## 4. 认证域与业务域边界
 
-### Auth-Owned
+### 4.1 Better Auth 负责
 
-`Better Auth` will own the core authentication tables.
+认证系统负责以下概念性表：
 
-Exact table names can vary by adapter, but conceptually they include:
+- `users`
+- `accounts`
+- `sessions`
+- `verifications`
 
-- users
-- accounts
-- sessions
-- verifications
+它们回答的是：
 
-These tables answer:
+- 用户是谁
+- 用户用什么方式登录
+- 用户当前是否持有有效会话
 
-- who the user is
-- how they authenticate
-- whether they currently have a session
+### 4.2 应用自己负责
 
-### App-Owned
+当前平台自己负责：
 
-The application owns:
+- 成员身份
+- 工作人员资格
+- 角色权限
+- 分会与董事会
+- 成员资料
+- 文章
+- 活动与报名
+- 加入申请
+- 页面内容
+- 资源元数据
+- 审计日志
 
-- staff relationships
-- roles and permissions
-- content
-- events
-- applications
-- media metadata
-- audit records
-
-## 6. Identity Tables
-
-### `users`
-
-Canonical identity record, managed alongside Better Auth.
-
-Key fields:
-
-- `id`
-- `email`
-- `email_verified`
-- `name`
-- `image`
-- `status`
-- `phone_number` nullable for future use
-- `phone_verified_at` nullable for future use
-- `created_at`
-- `updated_at`
-
-Notes:
-
-- `phone_number` should be stored in normalized `E.164` format
-- do not use email or phone as business foreign keys
-
-### `user_profiles`
-
-Optional profile extension for public or internal display data.
-
-Key fields:
-
-- `user_id`
-- `display_name`
-- `headline`
-- `bio`
-- `city_id` nullable
-- `avatar_asset_id` nullable
-- `social_links_json` nullable
-- `created_at`
-- `updated_at`
-
-## 7. Staff and Permission Tables
+## 5. 工作人员与权限相关表
 
 ### `staff_accounts`
 
-Represents which users are allowed into the admin system.
+表示哪些 `users` 可以进入后台。
 
-Key fields:
+建议字段：
 
 - `id`
 - `user_id`
 - `status`
+- `display_name`
+- `notes` nullable
+- `last_login_at` nullable
 - `invited_by_staff_id` nullable
 - `invited_at` nullable
 - `activated_at` nullable
-- `last_login_at` nullable
-- `notes` nullable
 - `created_at`
 - `updated_at`
 
-Suggested statuses:
+建议状态：
 
 - `invited`
 - `active`
@@ -182,9 +119,7 @@ Suggested statuses:
 
 ### `roles`
 
-Reusable role definitions.
-
-Key fields:
+建议字段：
 
 - `id`
 - `code`
@@ -196,9 +131,7 @@ Key fields:
 
 ### `permissions`
 
-Atomic capabilities.
-
-Key fields:
+建议字段：
 
 - `id`
 - `code`
@@ -208,19 +141,9 @@ Key fields:
 - `created_at`
 - `updated_at`
 
-Permission naming convention:
-
-- `article.read`
-- `article.write`
-- `article.publish`
-- `event.manage`
-- `application.review`
-
 ### `staff_role_bindings`
 
-Assigns one or more roles to a staff account.
-
-Key fields:
+建议字段：
 
 - `id`
 - `staff_account_id`
@@ -229,110 +152,209 @@ Key fields:
 
 ### `role_permission_bindings`
 
-Maps roles to permissions.
-
-Key fields:
+建议字段：
 
 - `id`
 - `role_id`
 - `permission_id`
 - `created_at`
 
-## 8. Location and Taxonomy Tables
+## 6. 站点内容相关表
 
-### `cities`
+### `site_settings`
 
-Represents city landing pages and city association for content and events.
+存放全站级的基础配置。
 
-Key fields:
+建议字段：
 
 - `id`
-- `slug`
-- `name`
-- `short_name`
-- `region`
-- `summary`
-- `body_richtext`
-- `status`
-- `cover_asset_id` nullable
-- `seo_title` nullable
-- `seo_description` nullable
+- `site_name`
+- `tagline`
+- `support_email`
+- `footer_text`
+- `header_nav_json`
+- `footer_nav_json`
+- `updated_by_staff_id`
 - `created_at`
 - `updated_at`
 
-Suggested statuses:
+### `homepage_sections`
 
-- `draft`
-- `published`
-- `archived`
+用于管理首页的结构化区块，而不是把首页当成一篇普通文章。
 
-### `topics`
+建议字段：
 
-Represents special themes or editorial topic hubs.
+- `id`
+- `section_key`
+- `title`
+- `payload_json`
+- `sort_order`
+- `is_enabled`
+- `updated_by_staff_id`
+- `created_at`
+- `updated_at`
 
-Key fields:
+建议 `section_key`：
+
+- `hero`
+- `intro`
+- `audience`
+- `metrics`
+- `featured_events`
+- `featured_articles`
+- `join_cta`
+
+### `site_pages`
+
+用于管理单页型内容。
+
+当前至少需要：
+
+- `join`
+- `about`
+
+建议字段：
 
 - `id`
 - `slug`
 - `title`
 - `summary`
 - `body_richtext`
-- `status`
-- `cover_asset_id` nullable
+- `faq_json` nullable
 - `seo_title` nullable
 - `seo_description` nullable
+- `status`
+- `published_at` nullable
+- `updated_by_staff_id`
+- `created_at`
+- `updated_at`
+
+## 7. 分会与董事会相关表
+
+### `branches`
+
+`branches` 是当前版本替代旧 `cities` 的主实体。
+
+它同时承担：
+
+- 分会展示
+- 活动城市筛选维度
+- 成员归属维度
+- 申请归属维度
+
+建议字段：
+
+- `id`
+- `slug`
+- `name`
+- `city_name`
+- `region`
+- `summary`
+- `body_richtext` nullable
+- `cover_asset_id` nullable
+- `status`
+- `seo_title` nullable
+- `seo_description` nullable
+- `sort_order`
 - `published_at` nullable
 - `created_at`
 - `updated_at`
 
-### `tags`
+建议状态：
 
-Lightweight cross-cutting classification.
+- `draft`
+- `published`
+- `archived`
 
-Key fields:
+### `branch_board_members`
 
-- `id`
-- `slug`
-- `label`
-- `created_at`
-- `updated_at`
+用于展示分会董事会成员。
 
-## 9. Content Tables
+设计上建议允许“引用成员”或“快照字段”两种模式并存：
 
-### `authors`
+- 如果董事会成员就是平台成员，可关联 `member_id`
+- 如果需要独立展示，也可直接存快照字段
 
-Author identity for public display.
-
-Key fields:
+建议字段：
 
 - `id`
-- `user_id` nullable
+- `branch_id`
+- `member_id` nullable
 - `display_name`
-- `bio`
+- `company`
+- `title`
+- `bio` nullable
 - `avatar_asset_id` nullable
+- `sort_order`
 - `status`
 - `created_at`
 - `updated_at`
 
-Notes:
+## 8. 成员相关表
 
-- an author can map to a platform user or exist as a standalone editorial author record
+### `members`
+
+`members` 是业务上的正式成员身份。
+
+它与工作人员后台角色不是一个概念，并且当前版本按完全分离建模处理。
+
+建议字段：
+
+- `id`
+- `slug`
+- `name`
+- `company`
+- `title`
+- `bio`
+- `joined_at`
+- `branch_id` nullable
+- `avatar_asset_id` nullable
+- `featured` boolean
+- `membership_status`
+- `visibility`
+- `sort_order`
+- `seo_title` nullable
+- `seo_description` nullable
+- `created_at`
+- `updated_at`
+
+建议可见性：
+
+- `public`
+- `hidden`
+- `archived`
+
+建议成员身份状态：
+
+- `active`
+- `inactive`
+- `alumni`
+- `pending_activation`
+
+说明：
+
+- 成员列表展示公开字段
+- 成员详情页读取更完整简介与加入时间
+- `visibility` 决定公开展示范围
+- `membership_status` 决定其是否是有效成员
+- 当前不默认把成员绑定到工作人员认证用户
+- 如果未来成员认证真的需要上线，应单独设计成员认证绑定模型，而不是直接复用工作人员结构
+
+## 9. 文章相关表
 
 ### `articles`
 
-Primary long-form content entity.
-
-Key fields:
+建议字段：
 
 - `id`
 - `slug`
 - `title`
 - `excerpt`
 - `body_richtext`
-- `status`
-- `author_id`
-- `primary_city_id` nullable
 - `cover_asset_id` nullable
+- `author_name`
+- `author_bio` nullable
+- `status`
 - `seo_title` nullable
 - `seo_description` nullable
 - `scheduled_at` nullable
@@ -342,202 +364,162 @@ Key fields:
 - `created_at`
 - `updated_at`
 
-Suggested statuses:
+建议状态：
 
 - `draft`
-- `in_review`
 - `scheduled`
 - `published`
 - `archived`
 
-### `article_topic_bindings`
-
-Many-to-many relation between articles and topics.
-
-Key fields:
-
-- `id`
-- `article_id`
-- `topic_id`
-- `created_at`
-
-### `article_tag_bindings`
-
-Many-to-many relation between articles and tags.
-
-Key fields:
-
-- `id`
-- `article_id`
-- `tag_id`
-- `created_at`
-
-## 10. Event Tables
+## 10. 活动相关表
 
 ### `events`
 
-Primary event entity.
-
-Key fields:
+建议字段：
 
 - `id`
 - `slug`
 - `title`
 - `summary`
 - `body_richtext`
-- `status`
-- `city_id`
-- `venue_name` nullable
-- `venue_address` nullable
-- `starts_at`
-- `ends_at`
-- `timezone`
-- `cover_asset_id` nullable
-- `capacity` nullable
+- `branch_id`
+- `city_name`
+- `venue_name`
+- `address`
+- `start_at`
+- `end_at`
 - `registration_state`
-- `registration_url` nullable
+- `capacity` nullable
+- `cover_asset_id` nullable
+- `external_registration_url` nullable
+- `status`
+- `seo_title` nullable
+- `seo_description` nullable
 - `published_at` nullable
 - `created_by_staff_id`
 - `updated_by_staff_id`
 - `created_at`
 - `updated_at`
 
-Suggested statuses:
+建议 `registration_state`：
+
+- `closed`
+- `open`
+- `waitlist`
+- `external`
+
+建议 `status`：
 
 - `draft`
 - `published`
 - `archived`
 
-Suggested registration states:
+### `event_agenda_items`
 
-- `not_open`
-- `open`
-- `waitlist`
-- `closed`
+如果活动详情需要展示议程，建议使用结构化子表。
 
-### `speakers`
-
-Speaker or guest profile for events.
-
-Key fields:
-
-- `id`
-- `name`
-- `title`
-- `company`
-- `bio`
-- `avatar_asset_id` nullable
-- `created_at`
-- `updated_at`
-
-### `event_speaker_bindings`
-
-Associates speakers to events.
-
-Key fields:
+建议字段：
 
 - `id`
 - `event_id`
-- `speaker_id`
-- `role_label` nullable
-- `sort_order`
-
-### `event_sessions`
-
-Agenda items inside an event.
-
-Key fields:
-
-- `id`
-- `event_id`
+- `start_at`
+- `end_at`
 - `title`
-- `summary` nullable
-- `starts_at` nullable
-- `ends_at` nullable
 - `speaker_name` nullable
-- `speaker_id` nullable
+- `speaker_title` nullable
+- `description` nullable
 - `sort_order`
 - `created_at`
 - `updated_at`
 
 ### `event_registrations`
 
-Public event registration or RSVP records.
-
-Key fields:
+建议字段：
 
 - `id`
 - `event_id`
-- `user_id` nullable
+- `matched_member_id` nullable
 - `name`
-- `phone_number` nullable
+- `phone_number`
+- `wechat_id` nullable
 - `email` nullable
 - `company` nullable
-- `job_title` nullable
-- `answers_json` nullable
+- `title` nullable
+- `note` nullable
 - `status`
-- `source`
+- `review_notes` nullable
 - `reviewed_by_staff_id` nullable
 - `reviewed_at` nullable
+- `submitted_ip` nullable
+- `submitted_user_agent` nullable
 - `created_at`
 - `updated_at`
 
-Suggested statuses:
+建议状态：
 
-- `submitted`
+- `pending`
 - `approved`
 - `rejected`
 - `waitlisted`
 - `cancelled`
 
-## 11. Application Tables
+说明：
 
-### `applications`
+- 当前阶段活动采用开放报名
+- 工作人员可在审核过程中把报名记录与某个成员做人工匹配，因此保留 `matched_member_id`
+- 这样可以支持“开放提交、后台确认”的运营方式
 
-Generic inbound form submissions such as trial, join, or contact requests.
+## 11. 加入申请相关表
 
-Key fields:
+### `join_applications`
+
+当前申请表字段必须覆盖用户要求的 6 个必填项。
+
+建议字段：
 
 - `id`
-- `type`
+- `user_id` nullable
 - `name`
-- `phone_number` nullable
-- `email` nullable
-- `company` nullable
-- `job_title` nullable
-- `city_id` nullable
-- `message` nullable
-- `source_page`
+- `phone_number`
+- `wechat_id`
+- `email`
+- `introduction`
+- `application_message`
+- `target_branch_id` nullable
+- `source_channel` nullable
 - `status`
-- `assigned_to_staff_id` nullable
+- `review_notes` nullable
 - `reviewed_by_staff_id` nullable
 - `reviewed_at` nullable
-- `internal_notes` nullable
+- `submitted_ip` nullable
+- `submitted_user_agent` nullable
 - `created_at`
 - `updated_at`
 
-Suggested types:
+建议状态：
 
-- `trial`
-- `membership`
-- `contact`
-
-Suggested statuses:
-
-- `submitted`
-- `in_review`
-- `contacted`
+- `pending`
+- `under_review`
 - `approved`
 - `rejected`
-- `closed`
+- `archived`
 
-## 12. Media Tables
+当前阶段不强制拆出独立的面试、推荐人、缴费记录等子表。
+如果未来流程变复杂，再基于该表向外扩展。
+
+补充说明：
+
+- 非成员可以匿名提交加入申请，因此 `user_id` 可以为空
+- 如果申请人先注册了账号，再提交申请，则可回填 `user_id`
+- 申请通过后，可以创建或关联 `members` 记录
+
+## 12. 媒体相关表
 
 ### `assets`
 
-Metadata for files stored in object storage.
+用于保存对象存储文件的元数据。
 
-Key fields:
+建议字段：
 
 - `id`
 - `storage_provider`
@@ -549,31 +531,18 @@ Key fields:
 - `byte_size`
 - `width` nullable
 - `height` nullable
-- `checksum` nullable
 - `original_filename`
 - `alt_text` nullable
-- `uploaded_by_staff_id` nullable
+- `uploaded_by_staff_id`
 - `status`
 - `created_at`
 - `updated_at`
 
-Suggested visibility values:
+### `asset_usages`（可选）
 
-- `public`
-- `private`
+后续可用来追踪资源引用关系。
 
-Suggested statuses:
-
-- `uploaded`
-- `active`
-- `archived`
-- `deleted`
-
-### `asset_usages`
-
-Optional relation table for tracking where assets are used.
-
-Key fields:
+建议字段：
 
 - `id`
 - `asset_id`
@@ -582,128 +551,53 @@ Key fields:
 - `usage_type`
 - `created_at`
 
-## 13. Operations Tables
-
-### `featured_blocks`
-
-Homepage or landing-page blocks controlled by staff.
-
-Key fields:
-
-- `id`
-- `code`
-- `name`
-- `status`
-- `payload_json`
-- `created_by_staff_id`
-- `updated_by_staff_id`
-- `created_at`
-- `updated_at`
-
-### `site_settings`
-
-Small configuration store for site-level settings.
-
-Key fields:
-
-- `id`
-- `key`
-- `value_json`
-- `updated_by_staff_id`
-- `updated_at`
+## 13. 审计相关表
 
 ### `audit_logs`
 
-Operational record of important staff actions.
+记录后台敏感操作。
 
-Key fields:
+建议字段：
 
 - `id`
-- `actor_user_id` nullable
-- `actor_staff_account_id` nullable
+- `actor_staff_id`
 - `action`
 - `target_type`
 - `target_id`
+- `request_id`
+- `ip_address` nullable
+- `user_agent` nullable
 - `before_json` nullable
 - `after_json` nullable
-- `request_ip` nullable
-- `user_agent` nullable
+- `result`
 - `created_at`
 
-## 14. Recommended MVP Cut Line
+## 14. 索引与约束建议
 
-The following tables are MVP-critical:
+至少需要：
 
-- users
-- user_profiles
-- staff_accounts
-- roles
-- permissions
-- staff_role_bindings
-- role_permission_bindings
-- cities
-- topics
-- tags
-- authors
-- articles
-- article_topic_bindings
-- article_tag_bindings
-- events
-- event_sessions
-- event_registrations
-- applications
-- assets
-- featured_blocks
-- site_settings
-- audit_logs
+- `branches.slug` 唯一索引
+- `members.slug` 唯一索引
+- `articles.slug` 唯一索引
+- `events.slug` 唯一索引
+- `site_pages.slug` 唯一索引
+- `staff_accounts.user_id` 唯一索引
+- `roles.code` 唯一索引
+- `permissions.code` 唯一索引
+- `branch_board_members(branch_id, sort_order)` 组合索引
+- `members(branch_id, sort_order)` 组合索引
+- `events(branch_id, start_at)` 组合索引
+- `join_applications(status, created_at)` 组合索引
+- `event_registrations(event_id, status, created_at)` 组合索引
 
-Tables that can be simplified or deferred:
+## 15. 当前需要冻结的关键判断
 
-- event_speaker_bindings
-- speakers
-- asset_usages
+在真正改库前，需要把以下结论视为当前版本默认方案：
 
-## 15. Recommended Indexes and Constraints
-
-At minimum:
-
-- unique index on `slug` for public entities
-- unique index on `roles.code`
-- unique index on `permissions.code`
-- unique index on `tags.slug`
-- unique index on `cities.slug`
-- unique index on `topics.slug`
-- unique index on `articles.slug`
-- unique index on `events.slug`
-- unique index on `staff_accounts.user_id`
-- unique index on `assets.object_key`
-
-Also add:
-
-- foreign-key constraints for all direct relations
-- composite unique constraints on relation tables where duplicates are invalid
-
-Examples:
-
-- unique `(article_id, topic_id)`
-- unique `(article_id, tag_id)`
-- unique `(staff_account_id, role_id)`
-- unique `(role_id, permission_id)`
-
-## 16. Open Modeling Decisions
-
-These can stay open until implementation starts:
-
-- whether article and topic bodies use HTML, Markdown, or editor JSON
-- whether city pages need dedicated editor-only modules beyond rich text
-- whether applications and event registrations should share a generic submission base table
-- whether audit logs should capture full before and after payloads for every mutation
-
-## 17. Recommended Next Use
-
-This document should directly drive:
-
-- Drizzle schema design
-- API DTO definitions
-- permission checks by resource
-- admin form design
+- `branches` 取代旧 `cities` 成为对外主组织维度
+- `members` 与 `staff_accounts` 完全分开建模
+- “成员身份”与“工作人员角色”是两套概念，不能混用
+- `users` 当前主要服务于工作人员认证，不默认映射到 `members`
+- `join_applications` 先做单表审核，不做复杂拆分
+- 首页采用结构化区块，而不是把首页做成单篇富文本
+- `join` 与 `about` 使用单页模型管理

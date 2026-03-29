@@ -1,4 +1,4 @@
-export const platformName = "TGO Network";
+export const platformName = "TGO 鲲鹏会";
 export const apiName = "@tgo/api";
 
 export const publicNav = [
@@ -7,46 +7,50 @@ export const publicNav = [
     href: "/"
   },
   {
-    label: "主题",
-    href: "/topics"
+    label: "TGO 介绍",
+    href: "/"
   },
   {
-    label: "文章",
-    href: "/articles"
+    label: "分会董事会",
+    href: "/branches"
+  },
+  {
+    label: "成员列表",
+    href: "/members"
   },
   {
     label: "活动",
     href: "/events"
   },
   {
-    label: "城市",
-    href: "/cities"
+    label: "文章",
+    href: "/articles"
   },
   {
-    label: "申请",
-    href: "/apply"
+    label: "加入申请",
+    href: "/join"
   },
   {
-    label: "关于",
+    label: "关于我们",
     href: "/about"
   }
 ] as const;
 
 export const publicModules = [
   {
-    name: "主题页",
-    phase: "第二阶段",
-    summary: "围绕已发布内容组织专题页与编辑型落地页，形成清晰的主题入口。"
+    name: "首页与组织介绍",
+    phase: "当前范围",
+    summary: "围绕 TGO 定位、覆盖人群、精彩活动与加入路径组织首页表达。"
   },
   {
-    name: "文章",
-    phase: "第二阶段",
-    summary: "承载长文内容、SEO 元信息、主题关联以及面向城市的内容策展。"
+    name: "分会与成员",
+    phase: "当前范围",
+    summary: "展示分会董事会、成员列表与成员详情，构建组织网络的公开结构。"
   },
   {
-    name: "活动",
-    phase: "第二阶段",
-    summary: "支持报名状态、议程信息以及后续签到能力的公开活动页面。"
+    name: "活动与加入",
+    phase: "当前范围",
+    summary: "活动详情支持开放报名，加入说明与申请表承接非成员转化路径。"
   }
 ] as const;
 
@@ -55,11 +59,6 @@ export const adminModules = [
     label: "仪表盘",
     to: "/dashboard",
     permission: "dashboard.read"
-  },
-  {
-    label: "主题",
-    to: "/topics",
-    permission: "topic.manage"
   },
   {
     label: "文章",
@@ -72,27 +71,17 @@ export const adminModules = [
     permission: "event.manage"
   },
   {
-    label: "资源",
-    to: "/assets",
-    permission: "asset.manage"
-  },
-  {
-    label: "推荐位",
-    to: "/featured-blocks",
-    permission: "featured_block.manage"
-  },
-  {
-    label: "设置",
-    to: "/settings/site",
-    permission: "settings.manage"
-  },
-  {
     label: "申请",
     to: "/applications",
     permission: "application.review"
   },
   {
-    label: "员工",
+    label: "成员",
+    to: "/members",
+    permission: "member.manage"
+  },
+  {
+    label: "工作人员",
     to: "/staff",
     permission: "staff.manage"
   },
@@ -121,18 +110,18 @@ export const implementationMilestones = [
   },
   {
     code: "M2",
-    title: "公开站 MVP",
-    summary: "使用 Astro 通过公开 API 提供主题、文章、活动与城市页面。"
+    title: "公开站主线",
+    summary: "使用 Astro 交付首页、分会、成员、活动、文章、加入申请与关于我们。"
   },
   {
     code: "M3",
     title: "管理后台 MVP",
-    summary: "基于受保护的管理 API 提供内容、活动、资源与申请管理能力。"
+    summary: "基于受保护的管理 API 提供文章、活动、申请、成员、工作人员与权限管理能力。"
   },
   {
     code: "M4",
     title: "生产加固",
-    summary: "补齐审计链路、运行时防护与上线前的运维准备。"
+    summary: "补齐审计链路、运行时防护、部署校验与上线前的运维准备。"
   },
   {
     code: "M5",

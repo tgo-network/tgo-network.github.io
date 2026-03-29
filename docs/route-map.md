@@ -1,196 +1,232 @@
-# TGO Network Route Map
+# TGO Network 路由与信息架构
 
-## 1. Purpose
+## 1. 目的
 
-This document defines the initial page and route structure for:
+本文档定义：
 
-- the public site
-- the staff admin console
+- 前台由 `apps/site` 承载的页面
+- 后台由 `apps/admin` 承载的页面
+- 当前阶段哪些页面属于必须交付范围
+- 每类页面建议采用的渲染方式
 
-It also clarifies:
+## 2. 路由设计原则
 
-- which routes belong to which application
-- which routes are part of MVP
-- which routes prefer static rendering versus dynamic data
+- 前台路由承担公开展示、成员信息查看和活动报名
+- 后台路由只承担工作人员操作
+- 真实业务数据统一来自 API
+- Astro 页面静态优先，但允许按需混合渲染
+- 后台以操作效率和权限控制为先
 
-## 2. Route Design Principles
+补充说明：
 
-- Public-facing routes belong to `apps/site`
-- Staff-facing routes belong to `apps/admin`
-- Business data should come from the API layer, not local frontend-only state
-- Public pages should be static-first where feasible
-- Admin pages should optimize for workflow speed, not static generation
+- 成员是前台业务身份，不是后台工作人员角色
+- 后台 `roles` 只用于工作人员权限控制
 
-## 3. Public Site Routes
+## 3. 前台路由
 
-| Route | Purpose | Rendering | Data source | Phase |
+| 路由 | 目的 | 渲染建议 | 数据来源 | 当前阶段 |
 | --- | --- | --- | --- | --- |
-| `/` | Homepage with brand, featured topics, events, and calls to action | Static-first with selected dynamic blocks if needed | Public site config, featured blocks, published topics, events | 2 |
-| `/topics` | Topic listing page | Static or server-rendered | Published topics | 2 |
-| `/topics/[slug]` | Topic detail page with related content | Static-first | Topic detail, related articles, related events | 2 |
-| `/articles` | Article or blog listing page | Static-first | Published articles | 2 |
-| `/articles/[slug]` | Article detail page | Static-first | Published article detail, related topics | 2 |
-| `/events` | Event listing page | Static-first | Published events | 2 |
-| `/events/[slug]` | Event detail page with agenda, registration state, and inline registration form when open | Static-first | Event detail, sessions, registration state, public registration submission | 2 |
-| `/cities` | City listing page | Static-first | Published city summaries | 2 |
-| `/cities/[slug]` | City detail page | Static-first | City content, related topics, related events, related articles | 2 |
-| `/apply` | Trial, join, or contact application page | Server-capable public form page | Public site config, application submission endpoint | 2 |
-| `/about` | Brand or organization intro page | Static | Managed content or static page data | 2 |
-| `/privacy` | Privacy policy | Static | Managed or repo-backed content | 2 |
-| `/terms` | Terms of service | Static | Managed or repo-backed content | 2 |
+| `/` | 首页，展示组织定位、覆盖人群、精彩活动、精选内容、加入 CTA | 静态优先 | `site-config`、`home`、精选文章/活动/分会 | 必须 |
+| `/branches` | 分会董事会总览页，展示各分会及其董事会成员 | 静态优先 | 分会与董事会公开数据 | 必须 |
+| `/members` | 成员列表，支持分页和按分会/城市筛选 | 服务端分页或按需渲染 | 成员公开列表 API | 必须 |
+| `/members/[slug]` | 成员详情页 | 静态优先 | 成员详情 API | 必须 |
+| `/events` | 活动列表，支持按城市或分会筛选 | 混合渲染 | 活动公开列表 API | 必须 |
+| `/events/[slug]` | 活动详情页，展示介绍、时间地点、议程、报名入口 | 静态优先 | 活动详情 API、报名状态 API | 必须 |
+| `/articles` | 文章列表 | 静态优先 | 文章公开列表 API | 必须 |
+| `/articles/[slug]` | 文章详情页 | 静态优先 | 文章详情 API | 必须 |
+| `/join` | 加入说明与申请表一体页，展示条件、流程、FAQ、权益并直接提交申请 | 静态优先 + 前端表单提交 | `join` 页面内容 API、`join-applications` API | 必须 |
+| `/apply` | 兼容跳转页，跳转到 `/join#application-form` | 静态跳转 | 无独立数据要求 | 建议 |
+| `/about` | 关于我们页，介绍组织形式与加入方式 | 静态优先 | `about` 页面内容 API | 必须 |
+| `/privacy` | 隐私政策 | 静态 | 仓库静态内容或站点页面内容 | 建议 |
+| `/terms` | 使用条款 | 静态 | 仓库静态内容或站点页面内容 | 建议 |
 
-## 4. Public Site Route Notes
+## 4. 前台页面说明
 
-### Homepage
+### 首页
 
-Recommended homepage blocks:
+首页建议至少包含以下区块：
 
-- hero
-- featured topics
-- featured articles
-- featured events
-- city network highlights
-- application call to action
+- Hero 主视觉与品牌定位
+- TGO 组织介绍
+- 覆盖人群 / 社区价值
+- 精彩活动或精选文章
+- 分会网络或董事会入口
+- 申请加入 CTA
 
-### Topic Pages
+### 分会董事会页
 
-Each topic detail page should support:
+`/branches` 建议按分会分组展示，每个分会至少展示：
 
-- descriptive intro content
-- cover image
-- related articles
-- related events
-- SEO metadata
+- 分会名称
+- 城市或区域
+- 分会简介
+- 董事会成员卡片
 
-### Article Pages
+当前阶段不强制要求公开的独立分会详情页。
 
-Each article detail page should support:
+### 成员列表与详情
 
-- author information
-- topic tags
-- cover image
-- rich content body
-- recommended related content later
+`/members` 需要支持：
 
-### Event Pages
+- 分页
+- 按分会或城市筛选
+- 关键词搜索（名字、公司）
 
-Each event detail page should support:
+`/members/[slug]` 需要支持：
 
-- summary and body content
-- event time and venue
-- city association
-- speaker or agenda sections
-- registration or contact call to action
-- inline public registration form for `open` and `waitlist` states
-- external registration fallback when `registrationUrl` is configured
+- 基本资料
+- 个人简介
+- 加入时间
+- 所属分会
 
-### City Pages
+说明：
 
-Each city page should act as a curated landing page for a city chapter or local presence.
+- 成员列表与详情属于成员侧信息展示
+- 是否对非成员完全公开，可由成员资料可见性策略控制
 
-Recommended elements:
+### 活动页
 
-- city intro
-- featured events
-- featured articles
-- city-specific highlights
+`/events` 需要支持：
 
-## 5. Admin Console Routes
+- 按城市或分会筛选
+- 进行中 / 即将开始 / 往期 等状态展示
 
-| Route | Purpose | Protection | Primary API group | Phase |
+`/events/[slug]` 需要支持：
+
+- 活动标题、摘要、正文
+- 时间与地点
+- 议程或嘉宾信息
+- 报名按钮
+- 报名状态提示
+
+当前阶段不强制拆出独立的 `/events/[slug]/register` 页面，报名可在详情页内完成。
+
+补充说明：
+
+- 当前阶段活动详情页可直接开放报名
+- 当前不要求成员登录
+- 是否通过报名、是否符合活动要求，由后台审核确认
+- 非成员的主要转化路径是 `/join`
+
+### 加入路径
+
+当前版本将加入说明与正式申请表收敛到同一页：
+
+- `/join`：说明、权益、FAQ 与申请表一体化
+- `/apply`：仅作为历史链接兼容跳转
+
+原因：
+
+- 减少前台功能面，和当前 MVP 范围保持一致
+- 访客可在阅读条件后直接提交资料，路径更短
+- 后续如需恢复双页漏斗，仍可在不改动 API 的前提下再拆分
+
+## 5. 后台路由
+
+| 路由 | 目的 | 保护级别 | 说明 | 当前阶段 |
 | --- | --- | --- | --- | --- |
-| `/login` | Staff login page | Public | Auth | 1 |
-| `/` | Root route redirect | Protected | Admin | 1 |
-| `/dashboard` | Basic operations overview | Protected | Admin | 3 |
-| `/articles` | Article list and filters | Protected | Admin | 3 |
-| `/articles/new` | Create article | Protected | Admin | 3 |
-| `/articles/:id/edit` | Edit article | Protected | Admin | 3 |
-| `/topics` | Topic list | Protected | Admin | 3 |
-| `/topics/new` | Create topic | Protected | Admin | 3 |
-| `/topics/:id/edit` | Edit topic | Protected | Admin | 3 |
-| `/events` | Event list and filters | Protected | Admin | 3 |
-| `/events/new` | Create event | Protected | Admin | 3 |
-| `/events/:id/edit` | Edit event | Protected | Admin | 3 |
-| `/events/:id/registrations` | Event-specific registration queue | Protected | Admin | 3 |
-| `/registrations/:id` | Registration detail and review decision | Protected | Admin | 3 |
-| `/applications` | Application review queue | Protected | Admin | 3 |
-| `/applications/:id` | Application detail and notes | Protected | Admin | 3 |
-| `/assets` | Media library | Protected | Admin | 3 |
-| `/featured-blocks` | Homepage and featured content configuration | Protected | Admin | 3 |
-| `/settings/site` | Basic site settings | Protected | Admin | 3 |
-| `/staff` | Staff account management | Protected | Admin | 4 |
-| `/roles` | Role and permission management | Protected | Admin | 4 |
-| `/audit-logs` | Audit visibility | Protected | Admin | 4 |
+| `/login` | 工作人员登录 | 公开 | Better Auth 登录入口 | 必须 |
+| `/` | 根路由重定向 | 受保护 | 默认跳转到仪表盘 | 必须 |
+| `/dashboard` | 仪表盘 | 受保护 | 文章/活动/申请统计和系统状态 | 必须 |
+| `/articles` | 文章列表 | 受保护 | 支持筛选、状态查看 | 必须 |
+| `/articles/new` | 新建文章 | 受保护 | 文章创建表单 | 必须 |
+| `/articles/:id/edit` | 编辑文章 | 受保护 | 文章编辑、发布、归档 | 必须 |
+| `/events` | 活动列表 | 受保护 | 支持筛选、状态查看 | 必须 |
+| `/events/new` | 新建活动 | 受保护 | 活动创建表单 | 必须 |
+| `/events/:id/edit` | 编辑活动 | 受保护 | 活动编辑、发布、归档 | 必须 |
+| `/events/:id/registrations` | 活动报名审核 | 受保护 | 查看报名记录并审核 | 必须 |
+| `/applications` | 加入申请列表 | 受保护 | 申请审核队列 | 必须 |
+| `/applications/:id` | 申请详情 | 受保护 | 审核与备注 | 必须 |
+| `/members` | 成员列表 | 受保护 | 成员维护入口 | 必须 |
+| `/members/new` | 新增成员 | 受保护 | 可选，但建议保留 | 建议 |
+| `/members/:id/edit` | 编辑成员 | 受保护 | 成员资料维护 | 必须 |
+| `/members/branches` | 分会与董事会维护 | 受保护 | 成员域下的二级页面 | 必须 |
+| `/members/branches/:id/edit` | 编辑分会与董事会 | 受保护 | 分会与董事会成员维护 | 必须 |
+| `/staff` | 工作人员列表 | 受保护 | 账号与状态管理 | 必须 |
+| `/staff/new` | 新增工作人员 | 受保护 | 创建工作人员账号 | 建议 |
+| `/staff/:id/edit` | 编辑工作人员 | 受保护 | 编辑资料、角色、状态 | 必须 |
+| `/roles` | 角色列表 | 受保护 | 角色与权限矩阵入口 | 必须 |
+| `/roles/:id/edit` | 编辑角色权限 | 受保护 | 权限绑定配置 | 建议 |
+| `/audit-logs` | 审计日志 | 受保护 | 敏感操作追踪 | 必须 |
 
-## 6. Admin Route Notes
+## 6. 后台页面说明
 
-### Minimal Admin Shell
+### 一级导航
 
-The first admin shell should provide:
+后台一级导航建议保持为：
 
-- session-aware layout
-- role-based navigation
-- route protection
-- common table and form patterns
-- audit visibility for sensitive mutations when the user has the required permission
+- 仪表盘
+- 文章
+- 活动
+- 申请
+- 成员
+- 工作人员
+- 角色
+- 审计日志
 
-### Page Ownership
+### 二级支持页面
 
-Recommended MVP ownership split:
+可以挂在一级模块下的支持性页面包括：
 
-- content editors own article and topic pages
-- event operators own event pages
-- event operators also own registration review for their events
-- reviewers own applications
-- super admins own staff, roles, and settings pages
+- 首页配置
+- 加入页内容配置
+- 关于页内容配置
+- 分会与董事会维护
+- 图片资源选择器
 
-## 7. Route Protection Rules
+这些页面不需要额外占用一级导航。
 
-- Public site routes are generally open
-- Admin routes require authenticated staff sessions
-- Admin route visibility in the UI is helpful but not sufficient
-- Real authorization must be enforced by backend permission checks
+这里的“角色”与“成员身份”不是一个概念：
 
-## 8. Rendering Guidance
+- 成员属于前台业务对象
+- 工作人员属于后台操作对象
+- 角色属于工作人员权限配置对象
 
-### Static-first Public Routes
+## 7. 路由保护规则
 
-Prefer static generation for:
+- 前台品牌页默认公开
+- 当前阶段前台活动报名不依赖成员登录
+- 后台路由必须要求已登录且拥有有效 `staff_account`
+- 后台导航隐藏只能改善体验，不能代替后端鉴权
+- 真实权限判断必须在 API 层完成
 
-- topic pages
-- article pages
-- city pages
-- legal pages
+## 8. 渲染建议
 
-### Mixed Rendering Public Routes
+### 静态优先页面
 
-Consider server rendering or rebuild triggers for:
+优先静态化：
 
-- homepage
-- event listing
-- event detail pages with rapidly changing registration state
+- `/`
+- `/branches`
+- `/articles/[slug]`
+- `/join`
+- `/about`
+- `/privacy`
+- `/terms`
 
-### Dynamic Admin Routes
+### 混合渲染页面
 
-All admin routes are dynamic application pages and should rely on API data.
+建议支持服务端或按需刷新：
 
-## 9. Out-of-Scope Routes For MVP
-
-These routes should not block the first implementation:
-
-- `/search`
 - `/members`
-- `/profile`
-- `/notifications`
-- `/billing`
-- `/check-in`
-- `/analytics`
+- `/events`
+- `/events/[slug]`
+- `/articles`
 
-## 10. Recommended Next Use
+原因：
 
-This route map should directly inform:
+- 列表内容较多
+- 活动报名状态变化更频繁
+- 条件筛选与分页更适合按需取数
 
-- frontend application scaffolding
-- API endpoint grouping
-- data model ownership
-- permission design
+## 9. 当前明确不纳入主线的路由
+
+- `/topics`
+- `/cities`
+- `/training/*`
+- `/member-center/*`
+- `/billing/*`
+- `/notifications/*`
+- `/analytics/*`
+
+这些路由若仍存在于旧原型中，应视为历史探索，不再作为当前交付验收项。

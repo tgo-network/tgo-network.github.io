@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 
 import {
-  adminAssetTypeOptions,
+  adminAssetUploadTypeOptions,
   assetVisibilityOptions,
   type AdminAssetDetailPayload,
   type AdminAssetListItem,
@@ -237,7 +237,7 @@ onMounted(() => {
           <label class="field">
             <span>资源类型</span>
             <select v-model="form.assetType">
-              <option v-for="option in adminAssetTypeOptions" :key="option.value" :value="option.value">
+              <option v-for="option in adminAssetUploadTypeOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>

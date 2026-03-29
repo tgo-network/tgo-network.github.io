@@ -1,39 +1,32 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getAboutPage } from "../lib/public-api";
+
+const page = await getAboutPage();
 ---
 
-<BaseLayout title="关于 | TGO Network" description="TGO Network 原型的品牌与组织说明。">
+<BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">静态页面</span>
-        <h1>关于</h1>
-        <p>
-          TGO Network 正在被塑造成一个以内容为核心的平台，围绕城市页面、编辑策划、活动运营以及工作人员后台展开。
-          第一阶段实现的重点并不是功能数量，而是一套未来可以平滑演进、不必推倒重来的系统基础。
-        </p>
+        <span class="eyebrow">{page.hero.eyebrow}</span>
+        <h1>{page.hero.title}</h1>
+        <p>{page.hero.summary}</p>
       </div>
     </section>
 
-    <section class="section detail-grid">
-      <article class="panel prose-panel">
-        <div class="card-label">我们正在构建什么</div>
-        <p>
-          平台将公开站、管理后台与 API 明确拆分，让内容交付、运营协作与业务规则能够独立扩展。
-        </p>
-        <p>
-          Astro 负责面向用户的展示层，Vue 承担工作人员工作流，而 Hono 则承担数据、认证与权限的应用边界。
-        </p>
-      </article>
-
-      <aside class="panel panel-soft">
-        <div class="card-label">当前重点</div>
-        <ul class="meta-list">
-          <li>前后端共享契约</li>
-          <li>静态优先但具备真实 API 形态的公开路由</li>
-          <li>为后续运营铺路的后台与认证基础</li>
-        </ul>
-      </aside>
+    <section class="section">
+      <div class="grid grid-2">
+        {
+          page.sections.map((section) => (
+            <article class="panel prose-panel">
+              <div class="card-label">关于我们</div>
+              <h2 class="card-title">{section.title}</h2>
+              {section.body.map((paragraph) => <p>{paragraph}</p>)}
+            </article>
+          ))
+        }
+      </div>
     </section>
   </main>
 </BaseLayout>

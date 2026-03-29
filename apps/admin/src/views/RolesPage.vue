@@ -120,7 +120,7 @@ onMounted(() => {
   <section class="stacked-gap">
     <header class="page-header">
       <h2>角色</h2>
-      <p>集中管理权限组合，通过分配角色而不是零散授权来简化员工访问控制。</p>
+      <p>集中管理权限组合，通过分配角色而不是零散授权来简化工作人员访问控制。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
@@ -164,7 +164,7 @@ onMounted(() => {
             <div>
               <div class="brand-tag">角色目录</div>
               <h3>权限组合</h3>
-              <p class="section-copy">通过稳定的角色定义，让员工开通流程保持可预测、可审计。</p>
+              <p class="section-copy">通过稳定的角色定义，让工作人员开通流程保持可预测、可审计。</p>
             </div>
           </div>
 
@@ -173,7 +173,7 @@ onMounted(() => {
               <thead>
                 <tr>
                   <th>角色</th>
-                  <th>员工数</th>
+                  <th>工作人员数</th>
                   <th>权限数</th>
                   <th>更新时间</th>
                   <th></th>
@@ -240,7 +240,7 @@ onMounted(() => {
 
               <div class="panel inset-panel stacked-gap">
                 <div class="info-row">
-                  <span>已分配员工</span>
+                  <span>已分配工作人员</span>
                   <strong>{{ selectedRole.assignedStaffCount }}</strong>
                 </div>
                 <div class="info-row">

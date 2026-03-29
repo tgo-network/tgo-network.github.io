@@ -1,28 +1,33 @@
 import type {
+  AboutPagePayload,
   ApiErrorShape,
   ApiSuccess,
   ArticleDetail,
   ArticleSummary,
-  CityDetail,
-  CitySummary,
-  EventDetail,
-  EventSummary,
-  HomePayload,
-  PublicSiteConfig,
-  TopicDetail,
-  TopicSummary
+  BranchDetail,
+  JoinApplicationReceipt,
+  JoinPagePayload,
+  MemberDetail,
+  MemberSummary,
+  PublicEventDetailV2,
+  PublicEventRegistrationReceiptV2,
+  PublicEventSummaryV2,
+  PublicHomePayloadV2,
+  PublicSiteConfig
 } from "@tgo/shared";
 import {
+  aboutPagePayload,
   articleSummaries,
-  citySummaries,
-  eventSummaries,
+  branchDetails,
   getArticleDetail,
-  getCityDetail,
-  getEventDetail,
-  getTopicDetail,
-  homePayload,
-  siteConfig,
-  topicSummaries
+  getBranchDetail,
+  getMemberDetail,
+  getPublicEventDetailV2,
+  joinPagePayload,
+  memberSummaries,
+  publicEventSummariesV2,
+  publicHomePayloadV2,
+  siteConfig
 } from "@tgo/shared";
 
 type ImportMetaEnvWithPublicApi = ImportMeta & {
@@ -65,14 +70,26 @@ export const getPublicApiBaseUrl = () => getConfiguredApiBaseUrl();
 export const getSiteConfig = async (): Promise<PublicSiteConfig> =>
   (await fetchPublic<PublicSiteConfig>("/api/public/v1/site-config")) ?? siteConfig;
 
-export const getHomePayload = async (): Promise<HomePayload> =>
-  (await fetchPublic<HomePayload>("/api/public/v1/home")) ?? homePayload;
+export const getHomePayload = async (): Promise<PublicHomePayloadV2> =>
+  (await fetchPublic<PublicHomePayloadV2>("/api/public/v1/home")) ?? publicHomePayloadV2;
 
-export const listTopics = async (): Promise<TopicSummary[]> =>
-  (await fetchPublic<TopicSummary[]>("/api/public/v1/topics")) ?? topicSummaries;
+export const listBranches = async (): Promise<BranchDetail[]> =>
+  (await fetchPublic<BranchDetail[]>("/api/public/v1/branches")) ?? branchDetails;
 
-export const getTopic = async (slug: string): Promise<TopicDetail | null> =>
-  (await fetchPublic<TopicDetail>(`/api/public/v1/topics/${slug}`)) ?? getTopicDetail(slug);
+export const getBranch = async (slug: string): Promise<BranchDetail | null> =>
+  (await fetchPublic<BranchDetail>(`/api/public/v1/branches/${slug}`)) ?? getBranchDetail(slug);
+
+export const listMembers = async (): Promise<MemberSummary[]> =>
+  (await fetchPublic<MemberSummary[]>("/api/public/v1/members")) ?? memberSummaries;
+
+export const getMember = async (slug: string): Promise<MemberDetail | null> =>
+  (await fetchPublic<MemberDetail>(`/api/public/v1/members/${slug}`)) ?? getMemberDetail(slug);
+
+export const getJoinPage = async (): Promise<JoinPagePayload> =>
+  (await fetchPublic<JoinPagePayload>("/api/public/v1/join")) ?? joinPagePayload;
+
+export const getAboutPage = async (): Promise<AboutPagePayload> =>
+  (await fetchPublic<AboutPagePayload>("/api/public/v1/about")) ?? aboutPagePayload;
 
 export const listArticles = async (): Promise<ArticleSummary[]> =>
   (await fetchPublic<ArticleSummary[]>("/api/public/v1/articles")) ?? articleSummaries;
@@ -80,14 +97,49 @@ export const listArticles = async (): Promise<ArticleSummary[]> =>
 export const getArticle = async (slug: string): Promise<ArticleDetail | null> =>
   (await fetchPublic<ArticleDetail>(`/api/public/v1/articles/${slug}`)) ?? getArticleDetail(slug);
 
-export const listEvents = async (): Promise<EventSummary[]> =>
-  (await fetchPublic<EventSummary[]>("/api/public/v1/events")) ?? eventSummaries;
+export const listEvents = async (): Promise<PublicEventSummaryV2[]> =>
+  (await fetchPublic<PublicEventSummaryV2[]>("/api/public/v1/events")) ?? publicEventSummariesV2;
 
-export const getEvent = async (slug: string): Promise<EventDetail | null> =>
-  (await fetchPublic<EventDetail>(`/api/public/v1/events/${slug}`)) ?? getEventDetail(slug);
+export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null> =>
+  (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ?? getPublicEventDetailV2(slug);
 
-export const listCities = async (): Promise<CitySummary[]> =>
-  (await fetchPublic<CitySummary[]>("/api/public/v1/cities")) ?? citySummaries;
+export const submitJoinApplication = async (payload: unknown): Promise<JoinApplicationReceipt | null> =>
+  fetch(new URL("/api/public/v1/join-applications", getConfiguredApiBaseUrl()), {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        return null;
+      }
 
-export const getCity = async (slug: string): Promise<CityDetail | null> =>
-  (await fetchPublic<CityDetail>(`/api/public/v1/cities/${slug}`)) ?? getCityDetail(slug);
+      const result = (await response.json()) as ApiSuccess<JoinApplicationReceipt> | ApiErrorShape;
+      return "error" in result ? null : result.data;
+    })
+    .catch(() => null);
+
+export const submitEventRegistration = async (
+  eventId: string,
+  payload: unknown
+): Promise<PublicEventRegistrationReceiptV2 | null> =>
+  fetch(new URL(`/api/public/v1/events/${eventId}/registrations`, getConfiguredApiBaseUrl()), {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        return null;
+      }
+
+      const result = (await response.json()) as ApiSuccess<PublicEventRegistrationReceiptV2> | ApiErrorShape;
+      return "error" in result ? null : result.data;
+    })
+    .catch(() => null);

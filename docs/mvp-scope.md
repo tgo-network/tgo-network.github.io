@@ -1,340 +1,333 @@
-# TGO Network MVP Scope
+# TGO Network 当前阶段范围
 
-## 1. Product Delivery Principle
+## 1. 交付原则
 
-This project should not choose between:
+这个项目不应该在两种极端之间摇摆：
 
-- building a throwaway MVP
-- or trying to ship the full final product in one pass
+- 做一个会被推倒重来的临时 Demo
+- 一开始就试图把最终完整产品一次做完
 
-The correct approach is:
+正确方式是：
 
-Build on the final target architecture, but deliver in staged product slices.
+在最终目标架构上，按阶段交付可上线的产品切片。
 
-This means:
+这意味着：
 
-- Architecture decisions should already align with the long-term system
-- Feature scope should be intentionally limited per phase
-- Later phases should extend the system, not replace it
+- 架构选择现在就按最终形态来
+- 功能范围按阶段刻意收敛
+- 后续版本是在现有系统上扩展，而不是推翻重做
 
-## 2. What Must Be Stable Now
+## 2. 已稳定的基础决策
 
-These decisions should be treated as stable unless there is explicit discussion to change them:
+下列决策在当前阶段视为稳定：
 
-- Public site uses `Astro`
-- Admin console uses `Vue + Vite`
-- Backend uses `Hono`
-- Primary relational data store is `PostgreSQL`
-- Auth direction is `Better Auth`
-- File binaries use `S3-compatible object storage`
-- Public site, admin, and API remain separate applications
-- Business authorization stays in our application layer
+- 前台使用 `Astro`
+- 后台使用 `Vue + Vite`
+- 后端使用 `Hono`
+- 主数据库使用 `PostgreSQL`
+- 认证方向使用 `Better Auth`
+- 文件二进制使用 `S3-compatible object storage`
+- 前台、后台、API 必须保持拆分
+- 业务权限必须留在我们自己的应用层
 
-These are foundation decisions, not MVP-only choices.
+## 3. 当前阶段如何理解 MVP
 
-## 3. What MVP Means In This Project
+这里的 MVP 不是“功能很少”的意思，而是“最小可上线闭环”：
 
-For this project, MVP should mean:
+- 前台能完整讲清楚组织是谁、成员是谁、活动是什么、如何加入
+- 后台能完成内容发布、活动运营、申请审核、权限管理
+- 数据模型与 API 采用真实生产架构
+- 后续扩展手机号登录、更多社区能力时不需要重做底层
 
-- The public site can launch with credible content and branding
-- The admin can support essential staff operations
-- The backend and data model are real, not disposable
-- The system can evolve toward richer member, event, and auth workflows
+MVP 不等于：
 
-MVP does not mean:
+- 只做静态页面
+- 只有展示没有后台
+- 用临时数据结构先糊出来
+- 把所有未来功能一次塞进首版
 
-- every planned feature is present
-- every workflow is fully automated
-- every content type has a polished backend tool
-- every long-term feature is implemented on day one
+## 3.1 当前必须明确的人群边界
 
-## 4. Phase Model
+当前版本至少要区分 3 类人：
 
-### Phase 0: Architecture Baseline
+- 非成员
+  - 可以浏览公开品牌与介绍内容
+  - 可以提交加入申请
+- 成员
+  - 在前台查看成员侧信息
+  - 在前台报名参加活动
+- 工作人员
+  - 登录后台执行运营与审核操作
 
-Goal:
+这里要特别强调：
 
-- Finalize system shape, boundaries, and implementation direction
+- “成员”是业务身份
+- “工作人员”是后台准入身份
+- “角色”是工作人员后台权限包
 
-In scope:
+所以：
 
-- Stack selection
-- Repository structure design
-- System architecture document
-- Agent rules and implementation constraints
-- Initial planning documents
+- 成员不是后台 `role`
+- 非成员申请人也不是后台 `role`
+- 后台的“角色”菜单只管理工作人员 RBAC 权限
 
-Exit criteria:
+## 4. 当前版本必须包含的前台范围
 
-- Core technical choices are documented
-- System boundaries are stable enough to start detailed design
+### 4.1 首页
 
-### Phase 1: Walking Skeleton
+必须能够承载：
 
-Goal:
+- TGO 介绍
+- 组织形式
+- 覆盖人群
+- 精彩活动/精选内容
+- 申请加入 CTA
 
-- Prove the whole system can run end-to-end with minimal features
+### 4.2 分会董事会
 
-In scope:
+必须能够展示：
 
-- Monorepo scaffold
-- `apps/site`, `apps/admin`, `apps/api`
-- Shared packages
-- Database connection and initial migration flow
-- Better Auth baseline integration
-- Minimal deployable CI or local run path
+- 各个分会
+- 各分会董事会成员
+- 成员头像、名字、公司、职称等基本信息
 
-Example deliverables:
+### 4.3 成员列表与详情
 
-- Public site homepage shell
-- Admin login shell
-- API health route
-- Working database migration
-- One authenticated admin-only API route
+列表至少展示：
 
-Exit criteria:
+- 头像
+- 名字
+- 公司
+- 职称
 
-- The three applications run together
-- Auth, database, and API wiring are proven
-- The repository is ready for feature development
+详情至少展示：
 
-### Phase 2: Public MVP
+- 头像
+- 名字
+- 公司
+- 职称
+- 个人简介
+- 加入时间
+- 所属分会（如适用）
 
-Goal:
+说明：
 
-- Launch a credible public-facing site
+- 当前前台中的成员能力应按“成员身份”理解，而不是后台工作人员权限
+- 当前阶段成员不做认证，先以公开展示为主
 
-In scope:
+### 4.4 活动
 
-- Homepage
-- Topic listing and detail pages
-- Article or blog listing and detail pages
-- Event listing and detail pages
-- City pages
-- Trial or contact application form
-- Core SEO fields and metadata
-- Basic media upload or media linking support
+必须能够支持：
 
-Likely content statuses:
+- 后台发布活动
+- 按城市或分会筛选活动
+- 查看活动详情
+- 在活动详情页点击报名
 
-- draft
-- published
-- archived
+补充约束：
 
-Out of scope for this phase:
+- 活动报名当前采用开放报名
+- 当前不要求成员登录
+- 是否符合成员活动要求，由工作人员在后台审核确认
+- 非成员的核心转化动作仍然是提交加入申请
 
-- member-only areas
-- phone OTP login
-- advanced recommendation logic
-- payment flows
-- complex personalization
+### 4.5 文章
 
-Exit criteria:
+必须能够支持：
 
-- Public users can browse key content domains
-- Staff can publish enough content to keep the site current
-- The site is launchable without hand-editing code for every update
+- 后台发布文章
+- 前台展示文章列表
+- 查看文章详情
 
-### Phase 3: Admin MVP
+### 4.6 加入申请
 
-Goal:
+必须同时包含两部分：
 
-- Give staff the minimum internal tools needed to operate the site
+- 申请条件与加入方式说明
+- 申请表
 
-In scope:
+申请表字段至少包含：
 
-- Staff login
-- Role-aware admin shell
-- Article CRUD
-- Topic management
-- Event CRUD
-- Application review
-- Media asset management
-- Basic site settings or featured content configuration
+- 姓名
+- 电话
+- 微信号
+- 邮箱
+- 个人介绍
+- 加入申请信息
 
-Out of scope for this phase:
+### 4.7 关于我们
 
-- granular workflow engines
-- advanced dashboards
-- fine-grained audit analysis tools
-- complicated multi-step approval chains
+必须能够说明：
 
-Exit criteria:
+- 组织的活动形式
+- 加入方式
+- 组织背景与定位
 
-- Staff can manage core content without developer intervention
-- Admin access is gated by role or permission checks
-- Public content updates can flow through the backend
+## 5. 当前版本必须包含的后台范围
 
-### Phase 4: Production Hardening
+### 5.1 仪表盘
 
-Goal:
+至少展示：
 
-- Make the system safe and maintainable for real operations
+- 当前文章总数
+- 当前活动总数
+- 当前申请数量
+- 当前系统状态
 
-In scope:
+### 5.2 文章
 
-- Audit logging
-- Error handling conventions
-- Monitoring and alerting
-- Backup and restore process
-- Rate limiting
-- Upload validation and security
-- Caching strategy
-- Environment separation
+必须包含：
 
-Exit criteria:
+- 文章列表
+- 新建文章
+- 编辑文章
+- 发布/归档能力
 
-- The system is operationally supportable
-- Core risk areas have baseline controls
+### 5.3 活动
 
-### Phase 5: Growth Features
+必须包含：
 
-Goal:
+- 活动列表
+- 新建活动
+- 编辑活动
+- 活动报名审核
 
-- Extend the platform after the core publishing and operations loop is stable
+### 5.4 申请
 
-Candidate scope:
+必须包含：
 
-- Phone OTP login
-- Notifications
-- Member-only features
-- Event check-in
-- richer role system
-- analytics dashboards
-- automation and integrations
+- 申请列表
+- 申请详情
+- 审核与备注
 
-## 5. Recommended MVP Boundary
+### 5.5 成员
 
-The recommended first real release should include:
+必须包含：
 
-- Public site with homepage, articles, topics, events, and city pages
-- Admin with staff login and content/event management
-- API and database that already match the long-term architecture
-- File upload support for editorial assets
+- 成员列表
+- 成员信息编辑
+- 分会与董事会信息维护能力
 
-The recommended first release should not include:
+说明：分会和董事会信息属于成员域的一部分，可以作为二级页面，不强制要求一级导航独立拆出。
 
-- mobile-first auth experiments
-- too many public account features
-- heavy social or community features
-- payment systems
-- a large internal workflow platform
+### 5.6 工作人员
 
-This keeps the first release useful without overloading the team.
+必须包含：
 
-## 6. MVP Scope By Domain
+- 工作人员列表
+- 增加工作人员
+- 编辑工作人员信息
+- 编辑工作人员权限或角色绑定
 
-### Identity
+### 5.7 角色
 
-MVP:
+必须包含：
 
-- user records
-- staff login
-- session management
-- basic role-based access
+- 角色列表
+- 角色权限配置
+- 权限矩阵维护
 
-Later:
+这里的“角色”只指工作人员后台角色，不指成员身份分类。
 
-- phone OTP login
-- advanced profile settings
-- member privilege layers
+### 5.8 审计日志
 
-### Content
+必须包含：
 
-MVP:
+- 敏感后台操作记录
+- 操作人、目标对象、时间、结果等信息
 
-- articles
-- topics
-- city pages
-- featured blocks
+## 6. 当前范围内的支撑能力
 
-Later:
+虽然不一定作为一级菜单出现，但以下能力属于当前范围内必须具备的支撑项：
 
-- richer editorial workflow
-- revision history UI
-- scheduled publishing automation
+- Better Auth 驱动的后台登录
+- 面向成员侧的会话扩展能力预留
+- 工作人员权限校验
+- 首页内容配置
+- 加入页和关于页的后台内容维护
+- 图片上传与对象存储接入
+- 审计日志落库
+- 基础健康检查、环境校验、CI
 
-### Events
+## 7. 当前明确不做的内容
 
-MVP:
+当前阶段不应继续扩张到以下方向：
 
-- event CRUD
-- event detail pages
-- registration form or intent capture
+- `topics` 专题中心
+- `cities` 独立内容落地页
+- 完整的成员个人中心
+- 课程体系 / 培训老师 / 企业图谱
+- 支付、账单、发票自动化
+- 复杂推荐、个性化、社交关系链
+- 多级审批工作流引擎
 
-Later:
+这些内容如果以后需要，应该在当前主线稳定后再扩展。
 
-- check-in
-- attendance workflows
-- event reminders and notifications
+## 8. 阶段划分建议
 
-### Applications
+### Phase 0：架构与文档
 
-MVP:
+目标：
 
-- trial application or join/contact form
-- admin-side review status
+- 冻结技术栈
+- 冻结系统边界
+- 冻结当前版本功能范围
 
-Later:
+### Phase 1：运行骨架
 
-- multi-step review workflow
-- internal assignment and follow-up tools
+目标：
 
-### Media
+- 三个应用能启动
+- 认证、数据库、基础 API 跑通
+- 最小测试链路存在
 
-MVP:
+### Phase 2：公开站点闭环
 
-- upload images and attachments
-- asset metadata
-- reuse uploaded assets in content and events
+目标：
 
-Later:
+- 上线 7 个前台模块
+- 对接真实 API 和真实后台数据
+- 完成 SEO 与基础内容呈现
 
-- transformations
-- media library search improvements
-- automated lifecycle rules
+### Phase 3：后台运营闭环
 
-## 7. MVP Acceptance Criteria
+目标：
 
-Before calling the first release complete, the system should satisfy all of the following:
+- 上线 8 个后台模块
+- 能通过后台驱动前台内容、活动、申请与权限
 
-- Public users can discover the main content areas
-- Staff can log in and manage content through the admin
-- Public pages read from real backend-managed data
-- Uploads do not depend on committing files into the repo
-- Role checks exist for protected admin actions
-- Core flows work without manual database edits
+### Phase 4：生产加固
 
-## 8. Documentation Required Before Implementation
+目标：
 
-Before feature implementation begins in earnest, the team should complete:
+- 审计、限流、监控、部署、备份恢复完善
 
-- `docs/mvp-scope.md`
-- route and page map
-- data model draft
-- auth and permission design
-- API design draft
+### Phase 5：增长扩展
 
-Without these, implementation will likely drift.
+候选项：
 
-## 9. Decision Rule For New Requests
+- 手机号登录
+- 更丰富的成员能力
+- 活动签到
+- 通知系统
+- 数据分析看板
 
-When a new feature request appears, evaluate it using this order:
+## 9. 当前版本的验收标准
 
-1. Does it change the architecture baseline
-2. Is it required for the current phase to succeed
-3. Does it belong in a later phase without blocking current delivery
+当前阶段可以视为完成的标准是：
 
-If the answer to `2` is no, default to later-phase backlog unless there is a strong business reason.
+- 前台 7 个模块全部具备真实数据驱动能力
+- 后台 8 个模块全部具备最小可用能力
+- 非成员、成员、工作人员三类人群边界清晰
+- 工作人员权限能阻止未授权操作
+- 成员侧能力与工作人员后台角色没有混用
+- 文章、活动、成员、分会、申请都能通过后台进入前台闭环
+- 加入申请和活动报名都能形成可审核数据
 
-## 10. Recommended Immediate Next Step
+## 10. 当前文档之后的下一步
 
-Now that the documentation baseline exists, the next step should be:
+文档收敛完成后，下一步不是继续加功能，而是做三件事：
 
-- start implementation with monorepo scaffolding
-
-Why:
-
-- the required planning documents are now in place
-- further progress is best made through implementation and validation
-- any later document changes should follow real build feedback instead of speculation
+1. 冻结数据模型差异
+2. 冻结 API 契约与路由
+3. 按收敛范围重排现有实现与测试优先级

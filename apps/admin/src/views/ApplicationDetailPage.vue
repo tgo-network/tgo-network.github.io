@@ -4,25 +4,25 @@ import { RouterLink, useRoute } from "vue-router";
 
 import {
   applicationStatusOptions,
-  type AdminApplicationDetailPayload,
-  type AdminApplicationRecord,
-  type AdminApplicationUpdateInput
+  type AdminJoinApplicationDetailPayload,
+  type AdminJoinApplicationRecord,
+  type AdminJoinApplicationUpdateInput
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatApplicationStatus, formatApplicationType, formatDateTime } from "../lib/format";
+import { formatApplicationStatus, formatDateTime } from "../lib/format";
 
 const route = useRoute();
 
-const application = ref<AdminApplicationRecord | null>(null);
+const application = ref<AdminJoinApplicationRecord | null>(null);
 const loading = ref(true);
 const saving = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
 const fieldIssues = ref<Record<string, string>>({});
-const form = reactive<AdminApplicationUpdateInput>({
+const form = reactive<AdminJoinApplicationUpdateInput>({
   status: "submitted",
-  internalNotes: ""
+  reviewNotes: ""
 });
 
 const loadApplication = async () => {
@@ -33,10 +33,10 @@ const loadApplication = async () => {
   fieldIssues.value = {};
 
   try {
-    const payload = await adminFetch<AdminApplicationDetailPayload>(`/api/admin/v1/applications/${applicationId}`);
+    const payload = await adminFetch<AdminJoinApplicationDetailPayload>(`/api/admin/v1/applications/${applicationId}`);
     application.value = payload.application;
     form.status = payload.application.status;
-    form.internalNotes = payload.application.internalNotes;
+    form.reviewNotes = payload.application.reviewNotes;
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "无法加载申请详情。";
   } finally {
@@ -52,13 +52,13 @@ const save = async () => {
   fieldIssues.value = {};
 
   try {
-    const payload = await adminRequest<AdminApplicationDetailPayload>(`/api/admin/v1/applications/${applicationId}`, {
+    const payload = await adminRequest<AdminJoinApplicationDetailPayload>(`/api/admin/v1/applications/${applicationId}`, {
       method: "PATCH",
       body: form
     });
     application.value = payload.application;
     form.status = payload.application.status;
-    form.internalNotes = payload.application.internalNotes;
+    form.reviewNotes = payload.application.reviewNotes;
     successMessage.value = "申请审核已更新。";
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
@@ -85,15 +85,11 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>{{ application ? application.name : "申请详情" }}</h2>
-        <p>
-          审核公开表单提交、补充内部备注，并推动申请人在工作人员流程中继续流转。
-        </p>
+        <p>查看申请人的基本资料、个人介绍与加入诉求，并记录审核意见。</p>
       </div>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/applications">
-          返回申请列表
-        </RouterLink>
+        <RouterLink class="button-link" to="/applications">返回申请列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存审核" }}
         </button>
@@ -117,45 +113,42 @@ onMounted(() => {
 
     <div v-else-if="application" class="editor-grid">
       <div class="panel editor-main stacked-gap">
-        <div class="brand-tag">申请人</div>
+        <div class="brand-tag">申请人信息</div>
         <div class="field-grid field-grid-2">
           <div class="info-card">
             <span>姓名</span>
             <strong>{{ application.name }}</strong>
           </div>
           <div class="info-card">
-            <span>类型</span>
-            <strong>{{ formatApplicationType(application.type) }}</strong>
+            <span>手机号</span>
+            <strong>{{ application.phoneNumber }}</strong>
+          </div>
+          <div class="info-card">
+            <span>微信号</span>
+            <strong>{{ application.wechatId || "未填写" }}</strong>
           </div>
           <div class="info-card">
             <span>邮箱</span>
-            <strong>{{ application.email || "-" }}</strong>
+            <strong>{{ application.email || "未填写" }}</strong>
           </div>
           <div class="info-card">
-            <span>手机号</span>
-            <strong>{{ application.phoneNumber || "-" }}</strong>
+            <span>意向分会</span>
+            <strong>{{ application.targetBranchName || "未指定" }}</strong>
           </div>
           <div class="info-card">
-            <span>公司</span>
-            <strong>{{ application.company || "-" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>职位</span>
-            <strong>{{ application.jobTitle || "-" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>城市</span>
-            <strong>{{ application.cityName || "-" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>来源</span>
-            <strong>{{ application.sourcePage }}</strong>
+            <span>当前状态</span>
+            <strong>{{ formatApplicationStatus(application.status) }}</strong>
           </div>
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">申请说明</div>
-          <p>{{ application.message || "未填写说明。" }}</p>
+          <div class="brand-tag">个人介绍</div>
+          <p>{{ application.introduction }}</p>
+        </div>
+
+        <div class="panel inset-panel stacked-gap">
+          <div class="brand-tag">申请信息</div>
+          <p>{{ application.applicationMessage }}</p>
         </div>
       </div>
 
@@ -173,16 +166,16 @@ onMounted(() => {
           </label>
 
           <label class="field">
-            <span>内部备注</span>
-            <textarea v-model="form.internalNotes" rows="10" placeholder="仅工作人员可见的审核备注、跟进背景与下一步动作。" />
-            <small v-if="fieldIssues.internalNotes" class="field-error">{{ fieldIssues.internalNotes }}</small>
+            <span>审核备注</span>
+            <textarea v-model="form.reviewNotes" rows="10" placeholder="记录沟通结论、跟进动作与审核判断。" />
+            <small v-if="fieldIssues.reviewNotes" class="field-error">{{ fieldIssues.reviewNotes }}</small>
           </label>
         </div>
 
         <div class="panel stacked-gap">
           <div class="brand-tag">审计</div>
           <div class="info-row">
-            <span>创建时间</span>
+            <span>提交时间</span>
             <strong>{{ formatDateTime(application.createdAt) }}</strong>
           </div>
           <div class="info-row">

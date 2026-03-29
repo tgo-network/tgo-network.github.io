@@ -77,6 +77,8 @@ const getActorStaffAccountId = (actor: AuditActorContext) => {
 };
 const imageAssetTypes = new Set([
   "site-banner",
+  "branch-cover",
+  "member-avatar",
   "topic-cover",
   "article-cover",
   "article-inline",
@@ -274,11 +276,7 @@ const toAdminContentError = (error: StorageError) => {
 
 const getArticleReferences = async (): Promise<AdminArticleReferences> => {
   const db = getDb();
-  const [authorRows, cityRows, topicRows] = await Promise.all([
-    db.select().from(authors).orderBy(asc(authors.displayName)),
-    db.select().from(cities).orderBy(asc(cities.name)),
-    db.select().from(topics).orderBy(asc(topics.title))
-  ]);
+  const authorRows = await db.select().from(authors).orderBy(asc(authors.displayName));
 
   return {
     authors: authorRows.map((author) => ({
@@ -286,16 +284,8 @@ const getArticleReferences = async (): Promise<AdminArticleReferences> => {
       label: author.displayName,
       description: author.bio ?? null
     })),
-    cities: cityRows.map((city) => ({
-      id: city.id,
-      label: city.name,
-      description: city.summary ?? null
-    })),
-    topics: topicRows.map((topic) => ({
-      id: topic.id,
-      label: topic.title,
-      description: topic.summary ?? null
-    }))
+    cities: [],
+    topics: []
   };
 };
 
@@ -351,10 +341,7 @@ const validatePublishableTopic = (topic: typeof topics.$inferSelect) => {
   }
 };
 
-export const getPublishableArticleIssues = (
-  article: typeof articles.$inferSelect,
-  topicIds: string[]
-): AdminValidationIssue[] => {
+export const getPublishableArticleIssues = (article: typeof articles.$inferSelect): AdminValidationIssue[] => {
   const issues: AdminValidationIssue[] = [];
 
   if (article.title.trim().length < 2) {
@@ -392,18 +379,11 @@ export const getPublishableArticleIssues = (
     });
   }
 
-  if (topicIds.length === 0) {
-    issues.push({
-      field: "topicIds",
-      message: "发布前至少需要关联一个主题。"
-    });
-  }
-
   return issues;
 };
 
-const validatePublishableArticle = (article: typeof articles.$inferSelect, topicIds: string[]) => {
-  const issues = getPublishableArticleIssues(article, topicIds);
+const validatePublishableArticle = (article: typeof articles.$inferSelect) => {
+  const issues = getPublishableArticleIssues(article);
 
   if (issues.length > 0) {
     throw new AdminContentError(400, "VALIDATION_ERROR", "文章尚未满足发布条件。", {
@@ -781,15 +761,12 @@ export const archiveAdminTopic = async (id: string, actor: AuditActorContext): P
 
 export const listAdminArticles = async (): Promise<AdminArticleListItem[]> => {
   const db = getDb();
-  const [articleRows, authorRows, cityRows, articleTopicRows] = await Promise.all([
+  const [articleRows, authorRows] = await Promise.all([
     db.select().from(articles).orderBy(desc(articles.updatedAt), desc(articles.publishedAt)),
-    db.select().from(authors),
-    db.select().from(cities),
-    db.select().from(articleTopicBindings)
+    db.select().from(authors)
   ]);
 
   const authorById = new Map(authorRows.map((row) => [row.id, row]));
-  const cityById = new Map(cityRows.map((row) => [row.id, row]));
 
   return articleRows.map((article) => ({
     id: article.id,
@@ -797,8 +774,8 @@ export const listAdminArticles = async (): Promise<AdminArticleListItem[]> => {
     title: article.title,
     status: article.status,
     authorName: article.authorId ? authorById.get(article.authorId)?.displayName ?? null : null,
-    cityName: article.primaryCityId ? cityById.get(article.primaryCityId)?.name ?? null : null,
-    topicCount: articleTopicRows.filter((row) => row.articleId === article.id).length,
+    cityName: null,
+    topicCount: 0,
     publishedAt: asIso(article.publishedAt),
     updatedAt: article.updatedAt.toISOString()
   }));
@@ -985,7 +962,7 @@ export const publishAdminArticle = async (
   }
 
   const topicIds = bindings.map((binding) => binding.topicId);
-  validatePublishableArticle(existing, topicIds);
+  validatePublishableArticle(existing);
 
   const [article] = await db
     .update(articles)

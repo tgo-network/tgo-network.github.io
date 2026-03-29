@@ -59,7 +59,6 @@ const slugTouched = ref(false);
 const articleId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => articleId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建文章" : `编辑文章：${article.value?.title ?? "加载中..."}`));
-const selectedTopicCount = computed(() => form.topicIds.length);
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -126,15 +125,6 @@ const onTitleInput = () => {
 
 const onSlugInput = () => {
   slugTouched.value = true;
-};
-
-const toggleTopic = (topicId: string) => {
-  if (form.topicIds.includes(topicId)) {
-    form.topicIds = form.topicIds.filter((item) => item !== topicId);
-    return;
-  }
-
-  form.topicIds = [...form.topicIds, topicId];
 };
 
 const save = async () => {
@@ -213,7 +203,7 @@ onMounted(() => {
       <div>
         <h2>{{ pageTitle }}</h2>
         <p>
-          在同一页面中管理文章元信息、编辑文案、主题关联与发布状态。
+          在同一页面中管理文章元信息、正文内容、封面资源与发布状态。
         </p>
       </div>
 
@@ -284,7 +274,7 @@ onMounted(() => {
           <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
         </label>
 
-        <div class="field-grid field-grid-3">
+        <div class="field-grid field-grid-2">
           <label class="field">
             <span>作者</span>
             <select v-model="form.authorId">
@@ -294,17 +284,6 @@ onMounted(() => {
               </option>
             </select>
             <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
-          </label>
-
-          <label class="field">
-            <span>城市</span>
-            <select v-model="form.primaryCityId">
-              <option :value="null">暂不关联城市</option>
-              <option v-for="option in references.cities" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="fieldIssues.primaryCityId" class="field-error">{{ fieldIssues.primaryCityId }}</small>
           </label>
 
           <label class="field">
@@ -328,21 +307,6 @@ onMounted(() => {
       </div>
 
       <aside class="editor-side stacked-gap">
-        <div class="panel stacked-gap">
-          <div class="brand-tag">主题</div>
-          <div class="selection-summary">已选择 {{ selectedTopicCount }} 个主题</div>
-          <div class="checkbox-list">
-            <label v-for="option in references.topics" :key="option.id" class="checkbox-row">
-              <input :checked="form.topicIds.includes(option.id)" type="checkbox" @change="toggleTopic(option.id)" />
-              <span>
-                <strong>{{ option.label }}</strong>
-                <small>{{ option.description }}</small>
-              </span>
-            </label>
-          </div>
-          <small v-if="fieldIssues.topicIds" class="field-error">{{ fieldIssues.topicIds }}</small>
-        </div>
-
         <CoverAssetField
           v-model="form.coverAssetId"
           :assets="coverAssets"
@@ -354,7 +318,7 @@ onMounted(() => {
           <div class="brand-tag">SEO</div>
           <label class="field">
             <span>SEO 标题</span>
-            <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO Network" />
+            <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
             <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
           </label>
           <label class="field">
@@ -379,7 +343,7 @@ onMounted(() => {
             <strong>{{ formatDateTime(article?.publishedAt) }}</strong>
           </div>
           <p>
-            文章在发布前必须具备标题、URL 标识、摘要、正文、作者以及至少一个主题。
+            文章在发布前必须具备标题、URL 标识、摘要、正文和作者。内容方向与关联地区不再是当前主线的必填项。
           </p>
         </div>
       </aside>

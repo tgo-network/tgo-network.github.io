@@ -5,7 +5,7 @@ import { RouterLink } from "vue-router";
 import type { AdminArticleListItem } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
-import { formatContentStatus, formatDate } from "../lib/format";
+import { formatContentStatus, formatDate, formatDateTime } from "../lib/format";
 
 const rows = ref<AdminArticleListItem[]>([]);
 const loading = ref(true);
@@ -30,7 +30,7 @@ onMounted(async () => {
     <header class="page-header page-header-row">
       <div>
         <h2>文章</h2>
-        <p>围绕作者、城市归属与主题体系，编写、关联并发布内容文章。</p>
+        <p>围绕标题、作者、封面和发布状态持续维护公开文章内容。</p>
       </div>
 
       <div class="page-actions">
@@ -57,9 +57,8 @@ onMounted(async () => {
             <th>标题</th>
             <th>状态</th>
             <th>作者</th>
-            <th>城市</th>
-            <th>主题数</th>
             <th>发布时间</th>
+            <th>更新时间</th>
             <th></th>
           </tr>
         </thead>
@@ -71,9 +70,8 @@ onMounted(async () => {
             </td>
             <td><span class="status-pill">{{ formatContentStatus(row.status) }}</span></td>
             <td>{{ row.authorName ?? "-" }}</td>
-            <td>{{ row.cityName ?? "-" }}</td>
-            <td>{{ row.topicCount }}</td>
             <td>{{ formatDate(row.publishedAt) }}</td>
+            <td>{{ formatDateTime(row.updatedAt) }}</td>
             <td class="table-actions-cell">
               <RouterLink class="table-link" :to="`/articles/${row.id}/edit`">
                 编辑

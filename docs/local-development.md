@@ -2,6 +2,11 @@
 
 This document defines the default local workflow for the current monorepo.
 
+Important note:
+
+- The current product scope is defined by `docs/mvp-scope.md`
+- The repository still contains some earlier `topic/city` exploration routes and seed data; treat those as implementation history, not the current release target
+
 ## 1. Goals
 
 Local development should let us:
@@ -114,7 +119,7 @@ npm run auth:bootstrap-admin
 Bootstrap result:
 
 - schema is migrated
-- baseline topics, articles, events, cities, roles, and permissions are inserted
+- baseline demo content, roles, and permissions are inserted
 - a development super admin account is created or refreshed from `.env`
 
 ## 6. Application Startup
@@ -195,6 +200,8 @@ Recommended minimum verification after bootstrap:
 - confirm error responses also include `error.requestId` for log correlation
 - run `npm run test:e2e` when auth, public forms, or cross-app navigation changes
 
+The route list below reflects the current local implementation baseline. It is useful for development smoke tests, but it is not the canonical product-scope document.
+
 ### Public API
 
 - `GET /`
@@ -203,12 +210,14 @@ Recommended minimum verification after bootstrap:
 - `GET /version`
 - `GET /api/public/v1/site-config`
 - `GET /api/public/v1/home`
-- `GET /api/public/v1/topics`
+- `GET /api/public/v1/branches`
+- `GET /api/public/v1/members`
 - `GET /api/public/v1/articles`
 - `GET /api/public/v1/events`
-- `GET /api/public/v1/cities`
+- `GET /api/public/v1/join`
+- `GET /api/public/v1/about`
 - `POST /api/public/v1/events/:eventId/registrations`
-- `POST /api/public/v1/applications`
+- `POST /api/public/v1/join-applications`
 
 ### Auth
 
@@ -226,10 +235,6 @@ After sign-in and cookie/session setup:
 
 - `GET /api/admin/v1/me`
 - `GET /api/admin/v1/dashboard`
-- `GET /api/admin/v1/topics`
-- `POST /api/admin/v1/topics`
-- `PATCH /api/admin/v1/topics/:id`
-- `POST /api/admin/v1/topics/:id/publish`
 - `GET /api/admin/v1/articles`
 - `GET /api/admin/v1/articles/references`
 - `POST /api/admin/v1/articles`
@@ -246,6 +251,12 @@ After sign-in and cookie/session setup:
 - `GET /api/admin/v1/applications`
 - `GET /api/admin/v1/applications/:id`
 - `PATCH /api/admin/v1/applications/:id`
+- `GET /api/admin/v1/members`
+- `POST /api/admin/v1/members`
+- `PATCH /api/admin/v1/members/:id`
+- `GET /api/admin/v1/branches`
+- `POST /api/admin/v1/branches`
+- `PATCH /api/admin/v1/branches/:id`
 - `GET /api/admin/v1/assets`
 - `POST /api/admin/v1/assets/uploads`
 - `POST /api/admin/v1/assets/uploads/complete`
@@ -255,22 +266,24 @@ After sign-in and cookie/session setup:
 - `GET /api/admin/v1/roles`
 - `PATCH /api/admin/v1/roles/:id`
 - `GET /api/admin/v1/audit-logs`
-- `GET /api/admin/v1/featured-blocks/homepage`
-- `PATCH /api/admin/v1/featured-blocks/homepage`
-- `GET /api/admin/v1/site-settings`
-- `PATCH /api/admin/v1/site-settings`
+- `GET /api/admin/v1/homepage`
+- `PATCH /api/admin/v1/homepage`
+- `GET /api/admin/v1/pages/join`
+- `PATCH /api/admin/v1/pages/join`
+- `GET /api/admin/v1/pages/about`
+- `PATCH /api/admin/v1/pages/about`
 
 Recommended asset verification:
 
 - upload one public image asset through the admin flow
-- assign that asset as `coverAssetId` on one published topic, article, or event
+- assign that asset as `coverAssetId` on one published article, event, branch, or member
 - confirm the matching public detail endpoint returns `coverImage.url`
 
 Recommended homepage/settings verification:
 
-- update `featured-blocks/homepage` with an active hero title and selected content IDs
+- update `homepage` with an active hero title and selected content IDs
 - confirm `GET /api/public/v1/home` reflects the curated hero and section slices
-- update `site-settings` and confirm `GET /api/public/v1/site-config` reflects the new header/footer values
+- update `pages/join` or `pages/about` and confirm the public page payload changes are reflected by `GET /api/public/v1/join` or `GET /api/public/v1/about`
 
 Recommended event registration verification:
 
@@ -282,7 +295,7 @@ Recommended event registration verification:
 
 Recommended audit verification:
 
-- perform one protected mutation such as `PATCH /api/admin/v1/site-settings`
+- perform one protected mutation such as `PATCH /api/admin/v1/homepage`
 - confirm `GET /api/admin/v1/audit-logs` returns a fresh entry with `action`, `targetType`, actor identity, and before/after snapshots
 
 Recommended staff and role verification:

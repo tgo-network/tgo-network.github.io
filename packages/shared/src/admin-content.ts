@@ -163,6 +163,8 @@ export const assetStatusOptions = [
 
 export type AdminAssetType =
   | "site-banner"
+  | "branch-cover"
+  | "member-avatar"
   | "topic-cover"
   | "article-cover"
   | "article-inline"
@@ -178,8 +180,16 @@ export const adminAssetTypeOptions = [
     label: "站点横幅"
   },
   {
+    value: "branch-cover",
+    label: "分会封面"
+  },
+  {
+    value: "member-avatar",
+    label: "成员头像"
+  },
+  {
     value: "topic-cover",
-    label: "主题封面"
+    label: "主题封面（旧）"
   },
   {
     value: "article-cover",
@@ -191,7 +201,7 @@ export const adminAssetTypeOptions = [
   },
   {
     value: "city-cover",
-    label: "城市封面"
+    label: "城市封面（旧）"
   },
   {
     value: "event-poster",
@@ -211,9 +221,15 @@ export const adminAssetTypeOptions = [
   }
 ] as const;
 
+export const adminAssetUploadTypeOptions = adminAssetTypeOptions.filter(
+  (option) => option.value !== "topic-cover" && option.value !== "city-cover"
+);
+
 const adminAssetTypeSet = new Set<string>(adminAssetTypeOptions.map((option) => option.value));
 const imageAssetTypeSet = new Set<AdminAssetType>([
   "site-banner",
+  "branch-cover",
+  "member-avatar",
   "topic-cover",
   "article-cover",
   "article-inline",
@@ -1004,13 +1020,6 @@ export const validateAdminArticleInput = (payload: unknown): AdminValidationResu
     });
   }
 
-  if (!Array.isArray(payload.topicIds)) {
-    issues.push({
-      field: "topicIds",
-      message: "主题必须以数组形式提供。"
-    });
-  }
-
   if ((status === "published" || status === "scheduled") && excerpt.length === 0) {
     issues.push({
       field: "excerpt",
@@ -1029,13 +1038,6 @@ export const validateAdminArticleInput = (payload: unknown): AdminValidationResu
     issues.push({
       field: "authorId",
       message: "发布前必须选择作者。"
-    });
-  }
-
-  if ((status === "published" || status === "scheduled") && topicIds.length === 0) {
-    issues.push({
-      field: "topicIds",
-      message: "发布前至少需要关联一个主题。"
     });
   }
 
@@ -1480,8 +1482,8 @@ export const validateAdminAssetUploadIntentInput = (
         issues.push({
           field: "byteSize",
           message: isImageAsset
-            ? "Image assets must be 10 MB or smaller."
-            : "Document assets must be 20 MB or smaller."
+            ? "图片资源必须小于或等于 10 MB。"
+            : "文档资源必须小于或等于 20 MB。"
         });
       }
     }

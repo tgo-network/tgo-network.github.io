@@ -1,61 +1,73 @@
-# Documentation Map
+# 文档索引
 
-This directory contains the planning and design documents for the TGO-like platform.
+本目录收录 TGO 风格平台的规划与设计文档。
 
-Recommended reading order:
+当前版本的产品范围已经收敛为一条明确主线：
+
+- 前台聚焦 7 个公开模块：首页、分会董事会、成员列表/详情、活动、文章、加入申请、关于我们
+- 后台聚焦 8 个运营模块：仪表盘、文章、活动、申请、成员、工作人员、角色、审计日志
+- 技术架构保持不变：`Astro` + `Vue + Vite` + `Hono` + `PostgreSQL` + `Better Auth` + `S3`
+
+建议阅读顺序：
 
 1. `system-architecture.md`
-2. `local-development.md`
+2. `benchmark-tgo-site.md`
 3. `mvp-scope.md`
 4. `route-map.md`
 5. `data-model.md`
-6. `auth-and-permission.md`
-7. `api-design.md`
-8. `content-workflow.md`
-9. `media-storage.md`
-10. `implementation-roadmap.md`
-11. `deployment-and-environments.md`
-12. `testing-strategy.md`
-13. `operations-runbook.md`
-14. `benchmark-tgo-site.md`
+6. `schema-adjustment-checklist.md`
+7. `auth-and-permission.md`
+8. `api-design.md`
+9. `api-dto-adjustment-checklist.md`
+10. `content-workflow.md`
+11. `media-storage.md`
+12. `implementation-roadmap.md`
+13. `implementation-transition-backlog.md`
+14. `local-development.md`
+15. `testing-strategy.md`
+16. `deployment-and-environments.md`
+17. `operations-runbook.md`
 
-Document roles:
+各文档职责：
 
 - `system-architecture.md`
-  - High-level technical architecture and system boundaries
-- `local-development.md`
-  - Local bootstrap flow, infrastructure commands, and smoke-test checklist
-- `mvp-scope.md`
-  - Delivery phases, MVP scope, and release boundary
-- `route-map.md`
-  - Public and admin pages, route ownership, and rendering expectations
-- `data-model.md`
-  - Core domains, tables, relationships, and lifecycle fields
-- `auth-and-permission.md`
-  - Authentication, staff roles, permission model, and future phone login path
-- `api-design.md`
-  - API conventions, endpoint groups, and contract rules
-- `content-workflow.md`
-  - Editorial states, publishing rules, and preview/publish flow
-- `media-storage.md`
-  - Object storage responsibilities, upload flow, and asset metadata
-- `implementation-roadmap.md`
-  - Build sequence, milestone outputs, and execution order
-- `deployment-and-environments.md`
-  - Environment separation, deployment units, and runtime configuration
-- `testing-strategy.md`
-  - Test layers, critical coverage, and milestone quality gates
-- `operations-runbook.md`
-  - Release execution, rollback, backup/restore, and operational checks
+  - 高层技术架构、边界和不变约束
 - `benchmark-tgo-site.md`
-  - Public benchmark against the target TGO site, gap analysis, and product calibration guidance
+  - 目标站拆解、差距分析、产品校准依据
+- `mvp-scope.md`
+  - 当前阶段功能边界、阶段划分、非目标范围
+- `route-map.md`
+  - 前台/后台路由、信息架构、渲染方式
+- `data-model.md`
+  - 核心实体、关系、状态字段、建模约束
+- `schema-adjustment-checklist.md`
+  - 数据库迁移顺序、增量加表、旧表退场与兼容策略
+- `auth-and-permission.md`
+  - 成员 / 工作人员 / 申请人身份边界、后台权限、未来手机号登录路径
+- `api-design.md`
+  - 公共 API、后台 API、内部 API 的分组与契约方向
+- `api-dto-adjustment-checklist.md`
+  - 共享 DTO、API 路由、导航常量的改造顺序与退场计划
+- `content-workflow.md`
+  - 首页、分会、成员、文章、活动、单页的发布规则
+- `media-storage.md`
+  - 对象存储职责、上传流、元数据边界
+- `implementation-roadmap.md`
+  - 当前实施阶段、里程碑和下一步执行顺序
+- `implementation-transition-backlog.md`
+  - 将当前范围收敛结果映射到实际代码目录、文件与施工波次
+- `local-development.md`
+  - 本地启动、基础设施、验证命令
+- `testing-strategy.md`
+  - 测试层次、关键用例、里程碑质量门槛
+- `deployment-and-environments.md`
+  - 环境拆分、运行时配置、部署边界
+- `operations-runbook.md`
+  - 发版、回滚、备份恢复、上线巡检
 
-Suggested implementation order:
+当前优先确认链路：
 
-1. Scaffold monorepo and shared packages
-2. Implement database schema and migrations
-3. Implement auth and role checks
-4. Implement core public and admin APIs
-5. Implement admin content flows
-6. Implement public site rendering against real APIs
-7. Add deployment automation and production hardening
+1. 先冻结功能范围
+2. 再冻结路由与信息架构
+3. 再冻结数据模型与 API 边界
+4. 最后进入实现与测试收敛

@@ -15,6 +15,13 @@
       "when": 1774652864293,
       "tag": "0001_parched_machine_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774776210875,
+      "tag": "0002_clammy_justin_hammer",
+      "breakpoints": true
     }
   ]
 }

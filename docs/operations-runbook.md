@@ -1,295 +1,194 @@
-# TGO Network Operations Runbook
+# TGO Network 运维运行手册
 
-## 1. Purpose
+## 1. 目的
 
-This document turns the architecture and deployment decisions into an execution checklist.
+本文档把架构与部署决策转成发版和运维检查清单。
 
-It focuses on:
+重点关注：
 
-- release preparation
-- staging validation
-- production deployment
-- rollback rules
-- backup and restore drills
-- routine operational checks
+- 发版前准备
+- 预发环境验证
+- 生产发布顺序
+- 回滚与恢复
+- 例行巡检
 
-Use this document together with:
+## 2. 运维职责
 
-- `docs/deployment-and-environments.md`
-- `docs/testing-strategy.md`
-- `docs/local-development.md`
+最少建议覆盖以下角色：
 
-## 2. Operational Ownership
+- 发版负责人：协调发布窗口与检查项
+- 后端负责人：确认 API、迁移、内部任务与日志
+- 前端负责人：确认前台与后台部署可用
+- 数据负责人：确认备份与恢复准备
 
-Minimum recommended owners:
+小团队可以一人兼多岗，但责任不能缺位。
 
-- release owner
-  - coordinates the deployment and confirms checkpoints
-- backend owner
-  - runs or verifies migrations, API rollout, internal job health
-- frontend owner
-  - verifies `site` and `admin` deployments
-- database owner
-  - confirms backup status and restore readiness
+## 3. 发版前置条件
 
-For a small team, one person can hold multiple roles, but each responsibility should still be explicitly covered.
+每次发版前至少确认：
 
-## 3. Release Preconditions
+- `main` 分支 CI 通过
+- API 镜像构建通过
+- `npm run typecheck` 通过
+- `npm run build` 通过
+- `npm run test` 通过
+- 数据库变更已写入迁移
+- 环境变量文档与 `.env.example` 同步
+- 已知前台、后台、API 的回滚版本
+- `npm run env:check:api -- production` 通过
 
-Before any staging or production deployment:
+如果本次变更涉及：
 
-- `main` is green in CI
-- API Docker image build is green in CI
-- browser smoke workflow is green when auth, public forms, or frontend navigation changed
-- `npm run typecheck` passes
-- `npm run build` passes
-- `npm run test` passes
-- schema changes are captured in Drizzle migrations
-- `.env.example` remains aligned with required runtime configuration
-- rollback target is known for `site`, `admin`, and `api`
-- `npm run env:check:api -- production` passes for the target API environment
+- 权限
+- 公开表单
+- 存储
+- 数据迁移
+- 首页或核心路由
 
-If the release includes auth, permission, publishing, storage, or migration changes, do not skip staging validation.
+则必须做预发验证，不可跳过。
 
-## 4. Environment Readiness Checklist
+## 4. 标准发布顺序
 
-For `staging` and `production`, verify:
+推荐顺序：
 
-- correct `DATABASE_URL`
-- correct `BETTER_AUTH_SECRET`
-- correct `BETTER_AUTH_URL`
-- correct `PUBLIC_API_BASE_URL`
-- correct `CORS_ALLOWED_ORIGINS`
-- correct `INTERNAL_API_TOKEN`
-- correct `S3_*` configuration
-- database backup schedule is active
-- object storage bucket or prefix is correct for the environment
+1. 确认目标提交 CI 为绿色
+2. 确认数据库备份新鲜
+3. 运行环境变量校验
+4. 构建 API 镜像
+5. 先部署 `api` 到预发
+6. 执行预发迁移
+7. 部署 `admin` 到预发
+8. 部署 `site` 到预发
+9. 完成预发验收
+10. 部署 `api` 到生产
+11. 执行生产迁移
+12. 部署 `admin` 到生产
+13. 部署 `site` 到生产
+14. 完成生产验收
 
-Do not promote if any environment still points to another environment's database, bucket, or secrets.
+原因：
 
-Recommended command:
+- 前后台都依赖 API 契约
+- 迁移必须先于依赖新结构的前端上线
 
-```bash
-npm run env:check:api -- production
-```
+## 5. 预发环境验证清单
 
-## 5. Standard Release Flow
-
-Recommended sequence:
-
-1. confirm CI is green on the target commit
-2. confirm backup freshness for the target database
-3. run API environment validation
-4. build the API image or deployment artifact
-5. optionally publish the API image via `.github/workflows/publish-api-image.yml`
-6. deploy `api` to staging
-7. run staging migrations
-8. deploy `admin` to staging
-9. deploy `site` to staging
-10. validate staging critical flows
-11. deploy `api` to production
-12. run production migrations
-13. deploy `admin` to production
-14. deploy `site` to production
-15. validate production critical flows
-
-Why `api` goes first:
-
-- frontend apps depend on API compatibility
-- migrations and runtime compatibility need to be established before frontend promotion
-
-Current build artifact:
-
-- `npm run docker:build:api`
-- Dockerfile path: `apps/api/Dockerfile`
-- optional image publishing workflow: `.github/workflows/publish-api-image.yml`
-- optional runtime deployment template: `deploy/api.compose.yml`
-
-## 6. Staging Validation Checklist
-
-After staging deployment, verify:
+预发环境至少验证：
 
 - `GET /health`
 - `GET /ready`
 - `GET /version`
-- one successful response returns `X-Request-ID`
-- one error response returns `error.requestId`
-- one admin login works through the browser, not only direct API calls
-- `GET /api/public/v1/site-config`
-- `GET /api/public/v1/home`
-- `GET /api/admin/v1/me` after login
-- one article detail page loads
-- one event detail page loads
-- one admin content list page loads
-- one protected admin mutation succeeds
-- one public write flow succeeds
-- one internal scheduled publishing run returns the expected shape
+- 任意成功响应带有 `X-Request-ID`
+- 任意错误响应包含 `error.requestId`
+- 后台登录成功
+- 首页正常加载
+- 分会董事会页正常加载
+- 成员列表与详情页正常加载
+- 活动列表与详情页正常加载
+- 文章列表与详情页正常加载
+- `/join` 与 `/apply` 正常加载
+- `/about` 正常加载
+- `GET /api/admin/v1/me` 返回有效工作人员信息
 
-Recommended staging write checks:
+推荐的预发写操作检查：
 
-- create or update one draft topic or article
-- submit one public application
-- submit one public event registration
-- upload one asset if storage changes are included
+- 发布一篇文章或编辑已发布文章
+- 发布一个活动
+- 提交一次公开活动报名
+- 提交一次公开加入申请
+- 修改一个成员或分会信息
+- 查看一条审计日志是否写入
 
-## 7. Production Validation Checklist
+## 6. 生产环境验证清单
 
-After production deployment, verify:
+生产环境至少验证：
 
-- `GET /health`
-- `GET /ready`
-- `GET /version`
-- logs can be correlated with `X-Request-ID`
-- public homepage loads
-- public article detail loads
-- public event detail loads
-- admin login works
-- `GET /api/admin/v1/me` reflects a valid staff session
-- one low-risk admin read page loads
-- audit log page loads
-- scheduler or cron for scheduled publishing remains configured
+- 健康检查通过
+- 首页可访问
+- 成员列表可访问
+- 活动详情可访问
+- 文章详情可访问
+- `/join` 与 `/apply` 可访问
+- 后台登录可用
+- 仪表盘可用
+- 审计日志页可用
 
-Avoid unnecessary production write tests unless the release specifically affects those flows.
+生产环境尽量避免做无必要的写操作。
+如果必须验证写链路，优先选低风险、可回滚的测试数据。
 
-## 8. Migration Safety Rules
+## 7. 回滚策略
 
-Always assume schema rollback is harder than app rollback.
+### `site` 回滚
 
-Required rules:
+适用场景：
 
-- prefer additive migrations
-- avoid dropping columns and tables in the same release that removes their last usage
-- deploy API code that tolerates both pre-migration and post-migration states where practical
-- take a fresh backup before risky migrations
+- 前台渲染异常
+- API 仍然健康
 
-If a release contains destructive schema changes, require an explicit restore rehearsal in staging first.
+动作：
 
-## 9. Rollback Strategy
+- 回滚到上一个可用的前台构建
 
-Rollback order depends on the failure domain.
+### `admin` 回滚
 
-### `site` rollback
+适用场景：
 
-Use when:
+- 后台页面或交互异常
+- API 与数据库兼容旧版本后台
 
-- public rendering is broken
-- API is healthy
-- content data is still valid
+动作：
 
-Rollback action:
+- 回滚到上一个可用的后台构建
 
-- redeploy the previous known-good static or SSR build
+### `api` 回滚
 
-### `admin` rollback
+适用场景：
 
-Use when:
+- 鉴权、接口契约、上传、审核流异常
 
-- staff workflows are broken
-- API is healthy enough to support the previous admin version
+动作：
 
-Rollback action:
+- 仅在数据库兼容时回滚 API
 
-- redeploy the previous known-good admin build
+### 数据库恢复
 
-### `api` rollback
+只有在以下情况才考虑：
 
-Use when:
+- 数据破坏
+- 迁移造成不可逆逻辑损伤
+- 应用回滚无法恢复
 
-- public or admin API contracts fail
-- auth or storage integration is broken
-- internal jobs or rate limits regress
+数据库恢复属于重大事故处理，不应作为常规回滚方案。
 
-Rollback action:
+## 8. 备份与恢复演练
 
-- redeploy the previous known-good API build only if schema compatibility still holds
+至少要定期验证：
 
-### database restore
+- 能拿到最近备份
+- 能在预发环境完成恢复
+- 恢复后关键表可读
+- 恢复后 API 能正常启动
 
-Use only when:
+关键表至少包括：
 
-- data corruption has occurred
-- a migration has caused unrecoverable logical damage
-- application rollback alone cannot recover behavior
+- `staff_accounts`
+- `roles`
+- `branches`
+- `members`
+- `articles`
+- `events`
+- `event_registrations`
+- `join_applications`
+- `audit_logs`
+- `assets`
 
-Database restore should be treated as a major incident, not a routine rollback.
+## 9. 例行巡检建议
 
-## 10. Backup And Restore Drill
+上线后应定期检查：
 
-Minimum recurring drill:
-
-- take the latest staging or production-style backup
-- restore into an isolated non-production database
-- run migrations if the restore workflow requires it
-- start `apps/api` against the restored database
-- verify `GET /api/public/v1/home`
-- verify admin login works with a controlled staff account
-- verify published content remains visible
-
-Record:
-
-- backup source timestamp
-- restore destination
-- restore duration
-- validation results
-- follow-up issues
-
-## 11. Scheduled Publishing Operations
-
-If scheduled publishing is enabled:
-
-- ensure platform cron or scheduler calls `POST /api/internal/v1/publish-scheduled-content`
-- authenticate with `INTERNAL_API_TOKEN`
-- alert on repeated non-2xx responses
-- log the returned `totalPublished` and `totalSkipped`
-
-If `totalSkipped > 0`:
-
-- inspect skipped article IDs
-- review validation issues
-- correct the article in admin
-- rerun the internal endpoint manually if needed
-
-## 12. Incident Triage
-
-When an incident is detected:
-
-1. identify the failing surface: `site`, `admin`, `api`, `db`, or `storage`
-2. determine whether the issue is read-only, write-only, auth-related, or data-corruption-related
-3. freeze further deployments if the scope is unclear
-4. decide between rollback, hotfix, or restore
-5. capture timeline and root cause notes while the context is fresh
-
-When user-visible API failures occur:
-
-- capture the failing `X-Request-ID`
-- locate the matching `request.completed` or `request.failed` log entry
-- use `error.requestId` from client-side payloads when browser access to headers is limited
-
-High-priority incidents include:
-
-- admin login failure
-- public pages returning widespread 5xx responses
-- storage upload failures for all editors
-- migration failures
-- scheduled publishing repeatedly failing
-
-## 13. Post-Release Notes
-
-After each production deployment, record:
-
-- deployed commit or tag
-- migration identifiers applied
-- validation results
-- any partial rollback performed
-- known follow-up work
-
-This can live in the deployment system, issue tracker, or release log, but it should exist somewhere durable.
-
-## 14. Recommended Next Use
-
-This runbook should directly drive:
-
-- CI/CD pipeline gates
-- staging signoff
-- production release checklist usage
-- backup and restore drills
+- 公开首页、成员、活动、文章是否有空白数据
+- 活动报名与加入申请是否仍能落库
+- 审计日志是否持续写入
+- 对象存储预览图是否可访问
+- 定时发布任务是否正常
+- API 日志与错误率是否异常

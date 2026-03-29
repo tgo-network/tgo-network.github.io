@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-import type { AdminEventRegistrationListPayload, AdminEventRegistrationListItem } from "@tgo/shared";
+import type { AdminEventRegistrationListItemV2, AdminEventRegistrationListPayloadV2 } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
 import { formatDateTime, formatEventRegistrationStatus } from "../lib/format";
@@ -14,7 +14,7 @@ const errorMessage = ref("");
 const eventTitle = ref("活动报名");
 const eventId = ref("");
 const eventSlug = ref("");
-const registrations = ref<AdminEventRegistrationListItem[]>([]);
+const registrations = ref<AdminEventRegistrationListItemV2[]>([]);
 
 const reviewedCount = computed(() => registrations.value.filter((row) => row.reviewedAt).length);
 
@@ -25,7 +25,7 @@ const loadRegistrations = async () => {
   errorMessage.value = "";
 
   try {
-    const payload = await adminFetch<AdminEventRegistrationListPayload>(`/api/admin/v1/events/${nextEventId}/registrations`);
+    const payload = await adminFetch<AdminEventRegistrationListPayloadV2>(`/api/admin/v1/events/${nextEventId}/registrations`);
     eventTitle.value = payload.event.title;
     eventSlug.value = payload.event.slug;
     registrations.value = payload.registrations;
@@ -53,16 +53,12 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>{{ eventTitle }}</h2>
-        <p>审核这场活动的报名信息，并推动报名人在状态流转中继续前进。</p>
+        <p>审核这场活动的报名信息，并同步更新报名状态、审核备注与成员关联。</p>
       </div>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/events">
-          返回活动列表
-        </RouterLink>
-        <RouterLink v-if="eventId" class="button-link button-primary" :to="`/events/${eventId}/edit`">
-          编辑活动
-        </RouterLink>
+        <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
+        <RouterLink v-if="eventId" class="button-link button-primary" :to="`/events/${eventId}/edit`">编辑活动</RouterLink>
       </div>
     </header>
 
@@ -107,7 +103,7 @@ onMounted(() => {
             <tr>
               <th>报名人</th>
               <th>联系方式</th>
-              <th>公司</th>
+              <th>公司 / 职称</th>
               <th>状态</th>
               <th>提交时间</th>
               <th>审核时间</th>
@@ -116,22 +112,17 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="row in registrations" :key="row.id">
+              <td><strong>{{ row.name }}</strong></td>
               <td>
-                <strong>{{ row.name }}</strong>
-                <div class="muted-row">{{ row.jobTitle || "未填写职位" }}</div>
+                <div>{{ row.phoneNumber }}</div>
+                <div class="muted-row">{{ row.wechatId || row.email || "未填写微信或邮箱" }}</div>
               </td>
-              <td>
-                <div>{{ row.email || row.phoneNumber || "-" }}</div>
-                <div v-if="row.email && row.phoneNumber" class="muted-row">{{ row.phoneNumber }}</div>
-              </td>
-              <td>{{ row.company || "-" }}</td>
+              <td>{{ row.company || "-" }} · {{ row.title || "-" }}</td>
               <td><span class="status-pill">{{ formatEventRegistrationStatus(row.status) }}</span></td>
               <td>{{ formatDateTime(row.createdAt) }}</td>
               <td>{{ formatDateTime(row.reviewedAt) }}</td>
               <td class="table-actions-cell">
-                <RouterLink class="table-link" :to="`/registrations/${row.id}`">
-                  审核
-                </RouterLink>
+                <RouterLink class="table-link" :to="`/registrations/${row.id}`">审核</RouterLink>
               </td>
             </tr>
           </tbody>

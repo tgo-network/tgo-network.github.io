@@ -8,16 +8,15 @@ import { and, eq, inArray } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import {
-  applications,
   articleTopicBindings,
   articles,
   auditLogs,
   authors,
-  cities,
   createDb,
   createPool,
   eventRegistrations,
   events,
+  joinApplications,
   permissions,
   rolePermissionBindings,
   roles,
@@ -343,6 +342,311 @@ describe("admin and internal API integration", () => {
     assert.equal(persistedRoleBindings.length, reviewerPermissionIds.length);
   });
 
+  test("aligns current staff roles with article editing and registration review routes", async () => {
+    const contentEditor = await createSignedInUser(["content_editor"]);
+    const author = await directDb.query.authors.findFirst();
+
+    assert.ok(author, "Expected at least one seeded author.");
+
+    const articleSlug = `content-editor-article-${randomUUID()}`;
+    const createArticleResult = await requestJson("/api/admin/v1/articles", {
+      method: "POST",
+      headers: getAuthHeaders(contentEditor.cookie),
+      body: JSON.stringify({
+        slug: articleSlug,
+        title: "内容编辑角色创建的文章",
+        excerpt: "用于验证 content_editor 具备当前文章编辑权限。",
+        body: "文章正文已经准备完成，可由内容编辑直接创建并发布。",
+        status: "draft",
+        authorId: author.id,
+        primaryCityId: null,
+        coverAssetId: null,
+        topicIds: [],
+        seoTitle: "",
+        seoDescription: "",
+        scheduledAt: null
+      })
+    });
+
+    assert.equal(createArticleResult.response.status, 201);
+
+    const articleId = createArticleResult.payload.data.article.id as string;
+    const publishArticleResult = await requestJson(`/api/admin/v1/articles/${articleId}/publish`, {
+      method: "POST",
+      headers: getAuthHeaders(contentEditor.cookie)
+    });
+
+    assert.equal(publishArticleResult.response.status, 200);
+
+    const registration = await directDb.query.eventRegistrations.findFirst();
+
+    assert.ok(registration, "Expected at least one seeded event registration.");
+
+    const eventManager = await createSignedInUser(["event_manager"]);
+    const registrationListResult = await requestJson(`/api/admin/v1/events/${registration.eventId}/registrations`, {
+      headers: {
+        cookie: eventManager.cookie
+      }
+    });
+
+    assert.equal(registrationListResult.response.status, 200);
+    assert.ok(Array.isArray(registrationListResult.payload.data.registrations));
+
+    const registrationDetailResult = await requestJson(`/api/admin/v1/registrations/${registration.id}`, {
+      headers: {
+        cookie: eventManager.cookie
+      }
+    });
+
+    assert.equal(registrationDetailResult.response.status, 200);
+    assert.equal(registrationDetailResult.payload.data.registration.id, registration.id);
+  });
+
+  test("cleans retired permission codes when the seed script reruns", async () => {
+    const superAdminRole = await directDb.query.roles.findFirst({
+      where: eq(roles.code, "super_admin")
+    });
+
+    assert.ok(superAdminRole, "Expected the super_admin role to exist.");
+
+    const [legacyPermission] = await directDb
+      .insert(permissions)
+      .values({
+        code: "registration.read",
+        name: "旧报名读取",
+        resource: "registration",
+        action: "read"
+      })
+      .returning();
+
+    assert.ok(legacyPermission, "Expected to create a retired permission row.");
+
+    await directDb.insert(rolePermissionBindings).values({
+      roleId: superAdminRole.id,
+      permissionId: legacyPermission.id
+    });
+
+    await seedDatabase(directDb);
+
+    const retiredPermissions = await directDb
+      .select()
+      .from(permissions)
+      .where(
+        inArray(permissions.code, [
+          "article.manage",
+          "registration.read",
+          "topic.manage",
+          "featured_block.manage",
+          "settings.manage"
+        ])
+      );
+
+    assert.equal(retiredPermissions.length, 0);
+
+    const staleBindings = await directDb
+      .select()
+      .from(rolePermissionBindings)
+      .where(eq(rolePermissionBindings.permissionId, legacyPermission.id));
+
+    assert.equal(staleBindings.length, 0);
+  });
+
+  test("allows article publishing without legacy topic or city bindings", async () => {
+    const superAdmin = await createSignedInUser(["super_admin"]);
+    const author = await directDb.query.authors.findFirst();
+
+    assert.ok(author, "Expected at least one seeded author.");
+
+    const slug = `article-without-legacy-bindings-${randomUUID()}`;
+    const createResult = await requestJson("/api/admin/v1/articles", {
+      method: "POST",
+      headers: getAuthHeaders(superAdmin.cookie),
+      body: JSON.stringify({
+        slug,
+        title: "无旧字段依赖的文章",
+        excerpt: "这篇文章用于验证当前主线下文章发布不再依赖旧 topic/city 绑定。",
+        body: "文章正文已经准备完成，可直接发布到公开站。",
+        status: "draft",
+        authorId: author.id,
+        primaryCityId: null,
+        coverAssetId: null,
+        topicIds: [],
+        seoTitle: "",
+        seoDescription: "",
+        scheduledAt: null
+      })
+    });
+
+    assert.equal(createResult.response.status, 201);
+    assert.equal(createResult.payload.data.article.topicIds.length, 0);
+
+    const articleId = createResult.payload.data.article.id as string;
+    const publishResult = await requestJson(`/api/admin/v1/articles/${articleId}/publish`, {
+      method: "POST",
+      headers: getAuthHeaders(superAdmin.cookie)
+    });
+
+    assert.equal(publishResult.response.status, 200);
+    assert.equal(publishResult.payload.data.article.status, "published");
+    assert.equal(publishResult.payload.data.article.topicIds.length, 0);
+
+    const savedArticle = await directDb.query.articles.findFirst({
+      where: eq(articles.id, articleId)
+    });
+
+    assert.ok(savedArticle, "Expected the article to be saved.");
+    assert.equal(savedArticle?.status, "published");
+  });
+
+  test("supports converged admin flows for join applications and page content management", async () => {
+    const superAdmin = await createSignedInUser(["super_admin"]);
+    const retiredTopicResult = await request("/api/admin/v1/topics", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+    const retiredFeaturedBlocksResult = await request("/api/admin/v1/featured-blocks/homepage", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+    const retiredSiteSettingsResult = await request("/api/admin/v1/site-settings", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(retiredTopicResult.status, 404);
+    assert.equal(retiredFeaturedBlocksResult.status, 404);
+    assert.equal(retiredSiteSettingsResult.status, 404);
+
+    const joinApplicationResult = await requestJson("/api/public/v1/join-applications", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.20",
+        "user-agent": "join-application-admin-flow"
+      },
+      body: JSON.stringify({
+        name: "张同学",
+        phoneNumber: "13800138000",
+        wechatId: "zhangtongxue",
+        email: "zhang@example.com",
+        introduction: "负责技术团队管理与平台建设，持续关注技术领导者成长与社区连接。",
+        applicationMessage: "希望加入上海分会，参与闭门交流和标杆走访活动。"
+      })
+    });
+
+    assert.equal(joinApplicationResult.response.status, 201);
+
+    const createdApplicationId = joinApplicationResult.payload.data.id as string;
+
+    const applicationListResult = await requestJson("/api/admin/v1/applications", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(applicationListResult.response.status, 200);
+    assert.ok(
+      applicationListResult.payload.data.some((application: { id: string }) => application.id === createdApplicationId)
+    );
+
+    const applicationDetailResult = await requestJson(`/api/admin/v1/applications/${createdApplicationId}`, {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(applicationDetailResult.response.status, 200);
+    assert.equal(applicationDetailResult.payload.data.application.name, "张同学");
+
+    const reviewedApplicationResult = await requestJson(`/api/admin/v1/applications/${createdApplicationId}`, {
+      method: "PATCH",
+      headers: getAuthHeaders(superAdmin.cookie),
+      body: JSON.stringify({
+        status: "approved",
+        reviewNotes: "已完成初步沟通，进入后续邀请流程。"
+      })
+    });
+
+    assert.equal(reviewedApplicationResult.response.status, 200);
+    assert.equal(reviewedApplicationResult.payload.data.application.status, "approved");
+    assert.equal(reviewedApplicationResult.payload.data.application.reviewNotes, "已完成初步沟通，进入后续邀请流程。");
+
+    const savedJoinApplication = await directDb.query.joinApplications.findFirst({
+      where: eq(joinApplications.id, createdApplicationId)
+    });
+
+    assert.ok(savedJoinApplication, "Expected the join application to exist.");
+    assert.equal(savedJoinApplication?.status, "approved");
+
+    const homepageResult = await requestJson("/api/admin/v1/homepage", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(homepageResult.response.status, 200);
+    assert.ok(Array.isArray(homepageResult.payload.data.references.articles));
+    assert.ok(Array.isArray(homepageResult.payload.data.references.events));
+    assert.ok(Array.isArray(homepageResult.payload.data.references.branches));
+
+    const currentHomepage = homepageResult.payload.data.homepage;
+    const updatedHomepageResult = await requestJson("/api/admin/v1/homepage", {
+      method: "PATCH",
+      headers: getAuthHeaders(superAdmin.cookie),
+      body: JSON.stringify({
+        heroEyebrow: currentHomepage.heroEyebrow,
+        heroTitle: "集成测试首页标题",
+        heroSummary: currentHomepage.heroSummary,
+        primaryActionLabel: currentHomepage.primaryActionLabel,
+        primaryActionHref: currentHomepage.primaryActionHref,
+        secondaryActionLabel: currentHomepage.secondaryActionLabel,
+        secondaryActionHref: currentHomepage.secondaryActionHref,
+        introTitle: currentHomepage.introTitle,
+        introSummary: currentHomepage.introSummary,
+        audienceTitle: currentHomepage.audienceTitle,
+        audienceItems: currentHomepage.audienceItems,
+        metrics: currentHomepage.metrics,
+        featuredArticleIds: currentHomepage.featuredArticleIds,
+        featuredEventIds: currentHomepage.featuredEventIds,
+        branchHighlightIds: currentHomepage.branchHighlightIds,
+        joinTitle: currentHomepage.joinTitle,
+        joinSummary: currentHomepage.joinSummary,
+        joinHref: currentHomepage.joinHref
+      })
+    });
+
+    assert.equal(updatedHomepageResult.response.status, 200);
+    assert.equal(updatedHomepageResult.payload.data.homepage.heroTitle, "集成测试首页标题");
+
+    const joinPageResult = await requestJson("/api/admin/v1/pages/join", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(joinPageResult.response.status, 200);
+
+    const updatedJoinPageResult = await requestJson("/api/admin/v1/pages/join", {
+      method: "PATCH",
+      headers: getAuthHeaders(superAdmin.cookie),
+      body: JSON.stringify({
+        title: "加入 TGO 鲲鹏会",
+        summary: "通过线上申请与工作人员审核，进入技术领导者交流网络。",
+        body: "具备明确的技术管理职责。\n\n认可长期同侪交流的价值。\n\n可持续参与分会活动与专题交流。",
+        seoTitle: "加入 TGO 鲲鹏会",
+        seoDescription: "加入申请说明与审核流程介绍。",
+        status: "published"
+      })
+    });
+
+    assert.equal(updatedJoinPageResult.response.status, 200);
+    assert.equal(updatedJoinPageResult.payload.data.page.slug, "join");
+    assert.equal(updatedJoinPageResult.payload.data.page.status, "published");
+  });
+
   test("protects internal jobs and publishes due scheduled articles", async () => {
     const superAdmin = await createSignedInUser(["super_admin"]);
     const author = await directDb.query.authors.findFirst();
@@ -410,7 +714,7 @@ describe("admin and internal API integration", () => {
     assert.equal(publishResult.payload.data.skipped[0].id, invalidArticle.id);
     assert.match(
       publishResult.payload.data.skipped[0].issues.map((issue: { field: string }) => issue.field).join(","),
-      /excerpt|body|authorId|topicIds/
+      /excerpt|body|authorId/
     );
 
     const publishedArticleResult = await requestJson(`/api/admin/v1/articles/${validArticle.id}`, {
@@ -432,6 +736,53 @@ describe("admin and internal API integration", () => {
 });
 
 describe("public API integration", () => {
+  test("serves the converged public home, branch, member, join, about, and event routes", async () => {
+    const homeResult = await requestJson("/api/public/v1/home");
+
+    assert.equal(homeResult.response.status, 200);
+    assert.ok(homeResult.payload.data.hero.title);
+    assert.ok(Array.isArray(homeResult.payload.data.branchHighlights));
+
+    const branchesResult = await requestJson("/api/public/v1/branches");
+
+    assert.equal(branchesResult.response.status, 200);
+    assert.ok(branchesResult.payload.data.length > 0);
+
+    const branchSlug = branchesResult.payload.data[0].slug as string;
+    const branchDetailResult = await requestJson(`/api/public/v1/branches/${branchSlug}`);
+
+    assert.equal(branchDetailResult.response.status, 200);
+    assert.equal(branchDetailResult.payload.data.slug, branchSlug);
+
+    const membersResult = await requestJson(`/api/public/v1/members?branchSlug=${branchSlug}`);
+
+    assert.equal(membersResult.response.status, 200);
+    assert.ok(
+      membersResult.payload.data.every(
+        (member: { branch: { slug?: string } | null }) => !member.branch || member.branch.slug === branchSlug
+      )
+    );
+
+    const joinResult = await requestJson("/api/public/v1/join");
+    const aboutResult = await requestJson("/api/public/v1/about");
+
+    assert.equal(joinResult.response.status, 200);
+    assert.equal(aboutResult.response.status, 200);
+    assert.ok(joinResult.payload.data.hero.title);
+    assert.ok(aboutResult.payload.data.sections.length > 0);
+
+    const eventsResult = await requestJson("/api/public/v1/events?upcoming=true");
+
+    assert.equal(eventsResult.response.status, 200);
+    assert.ok(eventsResult.payload.data.length > 0);
+
+    const eventSlug = eventsResult.payload.data[0].slug as string;
+    const eventDetailResult = await requestJson(`/api/public/v1/events/${eventSlug}`);
+
+    assert.equal(eventDetailResult.response.status, 200);
+    assert.equal(eventDetailResult.payload.data.slug, eventSlug);
+  });
+
   test("lists only published content and hides unpublished article detail routes", async () => {
     const hiddenSlug = `draft-hidden-${randomUUID()}`;
 
@@ -462,41 +813,30 @@ describe("public API integration", () => {
     assert.equal(hiddenDetailPayload.error.code, "NOT_FOUND");
   });
 
-  test("persists public applications with city mapping and supports waitlist registrations", async () => {
-    const applicationResult = await requestJson("/api/public/v1/applications", {
+  test("retires legacy public routes and supports waitlist registrations", async () => {
+    const legacyTopicsResult = await request("/api/public/v1/topics");
+    const legacyCitiesResult = await request("/api/public/v1/cities");
+    const legacyApplicationsResult = await request("/api/public/v1/applications", {
       method: "POST",
       headers: {
-        "content-type": "application/json",
-        "x-forwarded-for": "203.0.113.10",
-        "user-agent": "public-application-test"
+        "content-type": "application/json"
       },
       body: JSON.stringify({
-        type: "membership",
-        name: "Public Applicant",
-        email: "public.applicant@example.com",
-        company: "North Studio",
-        city: "SHANGHAI",
-        message: "I would like to join the network."
+        name: "Legacy Applicant"
       })
     });
 
-    assert.equal(applicationResult.response.status, 201);
-    assert.equal(applicationResult.payload.data.type, "membership");
-    assert.equal(applicationResult.payload.data.applicant.city, "SHANGHAI");
+    assert.equal(legacyTopicsResult.status, 404);
+    assert.equal(legacyCitiesResult.status, 404);
+    assert.equal(legacyApplicationsResult.status, 404);
 
-    const savedApplication = await directDb.query.applications.findFirst({
-      where: eq(applications.id, applicationResult.payload.data.id)
-    });
-    const shanghaiCity = await directDb.query.cities.findFirst({
-      where: eq(cities.slug, "shanghai")
+    const waitlistEvent = await directDb.query.events.findFirst({
+      where: and(eq(events.status, "published"), eq(events.registrationState, "waitlist"))
     });
 
-    assert.ok(savedApplication, "Expected the application to be saved.");
-    assert.ok(shanghaiCity, "Expected the Shanghai city seed.");
-    assert.equal(savedApplication?.cityId, shanghaiCity?.id ?? null);
-    assert.equal(savedApplication?.sourcePage, "/apply");
+    assert.ok(waitlistEvent, "Expected a published waitlist event.");
 
-    const waitlistResult = await requestJson("/api/public/v1/events/content-ops-roundtable/registrations", {
+    const waitlistResult = await requestJson(`/api/public/v1/events/${waitlistEvent.slug}/registrations`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -505,13 +845,14 @@ describe("public API integration", () => {
       },
       body: JSON.stringify({
         name: "Waitlist User",
+        phoneNumber: "13900139000",
         email: "waitlist.user@example.com"
       })
     });
 
     assert.equal(waitlistResult.response.status, 201);
     assert.equal(waitlistResult.payload.data.status, "waitlisted");
-    assert.equal(waitlistResult.payload.data.event.slug, "content-ops-roundtable");
+    assert.equal(waitlistResult.payload.data.event.slug, waitlistEvent.slug);
 
     const savedRegistration = await directDb.query.eventRegistrations.findFirst({
       where: eq(eventRegistrations.id, waitlistResult.payload.data.id)
@@ -527,7 +868,17 @@ describe("public API integration", () => {
     resetRateLimitBuckets();
 
     try {
-      const closedResult = await request("/api/public/v1/events/city-chapter-kickoff/registrations", {
+      const closedEvent = await directDb.query.events.findFirst({
+        where: and(eq(events.status, "published"), eq(events.registrationState, "not_open"))
+      });
+      const openEvent = await directDb.query.events.findFirst({
+        where: and(eq(events.status, "published"), eq(events.registrationState, "open"))
+      });
+
+      assert.ok(closedEvent, "Expected a published not_open event.");
+      assert.ok(openEvent, "Expected a published open event.");
+
+      const closedResult = await request(`/api/public/v1/events/${closedEvent.slug}/registrations`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -536,6 +887,7 @@ describe("public API integration", () => {
         },
         body: JSON.stringify({
           name: "Closed Event User",
+          phoneNumber: "13700137000",
           email: "closed@example.com"
         })
       });
@@ -544,7 +896,7 @@ describe("public API integration", () => {
       assert.equal(closedResult.status, 409);
       assert.equal(closedPayload.error.code, "REGISTRATION_CLOSED");
 
-      const firstAttempt = await request("/api/public/v1/events/spring-platform-workshop/registrations", {
+      const firstAttempt = await request(`/api/public/v1/events/${openEvent.slug}/registrations`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -553,6 +905,7 @@ describe("public API integration", () => {
         },
         body: JSON.stringify({
           name: "Rate Limit User",
+          phoneNumber: "13600136000",
           email: "ratelimit@example.com"
         })
       });
@@ -563,7 +916,7 @@ describe("public API integration", () => {
       assert.equal(firstAttempt.headers.get("X-RateLimit-Limit"), "1");
       assert.equal(firstAttempt.headers.get("X-RateLimit-Remaining"), "0");
 
-      const secondAttempt = await request("/api/public/v1/events/spring-platform-workshop/registrations", {
+      const secondAttempt = await request(`/api/public/v1/events/${openEvent.slug}/registrations`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -572,6 +925,7 @@ describe("public API integration", () => {
         },
         body: JSON.stringify({
           name: "Rate Limit User Again",
+          phoneNumber: "13600136001",
           email: "ratelimit-again@example.com"
         })
       });

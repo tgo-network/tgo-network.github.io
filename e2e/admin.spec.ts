@@ -16,13 +16,13 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "仪表盘" })).toBeVisible();
   await expect(page.getByText(adminEmail)).toBeVisible();
-  await expect(page.getByRole("link", { name: "主题" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "员工" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "成员" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "工作人员" })).toBeVisible();
 
-  await page.getByRole("link", { name: "主题" }).click();
-  await expect(page).toHaveURL(/\/topics$/);
-  await expect(page.getByRole("heading", { name: "主题" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "新建主题" })).toBeVisible();
+  await page.getByRole("link", { name: "成员" }).click();
+  await expect(page).toHaveURL(/\/members$/);
+  await expect(page.getByRole("heading", { name: "成员" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
 
   await page.getByRole("button", { name: "退出登录" }).click();
   await expect(page).toHaveURL(/\/login$/);

@@ -536,39 +536,39 @@ export const homePayload: HomePayload = {
 };
 
 export const siteConfig: PublicSiteConfig = {
-  platformName: "TGO Network",
+  platformName: "TGO 鲲鹏会",
   navigation: [
     {
       label: "首页",
       href: "/"
     },
     {
-      label: "主题",
-      href: "/topics"
+      label: "分会董事会",
+      href: "/branches"
     },
     {
-      label: "文章",
-      href: "/articles"
+      label: "成员列表",
+      href: "/members"
     },
     {
       label: "活动",
       href: "/events"
     },
     {
-      label: "城市",
-      href: "/cities"
+      label: "文章",
+      href: "/articles"
     },
     {
-      label: "申请",
-      href: "/apply"
+      label: "加入申请",
+      href: "/join"
     },
     {
-      label: "关于",
+      label: "关于我们",
       href: "/about"
     }
   ],
-  contentCollections: ["topics", "articles", "events", "cities"],
-  footerTagline: "TGO Network 公开站原型基于 Astro 构建，并由共享的公开 API 契约驱动。",
+  contentCollections: ["branches", "members", "articles", "events", "join", "about"],
+  footerTagline: "TGO 鲲鹏会公开站由 Astro 构建，并通过共享 API 契约连接后台与内容发布流程。",
   supportEmail: null
 };
 

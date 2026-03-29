@@ -1,0 +1,136 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { listBranches } from "../../lib/public-api";
+
+const branches = await listBranches();
+---
+
+<BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会概况与董事会成员信息。">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">分会董事会</span>
+        <h1>覆盖不同城市节点的技术领导者网络</h1>
+        <p>
+          每个分会围绕本地技术管理者的交流需求，组织闭门讨论、标杆走访、专题工作坊和成员协作。
+          当前页面展示各分会简介与董事会成员信息。
+        </p>
+      </div>
+    </section>
+
+    <section class="section stack-list">
+      {
+        branches.map((branch) => (
+          <article id={branch.slug} class="panel branch-panel">
+            <div class="branch-head">
+              <div>
+                <div class="card-label">{branch.region || branch.cityName}</div>
+                <h2 class="card-title branch-title">{branch.name}</h2>
+                <p class="card-copy">{branch.summary}</p>
+              </div>
+              <div class="branch-cover-wrap">
+                {branch.coverImage && <img class="branch-cover" src={branch.coverImage.url} alt={branch.coverImage.alt} loading="lazy" />}
+              </div>
+            </div>
+
+            <div class="panel-grid-home branch-body">
+              <article class="panel panel-soft">
+                <div class="card-label">分会介绍</div>
+                <p class="card-copy">{branch.body}</p>
+              </article>
+
+              <article class="panel panel-soft">
+                <div class="card-label">董事会成员</div>
+                <div class="board-list">
+                  {
+                    branch.boardMembers.map((member) => (
+                      <div class="board-item">
+                        <div>
+                          <h3>{member.displayName}</h3>
+                          <p class="card-copy">{member.company} · {member.title}</p>
+                        </div>
+                        <p class="card-copy">{member.bio}</p>
+                      </div>
+                    ))
+                  }
+                </div>
+              </article>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .stack-list {
+    display: grid;
+    gap: 18px;
+  }
+
+  .branch-panel {
+    display: grid;
+    gap: 20px;
+  }
+
+  .branch-head {
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .branch-title {
+    margin-top: 8px;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+  }
+
+  .branch-cover-wrap {
+    width: min(320px, 100%);
+    flex: 0 0 auto;
+  }
+
+  .branch-cover {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 22px;
+  }
+
+  .branch-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .board-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .board-item {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(31, 26, 23, 0.08);
+  }
+
+  .board-item h3 {
+    margin: 0 0 8px;
+  }
+
+  @media (max-width: 900px) {
+    .branch-head {
+      flex-direction: column;
+    }
+
+    .branch-body {
+      grid-template-columns: 1fr;
+    }
+
+    .branch-cover-wrap {
+      width: 100%;
+    }
+  }
+</style>

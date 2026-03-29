@@ -1,352 +1,345 @@
-# TGO Network Overall Architecture
+# TGO Network 总体架构
 
-## 1. Project Goals
+## 1. 项目目标
 
-This project targets a product shape similar to `TGO`:
+当前项目已经从更宽泛的内容平台方向，收敛为一个更明确的「科技领导者社区 / 组织展示与运营平台」。
 
-- Public-facing content site for brand, topics, events, blog, and city pages
-- Staff admin console for content operations and event management
-- Unified backend for auth, content, events, applications, and media
-- Portable deployment model without binding the whole system to a single hosting vendor
+当前版本的前台必须包含以下 7 个公开模块：
 
-Core engineering principles:
+- 首页
+- 分会董事会
+- 成员列表与成员详情
+- 活动列表与活动详情/报名
+- 文章列表与文章详情
+- 加入申请说明与申请表
+- 关于我们
 
-- Static-first for public pages
-- Separate concerns between site, admin, and API
-- Standard infrastructure choices for portability
-- Business authorization owned by our application, not hidden inside a platform
-- Leave room for future phone-based login and richer workflows
+当前版本的后台必须包含以下 8 个运营模块：
 
-## 2. Chosen Stack
+- 仪表盘
+- 文章管理
+- 活动管理与报名审核
+- 申请审核
+- 成员管理
+- 工作人员管理
+- 角色与权限配置
+- 审计日志
 
-### Frontend
+当前不再把下列能力视为本阶段的一线范围：
 
-- Public site: `Astro`
-- Admin console: `Vue + Vite`
+- 主题专题页 `topics`
+- 独立城市内容页 `cities`
+- 训练营 / 企业图谱 / 成员中心
+- 支付、发票、复杂工作流引擎
 
-### Backend
+## 2. 已确认技术栈
 
-- API framework: `Hono`
-- Database: `PostgreSQL`
-- ORM and migrations: `Drizzle ORM + Drizzle Kit`
-- Authentication: `Better Auth`
-- File storage: `S3-compatible object storage`
+### 前端
 
-### Infra
+- 公开站点：`Astro`
+- 管理后台：`Vue + Vite`
 
-- Monorepo managed with `pnpm`
-- Runtime: `Node.js`
-- Deployment: `Docker` on any standard Node-compatible platform
-- Optional managed services:
-  - Database: `Neon` or self-hosted `PostgreSQL`
-  - Object storage: `Cloudflare R2`, `AWS S3`, or `MinIO`
+### 后端
 
-## 3. High-Level Architecture
+- API 框架：`Hono`
+- 数据库：`PostgreSQL`
+- ORM 与迁移：`Drizzle ORM + Drizzle Kit`
+- 身份认证：`Better Auth`
+- 文件存储：`S3-compatible object storage`
+
+### 基础设施
+
+- Monorepo：`pnpm workspace`
+- 运行时：`Node.js`
+- 部署：`Docker` + 任意标准 Node 兼容平台
+
+## 3. 高层架构
 
 ```text
-Users
-  -> Public Site (Astro)
-  -> Admin Console (Vue + Vite)
+Visitors / Members
+  -> apps/site (Astro)
 
-Public Site / Admin Console
-  -> API Service (Hono)
-  -> Auth Routes (Better Auth)
+Staff Users
+  -> apps/admin (Vue + Vite)
 
-API Service
+apps/site / apps/admin
+  -> apps/api (Hono)
+  -> Better Auth routes
+
+apps/api
   -> PostgreSQL
-  -> Object Storage
+  -> S3-compatible object storage
 ```
 
-Design intent:
+核心边界：
 
-- The site focuses on SEO, content delivery, and low-JS rendering
-- The admin focuses on forms, tables, permissions, and workflows
-- The API becomes the only business entry point for both frontends
-- The database remains the source of truth for users, content, events, and operations
+- `apps/site` 负责品牌展示、SEO、公开浏览、低交互页面
+- `apps/site` 也承担成员侧前台能力，例如成员查看信息、活动报名等
+- `apps/admin` 负责内部表格、表单、审核、权限化操作
+- `apps/api` 是唯一业务入口，承载业务规则与鉴权
+- `PostgreSQL` 保存结构化业务数据
+- `S3` 保存图片等二进制文件，数据库仅保存元数据
 
-## 4. Monorepo Layout
-
-Recommended structure:
+## 4. 仓库结构
 
 ```text
 apps/
-  site/         Astro public site
-  admin/        Vue + Vite admin console
-  api/          Hono API service
+  site/         Astro 前台
+  admin/        Vue + Vite 后台
+  api/          Hono API
 
 packages/
-  db/           Drizzle schema, migrations, seed scripts
-  shared/       Shared types, zod schemas, API DTOs, constants
-  ui/           Optional shared UI tokens or utilities
+  db/           Drizzle schema / migrations / seeds
+  shared/       共享 DTO、zod schema、常量
+  ui/           可选的共享设计令牌或工具
 
 docs/
-  system-architecture.md
+  规划与设计文档
 ```
 
-Why this layout:
+结构原则：
 
-- `apps/site` and `apps/admin` can evolve independently
-- `apps/api` keeps backend concerns away from frontend build pipelines
-- `packages/db` centralizes schema ownership
-- `packages/shared` reduces drift between API contracts and frontend consumers
+- 不把前台和后台混入同一个前端框架
+- 不把业务规则下沉到前端
+- 共享的是契约，不是把所有实现耦合到一起
 
-## 5. Rendering Strategy
+## 5. 前台渲染策略
 
-### Public Site
+`Astro` 继续作为公开站点的主框架，但不同页面的渲染方式需要区分：
 
-Use `Astro` as a static-first frontend.
+- 首页、加入说明页、关于我们：静态优先
+- 分会董事会页：静态优先，数据更新后重建或按需刷新
+- 成员列表：支持服务端分页或按需渲染，避免大规模静态生成压力
+- 成员详情、文章详情、活动详情：静态优先，必要时支持混合渲染
+- 报名与申请表：页面可静态，提交必须走 API
+- 当前阶段不引入成员认证，活动报名采用开放提交 + 后台审核确认
 
-Recommended rendering rules:
+设计目标：
 
-- Brand pages, topic pages, article pages, and city pages:
-  - Prefer static generation
-- Frequently updated homepage sections:
-  - Start with build-time fetch
-  - Move selected blocks to server rendering if freshness becomes important
-- Interactive widgets:
-  - Use Astro islands only where necessary
+- SEO 友好
+- 内容可被后台驱动更新
+- 仅在必要处使用 Astro islands 或客户端交互
 
-### Admin Console
+## 6. 后台定位
 
-Use `Vue + Vite` as a SPA for staff workflows.
+`Vue + Vite` 后台是一个典型的内部运营控制台，重点在于：
 
-Admin priorities:
+- 表格列表
+- 复杂表单
+- 审核流转
+- 权限化导航
+- 审计追踪
 
-- Rich forms
-- Search and filtering
-- Batch operations
-- Table-heavy interfaces
-- Role-aware navigation and actions
+后台一级导航以用户要求的 8 个模块为准。
 
-## 6. Backend Responsibilities
+其中部分支持性能力不一定需要独立一级菜单：
 
-`Hono` will own:
+- 首页配置
+- 加入页 / 关于页内容管理
+- 资源上传与图片选择
+- 分会与董事会成员维护
 
-- Public content APIs
-- Admin APIs
-- Auth mounting and session handling
-- Validation, authorization, and business rules
-- Media upload signing or upload orchestration
-- Audit logging and operational endpoints
+这些能力可以作为成员域或内容域下的二级页面存在。
 
-Suggested API grouping:
+## 7. 后端职责
 
-- `/api/public/*`
-- `/api/admin/*`
+`Hono` 负责：
+
+- 公开站点读取 API
+- 后台管理 API
+- Better Auth 挂载与会话校验
+- 参数校验、权限校验、业务规则执行
+- S3 上传签名与文件元数据落库
+- 审计日志记录
+- 健康检查与内部任务接口
+
+推荐 API 分组：
+
+- `/api/public/v1/*`
+- `/api/admin/v1/*`
 - `/api/auth/*`
-- `/api/internal/*` for background jobs or trusted system calls
+- `/api/internal/v1/*`
 
-## 7. Auth and Permission Model
+## 8. 核心业务域
 
-### Authentication
+当前版本的核心域应收敛到以下 8 类：
 
-Use `Better Auth` for:
+- 成员与工作人员
+  - `members`
+  - `users`（当前主要用于工作人员认证）
+  - `staff_accounts`
+  - `roles`
+  - `permissions`
+- 站点基础内容
+  - `site_settings`
+  - `homepage_sections`
+  - `site_pages`（`join` / `about`）
+- 分会与董事会
+  - `branches`
+  - `branch_board_members`
+- 文章
+  - `articles`
+- 活动
+  - `events`
+  - `event_registrations`
+  - `event_agenda_items`
+- 加入申请
+  - `join_applications`
+- 媒体资源
+  - `assets`
+- 运营审计
+  - `audit_logs`
 
-- Email/password login
-- Social login if needed later
-- Session management
-- Password reset
-- Future phone OTP login
+关键建模约束：
 
-Important boundary:
+- `members` 是成员业务域
+- `staff_accounts` 是工作人员后台准入域
+- 两者完全分开建模，不做包含关系，不做默认映射
+- `users` 当前主要服务于工作人员认证，不默认承载成员身份
+- 分会既承担组织展示，也承担活动城市筛选维度
+- 公开页面看到的内容必须全部来源于已发布数据
 
-- `Better Auth` answers: who is this user
-- Our business tables answer: what can this user do
+## 9. 身份认证与权限
 
-### Authorization
+认证与授权继续分离：
 
-Business authorization should be implemented in our own schema and middleware.
+- `Better Auth` 解决“你是谁”
+- 业务表和中间件解决“你能做什么”
 
-Recommended model:
+这里必须区分两套完全不同的概念：
 
-- `users`
-- `staff_accounts`
-- `roles`
-- `permissions`
-- `staff_role_bindings`
-- `role_permission_bindings`
+- 人群身份分类
+  - 非成员访客
+  - 申请人
+  - 成员
+  - 工作人员
+- 工作人员 RBAC 角色
+  - `super_admin`
+  - `content_editor`
+  - `event_manager`
+  - 等后台权限角色
 
-Examples:
+重要说明：
 
-- Public member account can register for events
-- Staff editor can create and publish articles
-- Event operator can manage registration records
-- Super admin can manage roles and system settings
+- “成员”不是后台里的一个 `role`
+- “角色”菜单只服务于工作人员后台权限管理
+- 非成员提交加入申请，不参与后台角色体系
+- 成员前台能力与工作人员后台权限必须分别建模
 
-## 8. Core Business Domains
+当前后台权限最少需要覆盖：
 
-Recommended initial domains:
+- 仪表盘查看
+- 页面内容管理
+- 文章管理
+- 分会/董事会管理
+- 成员管理
+- 活动管理
+- 活动报名审核
+- 入会申请审核
+- 工作人员管理
+- 角色权限管理
+- 审计日志查看
 
-- Identity
-  - users
-  - profiles
-  - sessions
-  - staff accounts
-- Content
-  - articles
-  - topics
-  - tags
-  - authors
-  - featured blocks
-- Events
-  - events
-  - event schedules
-  - event registrations
-  - attendance or check-in records
-- Applications
-  - trial applications
-  - membership applications
-- Media
-  - assets
-  - upload records
-- Operations
-  - audit logs
-  - announcements
-  - site settings
+未来如切换手机号登录，只应增加一种登录方式，不应重建身份体系。
 
-## 9. Content Source of Truth
+## 10. 文件与媒体策略
 
-This needs an explicit rule to avoid rework later.
+对象存储主要承载：
 
-Recommended approach:
+- 首页横幅与精选图片
+- 分会封面图
+- 董事会成员头像
+- 成员头像
+- 文章封面与正文插图
+- 活动海报与嘉宾图片
 
-- Prototype stage:
-  - Astro may use local mock data or content collections for speed
-- Production stage:
-  - `PostgreSQL` becomes the source of truth
-  - Admin writes content into the backend
-  - Astro builds or renders from API-delivered published content
+原则：
 
-This preserves a smooth early workflow without blocking long-term CMS capability.
+- 二进制文件存 S3
+- 元数据与引用关系存 PostgreSQL
+- 前台永远通过资产元数据推导 URL，不在业务记录里硬编码外链
 
-## 10. File and Media Strategy
+## 11. 部署模型
 
-Use S3-compatible object storage for:
+推荐域名拆分：
 
-- Cover images
-- Speaker photos
-- Article assets
-- Downloadable attachments
-- User-uploaded files if needed later
+- `www.example.com`：前台
+- `admin.example.com`：后台
+- `api.example.com`：API
+- `assets.example.com`：CDN 或对象存储访问域名
 
-Recommended rule:
+部署方式：
 
-- Metadata in `PostgreSQL`
-- Binary files in object storage
+- `apps/site`：静态托管或 Astro SSR 容器
+- `apps/admin`：静态托管
+- `apps/api`：Docker 化 Node 服务
 
-This avoids storing large blobs in the main relational database.
+这样可以保持平台兼容性，不被单一厂商锁死。
 
-## 11. Deployment Model
+## 12. 当前阶段划分
 
-Recommended domain split:
+### Phase 0：架构与文档基线
 
-- `www.example.com` for public site
-- `admin.example.com` for admin
-- `api.example.com` for backend
-- `assets.example.com` for media CDN or object storage public access
+已完成：
 
-Recommended deployment style:
+- 技术栈确认
+- 仓库结构确认
+- 系统边界确认
+- 目标站基准分析
 
-- `apps/site`
-  - static hosting or Node SSR hosting
-- `apps/admin`
-  - static hosting
-- `apps/api`
-  - Dockerized Node service
+### Phase 1：运行骨架与基础设施
 
-This keeps each application deployable on different platforms if needed.
+已完成或基本完成：
 
-## 12. Environment Strategy
+- Monorepo 脚手架
+- API / Site / Admin 基础工程
+- 数据库与认证打通
+- 基础测试与 CI
 
-Keep at least these environments:
+### Phase 2：范围收敛与契约冻结
 
-- local
-- staging
-- production
+当前进行中：
 
-Recommended baseline:
+- 将产品范围收敛到 7 个前台模块和 8 个后台模块
+- 以 `branches` / `members` / `join_applications` 为主线重整数据模型和 API
+- 将旧的 `topic/city` 方向降级为历史探索，不再作为当前交付边界
 
-- Independent environment variables per app
-- Separate database per environment
-- Separate object storage buckets or prefixes
-- Separate Better Auth secrets and cookie settings
+### Phase 3：前台能力对齐
 
-## 13. Initial Delivery Phases
+下一步交付：
 
-### Phase 1: Foundation
+- 首页
+- 分会董事会
+- 成员列表/详情
+- 活动列表/详情/报名
+- 文章列表/详情
+- 加入说明/申请
+- 关于我们
 
-- Set up monorepo
-- Create Astro site skeleton
-- Create Vue admin skeleton
-- Create Hono API skeleton
-- Add Drizzle schema package
-- Add Better Auth baseline integration
+### Phase 4：后台能力对齐
 
-### Phase 2: Public Site MVP
+下一步交付：
 
-- Homepage
-- Topic listing
-- Event listing
-- Article listing and detail pages
-- City pages
-- Trial application form
+- 仪表盘
+- 文章管理
+- 活动管理与报名审核
+- 申请审核
+- 成员与分会维护
+- 工作人员与角色权限
+- 审计日志
 
-### Phase 3: Admin MVP
+### Phase 5：运营加固
 
-- Staff login
-- Role-aware admin shell
-- Article CRUD
-- Event CRUD
-- Application review
+后续增加：
 
-### Phase 4: Operational Hardening
+- 更细粒度的审计与告警
+- 缓存与重建策略
+- 备份恢复演练
+- 更完整的发布自动化
 
-- Audit logs
-- Upload pipeline
-- SEO controls
-- Caching strategy
-- Metrics and error monitoring
+## 13. 已冻结的关键技术决策
 
-### Phase 5: Growth Features
-
-- Phone OTP login
-- Richer role system
-- Event check-in
-- Notifications
-- Member-only features
-
-## 14. Key Technical Decisions Already Made
-
-- Do not use `Next.js` as the core application framework
-- Public site and admin console will be separate frontends
-- Backend will stay framework-light and portable
-- `PostgreSQL` is the primary data store
-- `Better Auth` is the chosen auth direction
-- Future phone login must remain possible without rewriting the stack
-
-## 15. Open Questions
-
-These should be resolved before detailed implementation:
-
-- Which modules must exist in the first public launch
-- Whether the homepage content is fully CMS-managed or partially hard-coded
-- Which staff roles are needed in the first admin release
-- Which SMS provider will be used for future phone login
-- Whether deployment will begin on self-hosted infrastructure or managed platforms
-- Whether event registration needs payment in the first version
-
-## 16. Related Design Documents
-
-Supporting documents in this repository:
-
-- `docs/mvp-scope.md`
-- `docs/route-map.md`
-- `docs/data-model.md`
-- `docs/auth-and-permission.md`
-- `docs/api-design.md`
-- `docs/content-workflow.md`
-- `docs/media-storage.md`
-- `docs/implementation-roadmap.md`
-- `docs/deployment-and-environments.md`
-- `docs/testing-strategy.md`
-- `docs/README.md`
+- 不引入 `Next.js` 作为核心框架
+- 不把前后台合并为单应用
+- 不让前端直接访问数据库作为主路径
+- 不把图片文件直接存进 `PostgreSQL`

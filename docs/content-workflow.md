@@ -1,264 +1,234 @@
-# TGO Network Content Workflow
+# TGO Network 内容工作流
 
-## 1. Purpose
+## 1. 目的
 
-This document defines how content moves from creation to publication.
+本文档定义后台内容如何从创建走向公开发布。
 
-It applies primarily to:
+当前主要适用于：
 
-- articles
-- topics
-- city pages
-- events
-- featured homepage blocks
+- 首页区块
+- 分会与董事会信息
+- 成员资料
+- 文章
+- 活动
+- 单页内容（`/join`、`/about`）
 
-## 2. Workflow Design Principles
+## 2. 工作流原则
 
-- Public content must have an explicit publish state
-- Draft work should not leak into public responses
-- Publishing should be simple in MVP
-- More complex approval chains can be added later
-- Public site rendering should consume only publishable records
+- 公开内容必须有明确发布状态
+- 草稿不得出现在公开 API 中
+- 当前阶段优先简单可用，不引入复杂审批引擎
+- 发布规则应由 API 统一控制，而不是由前端自行决定
 
-## 3. Core Content States
+## 3. 当前推荐状态模型
 
-Recommended shared content states:
+对大多数公开实体，优先使用：
 
 - `draft`
-- `in_review`
-- `scheduled`
 - `published`
 - `archived`
 
-Meaning:
+对文章与活动，可额外支持：
 
-- `draft`
-  - editable and not visible publicly
-- `in_review`
-  - waiting for editorial review and not visible publicly
 - `scheduled`
-  - approved for future publish time
-- `published`
-  - visible to public APIs
-- `archived`
-  - hidden from public view but retained for records
 
-## 4. MVP Workflow Rule
+含义：
 
-For MVP, the system does not need a complicated approval engine.
+- `draft`：编辑中，不公开
+- `scheduled`：已准备好，在未来时间自动公开
+- `published`：公开可见
+- `archived`：停止公开，但保留后台记录
 
-A simple editorial lifecycle is enough:
+## 4. 当前阶段的最小发布流程
 
-1. create draft
-2. edit content
-3. optionally mark for review
-4. publish or schedule
-5. archive when no longer active
+推荐统一为：
 
-## 5. Content-Type Rules
+1. 创建草稿
+2. 编辑内容
+3. 完成必要校验
+4. 发布或定时发布
+5. 不再使用时归档
 
-### Articles
+## 5. 各内容类型规则
 
-Required editorial fields:
+### 首页区块
 
-- title
-- slug
-- excerpt
-- body
-- author
-- topics
-- cover image optional but recommended
-- SEO fields optional but recommended
+首页不是单篇文章，而是结构化区块组合。
 
-Current MVP implementation:
+当前建议区块：
 
-- admin stores the selected image as `coverAssetId`
-- public APIs resolve that reference into a `coverImage` object with URL and metadata
+- Hero
+- 组织介绍
+- 覆盖人群
+- 数据指标
+- 精彩活动 / 精选文章
+- 加入 CTA
 
-Publishing rules:
+管理规则：
 
-- article must have title, slug, body, and author before publish
-- only `published` articles appear in public article endpoints
-- `scheduled` articles become public only after schedule time is reached
+- 每个区块可单独启停
+- 首页区块更新后应有明确的发布时间点
+- 首页引用的文章、活动、分会只允许选择已发布内容
 
-### Topics
+### 分会与董事会
 
-Required editorial fields:
+分会发布前至少应具备：
 
-- title
-- slug
-- summary
-- cover image optional but recommended for hubs and hero cards
+- 分会名称
+- 城市或区域
+- 分会简介
 
-Publishing rules:
+董事会展示建议至少具备：
 
-- topics may publish with minimal curated body content
-- related articles and events are derived dynamically from bindings
+- 姓名
+- 公司
+- 职称
+- 头像（推荐）
 
-### City Pages
+当前建议：
 
-Required editorial fields:
+- 分会与董事会信息由成员域维护
+- 分会页面只展示 `published` 状态的分会
+- 分会下的董事会成员也必须是可公开状态
 
-- city name
-- slug
-- summary
+### 成员
 
-Publishing rules:
+成员公开前至少应具备：
 
-- city pages can be published even if curated body content is minimal
-- related articles and events are assembled from associated records
+- 姓名
+- 公司
+- 职称
+- 加入时间
 
-### Events
+推荐补充：
 
-Required editorial fields:
+- 头像
+- 个人简介
+- 所属分会
 
-- title
-- slug
-- city
-- start time
-- end time
-- cover image optional but recommended for list cards and detail heroes
+公开规则：
 
-Additional event controls:
+- 成员列表只返回可公开成员
+- 成员详情读取更完整资料
+- 隐藏成员不得出现在列表中
 
-- content status controls public visibility
-- registration state controls whether submissions are accepted
-- `registration_url` can optionally point to an external form without removing the API-owned registration workflow
+### 文章
 
-Important distinction:
+文章发布前至少应具备：
 
-- event `status=published` means the event page may be visible
-- `registration_state=open` means registrations are allowed
+- 标题
+- `slug`
+- 摘要
+- 正文
+- 作者名
 
-Current MVP registration workflow:
+推荐补充：
 
-1. a published event page accepts submissions only when `registration_state` is `open` or `waitlist`
-2. the Astro event page posts to `/api/public/v1/events/:eventId/registrations`
-3. the API persists attendee metadata in `event_registrations`
-4. staff review those submissions in the admin registration queue
-5. review actions update `status`, `reviewed_at`, and `reviewed_by_staff_id`
+- 封面图
+- SEO 标题与描述
 
-### Featured Blocks
+文章规则：
 
-Featured blocks control homepage and landing-page curation.
+- `scheduled` 文章只有到时后才进入公开接口
+- 发布后如修改 `slug`，应记录审计日志
+- 归档文章应立即从公开列表中移除
 
-Recommended states:
+### 活动
 
-- `draft`
-- `active`
-- `archived`
+活动发布前至少应具备：
 
-For MVP, `active` is equivalent to the currently published configuration.
+- 标题
+- `slug`
+- 分会或城市
+- 开始时间
+- 结束时间
+- 地点
+- 简介或正文
 
-## 6. Publishing Triggers
+活动有两套状态：
 
-When content is published:
+- 内容状态：`draft` / `published` / `archived`
+- 报名状态：`closed` / `open` / `waitlist` / `external`
 
-- the public API may start returning it immediately
-- caches should be invalidated if caching is enabled
-- Astro pages should be refreshed through SSR, rebuild, or revalidation strategy
+重要区分：
 
-When content is archived:
+- 内容发布决定页面是否公开可见
+- 报名状态决定是否允许提交报名
 
-- public APIs must stop returning it
-- historical admin access remains available
+当前报名流转：
 
-## 7. Preview Strategy
+1. 前台在活动详情页提交表单
+2. API 写入 `event_registrations`
+3. 后台活动报名审核页查看记录
+4. 工作人员更新状态并填写审核备注
 
-Recommended MVP preview approach:
+补充约束：
 
-- preview is available only to authenticated staff
-- preview content is fetched through admin-authorized API calls
-- public APIs should not expose draft or review content
+- 当前阶段活动报名先开放提交
+- 是否通过、是否符合活动要求，由工作人员审核判断
 
-Do not implement preview by weakening public filters.
+### 单页内容
 
-## 8. SEO Ownership
+当前单页包括：
 
-Each publishable content type should support:
+- `/join`
+- `/about`
+
+`join` 页发布前建议具备：
+
+- 申请条件
+- 申请流程
+- FAQ
+- 跳转申请按钮
+
+`about` 页发布前建议具备：
+
+- 组织背景
+- 活动形式
+- 加入方式说明
+
+## 6. 预览策略
+
+当前阶段建议：
+
+- 预览只对已登录工作人员开放
+- 预览内容通过后台权限 API 获取
+- 不允许通过放宽公开接口过滤来实现预览
+
+## 7. SEO 规则
+
+每个公开页面类型都建议支持：
 
 - `seo_title`
 - `seo_description`
-- canonical URL generation from slug
-- Open Graph image using cover asset when available
+- canonical URL
+- Open Graph 图片
 
-If SEO fields are omitted:
+如果未配置 SEO 字段，可退回到标题与摘要生成。
 
-- fall back to title and summary-derived values
+## 8. 负责人归属建议
 
-## 9. Slug Policy
+- 内容编辑负责：首页、加入页、关于页、文章
+- 活动运营负责：活动与报名审核
+- 成员运营负责：分会、董事会、成员资料
+- 审核人员负责：加入申请处理
+- 超级管理员负责：跨域覆盖与最终兜底
 
-Recommended MVP rule:
+## 9. 定时发布
 
-- slug must be unique per content type
-- slug edits are allowed before publish
-- slug edits after publish should be restricted or logged carefully
+当前阶段不必做复杂编排。
 
-Later enhancement:
+建议仅在以下类型支持：
 
-- redirect records for changed slugs
+- 文章
+- 活动（如确有需要）
 
-## 10. Content Visibility Rules
+通过内部任务定时把到点记录从 `scheduled` 切换到 `published`。
 
-Public site should only consume:
+## 10. 当前明确不做的工作流能力
 
-- `published` content
-- or `scheduled` content whose publish time has already passed
-
-Admin should be able to view:
-
-- all states permitted by role
-
-## 11. Editorial Ownership
-
-Recommended MVP ownership:
-
-- content editors own articles, topics, and featured blocks
-- event managers own events
-- event managers own registration review for their events
-- super admins can override all publish operations
-
-## 12. Scheduled Publishing
-
-Do not overbuild this at first.
-
-Recommended MVP-compatible approach:
-
-- support `scheduled_at` on publishable entities
-- use an internal scheduled job to promote due records to `published`
-
-Current MVP implementation:
-
-- article upsert validation now requires `scheduledAt` when status is `scheduled`
-- article upsert validation also requires publish-ready fields before `scheduled` or `published`
-- `POST /api/internal/v1/publish-scheduled-content` promotes due scheduled articles
-- invalid scheduled records are skipped and returned with validation issues instead of being published blindly
-
-## 13. Content Source Of Truth
-
-Prototype phase:
-
-- local mock data or content collections may exist temporarily
-
-Real product phase:
-
-- backend-managed database records are the source of truth
-- admin is the authoring interface
-- Astro consumes published content from the backend
-
-## 14. Out Of Scope For MVP
-
-- multi-stage editorial approval chains
-- collaborative editing
-- revision history UI
-- diff viewer
-- content localization
-
-## 15. Recommended Next Use
-
-This document should directly drive:
-
-- admin form states
-- publish and archive endpoints
-- public API filters
-- Astro data-loading rules
+- 多级审批流
+- 协同编辑
+- 可视化差异比较
+- 多语言本地化工作流
+- 成员自助编辑资料审核流

@@ -1,0 +1,225 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getJoinPage, getPublicApiBaseUrl } from "../lib/public-api";
+
+const [page, apiBaseUrl] = await Promise.all([getJoinPage(), Promise.resolve(getPublicApiBaseUrl())]);
+---
+
+<BaseLayout title="加入申请 | TGO 鲲鹏会" description={page.hero.summary}>
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card hero-split">
+        <div>
+          <span class="eyebrow">{page.hero.eyebrow}</span>
+          <h1>{page.hero.title}</h1>
+          <p>{page.hero.summary}</p>
+        </div>
+
+        <aside class="panel panel-soft stack-sm">
+          <div>
+            <div class="card-label">如何开始</div>
+            <p class="card-copy">先了解加入条件与成员权益，再直接在本页底部填写申请资料，提交给工作人员审核。</p>
+          </div>
+          <a class="button primary" href="#application-form">填写申请表</a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-3">
+        <article class="panel">
+          <div class="card-label">加入条件</div>
+          <ul class="meta-list vertical-list">
+            {page.conditions.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+
+        <article class="panel">
+          <div class="card-label">成员权益</div>
+          <ul class="meta-list vertical-list">
+            {page.benefits.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+
+        <article class="panel">
+          <div class="card-label">加入流程</div>
+          <ul class="meta-list vertical-list">
+            {page.process.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section detail-grid">
+      <article class="panel prose-panel">
+        <div class="card-label">常见问题</div>
+        <div class="faq-list">
+          {
+            page.faq.map((item) => (
+              <div class="faq-item">
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </div>
+            ))
+          }
+        </div>
+      </article>
+
+      <aside class="panel panel-soft stack-sm">
+        <div>
+          <div class="card-label">提交后会发生什么</div>
+          <p class="card-copy">申请资料会进入工作人员后台，由工作人员审核、联系并持续跟进后续流程。</p>
+        </div>
+        <div>
+          <div class="card-label">填写建议</div>
+          <ul class="meta-list vertical-list">
+            <li>尽量写清当前负责的技术管理工作。</li>
+            <li>说明你希望加入后的参与方式与交流诉求。</li>
+            <li>留下便于联系的手机号与微信号。</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <section id="application-form" class="section registration-shell">
+      <div class="panel registration-panel">
+        <div class="card-label">加入申请表</div>
+        <h2>{page.cta.label}</h2>
+        <p class="registration-copy">
+          请填写姓名、手机号、微信号、邮箱、个人介绍与申请信息。提交后会由工作人员在后台审核并联系你。
+        </p>
+
+        <form class="form-panel" data-application-form data-api-base={apiBaseUrl}>
+          <div class="form-grid">
+            <label>
+              <span>姓名</span>
+              <input name="name" type="text" required minlength="2" />
+            </label>
+
+            <label>
+              <span>手机号</span>
+              <input name="phoneNumber" type="tel" required inputmode="tel" />
+            </label>
+
+            <label>
+              <span>微信号</span>
+              <input name="wechatId" type="text" />
+            </label>
+
+            <label>
+              <span>邮箱</span>
+              <input name="email" type="email" />
+            </label>
+          </div>
+
+          <label>
+            <span>个人介绍</span>
+            <textarea name="introduction" rows="5" required minlength="20"></textarea>
+          </label>
+
+          <label>
+            <span>申请信息</span>
+            <textarea name="applicationMessage" rows="6" required minlength="20"></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button class="button primary" type="submit">提交申请</button>
+            <p class="form-status" data-form-status>提交后会由工作人员进行审核与联系。</p>
+          </div>
+        </form>
+      </div>
+
+      <aside class="panel panel-soft registration-side">
+        <div class="card-label">当前规则</div>
+        <ul class="meta-list vertical-list">
+          <li>非成员可以直接提交加入申请。</li>
+          <li>成员与工作人员是两套独立身份体系。</li>
+          <li>当前阶段成员不需要登录即可查看前台公开内容。</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("[data-application-form]");
+    const status = document.querySelector("[data-form-status]");
+
+    if (form instanceof HTMLFormElement && status instanceof HTMLElement) {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "提交中...";
+
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(
+          Array.from(formData.entries()).filter(([, value]) => typeof value === "string" && value.trim().length > 0)
+        );
+        const baseUrl = form.dataset.apiBase ?? "http://127.0.0.1:8787";
+
+        try {
+          const response = await fetch(new URL("/api/public/v1/join-applications", baseUrl), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            const firstIssue = result.error?.details?.issues?.[0]?.message;
+            status.textContent = firstIssue ?? result.error?.message ?? "申请提交失败，请稍后再试。";
+            return;
+          }
+
+          status.textContent = `申请已提交，编号 ${result.data.id}。`;
+          form.reset();
+        } catch {
+          status.textContent = "API 当前不可用，请先启动 apps/api 以测试完整流程。";
+        }
+      });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  .vertical-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .faq-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .faq-item h3 {
+    margin: 0 0 8px;
+  }
+
+  .faq-item p {
+    margin: 0;
+  }
+
+  .registration-shell {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+    scroll-margin-top: 24px;
+  }
+
+  .registration-panel h2 {
+    margin: 14px 0 10px;
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+  }
+
+  .registration-copy {
+    margin: 0 0 20px;
+  }
+
+  @media (max-width: 900px) {
+    .registration-shell {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

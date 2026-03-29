@@ -1,0 +1,69 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../lib/format";
+import { getMember, listMembers } from "../../lib/public-api";
+
+export const getStaticPaths = async () => {
+  const members = await listMembers();
+
+  return members.map((member) => ({
+    params: {
+      slug: member.slug
+    }
+  }));
+};
+
+const slug = Astro.params.slug!;
+const member = await getMember(slug);
+
+if (!member) {
+  throw new Error(`成员不存在：${slug}`);
+}
+---
+
+<BaseLayout title={`${member.name} | 成员 | TGO 鲲鹏会`} description={`${member.company} · ${member.title}`}>
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class:list={["hero-card", { "hero-split": Boolean(member.avatar), "hero-card-media": Boolean(member.avatar) }]}>
+        <div>
+          <span class="eyebrow">成员详情</span>
+          <h1>{member.name}</h1>
+          <p>{member.company} · {member.title}</p>
+          <ul class="stat-row">
+            <li>{member.branch?.name ?? "未分配分会"}</li>
+            <li>{member.branch?.cityName ?? ""}</li>
+            <li>{formatDate(member.joinedAt)}</li>
+          </ul>
+        </div>
+
+        {
+          member.avatar && (
+            <figure class="hero-figure">
+              <img class="hero-image" src={member.avatar.url} alt={member.avatar.alt} />
+            </figure>
+          )
+        }
+      </div>
+    </section>
+
+    <section class="section detail-grid">
+      <article class="panel prose-panel">
+        <div class="card-label">个人简介</div>
+        <p>{member.bio}</p>
+      </article>
+
+      <aside class="panel panel-soft stack-sm">
+        <div>
+          <div class="card-label">所属分会</div>
+          <h2 class="card-title">{member.branch?.name ?? "待补充"}</h2>
+          <p class="card-copy">{member.branch?.cityName ?? "成员资料暂未绑定分会。"}</p>
+        </div>
+
+        <div>
+          <div class="card-label">加入时间</div>
+          <p class="card-copy">{formatDate(member.joinedAt)}</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+</BaseLayout>

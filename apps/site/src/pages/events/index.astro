@@ -5,17 +5,39 @@ import { formatDateRange, formatRegistrationState } from "../../lib/format";
 import { listEvents } from "../../lib/public-api";
 
 const events = await listEvents();
+const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityName).filter((value): value is string => Boolean(value))));
 ---
 
-<BaseLayout title="活动 | TGO Network" description="支持报名状态的已发布活动页面。">
+<BaseLayout title="活动 | TGO 鲲鹏会" description="查看近期活动、分会动态与公开报名入口。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card">
-        <span class="eyebrow">公开路由</span>
-        <h1>活动</h1>
+        <span class="eyebrow">活动</span>
+        <h1>各地分会活动与公开报名入口</h1>
         <p>
-          活动页面已经可以展示报名状态、场地信息与议程内容，同时继续保持与静态优先 Astro 交付模型兼容。
+          活动由工作人员后台发布，可展示城市、时间地点、议程与报名状态。
+          当前阶段活动支持开放报名，再由工作人员在后台进行审核确认。
         </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">城市筛选</div>
+          <h2>按城市查看活动</h2>
+        </div>
+      </div>
+
+      <div class="filter-bar" data-event-filters>
+        <button class="filter-chip is-active" type="button" data-city-filter="all">全部城市</button>
+        {
+          cityOptions.map((city) => (
+            <button class="filter-chip" type="button" data-city-filter={city}>
+              {city}
+            </button>
+          ))
+        }
       </div>
     </section>
 
@@ -23,17 +45,108 @@ const events = await listEvents();
       <div class="grid grid-2">
         {
           events.map((event) => (
-            <CollectionCard
-              href={`/events/${event.slug}`}
-              label={event.city.name}
-              title={event.title}
-              summary={event.summary}
-              image={event.coverImage}
-              meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName, formatRegistrationState(event.registrationState)]}
-            />
+            <div data-event-card data-city={event.branch?.cityName ?? ""}>
+              <CollectionCard
+                href={`/events/${event.slug}`}
+                label={event.branch?.cityName ?? "活动"}
+                title={event.title}
+                summary={event.summary}
+                image={event.coverImage}
+                meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName, formatRegistrationState(event.registrationState)]}
+              />
+            </div>
           ))
         }
       </div>
+      <div class="panel panel-soft empty-state" data-event-empty hidden>
+        <div class="card-label">暂无结果</div>
+        <p class="card-copy">当前城市筛选下还没有可展示的活动，请切换到其他城市继续查看。</p>
+      </div>
     </section>
   </main>
+
+  <script>
+    const filterRoot = document.querySelector("[data-event-filters]");
+    const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-event-card]"));
+    const emptyState = document.querySelector("[data-event-empty]");
+
+    if (filterRoot instanceof HTMLElement && emptyState instanceof HTMLElement && cards.length > 0) {
+      const buttons = Array.from(filterRoot.querySelectorAll<HTMLButtonElement>("[data-city-filter]"));
+      const search = new URLSearchParams(window.location.search);
+      const initialCity = search.get("city") ?? "all";
+
+      const setActive = (city: string) => {
+        let visibleCount = 0;
+
+        buttons.forEach((button) => {
+          const active = button.dataset.cityFilter === city;
+          button.classList.toggle("is-active", active);
+        });
+
+        cards.forEach((card) => {
+          const matches = city === "all" || card.dataset.city === city;
+          card.toggleAttribute("hidden", !matches);
+          if (matches) {
+            visibleCount += 1;
+          }
+        });
+
+        emptyState.hidden = visibleCount > 0;
+
+        const nextSearch = new URLSearchParams(window.location.search);
+        if (city === "all") {
+          nextSearch.delete("city");
+        } else {
+          nextSearch.set("city", city);
+        }
+
+        const nextQuery = nextSearch.toString();
+        const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+        window.history.replaceState({}, "", nextUrl);
+      };
+
+      const initialMatch = buttons.some((button) => button.dataset.cityFilter === initialCity) ? initialCity : "all";
+      setActive(initialMatch);
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setActive(button.dataset.cityFilter ?? "all");
+        });
+      });
+    }
+  </script>
 </BaseLayout>
+
+<style>
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.1);
+    background: rgba(255, 255, 255, 0.84);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .filter-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(122, 48, 34, 0.32);
+  }
+
+  .filter-chip.is-active {
+    background: linear-gradient(135deg, rgba(122, 48, 34, 0.95), rgba(167, 90, 63, 0.92));
+    border-color: transparent;
+    color: #fff7ef;
+  }
+
+  .empty-state {
+    margin-top: 18px;
+  }
+</style>

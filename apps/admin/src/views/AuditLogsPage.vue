@@ -20,7 +20,7 @@ const segmentLabels: Record<string, string> = {
   registration: "报名",
   application: "申请",
   asset: "资源",
-  staff: "员工",
+  staff: "工作人员",
   role: "角色",
   featured_block: "推荐位",
   featured: "推荐位",

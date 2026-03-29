@@ -1,0 +1,40 @@
+---
+import CollectionCard from "../../components/CollectionCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../lib/format";
+import { listMembers } from "../../lib/public-api";
+
+const members = await listMembers();
+---
+
+<BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员的公开资料。">
+  <main class="page-shell page-stack">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">成员列表</span>
+        <h1>来自不同公司与城市分会的技术领导者</h1>
+        <p>
+          当前展示为公开可见的成员资料，包含成员头像、姓名、公司、职称和加入时间。
+          更完整的成员资料可进入详情页查看。
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-3">
+        {
+          members.map((member) => (
+            <CollectionCard
+              href={`/members/${member.slug}`}
+              label={member.branch?.name ?? "成员"}
+              title={member.name}
+              summary={`${member.company} · ${member.title}`}
+              image={member.avatar}
+              meta={[member.branch?.cityName ?? "", formatDate(member.joinedAt)].filter(Boolean)}
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>

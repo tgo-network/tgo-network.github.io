@@ -1,318 +1,300 @@
-# TGO Network Auth And Permission Design
+# TGO Network 认证与权限设计
 
-## 1. Purpose
+## 1. 目的
 
-This document defines:
+本文档定义：
 
-- how users authenticate
-- how staff gain admin access
-- how authorization works across admin APIs
-- how future phone login fits without changing the system shape
+- 成员、工作人员、非成员申请人的身份边界
+- 谁可以登录后台
+- 登录后如何识别工作人员身份
+- 成员如何在前台使用身份能力
+- 各后台模块如何做权限控制
+- 未来手机号登录如何在不推翻架构的前提下接入
 
-## 2. Design Principles
+## 2. 设计原则
 
-- Authentication and authorization are separate concerns
-- `Better Auth` owns sessions and identity verification
-- The application owns staff access and permissions
-- Frontend route guards improve UX but do not replace backend checks
-- Future phone login must extend the existing identity model, not replace it
+- 认证与授权是两层问题
+- `Better Auth` 负责身份认证与会话
+- 应用自己的表负责成员身份、工作人员资格与权限
+- 前端路由守卫只能改善体验，不能替代后端鉴权
+- 未来手机号登录只能扩展现有身份体系，不能重建用户体系
 
-## 3. Actor Types
+## 3. 参与者类型
 
-### Public Visitor
+### 非成员访客
 
-- not authenticated
-- can read public content
-- can submit public applications
-- can submit event registrations if the event is open
+- 不需要登录
+- 可以浏览公开内容
+- 可以提交加入申请
 
-### Public Authenticated User
+### 申请人
 
-Not required for MVP, but supported by the long-term identity model.
+- 当前还不是正式成员
+- 可以提交加入申请
+- 审核通过后可被转化为正式成员
 
-Potential later capabilities:
+### 成员
 
-- profile management
-- saved registrations
-- member-only content
+- 业务上的正式成员身份
+- 在前台查看成员侧信息
+- 在前台报名参加活动
+- 当前阶段不要求成员登录
+- 不是后台工作人员角色
 
-### Staff User
+### 工作人员
 
-- authenticated user with an active `staff_account`
-- can access the admin console based on role permissions
+- 已登录用户
+- 存在有效 `staff_account`
+- 拥有至少一个角色
+- 能进入后台并执行被授权操作
 
-### Super Admin
+注意：
 
-- highest-trust internal operator
-- can manage staff, roles, permissions, and system settings
+- 工作人员是后台准入身份
+- 工作人员角色只用于后台 RBAC
+- 工作人员可以同时也是成员
 
-## 4. Authentication Scope
+### 超级管理员
 
-### Managed By Better Auth
+- 最高权限内部角色
+- 可管理工作人员、角色、权限、系统级配置
 
-Use Better Auth for:
+## 4. Better Auth 负责什么
 
-- email and password sign-in
-- password reset
-- session issuance and validation
-- future phone OTP login
-- optional future social login
+Better Auth 负责：
 
-### Managed By Application Logic
+- 邮箱密码登录
+- 会话签发与校验
+- 密码重置
+- 未来手机号 OTP 登录
+- 未来第三方登录（如需要）
 
-Use our own application schema and middleware for:
+Better Auth 不负责：
 
-- staff eligibility
-- role assignments
-- permission checks
-- resource-level authorization
-- audit logging for admin actions
+- 谁是正式成员
+- 谁是工作人员
+- 谁能审核申请
+- 谁能编辑活动
+- 谁能查看审计日志
 
-## 5. MVP Authentication Flows
+这些都必须由业务表和中间件决定。
 
-### Staff Login
+## 5. 当前登录流
 
-Initial MVP flow:
+### 工作人员登录
 
-1. super admin creates or enables a staff account
-2. staff user signs in with email and password
-3. Better Auth creates a session
-4. backend loads the related `staff_account`
-5. backend loads role and permission bindings
-6. admin frontend renders only allowed navigation
+1. 用户通过邮箱密码登录
+2. Better Auth 生成会话
+3. API 加载对应 `staff_account`
+4. API 加载角色与权限
+5. `apps/admin` 依据权限渲染导航
+6. 所有写操作再由 API 二次校验权限
 
-### Staff Logout
+### 工作人员退出
 
-- invalidate session via Better Auth
-- clear session cookie
-- redirect to admin login
+- Better Auth 注销会话
+- 清理 Cookie
+- 后台跳回登录页
 
-### Password Reset
+### 公开表单
 
-- Better Auth handles token issuance and reset flow
-- admin frontend consumes the auth flow as a standard client
+当前阶段：
 
-### Public Forms
+- 加入申请无需登录
+- 非成员可直接提交加入申请
+- 活动报名当前也无需成员登录
+- 是否符合活动要求，由工作人员在后台审核确认
 
-For MVP:
+## 6. 工作人员接入模型
 
-- no public login is required
-- applications and event registration can be submitted without account creation
+这里必须区分两套概念：
 
-## 6. Session Model
+- 人的业务身份
+  - 非成员访客
+  - 申请人
+  - 成员
+  - 工作人员
+- 工作人员权限角色
+  - `super_admin`
+  - `content_editor`
+  - `event_manager`
+  - 等后台 RBAC 角色
 
-Recommended session strategy:
+重要规则：
 
-- cookie-based session auth
-- `HttpOnly` cookies
-- `Secure` enabled in production
-- `SameSite=Lax` by default unless a stricter or cross-site requirement appears
-- configure shared cookie domain if site and admin need shared auth state later
-- allow only explicit trusted frontend origins for Better Auth cross-origin session flows
+- “成员”不是后台 `role`
+- “申请人”不是后台 `role`
+- 后台“角色”菜单只管理工作人员权限
+- 成员前台能力应由成员域规则决定，不由后台角色决定
+- 当前版本成员体系不引入认证机制
 
-Recommended domains:
+认证成功不代表拥有后台权限。
 
-- `www.example.com`
-- `admin.example.com`
-- `api.example.com`
+后台准入必须同时满足：
 
-If cross-subdomain session sharing is needed later, use a parent cookie domain such as `.example.com`.
+- `users` 中存在该用户
+- `staff_accounts` 中存在对应记录
+- `staff_accounts.status = active`
+- 至少绑定一个有效角色
 
-Current MVP implementation note:
-
-- Better Auth should trust the same explicit origins listed in `CORS_ALLOWED_ORIGINS`, so the admin console can sign in against the API without opening auth routes to arbitrary origins
-
-## 7. Staff Access Model
-
-Authentication alone must not grant admin access.
-
-A user may be authenticated but still be unable to access the admin if:
-
-- no `staff_account` exists
-- `staff_account.status` is not active
-- required role bindings are missing
-
-Recommended staff statuses:
+建议状态：
 
 - `invited`
 - `active`
 - `suspended`
 - `disabled`
 
-## 8. Permission Model
+## 7. 权限码设计
 
-### Permission Format
+推荐使用 `resource.action` 形式：
 
-Use simple resource-action codes:
-
+- `dashboard.read`
+- `page.manage`
 - `article.read`
 - `article.write`
 - `article.publish`
-- `topic.manage`
+- `branch.manage`
+- `member.manage`
 - `event.manage`
+- `registration.review`
 - `application.review`
 - `asset.manage`
-- `settings.manage`
 - `staff.manage`
 - `role.manage`
+- `audit_log.read`
 
-### Role Strategy
+## 8. 推荐角色集合
 
-Use roles as bundles of permissions.
-
-MVP system roles:
+当前建议至少提供这些系统角色：
 
 - `super_admin`
 - `content_editor`
 - `event_manager`
+- `member_manager`
 - `reviewer`
+- `auditor`
 - `media_manager`
 
-### MVP Role Matrix
+一个工作人员可以绑定多个角色。
 
-| Permission | super_admin | content_editor | event_manager | reviewer | media_manager |
-| --- | --- | --- | --- | --- | --- |
-| `article.read` | yes | yes | no | yes | no |
-| `article.write` | yes | yes | no | no | no |
-| `article.publish` | yes | yes | no | no | no |
-| `topic.manage` | yes | yes | no | no | no |
-| `event.manage` | yes | no | yes | no | no |
-| `registration.read` | yes | no | yes | no | no |
-| `application.review` | yes | no | no | yes | no |
-| `asset.manage` | yes | yes | yes | no | yes |
-| `featured_block.manage` | yes | yes | no | no | no |
-| `settings.manage` | yes | no | no | no | no |
-| `audit_log.read` | yes | no | no | no | no |
-| `staff.manage` | yes | no | no | no | no |
-| `role.manage` | yes | no | no | no | no |
+## 9. 当前角色矩阵
 
-Current MVP note:
+| 权限 | super_admin | content_editor | event_manager | member_manager | reviewer | auditor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `dashboard.read` | yes | yes | yes | yes | yes | yes |
+| `page.manage` | yes | yes | no | no | no | no |
+| `article.read` | yes | yes | no | no | yes | yes |
+| `article.write` | yes | yes | no | no | no | no |
+| `article.publish` | yes | yes | no | no | no | no |
+| `branch.manage` | yes | no | no | yes | no | no |
+| `member.manage` | yes | no | no | yes | no | no |
+| `event.manage` | yes | no | yes | no | no | no |
+| `registration.review` | yes | no | yes | no | no | no |
+| `application.review` | yes | no | no | no | yes | no |
+| `asset.manage` | yes | yes | yes | yes | no | no |
+| `staff.manage` | yes | no | no | no | no | no |
+| `role.manage` | yes | no | no | no | no | no |
+| `audit_log.read` | yes | no | no | no | no | yes |
 
-- `registration.read` currently covers the event registration queue, registration detail access, and registration status updates in the admin console
-- `audit_log.read` currently gates the audit trail page and the audit log API list endpoint
-- `staff.manage` currently gates the staff list plus staff create/update APIs in the admin console
-- `role.manage` currently gates the role catalog plus role permission update APIs in the admin console
+说明：
 
-## 9. Authorization Enforcement Flow
+- 如果团队规模小，可以先只启用 `super_admin`、`content_editor`、`event_manager`、`reviewer`
+- `member_manager` 用于成员和分会董事会维护
+- `auditor` 适合只读审计场景
+- `media_manager` 可单独负责资源上传与维护
 
-For every protected admin request:
+## 10. 权限执行路径
 
-1. validate session
-2. load current user
-3. load linked `staff_account`
-4. ensure staff account is active
-5. load effective permissions
-6. check required permission for route or action
-7. execute business logic
-8. write audit log for important mutations
+每个受保护请求都遵循同一条链路：
 
-Important rule:
+1. 校验会话
+2. 加载用户
+3. 加载 `staff_account`
+4. 校验工作人员状态是否可用
+5. 解析有效角色与权限
+6. 校验目标接口所需权限
+7. 执行业务逻辑
+8. 对敏感写操作写入审计日志
 
-- the admin UI may hide unauthorized actions
-- the API must still reject unauthorized requests even if the UI is bypassed
+重要规则：
 
-## 10. Resource-Level Authorization
+- 后台隐藏按钮只是 UX
+- 真正的拒绝必须发生在 API 层
 
-For MVP, authorization can remain role-based.
+## 11. 资源级授权
 
-Later, add resource-level constraints if needed, such as:
+当前阶段可以先使用角色级权限，不必一开始就设计过于复杂的资源级策略。
 
-- editor can only modify owned drafts
-- reviewer can only handle assigned applications
-- event operator can only manage events in assigned cities
+未来再按需要引入：
 
-Do not over-design these rules before they are needed.
+- 某活动运营仅能管理自己负责的分会活动
+- 某成员运营仅能维护自己负责分会的成员
+- 某审核员仅能处理指定申请池
 
-## 11. Invitation And Staff Provisioning
+当前不要为了未来可能的复杂场景而过度建模。
 
-Recommended MVP approach:
+## 12. 工作人员创建与维护
 
-- bootstrap one initial super admin manually
-- let super admin invite or activate other staff users later
-- store invitation metadata on `staff_accounts`
+当前建议流程：
 
-This is simpler than building a full invitation product flow on day one.
+- 先手工或脚本创建第一个 `super_admin`
+- 后续由超级管理员在后台创建或激活工作人员
+- 如邮箱尚不存在，先在 Better Auth 侧创建用户
+- 再创建 `staff_account` 并绑定角色
 
-Current MVP implementation:
+## 12.1 成员与工作人员的关系
 
-- super admins can create a staff account directly from the admin console
-- if the email does not yet exist, Better Auth creates a new credential-backed user first
-- if the email already exists, the application can attach a new `staff_account` to that user
-- super admins can update staff statuses, notes, and role bindings later without leaving the admin console
+推荐默认模型：
 
-## 12. Public Identity Roadmap
+- `members` 表示成员身份
+- `staff_accounts` 表示后台准入资格
+- `users` 当前主要服务于工作人员认证
 
-Public account features are not required for MVP.
+当前按完全分离处理：
 
-However, the model should remain compatible with:
+- 不假设成员一定有工作人员账号
+- 不假设工作人员一定是成员
+- 不建立默认的成员-工作人员映射关系
+- 如果未来业务明确需要跨域关联，再单独设计显式关联机制
 
-- user profile pages later
-- registration history later
-- member-only content later
-- phone-first login later
+## 13. 审计要求
 
-This is why the platform should still keep a real user table from the start.
+至少应审计以下操作：
 
-## 13. Future Phone Login
+- 文章发布/归档
+- 活动发布/归档
+- 活动报名审核
+- 加入申请审核
+- 成员资料关键修改
+- 分会与董事会维护
+- 工作人员创建、状态变更、角色变更
+- 角色权限变更
+- 首页、加入页、关于页配置变更
 
-Phone login should be implemented as an additional auth method, not a second identity system.
+## 14. 未来手机号登录
 
-Rules:
+手机号登录应作为现有身份体系的一种补充登录方式，而不是新建第二套用户表。
 
-- keep `user.id` stable
-- attach `phone_number` to the existing user
-- mark verification through `phone_verified_at`
-- treat phone OTP as another sign-in method handled by Better Auth
-- keep business relations linked by internal user ID
+规则：
 
-Recommended future flow:
+- `user.id` 必须保持稳定
+- 手机号以标准化格式存储，如 `E.164`
+- 验证状态写入 `phone_verified_at`
+- OTP 验证成功后，仍然回到同一会话模型
+- 工作人员权限仍由 `staff_accounts` 与角色表决定
 
-1. user enters phone number
-2. system sends OTP through a provider abstraction
-3. Better Auth verifies OTP
-4. existing user is found or new user is created by policy
-5. session is issued
+推荐未来流程：
 
-## 14. SMS Provider Strategy
+1. 用户输入手机号
+2. 系统通过短信服务商发送 OTP
+3. Better Auth 验证 OTP
+4. 找到现有用户或按策略创建用户
+5. 建立会话
 
-Do not bind phone login logic directly to a single SMS vendor.
+## 15. 当前明确不做的内容
 
-Recommended abstraction:
-
-- `sendOtp(phoneNumber, code, template)`
-
-Benefits:
-
-- easier provider replacement
-- cleaner test stubs
-- no auth-layer rewrite when SMS vendor changes
-
-## 15. Audit Requirements
-
-At minimum, audit these staff actions:
-
-- login events if feasible
-- article publish and unpublish
-- event publish and major edits
-- application status changes
-- staff account creation and status changes
-- staff role changes
-- role permission changes
-- settings updates
-
-## 16. Out Of Scope For MVP
-
-- member subscriptions
-- organization hierarchy
-- fine-grained policy builder
-- delegated admin domains
+- 面向普通成员的权限中心
 - SSO
-
-## 17. Recommended Next Use
-
-This document should directly drive:
-
-- Better Auth integration
-- staff middleware in Hono
-- admin route guards
-- role and permission seed data
+- 多租户组织权限树
+- 复杂策略编排器
+- 细粒度 ABAC 引擎

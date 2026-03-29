@@ -95,7 +95,7 @@ const loadStaff = async (preferredStaffId?: string) => {
     selectedStaffId.value = nextSelectedId;
     applySelectedStaff(payload.staff.find((row) => row.id === nextSelectedId) ?? null);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "无法加载员工账号。";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载工作人员账号。";
   } finally {
     loading.value = false;
   }
@@ -119,12 +119,12 @@ const createStaff = async () => {
       body: createForm
     });
 
-    successMessage.value = `已为 ${created.name} 创建员工账号。`;
+    successMessage.value = `已为 ${created.name} 创建工作人员账号。`;
     resetCreateForm();
     await loadStaff(created.id);
   } catch (error) {
     createIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "无法创建员工账号。";
+    errorMessage.value = error instanceof Error ? error.message : "无法创建工作人员账号。";
   } finally {
     creating.value = false;
   }
@@ -145,11 +145,11 @@ const saveStaff = async () => {
       body: editForm
     });
 
-    successMessage.value = `已更新 ${updated.name} 的员工账号。`;
+    successMessage.value = `已更新 ${updated.name} 的工作人员账号。`;
     await loadStaff(updated.id);
   } catch (error) {
     editIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "无法更新员工账号。";
+    errorMessage.value = error instanceof Error ? error.message : "无法更新工作人员账号。";
   } finally {
     saving.value = false;
   }
@@ -165,7 +165,7 @@ onMounted(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header">
-      <h2>员工</h2>
+      <h2>工作人员</h2>
       <p>创建内部工作人员账号、管理账户状态，并把角色分配收敛在应用自身的权限模型中。</p>
     </header>
 
@@ -181,13 +181,13 @@ onMounted(() => {
 
     <div v-if="loading" class="panel">
       <div class="brand-tag">加载中</div>
-      <p>正在加载员工账号与角色信息...</p>
+      <p>正在加载工作人员账号与角色信息...</p>
     </div>
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
         <article class="panel stat-panel">
-          <div class="brand-tag">员工</div>
+          <div class="brand-tag">工作人员</div>
           <strong>{{ rows.length }}</strong>
         </article>
         <article class="panel stat-panel">
@@ -208,14 +208,14 @@ onMounted(() => {
         <div class="panel editor-main stacked-gap">
           <div class="page-header-row compact-row">
             <div>
-              <div class="brand-tag">创建员工</div>
+              <div class="brand-tag">创建工作人员</div>
               <h3>新建内部账号</h3>
-              <p class="section-copy">先创建具备登录凭证的用户，再绑定内部角色与员工状态。</p>
+              <p class="section-copy">先创建具备登录凭证的用户，再绑定内部角色与工作人员状态。</p>
             </div>
 
             <div class="page-actions">
               <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
-                {{ creating ? "创建中..." : "创建员工" }}
+                {{ creating ? "创建中..." : "创建工作人员" }}
               </button>
             </div>
           </div>
@@ -266,14 +266,14 @@ onMounted(() => {
 
           <label class="field">
             <span>备注</span>
-            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个员工账号的用途、入职背景或运营备注。"></textarea>
+            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途、背景或运营备注。"></textarea>
             <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
           </label>
         </div>
 
         <aside class="editor-side stacked-gap">
           <div class="panel stacked-gap">
-            <div class="brand-tag">编辑员工</div>
+            <div class="brand-tag">编辑工作人员</div>
 
             <template v-if="selectedStaff">
               <div class="page-header-row compact-row">
@@ -342,7 +342,7 @@ onMounted(() => {
             </template>
 
             <template v-else>
-              <p>还没有选中任何员工账号。</p>
+              <p>还没有选中任何工作人员账号。</p>
             </template>
           </div>
         </aside>

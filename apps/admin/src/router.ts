@@ -2,11 +2,11 @@ import { createRouter, createWebHistory } from "vue-router";
 
 import { authClient } from "./lib/auth-client";
 import { resolveAdminRouteAccess } from "./lib/auth-guard";
+import BranchEditorPage from "./views/BranchEditorPage.vue";
+import BranchesPage from "./views/BranchesPage.vue";
 import DashboardPage from "./views/DashboardPage.vue";
 import LoginPage from "./views/LoginPage.vue";
-import TopicsPage from "./views/TopicsPage.vue";
 import ArticlesPage from "./views/ArticlesPage.vue";
-import TopicEditorPage from "./views/TopicEditorPage.vue";
 import ArticleEditorPage from "./views/ArticleEditorPage.vue";
 import EventsPage from "./views/EventsPage.vue";
 import EventEditorPage from "./views/EventEditorPage.vue";
@@ -15,10 +15,12 @@ import AuditLogsPage from "./views/AuditLogsPage.vue";
 import ApplicationsPage from "./views/ApplicationsPage.vue";
 import ApplicationDetailPage from "./views/ApplicationDetailPage.vue";
 import AssetsPage from "./views/AssetsPage.vue";
-import FeaturedBlocksPage from "./views/FeaturedBlocksPage.vue";
+import HomepageEditorPage from "./views/HomepageEditorPage.vue";
+import MemberEditorPage from "./views/MemberEditorPage.vue";
+import MembersPage from "./views/MembersPage.vue";
 import RegistrationDetailPage from "./views/RegistrationDetailPage.vue";
 import RolesPage from "./views/RolesPage.vue";
-import SiteSettingsPage from "./views/SiteSettingsPage.vue";
+import SitePageEditorPage from "./views/SitePageEditorPage.vue";
 import StaffPage from "./views/StaffPage.vue";
 
 export const router = createRouter({
@@ -37,30 +39,6 @@ export const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: DashboardPage,
-      meta: {
-        requiresAuth: true
-      }
-    },
-    {
-      path: "/topics",
-      name: "topics",
-      component: TopicsPage,
-      meta: {
-        requiresAuth: true
-      }
-    },
-    {
-      path: "/topics/new",
-      name: "topic-create",
-      component: TopicEditorPage,
-      meta: {
-        requiresAuth: true
-      }
-    },
-    {
-      path: "/topics/:id/edit",
-      name: "topic-edit",
-      component: TopicEditorPage,
       meta: {
         requiresAuth: true
       }
@@ -146,6 +124,54 @@ export const router = createRouter({
       }
     },
     {
+      path: "/members",
+      name: "members",
+      component: MembersPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/members/new",
+      name: "member-create",
+      component: MemberEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/members/:id/edit",
+      name: "member-edit",
+      component: MemberEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/members/branches",
+      name: "branches",
+      component: BranchesPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/members/branches/new",
+      name: "branch-create",
+      component: BranchEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/members/branches/:id/edit",
+      name: "branch-edit",
+      component: BranchEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: "/staff",
       name: "staff",
       component: StaffPage,
@@ -170,17 +196,21 @@ export const router = createRouter({
       }
     },
     {
-      path: "/featured-blocks",
-      name: "featured-blocks",
-      component: FeaturedBlocksPage,
+      path: "/site",
+      redirect: "/site/homepage"
+    },
+    {
+      path: "/site/homepage",
+      name: "site-homepage",
+      component: HomepageEditorPage,
       meta: {
         requiresAuth: true
       }
     },
     {
-      path: "/settings/site",
-      name: "site-settings",
-      component: SiteSettingsPage,
+      path: "/site/pages/:slug(join|about)",
+      name: "site-page-edit",
+      component: SitePageEditorPage,
       meta: {
         requiresAuth: true
       }

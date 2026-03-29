@@ -16,20 +16,17 @@ export const getStaticPaths = async () => {
 const slug = Astro.params.slug!;
 const event = await getEvent(slug);
 const apiBaseUrl = getPublicApiBaseUrl();
-const registrationEnabled = event?.registrationState === "open" || event?.registrationState === "waitlist";
-const registrationTitle = event?.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
-const registrationCopy =
-  event?.registrationState === "waitlist"
-    ? "这场活动目前已经比较满员，但你仍然可以留下联系方式；如果后续有空位，团队会把你转入正式参会名单。"
-    : "提交一份轻量报名信息，方便运营团队评估报名需求、确认参会资格，并在后续同步活动安排。";
-const registrationSubmitLabel = event?.registrationState === "waitlist" ? "加入候补" : "提交报名";
 
 if (!event) {
   throw new Error(`活动不存在：${slug}`);
 }
+
+const registrationEnabled = event.registrationState === "open" || event.registrationState === "waitlist";
+const registrationTitle = event.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
+const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
 ---
 
-<BaseLayout title={`${event.title} | 活动 | TGO Network`} description={event.summary}>
+<BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={event.summary}>
   <main class="page-shell page-stack">
     <section class="hero">
       <div class:list={["hero-card", { "hero-split": Boolean(event.coverImage), "hero-card-media": Boolean(event.coverImage) }]}>
@@ -38,7 +35,7 @@ if (!event) {
           <h1>{event.title}</h1>
           <p>{event.summary}</p>
           <ul class="stat-row">
-            <li>{event.city.name}</li>
+            <li>{event.branch?.name ?? "活动"}</li>
             <li>{event.venueName}</li>
             <li>{formatRegistrationState(event.registrationState)}</li>
           </ul>
@@ -58,7 +55,11 @@ if (!event) {
       <article class="panel prose-panel">
         <div class="card-label">活动概览</div>
         <p>{event.body}</p>
-        <p>{formatDateRange(event.startsAt, event.endsAt)}</p>
+        <ul class="meta-list">
+          <li>{formatDateRange(event.startsAt, event.endsAt)}</li>
+          <li>{event.venueAddress || event.venueName}</li>
+          {event.branch?.cityName && <li>{event.branch.cityName}</li>}
+        </ul>
       </article>
 
       <aside class="panel panel-soft stack-sm">
@@ -71,42 +72,26 @@ if (!event) {
                   <strong>{item.time}</strong>
                   <span>{item.title}</span>
                   <em>{item.speaker}</em>
+                  <p>{item.summary}</p>
                 </li>
               ))
             }
           </ul>
-        </div>
-
-        <div>
-          <div class="card-label">关联主题</div>
-          <div class="chip-row">
-            {
-              event.relatedTopics.map((topic) => (
-                <a class="chip" href={`/topics/${topic.slug}`}>
-                  {topic.title}
-                </a>
-              ))
-            }
-          </div>
         </div>
       </aside>
     </section>
 
     <section class="section registration-shell">
       <div class="panel registration-panel">
-        <div class="card-label">报名</div>
+        <div class="card-label">活动报名</div>
         <h2>{registrationTitle}</h2>
-        <p class="registration-copy">{registrationCopy}</p>
+        <p class="registration-copy">
+          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员可根据活动定位确认是否通过、拒绝或转为候补。
+        </p>
 
         {
           registrationEnabled ? (
-            <form
-              class="form-panel"
-              data-event-registration-form
-              data-api-base={apiBaseUrl}
-              data-event-slug={event.slug}
-              data-registration-state={event.registrationState}
-            >
+            <form class="form-panel" data-event-registration-form data-api-base={apiBaseUrl} data-event-slug={event.slug}>
               <div class="form-grid">
                 <label>
                   <span>姓名</span>
@@ -114,13 +99,18 @@ if (!event) {
                 </label>
 
                 <label>
-                  <span>邮箱</span>
-                  <input name="email" type="email" placeholder="name@example.com" />
+                  <span>手机号</span>
+                  <input name="phoneNumber" type="tel" required inputmode="tel" />
                 </label>
 
                 <label>
-                  <span>手机号</span>
-                  <input name="phoneNumber" type="tel" inputmode="tel" placeholder="+86 138 0000 0000" />
+                  <span>微信号</span>
+                  <input name="wechatId" type="text" />
+                </label>
+
+                <label>
+                  <span>邮箱</span>
+                  <input name="email" type="email" />
                 </label>
 
                 <label>
@@ -129,55 +119,39 @@ if (!event) {
                 </label>
 
                 <label>
-                  <span>职位</span>
-                  <input name="jobTitle" type="text" />
+                  <span>职称</span>
+                  <input name="title" type="text" />
                 </label>
               </div>
+
+              <label>
+                <span>补充说明</span>
+                <textarea name="note" rows="5" placeholder="例如你的关注议题、参会目的或与活动主题的相关经验。"></textarea>
+              </label>
 
               <div class="form-actions">
                 <div class="registration-actions">
                   <button class="button primary" type="submit">{registrationSubmitLabel}</button>
-
-                  {
-                    event.registrationUrl && (
-                      <a class="button secondary" href={event.registrationUrl} target="_blank" rel="noreferrer">
-                        打开外部表单
-                      </a>
-                    )
-                  }
+                  {event.registrationUrl && <a class="button secondary" href={event.registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
                 </div>
-
-                <p class="form-status" data-event-registration-status>
-                  请填写姓名，并至少保留一种联系方式。
-                </p>
+                <p class="form-status" data-event-registration-status>请至少填写姓名和手机号，便于工作人员联系。</p>
               </div>
             </form>
           ) : (
             <div class="registration-note">
-              <p>
-                {event.registrationState === "closed"
-                  ? "这场活动的报名已经关闭。"
-                  : "报名暂未开放，请在接近活动日期时再回来查看。"}
-              </p>
-
-              {
-                event.registrationUrl && (
-                  <a class="button secondary registration-inline-action" href={event.registrationUrl} target="_blank" rel="noreferrer">
-                    打开外部表单
-                  </a>
-                )
-              }
+              <p>{event.registrationState === "closed" ? "这场活动的报名已经关闭。" : "报名暂未开放，请稍后再来查看。"}</p>
+              {event.registrationUrl && <a class="button secondary" href={event.registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
             </div>
           )
         }
       </div>
 
       <aside class="panel panel-soft registration-side">
-        <div class="card-label">接下来会发生什么</div>
-        <ul class="meta-list">
-          <li>提交结果会进入工作人员后台。</li>
-          <li>工作人员可以审批、拒绝、取消或转为候补。</li>
-          <li>报名状态始终由 API 层统一维护。</li>
+        <div class="card-label">报名说明</div>
+        <ul class="meta-list vertical-list">
+          <li>成员与非成员都可以提交公开活动报名。</li>
+          <li>工作人员会在后台审核报名记录。</li>
+          <li>审核过程可附带备注并关联已有成员。</li>
         </ul>
       </aside>
     </section>
@@ -188,8 +162,8 @@ if (!event) {
     const status = document.querySelector("[data-event-registration-status]");
 
     if (form instanceof HTMLFormElement && status instanceof HTMLElement) {
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      form.addEventListener("submit", async (submitEvent) => {
+        submitEvent.preventDefault();
         status.textContent = "提交中...";
 
         const formData = new FormData(form);
@@ -221,8 +195,7 @@ if (!event) {
             return;
           }
 
-          const receiptStatus = result.data?.status === "waitlisted" ? "已加入候补名单。" : "报名已提交。";
-          status.textContent = `${receiptStatus} 参考编号 ${result.data.id}。`;
+          status.textContent = `${result.data.status === "waitlisted" ? "已加入候补名单" : "报名已提交"}，编号 ${result.data.id}。`;
           form.reset();
         } catch {
           status.textContent = "API 当前不可用，请先启动 apps/api 以测试完整报名流程。";
@@ -235,9 +208,8 @@ if (!event) {
 <style>
   .registration-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
     gap: 18px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
   }
 
   .registration-panel h2 {
@@ -247,7 +219,6 @@ if (!event) {
 
   .registration-copy {
     margin: 0 0 20px;
-    max-width: 60ch;
   }
 
   .registration-actions {
@@ -256,25 +227,18 @@ if (!event) {
     flex-wrap: wrap;
   }
 
+  .vertical-list {
+    display: grid;
+    gap: 10px;
+  }
+
   .registration-note p {
-    margin: 0 0 18px;
-  }
-
-  .registration-inline-action {
-    display: inline-flex;
-  }
-
-  .registration-side {
-    min-height: 100%;
+    margin: 0 0 16px;
   }
 
   @media (max-width: 900px) {
     .registration-shell {
       grid-template-columns: 1fr;
-    }
-
-    .registration-actions {
-      width: 100%;
     }
   }
 </style>

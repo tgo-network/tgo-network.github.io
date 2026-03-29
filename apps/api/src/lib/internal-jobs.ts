@@ -1,6 +1,6 @@
-import { and, asc, eq, inArray, isNotNull, lte } from "drizzle-orm";
+import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
 
-import { articleTopicBindings, articles } from "@tgo/db";
+import { articles } from "@tgo/db";
 import type { AdminValidationIssue } from "@tgo/shared";
 
 import { getPublishableArticleIssues } from "./admin-content.js";
@@ -59,20 +59,6 @@ export const publishScheduledContent = async (
     };
   }
 
-  const articleIds = dueArticles.map((article) => article.id);
-  const bindingRows = await db
-    .select()
-    .from(articleTopicBindings)
-    .where(inArray(articleTopicBindings.articleId, articleIds));
-
-  const topicIdsByArticleId = new Map<string, string[]>();
-
-  for (const binding of bindingRows) {
-    const current = topicIdsByArticleId.get(binding.articleId) ?? [];
-    current.push(binding.topicId);
-    topicIdsByArticleId.set(binding.articleId, current);
-  }
-
   const publishedAuditEntries: Array<{
     before: typeof articles.$inferSelect;
     after: typeof articles.$inferSelect;
@@ -82,8 +68,7 @@ export const publishScheduledContent = async (
 
   await db.transaction(async (tx) => {
     for (const article of dueArticles) {
-      const topicIds = topicIdsByArticleId.get(article.id) ?? [];
-      const issues = getPublishableArticleIssues(article, topicIds);
+      const issues = getPublishableArticleIssues(article);
 
       if (issues.length > 0) {
         skipped.push({

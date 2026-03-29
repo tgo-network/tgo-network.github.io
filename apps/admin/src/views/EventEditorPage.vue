@@ -6,17 +6,16 @@ import {
   contentStatusOptions,
   eventRegistrationStateOptions,
   type AdminAssetListItem,
-  type AdminEventAgendaItem,
-  type AdminEventDetailPayload,
-  type AdminEventReferences,
-  type AdminEventReferencesPayload,
-  type AdminEventRecord,
-  type AdminEventUpsertInput
+  type AdminEventAgendaItemV2,
+  type AdminEventDetailPayloadV2,
+  type AdminEventReferencesV2,
+  type AdminEventRecordV2,
+  type AdminEventUpsertInputV2
 } from "@tgo/shared";
 
-import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import CoverAssetField from "../components/CoverAssetField.vue";
-import { formatContentStatus, formatDateTime, formatEventRegistrationState, slugify, toDateTimeInputValue } from "../lib/format";
+import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
+import { formatDateTime, slugify, toDateTimeInputValue } from "../lib/format";
 
 interface EventAgendaFormItem {
   title: string;
@@ -26,7 +25,7 @@ interface EventAgendaFormItem {
   speakerName: string;
 }
 
-interface EventFormState extends Omit<AdminEventUpsertInput, "startsAt" | "endsAt" | "agenda"> {
+interface EventFormState extends Omit<AdminEventUpsertInputV2, "startsAt" | "endsAt" | "agenda"> {
   startsAt: string;
   endsAt: string;
   agenda: EventAgendaFormItem[];
@@ -35,9 +34,8 @@ interface EventFormState extends Omit<AdminEventUpsertInput, "startsAt" | "endsA
 const route = useRoute();
 const router = useRouter();
 
-const emptyReferences = (): AdminEventReferences => ({
-  cities: [],
-  topics: []
+const emptyReferences = (): AdminEventReferencesV2 => ({
+  branches: []
 });
 
 const createAgendaItem = (): EventAgendaFormItem => ({
@@ -54,7 +52,7 @@ const createBlankForm = (): EventFormState => ({
   summary: "",
   body: "",
   status: "draft",
-  cityId: null,
+  branchId: null,
   coverAssetId: null,
   venueName: "",
   venueAddress: "",
@@ -64,13 +62,12 @@ const createBlankForm = (): EventFormState => ({
   capacity: null,
   registrationState: "not_open",
   registrationUrl: "",
-  topicIds: [],
   agenda: [createAgendaItem()]
 });
 
 const form = reactive<EventFormState>(createBlankForm());
-const event = ref<AdminEventRecord | null>(null);
-const references = ref<AdminEventReferences>(emptyReferences());
+const event = ref<AdminEventRecordV2 | null>(null);
+const references = ref<AdminEventReferencesV2>(emptyReferences());
 const coverAssets = ref<AdminAssetListItem[]>([]);
 const loading = ref(true);
 const saving = ref(false);
@@ -83,7 +80,6 @@ const slugTouched = ref(false);
 const eventId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => eventId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建活动" : `编辑活动：${event.value?.title ?? "加载中..."}`));
-const selectedTopicCount = computed(() => form.topicIds.length);
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -91,7 +87,7 @@ const resetFeedback = () => {
   fieldIssues.value = {};
 };
 
-const applyPayload = (payload: AdminEventDetailPayload) => {
+const applyPayload = (payload: AdminEventDetailPayloadV2) => {
   event.value = payload.event;
   references.value = payload.references;
   Object.assign(form, {
@@ -100,7 +96,7 @@ const applyPayload = (payload: AdminEventDetailPayload) => {
     summary: payload.event.summary,
     body: payload.event.body,
     status: payload.event.status,
-    cityId: payload.event.cityId,
+    branchId: payload.event.branchId,
     coverAssetId: payload.event.coverAssetId,
     venueName: payload.event.venueName,
     venueAddress: payload.event.venueAddress,
@@ -110,7 +106,6 @@ const applyPayload = (payload: AdminEventDetailPayload) => {
     capacity: payload.event.capacity,
     registrationState: payload.event.registrationState,
     registrationUrl: payload.event.registrationUrl,
-    topicIds: [...payload.event.topicIds],
     agenda: payload.event.agenda.length > 0
       ? payload.event.agenda.map((item) => ({
           title: item.title,
@@ -124,29 +119,28 @@ const applyPayload = (payload: AdminEventDetailPayload) => {
   slugTouched.value = true;
 };
 
+const loadReferences = async () => {
+  const payload = await adminFetch<{ references: AdminEventReferencesV2 }>("/api/admin/v1/events/references");
+  references.value = payload.references;
+};
+
 const loadEvent = async () => {
   resetFeedback();
   loading.value = true;
 
   try {
+    const nextAssets = await adminFetch<AdminAssetListItem[]>("/api/admin/v1/assets");
+    coverAssets.value = nextAssets;
+
     if (isNew.value) {
-      const [payload, nextAssets] = await Promise.all([
-        adminFetch<AdminEventReferencesPayload>("/api/admin/v1/events/references"),
-        adminFetch<AdminAssetListItem[]>("/api/admin/v1/assets")
-      ]);
-      references.value = payload.references;
-      coverAssets.value = nextAssets;
+      await loadReferences();
       event.value = null;
       slugTouched.value = false;
       Object.assign(form, createBlankForm());
       return;
     }
 
-    const [payload, nextAssets] = await Promise.all([
-      adminFetch<AdminEventDetailPayload>(`/api/admin/v1/events/${eventId.value}`),
-      adminFetch<AdminAssetListItem[]>("/api/admin/v1/assets")
-    ]);
-    coverAssets.value = nextAssets;
+    const payload = await adminFetch<AdminEventDetailPayloadV2>(`/api/admin/v1/events/${eventId.value}`);
     applyPayload(payload);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "无法加载活动详情。";
@@ -165,15 +159,6 @@ const onSlugInput = () => {
   slugTouched.value = true;
 };
 
-const toggleTopic = (topicId: string) => {
-  if (form.topicIds.includes(topicId)) {
-    form.topicIds = form.topicIds.filter((item) => item !== topicId);
-    return;
-  }
-
-  form.topicIds = [...form.topicIds, topicId];
-};
-
 const addAgendaItem = () => {
   form.agenda = [...form.agenda, createAgendaItem()];
 };
@@ -187,11 +172,11 @@ const removeAgendaItem = (index: number) => {
   form.agenda = form.agenda.filter((_, itemIndex) => itemIndex !== index);
 };
 
-const toPayload = (): AdminEventUpsertInput => ({
+const toPayload = (): AdminEventUpsertInputV2 => ({
   ...form,
   startsAt: form.startsAt || null,
   endsAt: form.endsAt || null,
-  agenda: form.agenda.map((item): AdminEventAgendaItem => ({
+  agenda: form.agenda.map((item): AdminEventAgendaItemV2 => ({
     title: item.title,
     summary: item.summary,
     startsAt: item.startsAt || null,
@@ -205,7 +190,7 @@ const save = async () => {
   saving.value = true;
 
   try {
-    const payload = await adminRequest<AdminEventDetailPayload>(
+    const payload = await adminRequest<AdminEventDetailPayloadV2>(
       isNew.value ? "/api/admin/v1/events" : `/api/admin/v1/events/${eventId.value}`,
       {
         method: isNew.value ? "POST" : "PATCH",
@@ -241,7 +226,7 @@ const runAction = async (action: "publish" | "archive") => {
   actioning.value = true;
 
   try {
-    const payload = await adminRequest<AdminEventDetailPayload>(`/api/admin/v1/events/${event.value.id}/${action}`, {
+    const payload = await adminRequest<AdminEventDetailPayloadV2>(`/api/admin/v1/events/${event.value.id}/${action}`, {
       method: "POST"
     });
 
@@ -272,18 +257,12 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>{{ pageTitle }}</h2>
-        <p>
-          在同一页面中管理活动内容、报名状态、城市归属与议程细节。
-        </p>
+        <p>活动与报名状态、议程、分会归属统一在这里维护，并通过公开 API 提供给前台页面。</p>
       </div>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/events">
-          返回活动列表
-        </RouterLink>
-        <RouterLink v-if="event" class="button-link" :to="`/events/${event.id}/registrations`">
-          查看报名
-        </RouterLink>
+        <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
+        <RouterLink v-if="event" class="button-link" :to="`/events/${event.id}/registrations`">查看报名</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建活动" : "保存修改" }}
         </button>
@@ -323,9 +302,7 @@ onMounted(() => {
           <label class="field">
             <span>状态</span>
             <select v-model="form.status">
-              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
+              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
             <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
           </label>
@@ -339,22 +316,18 @@ onMounted(() => {
 
         <div class="field-grid field-grid-3">
           <label class="field">
-            <span>城市</span>
-            <select v-model="form.cityId">
-              <option :value="null">暂不选择城市</option>
-              <option v-for="option in references.cities" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </option>
+            <span>分会</span>
+            <select v-model="form.branchId">
+              <option :value="null">暂不选择分会</option>
+              <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
             </select>
-            <small v-if="fieldIssues.cityId" class="field-error">{{ fieldIssues.cityId }}</small>
+            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
           </label>
 
           <label class="field">
             <span>报名状态</span>
             <select v-model="form.registrationState">
-              <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
+              <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
             <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
           </label>
@@ -362,7 +335,6 @@ onMounted(() => {
           <label class="field">
             <span>人数上限</span>
             <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
-            <small v-if="fieldIssues.capacity" class="field-error">{{ fieldIssues.capacity }}</small>
           </label>
         </div>
 
@@ -404,7 +376,7 @@ onMounted(() => {
 
         <label class="field">
           <span>摘要</span>
-          <textarea v-model="form.summary" rows="4" placeholder="用于卡片与列表展示的活动摘要。" />
+          <textarea v-model="form.summary" rows="4" placeholder="用于列表和详情页首屏展示的活动摘要。" />
           <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
         </label>
 
@@ -414,107 +386,77 @@ onMounted(() => {
         </label>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="page-header-row agenda-header">
+          <div class="page-header-row compact-row">
             <div>
               <div class="brand-tag">议程</div>
-              <p class="section-copy">活动环节、可选时间与讲者信息。</p>
+              <p class="section-copy">活动环节、时间与讲者信息。</p>
             </div>
-            <button class="button-link button-subtle button-compact" type="button" @click="addAgendaItem">
-              新增议程项
-            </button>
+            <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
           </div>
 
-          <div class="agenda-list">
-            <div v-for="(item, index) in form.agenda" :key="index" class="agenda-card stacked-gap">
-              <div class="page-header-row agenda-card-head">
-                <strong>环节 {{ index + 1 }}</strong>
-                <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">
-                  删除
-                </button>
-              </div>
+          <div v-for="(item, index) in form.agenda" :key="index" class="panel stacked-gap">
+            <div class="page-header-row compact-row">
+              <strong>议程 {{ index + 1 }}</strong>
+              <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
+            </div>
 
-              <div class="field-grid field-grid-2">
-                <label class="field">
-                  <span>标题</span>
-                  <input v-model="item.title" type="text" placeholder="架构简报" />
-                  <small v-if="fieldIssues[`agenda.${index}.title`]" class="field-error">{{ fieldIssues[`agenda.${index}.title`] }}</small>
-                </label>
-
-                <label class="field">
-                  <span>讲者</span>
-                  <input v-model="item.speakerName" type="text" placeholder="李墨言" />
-                </label>
-              </div>
-
-              <div class="field-grid field-grid-2">
-                <label class="field">
-                  <span>开始时间</span>
-                  <input v-model="item.startsAt" type="datetime-local" />
-                  <small v-if="fieldIssues[`agenda.${index}.startsAt`]" class="field-error">{{ fieldIssues[`agenda.${index}.startsAt`] }}</small>
-                </label>
-
-                <label class="field">
-                  <span>结束时间</span>
-                  <input v-model="item.endsAt" type="datetime-local" />
-                  <small v-if="fieldIssues[`agenda.${index}.endsAt`]" class="field-error">{{ fieldIssues[`agenda.${index}.endsAt`] }}</small>
-                </label>
-              </div>
-
+            <div class="field-grid field-grid-2">
               <label class="field">
-                <span>环节摘要</span>
-                <textarea v-model="item.summary" rows="3" placeholder="该议程项的补充说明，可选。" />
+                <span>议程标题</span>
+                <input v-model="item.title" type="text" />
+              </label>
+              <label class="field">
+                <span>讲者</span>
+                <input v-model="item.speakerName" type="text" />
               </label>
             </div>
-          </div>
 
-          <small v-if="fieldIssues.agenda" class="field-error">{{ fieldIssues.agenda }}</small>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>开始时间</span>
+                <input v-model="item.startsAt" type="datetime-local" />
+              </label>
+              <label class="field">
+                <span>结束时间</span>
+                <input v-model="item.endsAt" type="datetime-local" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>议程说明</span>
+              <textarea v-model="item.summary" rows="4" />
+            </label>
+          </div>
         </div>
       </div>
 
       <aside class="editor-side stacked-gap">
-        <div class="panel stacked-gap">
-          <div class="brand-tag">主题</div>
-          <div class="selection-summary">已选择 {{ selectedTopicCount }} 个主题</div>
-          <div class="checkbox-list">
-            <label v-for="option in references.topics" :key="option.id" class="checkbox-row">
-              <input :checked="form.topicIds.includes(option.id)" type="checkbox" @change="toggleTopic(option.id)" />
-              <span>
-                <strong>{{ option.label }}</strong>
-                <small>{{ option.description }}</small>
-              </span>
-            </label>
-          </div>
-          <small v-if="fieldIssues.topicIds" class="field-error">{{ fieldIssues.topicIds }}</small>
-        </div>
-
         <CoverAssetField
           v-model="form.coverAssetId"
           :assets="coverAssets"
+          label="活动封面"
+          help="选择公开图片资源作为活动详情与列表封面。"
           :error="fieldIssues.coverAssetId"
-          label="封面资源"
         />
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">工作流</div>
+          <div class="brand-tag">当前概况</div>
           <div class="info-row">
-            <span>当前状态</span>
-            <strong class="status-pill">{{ formatContentStatus(event?.status ?? form.status) }}</strong>
+            <span>分会</span>
+            <strong>{{ references.branches.find((item) => item.id === form.branchId)?.label ?? "未选择" }}</strong>
           </div>
           <div class="info-row">
             <span>报名状态</span>
-            <strong class="status-pill">{{ formatEventRegistrationState(form.registrationState) }}</strong>
+            <strong>{{ form.registrationState }}</strong>
           </div>
           <div class="info-row">
-            <span>更新时间</span>
-            <strong>{{ formatDateTime(event?.updatedAt) }}</strong>
+            <span>议程数量</span>
+            <strong>{{ form.agenda.length }}</strong>
           </div>
-          <div class="info-row">
-            <span>发布时间</span>
-            <strong>{{ formatDateTime(event?.publishedAt) }}</strong>
+          <div class="info-row" v-if="event">
+            <span>最近更新</span>
+            <strong>{{ formatDateTime(event.updatedAt) }}</strong>
           </div>
-          <p>
-            活动在发布前必须具备城市、时间安排、主题关联以及至少一个议程项。
-          </p>
         </div>
       </aside>
     </div>

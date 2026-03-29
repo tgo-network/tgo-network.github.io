@@ -1,283 +1,163 @@
-# TGO Network Testing Strategy
+# TGO Network 测试策略
+
+## 1. 目的
+
+本文档定义一个务实的测试策略，用来保护当前收敛后的业务主线。
+
+当前测试重点不再是泛化内容平台，而是以下闭环：
+
+- 前台公开浏览
+- 活动开放报名
+- 加入申请
+- 后台内容发布
+- 后台审核与权限控制
+
+## 2. 测试原则
 
-## 1. Purpose
+- 在最低合适层验证最高风险逻辑
+- 先保护权限、发布状态、公开写接口
+- 测试范围必须跟当前产品范围同步收敛
+- 不让旧 `topic/city` 原型继续占据测试主线
 
-This document defines a practical testing strategy for the platform.
+## 3. 测试层次
 
-The goal is not exhaustive theoretical coverage.
+当前建议分为：
 
-The goal is to:
+- 单元测试
+- 集成测试
+- 端到端测试
+- 手工发布检查
 
-- protect critical business flows
-- keep tests aligned with the application split
-- add confidence without slowing early delivery excessively
+## 4. 后端测试重点
 
-## 2. Testing Principles
+### 单元测试
+
+适合覆盖：
+
+- 权限解析
+- 发布状态判断
+- 表单字段归一化
+- 存储键生成
+- 审计日志封装
+
+### 集成测试
+
+必须优先覆盖：
+
+- 未登录访问后台被拒绝
+- 已登录但无 `staff_account` 被拒绝
+- 工作人员无权限被拒绝
+- 公开接口只返回已发布内容
+- 成员列表与详情按公开状态过滤
+- 分会与董事会接口按公开状态过滤
+- 活动开放报名提交流程可用
+- 后台可审核并确认报名记录
+- 加入申请提交流程可用
+- 报名审核写入审核字段
+- 申请审核写入审核字段
+- 审计日志记录敏感写操作
+- 上传完成后资源元数据正确落库
+- 所有响应包含 `X-Request-ID`
 
-- test the highest-risk logic at the lowest useful layer
-- prefer stable tests over broad but brittle tests
-- cover auth, permissions, publishing, and uploads early
-- keep public site and admin tests aligned with real API contracts
+## 5. 前台测试重点
 
-## 3. Test Layers
+当前前台至少应覆盖：
 
-Recommended layers:
+- 首页渲染组织介绍与 CTA
+- 分会董事会页展示分会与董事会成员
+- 成员列表展示与筛选
+- 成员详情渲染关键字段
+- 活动列表与城市筛选
+- 活动详情显示报名状态
+- 活动详情可提交报名
+- 文章列表与详情渲染
+- `/join` 页面展示申请条件
+- `/join` 页面内申请表可提交
+- `/apply` 能正确跳转到 `/join#application-form`
+- `/about` 页面加载成功
 
-- unit tests
-- integration tests
-- end-to-end tests
-- manual release checks
+## 6. 后台测试重点
 
-## 4. Backend Test Scope
+当前后台至少应覆盖：
 
-### Unit Tests
+- 登录必需与受保护路由跳转
+- 仪表盘显示统计与系统状态
+- 文章创建、编辑、发布
+- 活动创建、编辑、发布
+- 活动报名审核
+- 加入申请审核
+- 成员编辑
+- 分会与董事会维护
+- 工作人员创建/编辑
+- 角色权限更新
+- 审计日志列表可见性
 
-Use for:
+## 7. 端到端关键路径
 
-- pure utility functions
-- permission resolution logic
-- content status transition helpers
-- storage key generation
-- input normalization helpers
+当前推荐优先保留以下 E2E：
 
-### Integration Tests
+1. 工作人员登录后台
+2. 新建并发布一篇文章
+3. 新建并发布一个活动
+4. 前台提交活动报名，后台完成审核
+5. 前台提交加入申请，后台完成审核
+6. 新增或编辑一个成员并在前台详情页看到更新
+7. 维护一个分会及董事会，并在前台看到更新
+8. 调整一个工作人员角色并验证权限生效
+9. 查看审计日志中出现对应敏感操作
 
-Use for:
+## 8. 当前自动化基线的调整建议
 
-- API handlers
-- auth middleware behavior
-- permission enforcement
-- repository or service logic against a test database
-- upload intent and completion flows
+当前仓库中已有一部分测试围绕旧 `topic/city` 原型建立。
 
-Priority backend integration cases:
+接下来测试工作应做两件事：
 
-- unauthenticated admin request is rejected
-- authenticated non-staff user is rejected
-- inactive staff user is rejected
-- missing permission is rejected
-- successful and error responses emit request correlation IDs
-- publish endpoint changes content visibility correctly
-- creating or updating `published` / `scheduled` content without required publish fields is rejected
-- public endpoints return published content only
-- asset upload completion persists metadata correctly
-- public write endpoints enforce rate limits with the expected error shape
-- asset upload completion rejects invalid dimension metadata
-- internal scheduled publishing promotes due articles and skips invalid scheduled records
+- 保留仍然有效的基础能力测试，如认证、限流、上传、请求追踪
+- 将页面级和业务级测试逐步替换为 `branches/members/join` 主线
+- 文章发布验证不再依赖旧 `topic/city` 绑定
 
-Current implemented backend integration baseline:
+换句话说，测试应该跟着新的产品范围迁移，而不是继续放大旧原型。
 
-- `apps/api/test/integration/api.integration.test.ts`
-  - creates an ephemeral PostgreSQL database from `DATABASE_URL`
-  - runs Drizzle migrations plus seed data before test execution
-  - verifies unauthenticated, non-staff, suspended-staff, and missing-permission admin access rejection
-  - verifies privileged staff can create and update staff accounts and update a role permission bundle
-  - verifies `/api/internal/v1/publish-scheduled-content` rejects missing tokens and publishes only valid due articles
-  - verifies public list/detail visibility, public application persistence, public event registration, and public rate limiting
-  - verifies runtime responses expose `X-Request-ID` and error payloads echo `error.requestId`
+## 9. 手工发布检查清单
 
-Current implemented backend observability unit baseline:
+发版前至少手工验证：
 
-- `apps/api/test/observability.test.ts`
-  - verifies structured JSON logging output
-  - verifies logfmt logging output
-  - verifies unsafe caller-provided request IDs are replaced before logging or response echo
+- 后台登录
+- 首页内容加载
+- 分会董事会页加载
+- 成员列表与详情
+- 活动列表与详情
+- 活动报名提交
+- 非成员加入申请提交
+- 加入说明页与申请表提交
+- 文章列表与详情
+- 后台文章发布
+- 后台活动报名审核
+- 后台加入申请审核
+- 后台成员与分会信息修改
+- 后台工作人员与角色更新
+- 审计日志可查看对应记录
 
-## 5. Public Site Test Scope
+## 10. 测试数据策略
 
-Focus on:
+推荐：
 
-- route rendering
-- data-loading integration
-- published-state visibility
-- SEO-critical output on key pages
+- 固定种子角色与权限
+- 固定一个超级管理员
+- 固定最小公开数据集：分会、成员、文章、活动、加入页、关于页
+- 让用例尽量使用确定性数据
 
-Recommended tests:
+避免：
 
-- homepage renders featured content
-- topic detail renders expected sections
-- article detail renders title and content
-- event detail reflects registration state
-- event detail accepts a registration submission when the event is open or waitlist-only
-- unpublished content is not rendered publicly
+- 不同测试共享可变状态
+- 依赖人工维护的脏数据库
 
-## 6. Admin Test Scope
+## 11. 质量门槛
 
-Focus on:
+在当前范围下，至少满足以下条件才算可上线：
 
-- route protection
-- permission-based navigation
-- form submission
-- table filters and mutation success states
-
-Recommended tests:
-
-- login-required redirect behavior
-- permission-limited navigation visibility
-- article create and publish form flow
-- event create and publish flow
-- event registration review queue and status update flow
-- application review status update flow
-- asset upload and asset selection flow
-- staff account create/update flow
-- role permission update flow
-
-## 7. End-To-End Coverage
-
-Do not try to test every page end-to-end.
-
-For MVP, prioritize these critical paths:
-
-1. staff login to admin shell
-2. create article and publish article
-3. create event and publish event
-4. submit public event registration and review it in admin
-5. submit public application
-6. upload editorial image and use it in content
-7. provision or update one staff account
-8. adjust one role permission bundle
-9. verify public page reflects published changes
-
-Current implemented browser smoke baseline:
-
-- `e2e/admin.spec.ts`
-  - verifies protected admin routes redirect unauthenticated users to `/login`
-  - verifies Better Auth email/password login with the bootstrapped super admin account
-  - verifies authenticated dashboard and topic navigation render successfully
-- `e2e/site.spec.ts`
-  - verifies the public homepage renders the primary collection sections
-  - verifies the public application form submits successfully
-  - verifies the public event registration form submits successfully
-
-Current local command:
-
-```bash
-npm run test:e2e
-```
-
-## 8. Manual Release Checklist
-
-Before production release, manually verify:
-
-- admin login
-- logout
-- password reset if enabled
-- homepage content load
-- article list and detail
-- event list and detail
-- public event registration submission
-- admin registration review update
-- application submission
-- asset upload
-- one protected admin mutation with expected audit output visible in `GET /api/admin/v1/audit-logs`
-- staff account creation or update
-- role permission bundle update
-- one internal scheduled publishing run with the expected result payload
-
-## 9. Test Data Strategy
-
-Recommended approach:
-
-- seed minimal fixed roles and permissions
-- seed one super admin
-- seed a small content dataset for public tests
-- keep fixtures deterministic
-
-Avoid:
-
-- fragile shared state across unrelated tests
-- dependence on production-like mutable data
-
-## 10. Environment Strategy For Tests
-
-Recommended environments:
-
-- unit tests with isolated execution
-- integration tests with dedicated test database
-- end-to-end tests against ephemeral or dedicated test environment
-
-Important rule:
-
-- never run destructive test flows against production services
-
-## 11. Suggested Tooling Direction
-
-The exact tool choice can follow the app scaffolds, but the strategy should remain:
-
-- backend test runner in Node
-- browser-based E2E for admin and public paths
-- shared fixture generation where practical
-
-Tooling should match the chosen frameworks once scaffolding is created.
-
-Current backend-focused local command:
-
-```bash
-npm run test:api
-```
-
-Current implemented Astro-side baseline:
-
-- `apps/site/test/public-api.test.ts`
-  - verifies `PUBLIC_API_BASE_URL` handling in the Astro public data client
-  - verifies fallback to shared content when public fetches fail
-  - verifies non-ok public detail responses fall back to shared seeded detail data
-
-Current repository automation:
-
-- `.github/workflows/ci.yml`
-  - provisions PostgreSQL in GitHub Actions
-  - runs `npm run typecheck`
-  - runs `npm run build`
-  - runs `npm run test`
-  - builds `apps/api/Dockerfile` to catch container regressions before release
-- `.github/workflows/e2e.yml`
-  - installs Chromium in GitHub Actions
-  - runs `npm run test:e2e`
-  - uploads Playwright artifacts on failure
-
-## 12. Quality Gates By Milestone
-
-### M0
-
-- workspace builds
-- baseline lint and type checks pass
-
-### M1
-
-- backend auth and permission integration tests pass
-- migration flow works from empty database
-
-### M2
-
-- public API integration tests pass
-- key public pages render successfully
-
-### M3
-
-- admin critical CRUD and publish E2E passes
-- asset upload path passes
-
-### M4
-
-- release checklist documented and repeatable
-- rollback and backup validation tested at least once
-
-## 13. What To Defer
-
-These do not need to block MVP:
-
-- exhaustive visual regression coverage
-- large-scale performance benchmarking
-- full combinatorial role matrix tests
-- heavy contract snapshot testing for every endpoint
-
-Add them later only if risk justifies them.
-
-## 14. Recommended Next Use
-
-This document should directly drive:
-
-- test package selection during scaffold
-- CI test stages
-- minimum pre-release validation
+- 权限相关集成测试通过
+- 活动报名与加入申请相关集成测试通过
+- 最低限度 E2E 主链路通过
+- 关键前台页面无 404、无空白页
+- 审计日志对敏感操作有记录

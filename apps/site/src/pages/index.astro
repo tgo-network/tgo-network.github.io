@@ -3,7 +3,7 @@ import { platformName, publicModules } from "@tgo/shared";
 
 import CollectionCard from "../components/CollectionCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { formatDate, formatDateRange, formatCount } from "../lib/format";
+import { formatDate, formatDateRange } from "../lib/format";
 import { getHomePayload } from "../lib/public-api";
 
 const home = await getHomePayload();
@@ -11,7 +11,7 @@ const home = await getHomePayload();
 
 <BaseLayout
   title={`${platformName} | 首页`}
-  description="基于 Astro 构建的 TGO Network 公开站 MVP，围绕主题、文章、活动与城市内容组织。"
+  description="TGO 鲲鹏会面向技术领导者的公开站点，展示组织定位、分会网络、成员、活动与内容。"
 >
   <main class="page-shell page-stack">
     <section class="hero">
@@ -33,15 +33,11 @@ const home = await getHomePayload();
         </div>
 
         <aside class="hero-aside panel panel-soft">
-          <div class="card-label">当前范围</div>
-          <h2 class="card-title">公开路由已经具备真实的列表与详情结构。</h2>
-          <p class="card-copy">
-            站点在 API 可用时可以直接渲染服务端数据；本地静态构建时，也仍然能够回退到共享演示数据。
-          </p>
+          <div class="card-label">组织速览</div>
+          <h2 class="card-title">围绕技术管理者成长，连接城市分会、成员网络与高质量活动。</h2>
+          <p class="card-copy">前台页面静态优先，真实数据统一来自 API，方便后续由后台持续运营。</p>
           <ul class="meta-list">
-            <li>主题、文章、活动与城市页面</li>
-            <li>API 与 Astro 共享 DTO 契约</li>
-            <li>申请表单契约已具备校验能力</li>
+            {home.audience.items.map((item) => <li>{item}</li>)}
           </ul>
         </aside>
       </div>
@@ -50,22 +46,65 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">精选主题</div>
-          <h2>组织首个版本内容结构的核心主题</h2>
+          <div class="card-label">TGO 介绍</div>
+          <h2>{home.intro.title}</h2>
         </div>
-        <a class="text-link" href="/topics">查看全部主题</a>
+      </div>
+
+      <div class="panel-grid-home">
+        <article class="panel">
+          <p class="card-copy">{home.intro.summary}</p>
+        </article>
+        <article class="panel">
+          <div class="card-label">覆盖人群</div>
+          <h3 class="card-title">{home.audience.title}</h3>
+          <ul class="meta-list">
+            {home.audience.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">关键指标</div>
+          <h2>组织网络与内容运营的当前状态</h2>
+        </div>
       </div>
 
       <div class="grid grid-3">
         {
-          home.featuredTopics.map((topic) => (
+          home.metrics.map((metric) => (
+            <article class="panel stat-card">
+              <div class="card-label">{metric.label}</div>
+              <h3 class="metric-value">{metric.value}</h3>
+              <p class="card-copy">{metric.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">分会董事会</div>
+          <h2>在城市节点中形成长期稳定的同侪连接</h2>
+        </div>
+        <a class="text-link" href="/branches">查看全部分会</a>
+      </div>
+
+      <div class="grid grid-3">
+        {
+          home.branchHighlights.map((branch) => (
             <CollectionCard
-              href={`/topics/${topic.slug}`}
-              label={formatCount(topic.articleCount, "篇文章")}
-              title={topic.title}
-              summary={topic.summary}
-              image={topic.coverImage}
-              meta={[formatCount(topic.eventCount, "场关联活动")]}
+              href={`/branches#${branch.slug}`}
+              label={branch.region || branch.cityName}
+              title={branch.name}
+              summary={branch.summary}
+              image={branch.coverImage}
+              meta={[branch.cityName, `${branch.boardMemberCount} 位董事会成员`]}
             />
           ))
         }
@@ -75,43 +114,18 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">最新文章</div>
-          <h2>已经可以面向公众浏览的长内容</h2>
+          <div class="card-label">精彩活动</div>
+          <h2>近期活动与线下交流安排</h2>
         </div>
-        <a class="text-link" href="/articles">浏览文章</a>
+        <a class="text-link" href="/events">浏览活动</a>
       </div>
 
       <div class="grid grid-3">
         {
-          home.featuredArticles.map((article) => (
-            <CollectionCard
-              href={`/articles/${article.slug}`}
-              label={formatDate(article.publishedAt)}
-              title={article.title}
-              summary={article.excerpt}
-              image={article.coverImage}
-              meta={[article.authorName, article.city.name]}
-            />
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">近期活动</div>
-          <h2>可感知报名状态的活动页面</h2>
-        </div>
-        <a class="text-link" href="/events">查看活动</a>
-      </div>
-
-      <div class="grid grid-3">
-        {
-          home.upcomingEvents.map((event) => (
+          home.featuredEvents.map((event) => (
             <CollectionCard
               href={`/events/${event.slug}`}
-              label={event.city.name}
+              label={event.branch?.cityName ?? "活动"}
               title={event.title}
               summary={event.summary}
               image={event.coverImage}
@@ -125,22 +139,22 @@ const home = await getHomePayload();
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">城市亮点</div>
-          <h2>每座城市都会汇总活动、主题与文章</h2>
+          <div class="card-label">文章</div>
+          <h2>来自技术管理与组织实践的一线内容</h2>
         </div>
-        <a class="text-link" href="/cities">进入城市页面</a>
+        <a class="text-link" href="/articles">查看文章</a>
       </div>
 
       <div class="grid grid-3">
         {
-          home.cityHighlights.map((city) => (
+          home.featuredArticles.map((article) => (
             <CollectionCard
-              href={`/cities/${city.slug}`}
-              label={formatCount(city.topicCount, "个主题")}
-              title={city.name}
-              summary={city.summary}
-              image={city.coverImage}
-              meta={[formatCount(city.articleCount, "篇文章"), formatCount(city.eventCount, "场活动")]}
+              href={`/articles/${article.slug}`}
+              label={formatDate(article.publishedAt)}
+              title={article.title}
+              summary={article.excerpt}
+              image={article.coverImage}
+              meta={[article.authorName, "公开文章"]}
             />
           ))
         }
@@ -150,19 +164,19 @@ const home = await getHomePayload();
     <section class="section">
       <div class="panel promo-panel">
         <div>
-          <div class="card-label">申请流程</div>
-          <h2>{home.applicationCallout.title}</h2>
-          <p class="card-copy">{home.applicationCallout.summary}</p>
+          <div class="card-label">加入申请</div>
+          <h2>{home.joinCallout.title}</h2>
+          <p class="card-copy">{home.joinCallout.summary}</p>
         </div>
-        <a class="button primary" href={home.applicationCallout.href}>打开申请表</a>
+        <a class="button primary" href={home.joinCallout.href}>开始申请</a>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">实现形态</div>
-          <h2>公开体验坚持静态优先，但不是写死的数据页面。</h2>
+          <div class="card-label">当前交付范围</div>
+          <h2>公开站与后台围绕当前 MVP 范围持续推进</h2>
         </div>
       </div>
 
@@ -180,3 +194,26 @@ const home = await getHomePayload();
     </section>
   </main>
 </BaseLayout>
+
+<style>
+  .panel-grid-home {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+
+  .stat-card {
+    min-height: 100%;
+  }
+
+  .metric-value {
+    margin: 16px 0 10px;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+  }
+
+  @media (max-width: 900px) {
+    .panel-grid-home {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
