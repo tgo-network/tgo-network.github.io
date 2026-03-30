@@ -157,3 +157,27 @@ test("public content drill-down routes expose the expected detail content", asyn
   await expect(page).toHaveURL(/\/join$/);
   await expect(page.locator("main h1").filter({ hasText: "面向技术领导者的高质量同侪网络" })).toBeVisible();
 });
+
+test("branch quick-jump chips open the targeted branch disclosure", async ({ page }) => {
+  await page.goto(`${siteUrl}/branches`, { waitUntil: "networkidle" });
+
+  const chips = page.locator(".branch-chip-row a");
+  const chipCount = await chips.count();
+  expect(chipCount).toBeGreaterThan(1);
+
+  const targetChip = chips.last();
+  const href = await targetChip.getAttribute("href");
+  const slug = href?.replace(/^#/, "") ?? "";
+
+  expect(slug).not.toBe("");
+  await targetChip.click();
+  await expect(page).toHaveURL(new RegExp(`#${slug}$`));
+
+  const disclosure = page.locator(`[data-branch-disclosure][data-branch-slug="${slug}"]`);
+  await expect
+    .poll(async () => disclosure.evaluate((node) => node.hasAttribute("open")), {
+      message: `expected disclosure for ${slug} to open after quick jump`
+    })
+    .toBe(true);
+  await expectNoHorizontalOverflow(page, "branches-disclosure");
+});
