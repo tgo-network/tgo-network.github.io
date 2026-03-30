@@ -81,7 +81,7 @@ const registrationSteps = [
         <div class="event-detail-main">
           <span class="eyebrow">活动详情</span>
           <h1>{event.title}</h1>
-          <p>{event.summary}</p>
+          <p class="event-detail-lead">{event.summary}</p>
           <ul class="stat-row">
             <li>{branchName}</li>
             <li>{formatRegistrationState(event.registrationState)}</li>
@@ -358,6 +358,17 @@ const registrationSteps = [
     background: rgba(255, 255, 255, 0.06);
   }
 
+  .event-detail-main h1 {
+    max-width: 11ch;
+    line-height: 1.01;
+  }
+
+  .event-detail-lead {
+    max-width: 58ch;
+    font-size: 1.04rem;
+    line-height: 1.84;
+  }
+
   .event-detail-main,
   .event-detail-side,
   .event-side-stack,
@@ -399,6 +410,11 @@ const registrationSteps = [
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(215, 179, 117, 0.14);
+  }
+
+  .event-detail-side {
+    position: sticky;
+    top: 104px;
   }
 
   .detail-side-block-soft p {
@@ -453,10 +469,22 @@ const registrationSteps = [
 
   .event-body-panel {
     min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .event-body-panel p {
+    max-width: 68ch;
+    line-height: 1.88;
+  }
+
+  .event-body-panel p:first-of-type {
+    font-size: 1.08rem;
+    color: var(--ink);
   }
 
   .audience-panel {
     align-content: start;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
   }
 
   .audience-list {
@@ -529,6 +557,8 @@ const registrationSteps = [
 
   .registration-side {
     align-content: start;
+    position: sticky;
+    top: 104px;
   }
 
   .event-next-links {
@@ -546,6 +576,11 @@ const registrationSteps = [
     .event-highlight-grid,
     .registration-process-grid {
       grid-template-columns: 1fr;
+    }
+
+    .event-detail-side,
+    .registration-side {
+      position: static;
     }
   }
 </style>

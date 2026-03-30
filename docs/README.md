@@ -71,3 +71,14 @@
 2. 再冻结路由与信息架构
 3. 再冻结数据模型与 API 边界
 4. 最后进入实现与测试收敛
+
+实施阶段记录：
+
+- `site-content-layout-phase-1.md`
+  - 前台 7 个公开页面的内容收敛与信息结构整理
+- `site-visual-polish-phase-1.md`
+  - 全局视觉基础、通用卡片与交互反馈统一
+- `site-visual-polish-phase-2.md`
+  - `about` / `join` / `branches` 的页面级节奏统一与可用性补强
+- `site-visual-polish-phase-3.md`
+  - 首页节奏优化，以及成员 / 活动 / 文章详情页的 typography 与侧栏收尾

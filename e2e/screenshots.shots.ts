@@ -40,8 +40,11 @@ test("capture public site screenshots", async ({ page }) => {
     { path: "/", heading: "连接技术领导者、分会活动与长期交流网络", name: "home" },
     { path: "/branches", heading: "覆盖不同城市节点的技术领导者网络", name: "branches" },
     { path: "/members", heading: "来自不同公司与城市分会的技术领导者", name: "members" },
+    { path: "/members/zhou-yang", heading: "周扬", name: "member-detail" },
     { path: "/events", heading: "各地分会活动与公开报名入口", name: "events" },
+    { path: "/events/event-1816", heading: "第一届龙虾AI大会：ClawCon", name: "event-detail" },
     { path: "/articles", heading: "围绕技术管理、组织实践与社区观察的内容沉淀", name: "articles" },
+    { path: "/articles/what-a-city-hub-needs", heading: "一座城市主页在真正活起来之前需要什么", name: "article-detail" },
     { path: "/join", heading: "面向技术领导者的高质量同侪网络", name: "join" },
     { path: "/about", heading: "一个围绕技术领导者成长而组织起来的长期社区网络", name: "about" }
   ] as const;

@@ -201,10 +201,11 @@ const siteMapCards = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">网站导览</div>
           <h2>先知道每一页分别解决什么问题</h2>
+          <p class="section-note">首页不是把导航项平铺出来，而是先给第一次访问的人建立一条更顺手的阅读顺序。</p>
         </div>
       </div>
 
@@ -222,10 +223,11 @@ const siteMapCards = [
     </section>
 
     <section id="intro" class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">TGO 介绍</div>
           <h2>围绕技术领导者成长，建立可信任的长期连接</h2>
+          <p class="section-note">先读组织定位，再继续看活动、分会与成员，首页会更像一条完整叙事线，而不是内容拼盘。</p>
         </div>
       </div>
 
@@ -255,10 +257,11 @@ const siteMapCards = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">精彩活动</div>
           <h2>围绕技术管理者成长的活动形态</h2>
+          <p class="section-note">这一段先解释社区如何组织线下交流，再承接后面的公开活动与报名入口。</p>
         </div>
         <a class="text-link" href="/events">查看活动日历</a>
       </div>
@@ -277,35 +280,39 @@ const siteMapCards = [
     </section>
 
     <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">分会董事会</div>
-          <h2>以城市节点构建长期稳定的同侪连接</h2>
+      <div class="panel collection-showcase collection-showcase-branches">
+        <div class="section-head section-head-stack collection-showcase-head">
+          <div>
+            <div class="card-label">分会董事会</div>
+            <h2>以城市节点构建长期稳定的同侪连接</h2>
+            <p class="section-note">分会是这个社区的长期组织节点，不是活动的附属容器；先看分会，组织感会更清晰。</p>
+          </div>
+          <a class="text-link" href="/branches">查看全部分会</a>
         </div>
-        <a class="text-link" href="/branches">查看全部分会</a>
-      </div>
 
-      <div class="grid grid-3">
-        {
-          home.branchHighlights.map((branch) => (
-            <CollectionCard
-              href={`/branches#${branch.slug}`}
-              label={branch.region || branch.cityName}
-              title={branch.name}
-              summary={branch.summary}
-              image={branch.coverImage}
-              meta={[branch.cityName, `${branch.boardMemberCount} 位董事会成员`]}
-            />
-          ))
-        }
+        <div class="grid grid-3">
+          {
+            home.branchHighlights.map((branch) => (
+              <CollectionCard
+                href={`/branches#${branch.slug}`}
+                label={branch.region || branch.cityName}
+                title={branch.name}
+                summary={branch.summary}
+                image={branch.coverImage}
+                meta={[branch.cityName, `${branch.boardMemberCount} 位董事会成员`]}
+              />
+            ))
+          }
+        </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">精选成员</div>
           <h2>让访客尽早看到社区里真实存在的人</h2>
+          <p class="section-note">先看到真实成员，再去理解活动与文章，整个组织的可信度和覆盖范围会更直观。</p>
         </div>
         <a class="text-link" href="/members">查看完整成员列表</a>
       </div>
@@ -366,52 +373,58 @@ const siteMapCards = [
     </section>
 
     <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">近期活动</div>
-          <h2>近期活动与线下交流安排</h2>
+      <div class="panel collection-showcase collection-showcase-events">
+        <div class="section-head section-head-stack collection-showcase-head">
+          <div>
+            <div class="card-label">近期活动</div>
+            <h2>近期活动与线下交流安排</h2>
+            <p class="section-note">这里展示的是前台公开入口，真正的通过结果仍然要进入工作人员后台继续审核。</p>
+          </div>
+          <a class="text-link" href="/events">浏览活动</a>
         </div>
-        <a class="text-link" href="/events">浏览活动</a>
-      </div>
 
-      <div class="grid grid-3">
-        {
-          home.featuredEvents.map((event) => (
-            <CollectionCard
-              href={`/events/${event.slug}`}
-              label={event.cityName}
-              title={event.title}
-              summary={event.summary}
-              image={event.coverImage}
-              meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName]}
-            />
-          ))
-        }
+        <div class="grid grid-3">
+          {
+            home.featuredEvents.map((event) => (
+              <CollectionCard
+                href={`/events/${event.slug}`}
+                label={event.cityName}
+                title={event.title}
+                summary={event.summary}
+                image={event.coverImage}
+                meta={[formatDateRange(event.startsAt, event.endsAt), event.venueName]}
+              />
+            ))
+          }
+        </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">文章</div>
-          <h2>来自技术管理与组织实践的一线内容</h2>
+      <div class="panel collection-showcase collection-showcase-articles">
+        <div class="section-head section-head-stack collection-showcase-head">
+          <div>
+            <div class="card-label">文章</div>
+            <h2>来自技术管理与组织实践的一线内容</h2>
+            <p class="section-note">内容不是单独的媒体栏目，而是把活动之后的观点与组织经验继续沉淀下来。</p>
+          </div>
+          <a class="text-link" href="/articles">查看文章</a>
         </div>
-        <a class="text-link" href="/articles">查看文章</a>
-      </div>
 
-      <div class="grid grid-3">
-        {
-          home.featuredArticles.map((article) => (
-            <CollectionCard
-              href={`/articles/${article.slug}`}
-              label={formatDate(article.publishedAt)}
-              title={article.title}
-              summary={article.excerpt}
-              image={article.coverImage}
-              meta={[article.authorName, "公开文章"]}
-            />
-          ))
-        }
+        <div class="grid grid-3">
+          {
+            home.featuredArticles.map((article) => (
+              <CollectionCard
+                href={`/articles/${article.slug}`}
+                label={formatDate(article.publishedAt)}
+                title={article.title}
+                summary={article.excerpt}
+                image={article.coverImage}
+                meta={[article.authorName, "公开文章"]}
+              />
+            ))
+          }
+        </div>
       </div>
     </section>
 
@@ -574,7 +587,8 @@ const siteMapCards = [
   .intro-grid,
   .dual-highlight-grid,
   .featured-member-grid,
-  .site-map-grid {
+  .site-map-grid,
+  .collection-showcase {
     display: grid;
     gap: 18px;
   }
@@ -687,6 +701,45 @@ const siteMapCards = [
     margin-top: auto;
   }
 
+  .collection-showcase {
+    padding: 28px;
+    border-radius: 30px;
+  }
+
+  .collection-showcase-head {
+    margin-bottom: 0;
+  }
+
+  .collection-showcase-branches {
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .collection-showcase-events {
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 26%),
+      linear-gradient(135deg, #171817 0%, #231d18 100%);
+    border-color: rgba(215, 179, 117, 0.16);
+    box-shadow: 0 32px 70px rgba(24, 16, 10, 0.18);
+  }
+
+  .collection-showcase-events .collection-showcase-head .card-label,
+  .collection-showcase-events .collection-showcase-head .text-link,
+  .collection-showcase-events .collection-showcase-head h2 {
+    color: #fff7ef;
+  }
+
+  .collection-showcase-events .collection-showcase-head .section-note {
+    color: rgba(247, 239, 227, 0.72);
+  }
+
+  .collection-showcase-articles {
+    background:
+      radial-gradient(circle at top left, rgba(215, 179, 117, 0.1), transparent 22%),
+      linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
+  }
+
   .value-card {
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(250, 244, 235, 0.94));
   }
@@ -773,6 +826,10 @@ const siteMapCards = [
     .join-panel-head {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .collection-showcase {
+      padding: 24px;
     }
   }
 

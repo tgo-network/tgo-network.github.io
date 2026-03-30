@@ -75,7 +75,7 @@ const nextPaths = [
         <div class="member-detail-main">
           <span class="eyebrow">成员详情</span>
           <h1>{member.name}</h1>
-          <p>{member.company} · {member.title}</p>
+          <p class="member-detail-lead">{member.company} · {member.title}</p>
           <ul class="stat-row">
             <li>{member.branch?.name ?? "未分配分会"}</li>
             <li>{member.branch?.cityName ?? "待补充城市"}</li>
@@ -247,6 +247,17 @@ const nextPaths = [
     align-content: start;
   }
 
+  .member-detail-main h1 {
+    max-width: 8ch;
+    line-height: 0.98;
+  }
+
+  .member-detail-lead {
+    max-width: 52ch;
+    font-size: 1.06rem;
+    line-height: 1.85;
+  }
+
   .member-signal-grid,
   .member-follow-grid,
   .related-member-grid,
@@ -291,6 +302,8 @@ const nextPaths = [
     display: grid;
     gap: 18px;
     align-content: start;
+    position: sticky;
+    top: 104px;
   }
 
   .member-detail-avatar {
@@ -356,6 +369,20 @@ const nextPaths = [
 
   .member-story-panel {
     min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .member-story-panel p {
+    max-width: 66ch;
+  }
+
+  .member-story-panel p:first-of-type {
+    font-size: 1.08rem;
+    color: var(--ink);
+  }
+
+  .member-story-panel p + p {
+    margin-top: 6px;
   }
 
   .member-note-panel,
@@ -363,6 +390,10 @@ const nextPaths = [
     display: grid;
     gap: 18px;
     align-content: start;
+  }
+
+  .member-note-panel {
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
   }
 
   .vertical-list {
@@ -373,6 +404,7 @@ const nextPaths = [
   .related-members-panel {
     display: grid;
     gap: 18px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
   .related-members-head {
@@ -416,6 +448,10 @@ const nextPaths = [
     .member-follow-grid,
     .related-member-grid {
       grid-template-columns: 1fr;
+    }
+
+    .member-detail-side {
+      position: static;
     }
   }
 

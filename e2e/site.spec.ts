@@ -3,6 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
 const openEventSlug = "event-1816";
 const openEventTitle = "第一届龙虾AI大会：ClawCon";
+const leadArticleSlug = "what-a-city-hub-needs";
+const leadArticleTitle = "一座城市主页在真正活起来之前需要什么";
+const leadMemberSlug = "zhou-yang";
+const leadMemberName = "周扬";
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 const keyRoutes = [
@@ -33,6 +37,20 @@ const keyRoutes = [
   {
     path: "/about",
     heading: "一个围绕技术领导者成长而组织起来的长期社区网络"
+  }
+] as const;
+const detailRoutes = [
+  {
+    path: `/members/${leadMemberSlug}`,
+    heading: leadMemberName
+  },
+  {
+    path: `/events/${openEventSlug}`,
+    heading: openEventTitle
+  },
+  {
+    path: `/articles/${leadArticleSlug}`,
+    heading: leadArticleTitle
   }
 ] as const;
 
@@ -133,18 +151,35 @@ test("public key pages keep desktop and mobile layouts within the viewport", asy
   }
 });
 
+test("public detail pages keep desktop and mobile layouts within the viewport", async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 1024, label: "desktop" },
+    { width: 390, height: 844, label: "mobile" }
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+    for (const route of detailRoutes) {
+      await test.step(`${viewport.label} ${route.path}`, async () => {
+        await page.goto(`${siteUrl}${route.path}`, { waitUntil: "networkidle" });
+        await expect(page.locator("main h1").filter({ hasText: route.heading })).toBeVisible();
+        await expectNoHorizontalOverflow(page, `${viewport.label}:${route.path}`);
+      });
+    }
+  }
+});
+
 test("public content drill-down routes expose the expected detail content", async ({ page }) => {
   await page.goto(`${siteUrl}/members`, { waitUntil: "networkidle" });
   await page.getByRole("link", { name: /周扬/ }).click();
-  await expect(page).toHaveURL(/\/members\/zhou-yang$/);
-  await expect(page.getByRole("heading", { name: "周扬" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/members/${leadMemberSlug}$`));
+  await expect(page.getByRole("heading", { name: leadMemberName })).toBeVisible();
   await expect(page.locator(".member-detail-side-card .card-label").filter({ hasText: "成员档案" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "member-detail");
 
   await page.goto(`${siteUrl}/articles`, { waitUntil: "networkidle" });
   await page.getByRole("link", { name: /一座城市主页在真正活起来之前需要什么/ }).first().click();
   await expect(page).toHaveURL(/\/articles\/[^/]+$/);
-  await expect(page.getByRole("heading", { name: "一座城市主页在真正活起来之前需要什么" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: leadArticleTitle })).toBeVisible();
   await expect(page.getByText("继续浏览")).toBeVisible();
   await expectNoHorizontalOverflow(page, "article-detail");
 
