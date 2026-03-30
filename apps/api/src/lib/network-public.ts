@@ -53,6 +53,27 @@ import { getAssetPublicUrl } from "./storage.js";
 const asIso = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 const asRequiredIso = (value: Date | null | undefined, fallback: string) => asIso(value) ?? fallback;
 const nowIso = () => new Date().toISOString();
+const knownEventCities = [
+  "北京",
+  "上海",
+  "杭州",
+  "广州",
+  "深圳",
+  "成都",
+  "硅谷",
+  "南京",
+  "武汉",
+  "台北",
+  "厦门",
+  "苏州",
+  "合肥",
+  "天津",
+  "福州",
+  "西安",
+  "珠海",
+  "新加坡",
+  "青岛"
+] as const;
 
 const toPublicImageAsset = (
   asset: typeof assets.$inferSelect | undefined,
@@ -84,6 +105,24 @@ const toBranchReference = (branch: typeof branches.$inferSelect | null) =>
         cityName: branch.cityName
       }
     : null;
+
+const inferCityNameFromText = (...fields: Array<string | null | undefined>) => {
+  const merged = fields.filter((value): value is string => Boolean(value && value.trim())).join(" ");
+
+  for (const cityName of knownEventCities) {
+    if (merged.includes(cityName)) {
+      return cityName;
+    }
+  }
+
+  const match = merged.match(/^([\u4e00-\u9fa5]{2,6})(?:市|国际|软件|创新|会展|会客|中心|园|馆|大厦|酒店|广场|路|区)/);
+  return match?.[1] ?? "待定";
+};
+
+const getEventCityName = (
+  event: Pick<typeof events.$inferSelect, "venueName" | "venueAddress" | "title">,
+  branch: typeof branches.$inferSelect | null
+) => branch?.cityName ?? inferCityNameFromText(event.venueAddress, event.venueName, event.title);
 
 const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string; summary: PublicArticleSummaryV2 }> | undefined> => {
   if (!isDatabaseConfigured()) {
@@ -164,7 +203,7 @@ const listPublishedEventSummariesFromDb = async (): Promise<Array<{ id: string; 
 
   const db = getDb();
   const [eventRows, branchRows, assetRows] = await Promise.all([
-    db.select().from(events).where(eq(events.status, "published")).orderBy(asc(events.startsAt), asc(events.title)),
+    db.select().from(events).where(eq(events.status, "published")).orderBy(desc(events.startsAt), asc(events.title)),
     db.select().from(branches),
     db.select().from(assets).where(and(eq(assets.status, "active"), eq(assets.visibility, "public")))
   ]);
@@ -183,6 +222,7 @@ const listPublishedEventSummariesFromDb = async (): Promise<Array<{ id: string; 
         summary: event.summary ?? "",
         startsAt: asRequiredIso(event.startsAt, event.updatedAt.toISOString()),
         endsAt: asRequiredIso(event.endsAt, event.updatedAt.toISOString()),
+        cityName: getEventCityName(event, branch ?? null),
         venueName: event.venueName ?? "待定",
         venueAddress: event.venueAddress ?? "",
         coverImage: toPublicImageAsset(assetById.get(event.coverAssetId ?? ""), `${event.title} cover image`),
@@ -394,6 +434,7 @@ export const getEventDetailV2FromDb = async (slug: string): Promise<PublicEventD
     summary: event.summary ?? "",
     startsAt: asRequiredIso(event.startsAt, event.updatedAt.toISOString()),
     endsAt: asRequiredIso(event.endsAt, event.updatedAt.toISOString()),
+    cityName: getEventCityName(event, branch ?? null),
     venueName: event.venueName ?? "待定",
     venueAddress: event.venueAddress ?? "",
     coverImage: toPublicImageAsset(coverAsset ?? undefined, `${event.title} cover image`),

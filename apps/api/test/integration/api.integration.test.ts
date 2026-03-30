@@ -772,6 +772,31 @@ describe("public API integration", () => {
     assert.equal(eventDetailResult.payload.data.slug, eventSlug);
   });
 
+  test("supports public event pagination meta and city filtering", async () => {
+    const pagedResult = await requestJson("/api/public/v1/events?page=1&pageSize=2");
+
+    assert.equal(pagedResult.response.status, 200);
+    assert.equal(pagedResult.payload.meta.page, 1);
+    assert.equal(pagedResult.payload.meta.pageSize, 2);
+    assert.ok(pagedResult.payload.meta.pageCount >= 1);
+    assert.ok(Array.isArray(pagedResult.payload.meta.cityOptions));
+    assert.ok(pagedResult.payload.data.length <= 2);
+
+    if (pagedResult.payload.data.length >= 2) {
+      assert.ok(
+        Date.parse(pagedResult.payload.data[0].startsAt) >= Date.parse(pagedResult.payload.data[1].startsAt)
+      );
+    }
+
+    const cityName = pagedResult.payload.data[0].cityName as string;
+    const cityResult = await requestJson(`/api/public/v1/events?city=${encodeURIComponent(cityName)}&page=1&pageSize=5`);
+
+    assert.equal(cityResult.response.status, 200);
+    assert.equal(cityResult.payload.meta.page, 1);
+    assert.ok(cityResult.payload.meta.total >= cityResult.payload.data.length);
+    assert.ok(cityResult.payload.data.every((item: { cityName: string }) => item.cityName === cityName));
+  });
+
   test("lists only published content and hides unpublished article detail routes", async () => {
     const hiddenSlug = `draft-hidden-${randomUUID()}`;
 

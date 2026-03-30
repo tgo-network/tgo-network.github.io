@@ -68,6 +68,7 @@ export interface PublicEventSummaryV2 {
   summary: string;
   startsAt: string;
   endsAt: string;
+  cityName: string;
   venueName: string;
   venueAddress: string;
   coverImage: PublicImageAsset | null;
@@ -84,6 +85,33 @@ export interface PublicEventDetailV2 extends PublicEventSummaryV2 {
     speaker: string;
     summary: string;
   }>;
+}
+
+export interface PublicEventListQuery {
+  page?: number;
+  pageSize?: number;
+  city?: string;
+  branchSlug?: string;
+  upcoming?: boolean;
+}
+
+export interface PublicEventListMeta {
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+  cityOptions: string[];
+  registrationStateCounts: {
+    open: number;
+    waitlist: number;
+    closed: number;
+    notOpen: number;
+  };
+}
+
+export interface PublicEventListResult {
+  items: PublicEventSummaryV2[];
+  meta: PublicEventListMeta;
 }
 
 export interface JoinPagePayload {
@@ -562,6 +590,7 @@ export const publicEventSummariesV2: PublicEventSummaryV2[] = eventRecords.map((
   summary: event.summary,
   startsAt: event.startsAt,
   endsAt: event.endsAt,
+  cityName: branchReferenceMap.get(event.branchSlug)?.cityName ?? event.venueName.replace(/市.*/, "市"),
   venueName: event.venueName,
   venueAddress: event.venueAddress,
   coverImage: null,

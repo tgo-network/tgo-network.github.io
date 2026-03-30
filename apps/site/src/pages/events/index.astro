@@ -1,13 +1,13 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
-import { listEvents } from "../../lib/public-api";
+import { getPublicApiBaseUrl, listEventPage } from "../../lib/public-api";
 
-const events = await listEvents();
-const cityOptions = Array.from(new Set(events.map((event) => event.branch?.cityName).filter((value): value is string => Boolean(value))));
-const openCount = events.filter((event) => event.registrationState === "open").length;
-const waitlistCount = events.filter((event) => event.registrationState === "waitlist").length;
-const closedCount = events.filter((event) => event.registrationState === "closed").length;
+const initialEventPage = await listEventPage({ page: 1, pageSize: 24 });
+const initialEvents = initialEventPage.items;
+const initialMeta = initialEventPage.meta;
+const apiBaseUrl = getPublicApiBaseUrl();
+const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta.registrationStateCounts.notOpen;
 ---
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看近期活动、分会动态与公开报名入口。">
@@ -22,10 +22,10 @@ const closedCount = events.filter((event) => event.registrationState === "closed
             当前阶段活动支持开放报名，再由工作人员在后台进行审核确认。
           </p>
           <ul class="stat-row event-hero-stats">
-            <li>{events.length} 场活动</li>
-            <li>{cityOptions.length} 个城市</li>
-            <li>{openCount} 场开放报名</li>
-            <li>{waitlistCount} 场候补中</li>
+            <li data-event-total>{initialMeta.total} 场活动</li>
+            <li data-event-city-total>{initialMeta.cityOptions.length} 个城市</li>
+            <li data-event-open-total>{initialMeta.registrationStateCounts.open} 场开放报名</li>
+            <li data-event-waitlist-total>{initialMeta.registrationStateCounts.waitlist} 场候补中</li>
           </ul>
         </div>
 
@@ -41,16 +41,16 @@ const closedCount = events.filter((event) => event.registrationState === "closed
 
           <div class="event-hero-meta-grid">
             <article>
-              <strong>{openCount}</strong>
+              <strong data-event-open-card>{initialMeta.registrationStateCounts.open}</strong>
               <span>开放报名</span>
             </article>
             <article>
-              <strong>{waitlistCount}</strong>
+              <strong data-event-waitlist-card>{initialMeta.registrationStateCounts.waitlist}</strong>
               <span>候补中</span>
             </article>
             <article>
-              <strong>{closedCount}</strong>
-              <span>已关闭</span>
+              <strong data-event-closed-card>{closedLikeCount}</strong>
+              <span>非开放</span>
             </article>
           </div>
         </aside>
@@ -86,17 +86,18 @@ const closedCount = events.filter((event) => event.registrationState === "closed
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">城市筛选</div>
           <h2>按城市查看活动</h2>
         </div>
+        <p class="section-note">活动默认按时间倒序展示，当前列表按 24 场一页加载，避免一次性展开全部历史活动。</p>
       </div>
 
       <div class="filter-bar" data-event-filters>
         <button class="filter-chip is-active" type="button" data-city-filter="all">全部城市</button>
         {
-          cityOptions.map((city) => (
+          initialMeta.cityOptions.map((city) => (
             <button class="filter-chip" type="button" data-city-filter={city}>
               {city}
             </button>
@@ -105,11 +106,21 @@ const closedCount = events.filter((event) => event.registrationState === "closed
       </div>
     </section>
 
-    <section class="section">
-      <div class="event-grid">
+    <section class="section" data-event-results-section>
+      <div class="results-head">
+        <div>
+          <div class="card-label">活动列表</div>
+          <h2>浏览已导入的公开活动</h2>
+        </div>
+        <p class="results-summary" data-event-page-summary>
+          第 {initialMeta.page} / {initialMeta.pageCount} 页，当前显示 {initialEvents.length} 场，共 {initialMeta.total} 场
+        </p>
+      </div>
+
+      <div class="event-grid" data-event-grid>
         {
-          events.map((event) => (
-            <article data-event-card data-city={event.branch?.cityName ?? ""} class="panel event-card">
+          initialEvents.map((event) => (
+            <article class="panel event-card">
               <a class="event-card-link" href={`/events/${event.slug}`}>
                 {
                   event.coverImage && (
@@ -121,7 +132,7 @@ const closedCount = events.filter((event) => event.registrationState === "closed
 
                 <div class="event-card-head">
                   <div>
-                    <div class="card-label">{event.branch?.cityName ?? "活动"}</div>
+                    <div class="card-label">{event.cityName}</div>
                     <h3 class="event-card-title">{event.title}</h3>
                   </div>
                   <span class:list={["event-state", `event-state-${event.registrationState}`]}>
@@ -144,60 +155,323 @@ const closedCount = events.filter((event) => event.registrationState === "closed
         }
       </div>
 
-      <div class="panel panel-soft empty-state" data-event-empty hidden>
+      <div class="panel panel-soft empty-state" data-event-empty hidden={initialEvents.length > 0}>
         <div class="card-label">暂无结果</div>
         <p class="card-copy">当前城市筛选下还没有可展示的活动，请切换到其他城市继续查看。</p>
+      </div>
+
+      <div class="pagination-bar" data-event-pagination>
+        <button class="button secondary pagination-button" type="button" data-event-page-prev disabled={initialMeta.page <= 1}>
+          上一页
+        </button>
+        <span class="pagination-indicator" data-event-page-indicator>第 {initialMeta.page} / {initialMeta.pageCount} 页</span>
+        <button
+          class="button secondary pagination-button"
+          type="button"
+          data-event-page-next
+          disabled={initialMeta.page >= initialMeta.pageCount}
+        >
+          下一页
+        </button>
       </div>
     </section>
   </main>
 
-  <script>
+  <script define:vars={{ apiBaseUrl, initialMeta, initialPageSize: initialMeta.pageSize, initialItemCount: initialEvents.length }} is:inline>
     const filterRoot = document.querySelector("[data-event-filters]");
-    const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-event-card]"));
+    const grid = document.querySelector("[data-event-grid]");
     const emptyState = document.querySelector("[data-event-empty]");
+    const prevButton = document.querySelector("[data-event-page-prev]");
+    const nextButton = document.querySelector("[data-event-page-next]");
+    const pageIndicator = document.querySelector("[data-event-page-indicator]");
+    const pageSummary = document.querySelector("[data-event-page-summary]");
+    const resultsSection = document.querySelector("[data-event-results-section]");
+    const totalStat = document.querySelector("[data-event-total]");
+    const cityTotalStat = document.querySelector("[data-event-city-total]");
+    const openTotalStat = document.querySelector("[data-event-open-total]");
+    const waitlistTotalStat = document.querySelector("[data-event-waitlist-total]");
+    const openCard = document.querySelector("[data-event-open-card]");
+    const waitlistCard = document.querySelector("[data-event-waitlist-card]");
+    const closedCard = document.querySelector("[data-event-closed-card]");
 
-    if (filterRoot instanceof HTMLElement && emptyState instanceof HTMLElement && cards.length > 0) {
-      const buttons = Array.from(filterRoot.querySelectorAll<HTMLButtonElement>("[data-city-filter]"));
+    const buttons = filterRoot instanceof HTMLElement
+      ? Array.from(filterRoot.querySelectorAll("[data-city-filter]"))
+      : [];
+
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const formatRegistrationStateLabel = (state) => {
+      switch (state) {
+        case "open":
+          return "开放报名";
+        case "waitlist":
+          return "候补中";
+        case "closed":
+          return "报名已关闭";
+        case "not_open":
+          return "暂未开放";
+        default:
+          return "状态待定";
+      }
+    };
+
+    const formatEventDateRange = (startsAt, endsAt) => {
+      const start = new Date(startsAt);
+      const end = new Date(endsAt || startsAt);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return "时间待定";
+      }
+
+      const formatDate = (value) =>
+        new Intl.DateTimeFormat("zh-CN", {
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(value);
+
+      const sameDay = start.toDateString() === end.toDateString();
+
+      if (sameDay) {
+        return `${formatDate(start)} - ${new Intl.DateTimeFormat("zh-CN", {
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(end)}`;
+      }
+
+      return `${formatDate(start)} - ${formatDate(end)}`;
+    };
+
+    const renderEventCard = (event) => {
+      const coverImage = event.coverImage
+        ? `
+          <div class="event-card-media-wrap">
+            <img class="event-card-media" src="${escapeHtml(event.coverImage.url)}" alt="${escapeHtml(event.coverImage.alt)}" loading="lazy" />
+          </div>
+        `
+        : "";
+      const branchTag = event.branch?.name ? `<li>${escapeHtml(event.branch.name)}</li>` : "";
+
+      return `
+        <article class="panel event-card">
+          <a class="event-card-link" href="/events/${encodeURIComponent(event.slug)}">
+            ${coverImage}
+            <div class="event-card-head">
+              <div>
+                <div class="card-label">${escapeHtml(event.cityName)}</div>
+                <h3 class="event-card-title">${escapeHtml(event.title)}</h3>
+              </div>
+              <span class="event-state event-state-${escapeHtml(event.registrationState)}">${formatRegistrationStateLabel(event.registrationState)}</span>
+            </div>
+            <p class="card-copy">${escapeHtml(event.summary)}</p>
+            <ul class="event-meta-list">
+              <li>${escapeHtml(formatEventDateRange(event.startsAt, event.endsAt))}</li>
+              <li>${escapeHtml(event.venueName)}</li>
+              ${branchTag}
+            </ul>
+            <span class="text-link">查看活动详情</span>
+          </a>
+        </article>
+      `;
+    };
+
+    const setButtonState = (activeCity) => {
+      buttons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.cityFilter === activeCity);
+      });
+    };
+
+    const updateStats = (meta) => {
+      if (totalStat instanceof HTMLElement) {
+        totalStat.textContent = `${meta.total} 场活动`;
+      }
+
+      if (cityTotalStat instanceof HTMLElement) {
+        cityTotalStat.textContent = `${meta.cityOptions.length} 个城市`;
+      }
+
+      if (openTotalStat instanceof HTMLElement) {
+        openTotalStat.textContent = `${meta.registrationStateCounts.open} 场开放报名`;
+      }
+
+      if (waitlistTotalStat instanceof HTMLElement) {
+        waitlistTotalStat.textContent = `${meta.registrationStateCounts.waitlist} 场候补中`;
+      }
+
+      if (openCard instanceof HTMLElement) {
+        openCard.textContent = String(meta.registrationStateCounts.open);
+      }
+
+      if (waitlistCard instanceof HTMLElement) {
+        waitlistCard.textContent = String(meta.registrationStateCounts.waitlist);
+      }
+
+      if (closedCard instanceof HTMLElement) {
+        closedCard.textContent = String(meta.registrationStateCounts.closed + meta.registrationStateCounts.notOpen);
+      }
+    };
+
+    const updatePagination = (meta, itemCount) => {
+      if (pageIndicator instanceof HTMLElement) {
+        pageIndicator.textContent = `第 ${meta.page} / ${meta.pageCount} 页`;
+      }
+
+      if (pageSummary instanceof HTMLElement) {
+        pageSummary.textContent = `第 ${meta.page} / ${meta.pageCount} 页，当前显示 ${itemCount} 场，共 ${meta.total} 场`;
+      }
+
+      if (prevButton instanceof HTMLButtonElement) {
+        prevButton.disabled = meta.page <= 1;
+      }
+
+      if (nextButton instanceof HTMLButtonElement) {
+        nextButton.disabled = meta.page >= meta.pageCount;
+      }
+    };
+
+    const renderGrid = (events) => {
+      if (!(grid instanceof HTMLElement) || !(emptyState instanceof HTMLElement)) {
+        return;
+      }
+
+      grid.innerHTML = events.map((event) => renderEventCard(event)).join("");
+      emptyState.hidden = events.length > 0;
+    };
+
+    const setLoading = (loading) => {
+      if (grid instanceof HTMLElement) {
+        grid.toggleAttribute("aria-busy", loading);
+      }
+
+      if (prevButton instanceof HTMLButtonElement) {
+        prevButton.disabled = loading || prevButton.disabled;
+      }
+
+      if (nextButton instanceof HTMLButtonElement) {
+        nextButton.disabled = loading || nextButton.disabled;
+      }
+
+      buttons.forEach((button) => {
+        button.disabled = loading;
+      });
+    };
+
+    const buildApiUrl = (page, city) => {
+      const url = new URL("/api/public/v1/events", apiBaseUrl);
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("pageSize", String(initialPageSize));
+
+      if (city !== "all") {
+        url.searchParams.set("city", city);
+      }
+
+      return url;
+    };
+
+    const syncLocation = (page, city) => {
       const search = new URLSearchParams(window.location.search);
-      const initialCity = search.get("city") ?? "all";
 
-      const setActive = (city: string) => {
-        let visibleCount = 0;
+      if (city === "all") {
+        search.delete("city");
+      } else {
+        search.set("city", city);
+      }
 
-        buttons.forEach((button) => {
-          const active = button.dataset.cityFilter === city;
-          button.classList.toggle("is-active", active);
-        });
+      if (page <= 1) {
+        search.delete("page");
+      } else {
+        search.set("page", String(page));
+      }
 
-        cards.forEach((card) => {
-          const matches = city === "all" || card.dataset.city === city;
-          card.toggleAttribute("hidden", !matches);
-          if (matches) {
-            visibleCount += 1;
-          }
-        });
+      const nextQuery = search.toString();
+      const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+      window.history.replaceState({}, "", nextUrl);
+    };
 
-        emptyState.hidden = visibleCount > 0;
+    let currentPage = initialMeta.page;
+    let currentCity = "all";
 
-        const nextSearch = new URLSearchParams(window.location.search);
-        if (city === "all") {
-          nextSearch.delete("city");
-        } else {
-          nextSearch.set("city", city);
+    const fetchPage = async (page, city) => {
+      const response = await fetch(buildApiUrl(page, city), {
+        headers: {
+          Accept: "application/json"
         }
+      });
 
-        const nextQuery = nextSearch.toString();
-        const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
-        window.history.replaceState({}, "", nextUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to load events: ${response.status}`);
+      }
+
+      const payload = await response.json();
+      return {
+        items: Array.isArray(payload.data) ? payload.data : [],
+        meta: payload.meta ?? initialMeta
       };
+    };
 
-      const initialMatch = buttons.some((button) => button.dataset.cityFilter === initialCity) ? initialCity : "all";
-      setActive(initialMatch);
+    const applyPage = async (page, city, options = {}) => {
+      const { shouldScroll = false } = options;
+
+      try {
+        setLoading(true);
+        const result = await fetchPage(page, city);
+        currentPage = result.meta.page;
+        currentCity = city;
+        setButtonState(currentCity);
+        renderGrid(result.items);
+        updateStats(result.meta);
+        updatePagination(result.meta, result.items.length);
+        syncLocation(currentPage, currentCity);
+
+        if (shouldScroll && resultsSection instanceof HTMLElement) {
+          resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (filterRoot instanceof HTMLElement && grid instanceof HTMLElement && emptyState instanceof HTMLElement) {
+      const search = new URLSearchParams(window.location.search);
+      const requestedCity = search.get("city") ?? "all";
+      const requestedPage = Number.parseInt(search.get("page") ?? "1", 10);
+      const initialCity = buttons.some((button) => button.dataset.cityFilter === requestedCity) ? requestedCity : "all";
+      const initialPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+
+      setButtonState(initialCity);
+      updateStats(initialMeta);
+      updatePagination(initialMeta, initialItemCount);
+      currentCity = initialCity;
+      currentPage = initialPage;
+
+      if (initialCity !== "all" || initialPage !== 1) {
+        applyPage(initialPage, initialCity);
+      }
 
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
-          setActive(button.dataset.cityFilter ?? "all");
+          const nextCity = button.dataset.cityFilter ?? "all";
+          applyPage(1, nextCity, { shouldScroll: true });
         });
+      });
+
+      prevButton?.addEventListener("click", () => {
+        if (currentPage > 1) {
+          applyPage(currentPage - 1, currentCity, { shouldScroll: true });
+        }
+      });
+
+      nextButton?.addEventListener("click", () => {
+        applyPage(currentPage + 1, currentCity, { shouldScroll: true });
       });
     }
   </script>
@@ -270,6 +544,16 @@ const closedCount = events.filter((event) => event.registrationState === "closed
     margin-top: 24px;
   }
 
+  .section-head-stack {
+    align-items: flex-start;
+  }
+
+  .section-note {
+    margin: 10px 0 0;
+    color: var(--muted);
+    max-width: 56ch;
+  }
+
   .format-grid {
     display: grid;
     gap: 18px;
@@ -309,10 +593,29 @@ const closedCount = events.filter((event) => event.registrationState === "closed
     color: #fff7ef;
   }
 
+  .results-head {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+
+  .results-summary {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
   .event-grid {
     display: grid;
     gap: 18px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .event-grid[aria-busy="true"] {
+    opacity: 0.72;
+    pointer-events: none;
   }
 
   .event-card {
@@ -381,7 +684,8 @@ const closedCount = events.filter((event) => event.registrationState === "closed
     color: #8a5a14;
   }
 
-  .event-state-closed {
+  .event-state-closed,
+  .event-state-not_open {
     background: rgba(108, 94, 85, 0.14);
     color: #5f5148;
   }
@@ -414,11 +718,35 @@ const closedCount = events.filter((event) => event.registrationState === "closed
     margin-top: 18px;
   }
 
+  .pagination-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-button {
+    min-width: 118px;
+    justify-content: center;
+  }
+
+  .pagination-indicator {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
   @media (max-width: 1000px) {
     .event-hero-card,
     .event-grid,
     .format-grid {
       grid-template-columns: 1fr;
+    }
+
+    .results-head {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 

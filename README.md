@@ -48,6 +48,7 @@ env COREPACK_HOME="$PWD/.corepack" corepack pnpm install
 npm run infra:up
 npm run infra:up:storage
 npm run bootstrap:dev
+npm run bootstrap:tgo-infoq
 npm run typecheck
 npm run build
 npm run test
@@ -62,6 +63,8 @@ npm run docker:build:api
 npm run db:generate
 npm run db:migrate
 npm run db:seed
+npm run db:cleanup:demo-events
+npm run db:sync-homepage:tgo-infoq
 npm run auth:bootstrap-admin
 npm run dev:site
 npm run dev:admin
@@ -78,7 +81,8 @@ Local development quickstart:
 3. Start local infrastructure:
    - `npm run infra:up`
 4. Bootstrap schema, seed data, and the first staff account:
-   - `npm run bootstrap:dev`
+   - demo baseline: `npm run bootstrap:dev`
+   - official TGO branch/event baseline: `npm run bootstrap:tgo-infoq`
 5. Start local object storage if you want to test asset uploads:
    - `npm run infra:up:storage`
 6. Run the apps you need:
@@ -106,6 +110,7 @@ Environment notes:
 
 - Copy `.env.example` to `.env` before enabling auth-backed API flows
 - `DATABASE_URL` and `BETTER_AUTH_SECRET` are required for `/api/auth/*` and protected admin endpoints
+- `npm run bootstrap:tgo-infoq` keeps the baseline roles/pages/admin setup from `db:seed`, then removes seeded demo events and imports the scraped TGO branch/event dataset
 - `INTERNAL_API_TOKEN` protects `/api/internal/v1/*` automation routes such as scheduled publishing
 - `APP_ENV`, `APP_VERSION`, and `GIT_SHA` optionally enrich runtime readiness and version probes
 - `LOG_FORMAT` supports `logfmt` for local readability and `json` for structured staging or production logs

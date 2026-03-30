@@ -40,7 +40,7 @@ const participationNotes = [
           <h1>{event.title}</h1>
           <p>{event.summary}</p>
           <ul class="stat-row">
-            <li>{event.branch?.name ?? "活动"}</li>
+            <li>{event.branch?.name ?? `${event.cityName}活动`}</li>
             <li>{formatRegistrationState(event.registrationState)}</li>
             <li>{event.venueName}</li>
           </ul>
@@ -60,7 +60,7 @@ const participationNotes = [
               </li>
               <li>
                 <span>城市</span>
-                <strong>{event.branch?.cityName ?? "待补充"}</strong>
+                <strong>{event.cityName}</strong>
               </li>
               <li>
                 <span>报名状态</span>
@@ -86,8 +86,8 @@ const participationNotes = [
         <h2 class="card-title">这场活动希望解决什么问题</h2>
         <p>{event.body}</p>
         <ul class="meta-list">
-          <li>{event.branch?.name ?? "活动"}</li>
-          <li>{event.branch?.cityName ?? "待补充城市"}</li>
+          <li>{event.branch?.name ?? `${event.cityName}活动`}</li>
+          <li>{event.cityName}</li>
           <li>{event.venueName}</li>
         </ul>
       </article>

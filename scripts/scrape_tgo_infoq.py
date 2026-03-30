@@ -165,6 +165,7 @@ CITY_ID_TO_NAME = {
     159: "苏州",
     179: "合肥",
     195: "福州",
+    216: "青岛",
     426: "西安",
     284: "珠海",
     2001: "新加坡"
@@ -406,6 +407,10 @@ def city_name_from_event(detail: dict[str, Any], sponsor_ids: list[int]) -> str:
     city_name = CITY_ID_TO_NAME.get(int(detail.get("city") or 0))
     if city_name:
         return city_name
+    title = first_non_empty(detail.get("title"))
+    title_match = re.search(r"TGO[^（(]*[（(]([^）)]+)[）)]", title)
+    if title_match:
+        return title_match.group(1).strip()
     address = first_non_empty(detail.get("address"))
     return address.split("(")[0].strip() if address else "待定"
 

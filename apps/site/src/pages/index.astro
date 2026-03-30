@@ -276,7 +276,7 @@ const joinSteps = [
           home.featuredEvents.map((event) => (
             <CollectionCard
               href={`/events/${event.slug}`}
-              label={event.branch?.cityName ?? "活动"}
+              label={event.cityName}
               title={event.title}
               summary={event.summary}
               image={event.coverImage}

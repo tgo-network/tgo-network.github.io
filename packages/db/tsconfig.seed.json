@@ -4,10 +4,7 @@
     "rootDir": "../.."
   },
   "include": [
-    "src/seed.ts",
-    "src/import-tgo-infoq.ts",
-    "src/client.ts",
-    "src/index.ts",
+    "src/**/*.ts",
     "src/schema/**/*.ts",
     "../shared/src/**/*.ts"
   ]

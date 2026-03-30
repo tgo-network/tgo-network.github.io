@@ -15,6 +15,7 @@
 ```bash
 npm run data:fetch:tgo-infoq
 npm run db:import:tgo-infoq
+npm run bootstrap:tgo-infoq
 ```
 
 说明：
@@ -22,4 +23,5 @@ npm run db:import:tgo-infoq
 - JSON 文件适合提交到仓库，便于后续正式部署时重复利用
 - 图片文件默认只保存在本地，不纳入 git；如需重新生成，可再次执行抓取命令
 - `npm run db:import:tgo-infoq` 会把当前抓取结果 upsert 到现有数据库；如希望前台只看到这批官方抓取活动，建议在干净数据库中导入，或先清理本地已有的演示/测试活动数据
+- `npm run bootstrap:tgo-infoq` 会执行迁移、基础 seed、清理演示活动、导入官方分会/活动，并同步首页推荐位，适合作为本地官方内容初始化入口
 - 数据来源为用户指定的公开页面：`/we/branches` 与 `/event`

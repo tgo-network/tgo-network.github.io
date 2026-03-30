@@ -42,6 +42,8 @@ import { PublicContentError } from "../lib/public-errors.js";
 import { checkRateLimit, type RateLimitDecision } from "../lib/rate-limit.js";
 
 export const publicRoutes = new Hono();
+const defaultEventPageSize = 24;
+const maxEventPageSize = 5000;
 
 const setRateLimitHeaders = (c: Context, decision: RateLimitDecision) => {
   c.header("X-RateLimit-Limit", String(decision.limit));
@@ -62,6 +64,16 @@ const getRequesterContext = (c: Context) => {
 };
 
 const getQueryValue = (c: Context, key: string) => c.req.query(key)?.trim() ?? "";
+
+const getPositiveIntQuery = (c: Context, key: string, fallback: number, max = Number.MAX_SAFE_INTEGER) => {
+  const value = Number.parseInt(getQueryValue(c, key), 10);
+
+  if (!Number.isFinite(value) || value < 1) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.trunc(value));
+};
 
 const enforcePublicWriteRateLimit = (c: Context, scope: "applications" | "event-registrations") => {
   const env = getEnv();
@@ -123,13 +135,8 @@ const filterEvents = (events: PublicEventSummaryV2[], c: Context) => {
   const city = getQueryValue(c, "city").toLowerCase();
   const upcoming = getQueryValue(c, "upcoming").toLowerCase() === "true";
   const now = Date.now();
-
-  return events.filter((event) => {
+  const baseEvents = events.filter((event) => {
     if (branchSlug && event.branch?.slug.toLowerCase() !== branchSlug) {
-      return false;
-    }
-
-    if (city && event.branch?.cityName.toLowerCase() !== city) {
       return false;
     }
 
@@ -142,6 +149,54 @@ const filterEvents = (events: PublicEventSummaryV2[], c: Context) => {
 
     return true;
   });
+
+  const cityOptions = Array.from(new Set(baseEvents.map((event) => event.cityName).filter(Boolean)));
+  const filteredEvents = city ? baseEvents.filter((event) => event.cityName.toLowerCase() === city) : baseEvents;
+  const pageSize = getPositiveIntQuery(c, "pageSize", defaultEventPageSize, maxEventPageSize);
+  const total = filteredEvents.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(getPositiveIntQuery(c, "page", 1, pageCount), pageCount);
+  const startIndex = (page - 1) * pageSize;
+  const registrationStateCounts = filteredEvents.reduce(
+    (counts, event) => {
+      switch (event.registrationState) {
+        case "open":
+          counts.open += 1;
+          break;
+        case "waitlist":
+          counts.waitlist += 1;
+          break;
+        case "closed":
+          counts.closed += 1;
+          break;
+        case "not_open":
+          counts.notOpen += 1;
+          break;
+        default:
+          break;
+      }
+
+      return counts;
+    },
+    {
+      open: 0,
+      waitlist: 0,
+      closed: 0,
+      notOpen: 0
+    }
+  );
+
+  return {
+    data: filteredEvents.slice(startIndex, startIndex + pageSize),
+    meta: {
+      total,
+      page,
+      pageSize,
+      pageCount,
+      cityOptions,
+      registrationStateCounts
+    }
+  };
 };
 
 publicRoutes.get("/site-config", async (c) => {
@@ -207,9 +262,9 @@ publicRoutes.get("/articles/:slug", async (c) => {
 });
 
 publicRoutes.get("/events", async (c) => {
-  const data = filterEvents((await listEventsV2FromDb()) ?? publicEventSummariesV2, c);
+  const result = filterEvents((await listEventsV2FromDb()) ?? publicEventSummariesV2, c);
 
-  return c.json(ok(data, { total: data.length }));
+  return c.json(ok(result.data, result.meta));
 });
 
 publicRoutes.get("/events/:slug", async (c) => {

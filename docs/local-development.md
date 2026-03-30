@@ -108,6 +108,21 @@ This runs:
 2. `npm run db:seed`
 3. `npm run auth:bootstrap-admin`
 
+If you want the local database to use the scraped official TGO branch and event dataset instead of the demo event set, use:
+
+```bash
+npm run bootstrap:tgo-infoq
+```
+
+This runs:
+
+1. `npm run db:migrate`
+2. `npm run db:seed`
+3. `npm run db:cleanup:demo-events`
+4. `npm run db:import:tgo-infoq`
+5. `npm run db:sync-homepage:tgo-infoq`
+6. `npm run auth:bootstrap-admin`
+
 If you need the steps separately:
 
 ```bash
@@ -121,6 +136,13 @@ Bootstrap result:
 - schema is migrated
 - baseline demo content, roles, and permissions are inserted
 - a development super admin account is created or refreshed from `.env`
+
+Official bootstrap result:
+
+- roles, permissions, site pages, homepage shell, and admin account bootstrap stay unchanged
+- seeded demo/test events are removed from the local database
+- `data/imports/tgo-infoq/` is imported into `branches`, `branch_board_members`, `events`, `event_sessions`, and `assets`
+- homepage featured branches, featured events, and metrics are synchronized to the imported dataset
 
 ## 6. Application Startup
 
