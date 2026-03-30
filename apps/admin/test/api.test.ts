@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 
-import { adminRequest, AdminApiError, getApiBaseUrl, getValidationIssues } from "../src/lib/api.js";
+import {
+  adminRequest,
+  adminRequestWithMeta,
+  AdminApiError,
+  getApiBaseUrl,
+  getValidationIssues
+} from "../src/lib/api.js";
 
 const originalFetch = globalThis.fetch;
 const originalApiBaseUrl = process.env.VITE_API_BASE_URL;
@@ -94,4 +100,39 @@ test("throws AdminApiError and extracts validation issues from error details", a
       return true;
     }
   );
+});
+
+test("returns data and meta for admin requests that include pagination metadata", async () => {
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        data: [
+          {
+            id: "event-1"
+          }
+        ],
+        meta: {
+          total: 99,
+          page: 2,
+          pageSize: 25
+        }
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const result = await adminRequestWithMeta<Array<{ id: string }>, { total: number; page: number; pageSize: number }>(
+    "/api/admin/v1/events?page=2"
+  );
+
+  assert.deepEqual(result.data, [{ id: "event-1" }]);
+  assert.deepEqual(result.meta, {
+    total: 99,
+    page: 2,
+    pageSize: 25
+  });
 });

@@ -4,6 +4,8 @@ const adminUrl = process.env.E2E_ADMIN_URL ?? "http://localhost:5173";
 const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
 const adminEmail = process.env.DEV_ADMIN_EMAIL ?? "admin@tgo.local";
 const adminPassword = process.env.DEV_ADMIN_PASSWORD ?? "TgoAdmin123456!";
+const openEventSlug = "event-1816";
+const openEventTitle = "第一届龙虾AI大会：ClawCon";
 
 const expectNoHorizontalOverflow = async (page: Page, label: string) => {
   const metrics = await page.evaluate(() => {
@@ -98,9 +100,13 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "活动", exact: true }).click();
   await expect(page).toHaveURL(/\/events$/);
   await expect(page.getByRole("heading", { name: "活动" })).toBeVisible();
-  await page.getByPlaceholder("搜索标题、slug 或分会").fill("上海 AI");
-  await expect(page.locator("tbody")).toContainText("上海 AI 领导力闭门沙龙");
-  await expect(page.getByRole("link", { name: "报名审核" })).toBeVisible();
+  const eventSearchInput = page.getByPlaceholder("搜索标题、slug 或分会");
+  await expect(page.getByText(/第 \d+ \/ \d+ 页，每页 \d+ 条/).first()).toBeVisible();
+  await eventSearchInput.fill(openEventSlug);
+  await expect(page.locator("tr", { hasText: openEventSlug }).first()).toContainText(openEventTitle);
+  await expect(page.locator("tr", { hasText: openEventSlug }).first().getByRole("link", { name: "报名审核" })).toBeVisible();
+  await eventSearchInput.fill("event-1615");
+  await expect(page.locator("tr", { hasText: "event-1615" }).first()).toContainText("未分配分会");
   await expectNoHorizontalOverflow(page, "admin-events");
 
   await page.getByRole("link", { name: "申请", exact: true }).click();
@@ -146,7 +152,7 @@ test("admin review detail flows support saving application and registration deci
   await expect(page.getByText("申请审核已更新。")).toBeVisible();
   await expect(page.locator(".editor-side .status-pill")).toContainText("审核中");
 
-  await page.goto(`${siteUrl}/events/shanghai-ai-leadership-salon`, { waitUntil: "networkidle" });
+  await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });
   await page.getByLabel("姓名").fill(attendeeName);
   await page.getByLabel("手机号").fill("13900139098");
   await page.getByLabel("邮箱").fill(`admin-registration-${suffix}@example.com`);
@@ -159,10 +165,12 @@ test("admin review detail flows support saving application and registration deci
   });
 
   await page.goto(`${adminUrl}/events`, { waitUntil: "networkidle" });
-  await page.getByPlaceholder("搜索标题、slug 或分会").fill("上海 AI");
-  await page.getByRole("link", { name: "报名审核" }).click();
+  await page.getByPlaceholder("搜索标题、slug 或分会").fill(openEventSlug);
+  const openEventRow = page.locator("tr", { hasText: openEventSlug }).first();
+  await expect(openEventRow).toContainText(openEventTitle);
+  await openEventRow.getByRole("link", { name: "报名审核" }).click();
   await expect(page).toHaveURL(/\/events\/[^/]+\/registrations$/);
-  await expect(page.getByRole("heading", { name: "上海 AI 领导力闭门沙龙" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: openEventTitle })).toBeVisible();
   await expect(page.locator("tbody")).toContainText(attendeeName);
   await page.locator("tr", { hasText: attendeeName }).getByRole("link", { name: "审核" }).click();
   await expect(page).toHaveURL(/\/registrations\/[^/]+$/);

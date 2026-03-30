@@ -1,6 +1,6 @@
-export interface ApiSuccess<T> {
+export interface ApiSuccess<T, M = Record<string, unknown>> {
   data: T;
-  meta?: Record<string, unknown>;
+  meta?: M;
 }
 
 export interface ApiErrorShape {

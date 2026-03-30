@@ -399,6 +399,37 @@ describe("admin and internal API integration", () => {
     assert.equal(registrationDetailResult.payload.data.registration.id, registration.id);
   });
 
+  test("returns paginated admin event results with server-side filters and metadata", async () => {
+    const eventManager = await createSignedInUser(["event_manager"]);
+    const seededEvent = await directDb.query.events.findFirst({
+      where: eq(events.slug, "shanghai-ai-leadership-salon")
+    });
+
+    assert.ok(seededEvent, "Expected the seeded Shanghai AI event to exist.");
+    assert.ok(seededEvent.branchId, "Expected the seeded Shanghai AI event to have a branch.");
+
+    const listResult = await requestJson(
+      `/api/admin/v1/events?page=1&pageSize=1&q=${encodeURIComponent("上海 AI")}&status=published&registrationState=open&branchId=${seededEvent.branchId}`,
+      {
+        headers: {
+          cookie: eventManager.cookie
+        }
+      }
+    );
+
+    assert.equal(listResult.response.status, 200);
+    assert.equal(listResult.payload.meta.page, 1);
+    assert.equal(listResult.payload.meta.pageSize, 1);
+    assert.equal(listResult.payload.meta.total, 1);
+    assert.equal(listResult.payload.meta.pageCount, 1);
+    assert.ok(Array.isArray(listResult.payload.meta.branchOptions));
+    assert.equal(listResult.payload.meta.stats.total >= listResult.payload.meta.total, true);
+    assert.equal(listResult.payload.data.length, 1);
+    assert.equal(listResult.payload.data[0].slug, "shanghai-ai-leadership-salon");
+    assert.equal(listResult.payload.data[0].branchId, seededEvent.branchId);
+    assert.equal(listResult.payload.data[0].venueName, seededEvent.venueName);
+  });
+
   test("cleans retired permission codes when the seed script reruns", async () => {
     const superAdminRole = await directDb.query.roles.findFirst({
       where: eq(roles.code, "super_admin")

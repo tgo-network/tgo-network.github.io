@@ -23,6 +23,11 @@ interface AdminRequestOptions {
   body?: unknown;
 }
 
+interface AdminApiSuccessResponse<T, M = Record<string, unknown>> {
+  data: T;
+  meta?: M;
+}
+
 export const getValidationIssues = (error: unknown): Record<string, string> => {
   if (!(error instanceof AdminApiError)) {
     return {};
@@ -41,7 +46,10 @@ export const getValidationIssues = (error: unknown): Record<string, string> => {
   );
 };
 
-export const adminRequest = async <T>(path: string, options: AdminRequestOptions = {}): Promise<T> => {
+const requestAdminResponse = async <T, M = Record<string, unknown>>(
+  path: string,
+  options: AdminRequestOptions = {}
+): Promise<AdminApiSuccessResponse<T, M>> => {
   const response = await fetch(new URL(path, getAdminApiBaseUrl()), {
     method: options.method ?? "GET",
     credentials: "include",
@@ -66,7 +74,24 @@ export const adminRequest = async <T>(path: string, options: AdminRequestOptions
     throw new AdminApiError("响应内容缺少 data 字段。", response.status);
   }
 
+  return {
+    data: payload.data,
+    meta: payload.meta as M | undefined
+  };
+};
+
+export const adminRequest = async <T>(path: string, options: AdminRequestOptions = {}): Promise<T> => {
+  const payload = await requestAdminResponse<T>(path, options);
   return payload.data;
 };
 
+export const adminRequestWithMeta = async <T, M = Record<string, unknown>>(
+  path: string,
+  options: AdminRequestOptions = {}
+): Promise<AdminApiSuccessResponse<T, M>> => requestAdminResponse<T, M>(path, options);
+
 export const adminFetch = async <T>(path: string): Promise<T> => adminRequest<T>(path);
+
+export const adminFetchWithMeta = async <T, M = Record<string, unknown>>(
+  path: string
+): Promise<AdminApiSuccessResponse<T, M>> => adminRequestWithMeta<T, M>(path);

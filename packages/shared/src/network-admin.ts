@@ -275,10 +275,35 @@ export interface AdminEventListItemV2 {
   slug: string;
   title: string;
   status: ContentStatus;
+  branchId: string | null;
   branchName: string | null;
+  venueName: string;
   registrationState: EventRegistrationState;
   startsAt: string | Date | null;
   updatedAt: string | Date;
+}
+
+export interface AdminEventListQueryV2 {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: ContentStatus | "all";
+  registrationState?: EventRegistrationState | "all";
+  branchId?: string | "all";
+}
+
+export interface AdminEventListMetaV2 {
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+  branchOptions: AdminEditorReferenceOption[];
+  stats: {
+    total: number;
+    open: number;
+    waitlist: number;
+    published: number;
+  };
 }
 
 export interface AdminEventAgendaItemV2 {

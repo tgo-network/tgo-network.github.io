@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import {
   articles,
@@ -21,6 +21,8 @@ import type {
   AdminDashboardPayloadV2,
   AdminEventDetailPayloadV2,
   AdminEventListItemV2,
+  AdminEventListMetaV2,
+  AdminEventListQueryV2,
   AdminEventRecordV2,
   AdminEventReferencesV2,
   AdminEventRegistrationDetailPayloadV2,
@@ -46,7 +48,7 @@ import type {
   AdminValidationIssue,
   PublicHomePayloadV2
 } from "@tgo/shared";
-import { publicHomePayloadV2 } from "@tgo/shared";
+import { contentStatusOptions, eventRegistrationStateOptions, publicHomePayloadV2 } from "@tgo/shared";
 
 import { type AuditActorContext, writeAuditLog } from "./audit.js";
 import { AdminContentError } from "./admin-content.js";
@@ -55,6 +57,14 @@ import { getEnv } from "./env.js";
 
 const asIso = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 const now = () => new Date();
+const defaultAdminEventListPageSize = 25;
+const maxAdminEventListPageSize = 100;
+
+const adminEventStatusSet = new Set<string>(["all", ...contentStatusOptions.map((option) => option.value)]);
+const adminEventRegistrationStateSet = new Set<string>([
+  "all",
+  ...eventRegistrationStateOptions.map((option) => option.value)
+]);
 
 const isUniqueViolation = (error: unknown): error is { code: string } =>
   typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "23505";
@@ -71,6 +81,64 @@ const validationError = (issues: AdminValidationIssue[]) =>
   new AdminContentError(400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
     issues
   });
+
+type NormalizedAdminEventListQuery = {
+  page: number;
+  pageSize: number;
+  q: string;
+  status: AdminEventListQueryV2["status"];
+  registrationState: AdminEventListQueryV2["registrationState"];
+  branchId: string | "all";
+};
+
+const toPositiveInt = (value: number | undefined, fallback: number, max: number) => {
+  if (!Number.isFinite(value) || Number(value) < 1) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.trunc(Number(value)));
+};
+
+const normalizeAdminEventListQuery = (query: AdminEventListQueryV2 = {}): NormalizedAdminEventListQuery => {
+  const status = query.status && adminEventStatusSet.has(query.status) ? query.status : "all";
+  const registrationState =
+    query.registrationState && adminEventRegistrationStateSet.has(query.registrationState)
+      ? query.registrationState
+      : "all";
+  const branchId = typeof query.branchId === "string" && query.branchId.trim().length > 0 ? query.branchId.trim() : "all";
+
+  return {
+    page: toPositiveInt(query.page, 1, Number.MAX_SAFE_INTEGER),
+    pageSize: toPositiveInt(query.pageSize, defaultAdminEventListPageSize, maxAdminEventListPageSize),
+    q: typeof query.q === "string" ? query.q.trim() : "",
+    status,
+    registrationState,
+    branchId
+  };
+};
+
+const buildAdminEventListWhere = (query: NormalizedAdminEventListQuery) => {
+  const conditions = [];
+
+  if (query.q.length > 0) {
+    const keyword = `%${query.q}%`;
+    conditions.push(or(ilike(events.title, keyword), ilike(events.slug, keyword), ilike(events.venueName, keyword), ilike(branches.name, keyword)));
+  }
+
+  if (query.status && query.status !== "all") {
+    conditions.push(eq(events.status, query.status));
+  }
+
+  if (query.registrationState && query.registrationState !== "all") {
+    conditions.push(eq(events.registrationState, query.registrationState));
+  }
+
+  if (query.branchId !== "all") {
+    conditions.push(eq(events.branchId, query.branchId));
+  }
+
+  return conditions.length > 0 ? and(...conditions) : undefined;
+};
 
 const withUniqueGuard = async <T>(work: () => Promise<T>) => {
   try {
@@ -836,24 +904,91 @@ export const updateAdminHomepage = async (
   return updated;
 };
 
-export const listAdminEventsV2 = async (): Promise<AdminEventListItemV2[]> => {
+const getAdminEventListStats = async (): Promise<AdminEventListMetaV2["stats"]> => {
   const db = getDb();
-  const [eventRows, branchRows] = await Promise.all([
-    db.select().from(events).orderBy(desc(events.startsAt), asc(events.title)),
-    db.select().from(branches)
-  ]);
-  const branchById = new Map(branchRows.map((row) => [row.id, row]));
+  const [statsRow] = await db
+    .select({
+      total: count(),
+      open: sql<number>`coalesce(sum(case when ${events.registrationState} = 'open' then 1 else 0 end), 0)`,
+      waitlist: sql<number>`coalesce(sum(case when ${events.registrationState} = 'waitlist' then 1 else 0 end), 0)`,
+      published: sql<number>`coalesce(sum(case when ${events.status} = 'published' then 1 else 0 end), 0)`
+    })
+    .from(events);
 
-  return eventRows.map((event) => ({
-    id: event.id,
-    slug: event.slug,
-    title: event.title,
-    status: event.status,
-    branchName: branchById.get(event.branchId ?? "")?.name ?? null,
-    registrationState: event.registrationState,
-    startsAt: asIso(event.startsAt),
-    updatedAt: event.updatedAt.toISOString()
-  }));
+  return {
+    total: Number(statsRow?.total ?? 0),
+    open: Number(statsRow?.open ?? 0),
+    waitlist: Number(statsRow?.waitlist ?? 0),
+    published: Number(statsRow?.published ?? 0)
+  };
+};
+
+export const listAdminEventsV2 = async (
+  query: AdminEventListQueryV2 = {}
+): Promise<{ data: AdminEventListItemV2[]; meta: AdminEventListMetaV2 }> => {
+  const db = getDb();
+  const normalizedQuery = normalizeAdminEventListQuery(query);
+  const where = buildAdminEventListWhere(normalizedQuery);
+
+  const totalQuery = db
+    .select({
+      value: count()
+    })
+    .from(events)
+    .leftJoin(branches, eq(events.branchId, branches.id));
+
+  const [references, stats, totalRows] = await Promise.all([
+    getAdminEventReferencesV2(),
+    getAdminEventListStats(),
+    (where ? totalQuery.where(where) : totalQuery)
+  ]);
+
+  const total = Number(totalRows[0]?.value ?? 0);
+  const pageCount = Math.max(1, Math.ceil(total / normalizedQuery.pageSize));
+  const page = Math.min(normalizedQuery.page, pageCount);
+  const eventListQuery = db
+    .select({
+      id: events.id,
+      slug: events.slug,
+      title: events.title,
+      status: events.status,
+      branchId: events.branchId,
+      branchName: branches.name,
+      venueName: events.venueName,
+      registrationState: events.registrationState,
+      startsAt: events.startsAt,
+      updatedAt: events.updatedAt
+    })
+    .from(events)
+    .leftJoin(branches, eq(events.branchId, branches.id));
+
+  const eventRows = await (where ? eventListQuery.where(where) : eventListQuery)
+    .orderBy(desc(events.startsAt), desc(events.updatedAt), asc(events.title))
+    .limit(normalizedQuery.pageSize)
+    .offset((page - 1) * normalizedQuery.pageSize);
+
+  return {
+    data: eventRows.map((event) => ({
+      id: event.id,
+      slug: event.slug,
+      title: event.title,
+      status: event.status,
+      branchId: event.branchId,
+      branchName: event.branchName ?? null,
+      venueName: event.venueName ?? "",
+      registrationState: event.registrationState,
+      startsAt: asIso(event.startsAt),
+      updatedAt: event.updatedAt.toISOString()
+    })),
+    meta: {
+      total,
+      page,
+      pageSize: normalizedQuery.pageSize,
+      pageCount,
+      branchOptions: references.branches,
+      stats
+    }
+  };
 };
 
 export const getAdminEventReferencesV2 = async (): Promise<AdminEventReferencesV2> => {

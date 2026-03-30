@@ -1,74 +1,191 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 
-import { contentStatusOptions, eventRegistrationStateOptions, type AdminEventListItemV2 } from "@tgo/shared";
+import {
+  contentStatusOptions,
+  eventRegistrationStateOptions,
+  type AdminEventListItemV2,
+  type AdminEventListMetaV2
+} from "@tgo/shared";
 
-import { adminFetch } from "../lib/api";
+import { adminFetchWithMeta } from "../lib/api";
 import { formatContentStatus, formatDateTime, formatEventRegistrationState } from "../lib/format";
+
+const pageSizeOptions = [25, 50, 100] as const;
 
 const rows = ref<AdminEventListItemV2[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const filters = reactive({
   query: "",
   status: "all",
   registrationState: "all",
-  branch: "all"
+  branchId: "all",
+  pageSize: pageSizeOptions[0]
+});
+const meta = ref<AdminEventListMetaV2>({
+  total: 0,
+  page: 1,
+  pageSize: pageSizeOptions[0],
+  pageCount: 1,
+  branchOptions: [],
+  stats: {
+    total: 0,
+    open: 0,
+    waitlist: 0,
+    published: 0
+  }
 });
 
-const branchOptions = computed(() =>
-  Array.from(new Set(rows.value.map((row) => row.branchName).filter((value): value is string => Boolean(value)))).sort((left, right) =>
-    left.localeCompare(right, "zh-CN")
-  )
-);
-const filteredRows = computed(() => {
-  const query = filters.query.trim().toLowerCase();
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  return rows.value.filter((row) => {
-    const matchesQuery =
-      query.length === 0 ||
-      [row.title, row.slug, row.branchName ?? ""].some((value) => value.toLowerCase().includes(query));
-    const matchesStatus = filters.status === "all" || row.status === filters.status;
-    const matchesRegistration = filters.registrationState === "all" || row.registrationState === filters.registrationState;
-    const matchesBranch = filters.branch === "all" || row.branchName === filters.branch;
-
-    return matchesQuery && matchesStatus && matchesRegistration && matchesBranch;
-  });
+const createEmptyMeta = (pageSize: number): AdminEventListMetaV2 => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  branchOptions: [],
+  stats: {
+    total: 0,
+    open: 0,
+    waitlist: 0,
+    published: 0
+  }
 });
+
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  const query = filters.query.trim();
+
+  if (query.length > 0) {
+    search.set("q", query);
+  }
+
+  if (filters.status !== "all") {
+    search.set("status", filters.status);
+  }
+
+  if (filters.registrationState !== "all") {
+    search.set("registrationState", filters.registrationState);
+  }
+
+  if (filters.branchId !== "all") {
+    search.set("branchId", filters.branchId);
+  }
+
+  return `/api/admin/v1/events?${search.toString()}`;
+};
+
 const summaryCards = computed(() => [
   {
     label: "活动总数",
-    value: rows.value.length,
+    value: meta.value.stats.total,
     summary: "后台当前维护的全部活动记录。"
   },
   {
     label: "开放报名",
-    value: rows.value.filter((row) => row.registrationState === "open").length,
+    value: meta.value.stats.open,
     summary: "前台会直接显示公开报名表单。"
   },
   {
     label: "候补中",
-    value: rows.value.filter((row) => row.registrationState === "waitlist").length,
+    value: meta.value.stats.waitlist,
     summary: "仍可提交，但需要工作人员后续审核安排。"
   },
   {
     label: "已发布",
-    value: rows.value.filter((row) => row.status === "published").length,
+    value: meta.value.stats.published,
     summary: "已经出现在公开活动列表中的活动。"
   }
 ]);
 
-onMounted(async () => {
+const branchOptions = computed(() => meta.value.branchOptions);
+const hasResults = computed(() => meta.value.total > 0);
+const resultSummary = computed(() => `${meta.value.total} / ${meta.value.stats.total}`);
+const paginationSummary = computed(
+  () => `第 ${meta.value.page} / ${meta.value.pageCount} 页，每页 ${meta.value.pageSize} 条，当前页 ${rows.value.length} 条`
+);
+
+const loadRows = async () => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    rows.value = await adminFetch<AdminEventListItemV2[]>("/api/admin/v1/events");
+    const result = await adminFetchWithMeta<AdminEventListItemV2[], AdminEventListMetaV2>(buildListPath());
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = result.data;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载活动列表。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
+  }
+};
+
+const scheduleReload = (resetPage = false) => {
+  if (resetPage) {
+    currentPage.value = 1;
+  }
+
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
+
+  fetchTimer = setTimeout(() => {
+    fetchTimer = null;
+    void loadRows();
+  }, 250);
+};
+
+const changePage = (page: number) => {
+  if (loading.value || page < 1 || page > meta.value.pageCount || page === currentPage.value) {
+    return;
+  }
+
+  currentPage.value = page;
+  void loadRows();
+};
+
+watch(
+  () => [filters.query, filters.status, filters.registrationState, filters.branchId, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    scheduleReload(true);
+  }
+);
+
+onMounted(() => {
+  void loadRows();
+});
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
   }
 });
 </script>
@@ -91,7 +208,7 @@ onMounted(async () => {
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-else-if="loading" class="panel">
+    <div v-if="!hasLoadedOnce && loading" class="panel">
       <div class="brand-tag">加载中</div>
       <p>正在加载活动...</p>
     </div>
@@ -109,12 +226,12 @@ onMounted(async () => {
         <div class="page-header-row compact-row">
           <div>
             <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按活动标题、分会、内容状态和报名状态锁定当前需要继续推进的活动。</p>
+            <p class="section-copy">可按活动标题、分会、场地、内容状态和报名状态锁定当前需要继续推进的活动。</p>
           </div>
           <div class="info-card">
             <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的活动数。</p>
+            <strong>{{ resultSummary }}</strong>
+            <p>{{ paginationSummary }}</p>
           </div>
         </div>
 
@@ -144,59 +261,95 @@ onMounted(async () => {
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>分会</span>
-            <select v-model="filters.branch">
+            <select v-model="filters.branchId">
               <option value="all">全部分会</option>
-              <option v-for="option in branchOptions" :key="option" :value="option">{{ option }}</option>
+              <option v-for="option in branchOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="filters.pageSize">
+              <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
             </select>
           </label>
         </div>
       </div>
 
-      <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的活动，试试调整报名状态或分会筛选。</p>
+      <div v-if="loading" class="panel">
+        <div class="brand-tag">刷新中</div>
+        <p>正在根据当前筛选条件更新活动列表...</p>
       </div>
 
-      <div v-else class="panel table-panel">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>标题</th>
-              <th>分会 / 场地</th>
-              <th>内容状态</th>
-              <th>报名状态</th>
-              <th>开始时间</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in filteredRows" :key="row.id">
-              <td>
-                <div class="table-cell-stack">
-                  <strong>{{ row.title }}</strong>
-                  <div class="muted-row">/{{ row.slug }}</div>
-                </div>
-              </td>
-              <td>
-                <div class="table-cell-stack">
-                  <strong>{{ row.branchName || "未分配分会" }}</strong>
-                  <div class="muted-row">{{ row.startsAt ? formatDateTime(row.startsAt) : "待补充时间" }}</div>
-                </div>
-              </td>
-              <td><span class="status-pill">{{ formatContentStatus(row.status) }}</span></td>
-              <td><span class="status-pill">{{ formatEventRegistrationState(row.registrationState) }}</span></td>
-              <td>{{ formatDateTime(row.startsAt) }}</td>
-              <td class="table-actions-cell">
-                <div class="table-action-list">
-                  <RouterLink class="table-link" :to="`/events/${row.id}/edit`">编辑</RouterLink>
-                  <RouterLink class="table-link" :to="`/events/${row.id}/registrations`">报名审核</RouterLink>
-                  <a class="table-link" :href="`/events/${row.slug}`" target="_blank" rel="noreferrer">前台预览</a>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-if="!loading && !hasResults" class="panel empty-state-card">
+        <div class="brand-tag">暂无结果</div>
+        <p>当前筛选条件下没有匹配的活动，试试调整报名状态、分会或关键词。</p>
       </div>
+
+      <template v-else-if="hasResults">
+        <div class="panel table-panel">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>标题</th>
+                <th>分会 / 场地</th>
+                <th>内容状态</th>
+                <th>报名状态</th>
+                <th>开始时间</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in rows" :key="row.id">
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.title }}</strong>
+                    <div class="muted-row">/{{ row.slug }}</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.branchName || "未分配分会" }}</strong>
+                    <div class="muted-row">{{ row.venueName || "待补充场地" }}</div>
+                  </div>
+                </td>
+                <td><span class="status-pill">{{ formatContentStatus(row.status) }}</span></td>
+                <td><span class="status-pill">{{ formatEventRegistrationState(row.registrationState) }}</span></td>
+                <td>{{ formatDateTime(row.startsAt) }}</td>
+                <td class="table-actions-cell">
+                  <div class="table-action-list">
+                    <RouterLink class="table-link" :to="`/events/${row.id}/edit`">编辑</RouterLink>
+                    <RouterLink class="table-link" :to="`/events/${row.id}/registrations`">报名审核</RouterLink>
+                    <a class="table-link" :href="`/events/${row.slug}`" target="_blank" rel="noreferrer">前台预览</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel pagination-panel">
+          <div class="info-card pagination-summary-card">
+            <span>分页</span>
+            <strong>{{ paginationSummary }}</strong>
+            <p>当前筛选共命中 {{ meta.total }} 条活动记录。</p>
+          </div>
+
+          <div class="pagination-actions">
+            <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">
+              上一页
+            </button>
+            <button
+              class="button-link"
+              type="button"
+              :disabled="loading || meta.page >= meta.pageCount"
+              @click="changePage(meta.page + 1)"
+            >
+              下一页
+            </button>
+          </div>
+        </div>
+      </template>
     </template>
   </section>
 </template>

@@ -537,6 +537,23 @@ a {
   text-align: left;
 }
 
+.pagination-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pagination-summary-card {
+  min-width: min(100%, 320px);
+}
+
+.pagination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .stat-panel p {
   margin: 12px 0 0;
   color: var(--muted);
@@ -855,7 +872,8 @@ a {
 
   .page-header-row,
   .page-actions,
-  .info-row {
+  .info-row,
+  .pagination-panel {
     flex-direction: column;
     align-items: flex-start;
   }

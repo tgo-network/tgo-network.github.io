@@ -1,6 +1,7 @@
 import {
   implementationMilestones,
   type AdminMePayload,
+  type AdminEventListQueryV2,
   validateAdminBranchInput,
   validateAdminAssetUploadCompleteInput,
   validateAdminAssetUploadIntentInput,
@@ -99,6 +100,22 @@ const getStaffAccountId = (c: AdminContext) => {
 
   return staffAccount.id;
 };
+
+const getQueryValue = (c: AdminContext, key: string) => c.req.query(key)?.trim() ?? "";
+
+const getPositiveIntQuery = (c: AdminContext, key: string) => {
+  const value = Number.parseInt(getQueryValue(c, key), 10);
+  return Number.isFinite(value) && value > 0 ? Math.trunc(value) : undefined;
+};
+
+const getAdminEventListQuery = (c: AdminContext): AdminEventListQueryV2 => ({
+  page: getPositiveIntQuery(c, "page"),
+  pageSize: getPositiveIntQuery(c, "pageSize"),
+  q: getQueryValue(c, "q") || undefined,
+  status: (getQueryValue(c, "status") || undefined) as AdminEventListQueryV2["status"],
+  registrationState: (getQueryValue(c, "registrationState") || undefined) as AdminEventListQueryV2["registrationState"],
+  branchId: (getQueryValue(c, "branchId") || undefined) as AdminEventListQueryV2["branchId"]
+});
 
 const getAuditActor = (c: AdminContext) => {
   const forwardedFor = c.req.header("x-forwarded-for");
@@ -206,9 +223,9 @@ adminRoutes.post("/articles/:id/archive", requireActiveStaff("article.publish"),
 });
 
 adminRoutes.get("/events", requireActiveStaff("event.manage"), async (c) => {
-  const data = await listAdminEventsV2();
+  const result = await listAdminEventsV2(getAdminEventListQuery(c));
 
-  return c.json(ok(data, { total: data.length }));
+  return c.json(ok(result.data, result.meta));
 });
 
 adminRoutes.get("/events/references", requireActiveStaff("event.manage"), async (c) =>
