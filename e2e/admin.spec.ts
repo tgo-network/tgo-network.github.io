@@ -1,20 +1,56 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const adminUrl = process.env.E2E_ADMIN_URL ?? "http://localhost:5173";
+const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
 const adminEmail = process.env.DEV_ADMIN_EMAIL ?? "admin@tgo.local";
 const adminPassword = process.env.DEV_ADMIN_PASSWORD ?? "TgoAdmin123456!";
 
-test("admin redirects unauthenticated users to login and supports dashboard navigation", async ({ page }) => {
-  await page.goto(`${adminUrl}/dashboard`);
-  await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole("heading", { name: "工作人员登录" })).toBeVisible();
+const expectNoHorizontalOverflow = async (page: Page, label: string) => {
+  const metrics = await page.evaluate(() => {
+    const root = document.documentElement;
+    const viewportWidth = root.clientWidth;
+    const scrollWidth = root.scrollWidth;
+    const offenders = Array.from(document.querySelectorAll("body *"))
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
 
+        return {
+          tag: element.tagName.toLowerCase(),
+          text: (element.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 48),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right)
+        };
+      })
+      .filter((item) => item.left < -1 || item.right > viewportWidth + 1)
+      .slice(0, 8);
+
+    return {
+      viewportWidth,
+      scrollWidth,
+      offenders
+    };
+  });
+
+  expect(metrics.scrollWidth, `${label} 存在横向溢出：${JSON.stringify(metrics.offenders)}`).toBeLessThanOrEqual(
+    metrics.viewportWidth + 1
+  );
+};
+
+const signIn = async (page: Page) => {
   await page.getByLabel("邮箱").fill(adminEmail);
   await page.getByLabel("密码").fill(adminPassword);
   await page.getByRole("button", { name: "登录" }).click();
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "仪表盘" })).toBeVisible();
+};
+
+test("admin redirects unauthenticated users to login and supports dashboard navigation", async ({ page }) => {
+  await page.goto(`${adminUrl}/dashboard`);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "工作人员登录" })).toBeVisible();
+
+  await signIn(page);
   await expect(page.getByText(adminEmail)).toBeVisible();
   await expect(page.getByRole("link", { name: "成员" })).toBeVisible();
   await expect(page.getByRole("link", { name: "工作人员" })).toBeVisible();
@@ -24,6 +60,117 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page.getByRole("heading", { name: "成员" })).toBeVisible();
   await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
 
+  await page.getByRole("link", { name: "审计日志" }).click();
+  await expect(page).toHaveURL(/\/audit-logs$/);
+  await expect(page.getByRole("heading", { name: "审计日志" })).toBeVisible();
+  await expect(page.getByText("记录总数")).toBeVisible();
+
   await page.getByRole("button", { name: "退出登录" }).click();
   await expect(page).toHaveURL(/\/login$/);
+});
+
+test("admin article list supports keyword filtering and preview actions", async ({ page }) => {
+  await page.goto(`${adminUrl}/login`);
+  await signIn(page);
+
+  await page.getByRole("link", { name: "文章" }).click();
+  await expect(page).toHaveURL(/\/articles$/);
+  await expect(page.getByRole("heading", { name: "文章" })).toBeVisible();
+
+  const searchInput = page.getByPlaceholder("搜索标题、slug、作者或分会");
+  await searchInput.fill("城市主页");
+
+  const articleTable = page.locator("tbody");
+  await expect(articleTable).toContainText("一座城市主页在真正活起来之前需要什么");
+  await expect(articleTable).not.toContainText("在不锁死技术栈的前提下交付内容平台");
+  await expect(page.getByRole("link", { name: "前台预览" }).first()).toBeVisible();
+});
+
+test("admin dashboard and core lists support layout and filter verification", async ({ page }) => {
+  await page.goto(`${adminUrl}/login`);
+  await signIn(page);
+
+  await expect(page.getByText("内容池")).toBeVisible();
+  await expect(page.getByText("待处理队列")).toBeVisible();
+  await expect(page.getByText("当前优先事项")).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-dashboard");
+
+  await page.getByRole("link", { name: "活动", exact: true }).click();
+  await expect(page).toHaveURL(/\/events$/);
+  await expect(page.getByRole("heading", { name: "活动" })).toBeVisible();
+  await page.getByPlaceholder("搜索标题、slug 或分会").fill("上海 AI");
+  await expect(page.locator("tbody")).toContainText("上海 AI 领导力闭门沙龙");
+  await expect(page.getByRole("link", { name: "报名审核" })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-events");
+
+  await page.getByRole("link", { name: "申请", exact: true }).click();
+  await expect(page).toHaveURL(/\/applications$/);
+  await expect(page.getByRole("heading", { name: "申请" })).toBeVisible();
+  await page.getByPlaceholder("搜索姓名、手机号、微信号、邮箱或分会").fill("李昊然");
+  await expect(page.locator("tbody")).toContainText("李昊然");
+  await expect(page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-applications");
+
+  await page.getByRole("link", { name: "成员", exact: true }).click();
+  await expect(page).toHaveURL(/\/members$/);
+  await expect(page.getByRole("heading", { name: "成员" })).toBeVisible();
+  await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
+  await expect(page.locator("tbody")).toContainText("周扬");
+  await expect(page.getByRole("link", { name: "前台预览" }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-members");
+
+  await page.getByRole("link", { name: "审计日志", exact: true }).click();
+  await expect(page).toHaveURL(/\/audit-logs$/);
+  await expect(page.getByRole("heading", { name: "审计日志" })).toBeVisible();
+  await expect(page.getByText("记录总数")).toBeVisible();
+  await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-audit-logs");
+});
+
+test("admin review detail flows support saving application and registration decisions", async ({ page }) => {
+  const suffix = Date.now().toString();
+  const attendeeName = `管理端报名人 ${suffix}`;
+
+  await page.goto(`${adminUrl}/login`);
+  await signIn(page);
+
+  await page.getByRole("link", { name: "申请", exact: true }).click();
+  await expect(page).toHaveURL(/\/applications$/);
+  await page.getByPlaceholder("搜索姓名、手机号、微信号、邮箱或分会").fill("李昊然");
+  await page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" }).click();
+  await expect(page).toHaveURL(/\/applications\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "李昊然" })).toBeVisible();
+  await page.getByLabel("状态").selectOption("in_review");
+  await page.getByLabel("审核备注").fill(`Playwright 自动审核备注 ${suffix}`);
+  await page.getByRole("button", { name: "保存审核" }).click();
+  await expect(page.getByText("申请审核已更新。")).toBeVisible();
+  await expect(page.locator(".editor-side .status-pill")).toContainText("审核中");
+
+  await page.goto(`${siteUrl}/events/shanghai-ai-leadership-salon`, { waitUntil: "networkidle" });
+  await page.getByLabel("姓名").fill(attendeeName);
+  await page.getByLabel("手机号").fill("13900139098");
+  await page.getByLabel("邮箱").fill(`admin-registration-${suffix}@example.com`);
+  await page.getByLabel("公司").fill("Playwright 运营");
+  await page.getByLabel("职称").fill("测试负责人");
+  await page.getByLabel("补充说明").fill("用于验证后台审核报名详情页的保存流程。");
+  await page.getByRole("button", { name: "提交报名" }).click();
+  await expect(page.locator("[data-event-registration-status]")).toContainText("报名已提交，编号", {
+    timeout: 15_000
+  });
+
+  await page.goto(`${adminUrl}/events`, { waitUntil: "networkidle" });
+  await page.getByPlaceholder("搜索标题、slug 或分会").fill("上海 AI");
+  await page.getByRole("link", { name: "报名审核" }).click();
+  await expect(page).toHaveURL(/\/events\/[^/]+\/registrations$/);
+  await expect(page.getByRole("heading", { name: "上海 AI 领导力闭门沙龙" })).toBeVisible();
+  await expect(page.locator("tbody")).toContainText(attendeeName);
+  await page.locator("tr", { hasText: attendeeName }).getByRole("link", { name: "审核" }).click();
+  await expect(page).toHaveURL(/\/registrations\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: attendeeName })).toBeVisible();
+  await page.getByLabel("状态").selectOption("approved");
+  await page.getByLabel("审核备注").fill(`Playwright 自动报名审核 ${suffix}`);
+  await page.getByRole("button", { name: "保存状态" }).click();
+  await expect(page.getByText("报名状态已更新。")).toBeVisible();
+  await expect(page.getByLabel("状态")).toHaveValue("approved");
+  await expect(page.locator(".editor-side .status-pill").first()).toContainText("开放中");
 });

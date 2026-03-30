@@ -1,8 +1,69 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+const keyRoutes = [
+  {
+    path: "/",
+    heading: "连接技术领导者、分会活动与长期交流网络"
+  },
+  {
+    path: "/branches",
+    heading: "覆盖不同城市节点的技术领导者网络"
+  },
+  {
+    path: "/members",
+    heading: "来自不同公司与城市分会的技术领导者"
+  },
+  {
+    path: "/events",
+    heading: "各地分会活动与公开报名入口"
+  },
+  {
+    path: "/articles",
+    heading: "围绕技术管理、组织实践与社区观察的内容沉淀"
+  },
+  {
+    path: "/join",
+    heading: "面向技术领导者的高质量同侪网络"
+  },
+  {
+    path: "/about",
+    heading: "一个围绕技术领导者成长而组织起来的长期社区网络"
+  }
+] as const;
+
+const expectNoHorizontalOverflow = async (page: Page, label: string) => {
+  const metrics = await page.evaluate(() => {
+    const root = document.documentElement;
+    const viewportWidth = root.clientWidth;
+    const scrollWidth = root.scrollWidth;
+    const offenders = Array.from(document.querySelectorAll("body *"))
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+
+        return {
+          tag: element.tagName.toLowerCase(),
+          text: (element.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 48),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right)
+        };
+      })
+      .filter((item) => item.left < -1 || item.right > viewportWidth + 1)
+      .slice(0, 8);
+
+    return {
+      viewportWidth,
+      scrollWidth,
+      offenders
+    };
+  });
+
+  expect(metrics.scrollWidth, `${label} 存在横向溢出：${JSON.stringify(metrics.offenders)}`).toBeLessThanOrEqual(
+    metrics.viewportWidth + 1
+  );
+};
 
 test("public homepage exposes the main content collections", async ({ page }) => {
   await page.goto(siteUrl);
@@ -50,4 +111,49 @@ test("public event registration form submits successfully", async ({ page }) => 
   await expect(page.locator("[data-event-registration-status]")).toContainText("报名已提交，编号", {
     timeout: 15_000
   });
+});
+
+test("public key pages keep desktop and mobile layouts within the viewport", async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 1024, label: "desktop" },
+    { width: 390, height: 844, label: "mobile" }
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+    for (const route of keyRoutes) {
+      await test.step(`${viewport.label} ${route.path}`, async () => {
+        await page.goto(`${siteUrl}${route.path}`, { waitUntil: "networkidle" });
+        await expect(page.locator("main h1").filter({ hasText: route.heading })).toBeVisible();
+        await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+        await expectNoHorizontalOverflow(page, `${viewport.label}:${route.path}`);
+      });
+    }
+  }
+});
+
+test("public content drill-down routes expose the expected detail content", async ({ page }) => {
+  await page.goto(`${siteUrl}/members`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: /周扬/ }).click();
+  await expect(page).toHaveURL(/\/members\/zhou-yang$/);
+  await expect(page.getByRole("heading", { name: "周扬" })).toBeVisible();
+  await expect(page.locator(".member-detail-side-card .card-label").filter({ hasText: "成员档案" })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "member-detail");
+
+  await page.goto(`${siteUrl}/articles`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: /一座城市主页在真正活起来之前需要什么/ }).first().click();
+  await expect(page).toHaveURL(/\/articles\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "一座城市主页在真正活起来之前需要什么" })).toBeVisible();
+  await expect(page.getByText("继续浏览")).toBeVisible();
+  await expectNoHorizontalOverflow(page, "article-detail");
+
+  await page.goto(`${siteUrl}/events/shanghai-ai-leadership-salon`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "上海 AI 领导力闭门沙龙" })).toBeVisible();
+  await expect(page.locator(".registration-panel .card-label").filter({ hasText: "活动报名" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "提交报名" })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "event-detail");
+
+  await page.goto(`${siteUrl}/about`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "查看加入说明" }).click();
+  await expect(page).toHaveURL(/\/join$/);
+  await expect(page.locator("main h1").filter({ hasText: "面向技术领导者的高质量同侪网络" })).toBeVisible();
 });

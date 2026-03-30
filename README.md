@@ -55,6 +55,7 @@ npm run test:api
 npm run test:site
 npm run test:admin
 npm run test:e2e
+npm run test:e2e:screenshots
 npm run test:e2e:install
 npm run env:check:api
 npm run docker:build:api
@@ -92,10 +93,13 @@ Local development quickstart:
    - `npm run test:admin`
 10. Run the browser smoke suite when you want cross-app validation for public flows plus admin login/navigation:
    - `npm run test:e2e`
-11. Validate API deployment configuration before a staging or production release:
+11. Generate the current public/admin page screenshots when you want a visual inspection baseline:
+   - `npm run test:e2e:screenshots`
+   - screenshots are written to `artifacts/screenshots/`
+12. Validate API deployment configuration before a staging or production release:
    - `npm run env:check:api`
    - `npm run env:check:api -- production`
-12. Build the API container image from the monorepo root when you want a deployment artifact:
+13. Build the API container image from the monorepo root when you want a deployment artifact:
    - `npm run docker:build:api`
 
 Environment notes:
@@ -110,6 +114,7 @@ Environment notes:
 - `npm run test:api` creates and destroys its own temporary PostgreSQL database based on `DATABASE_URL`
 - `npm run test:site` does not require the API to be running because it mocks the public fetch layer
 - `npm run test:e2e` starts local infra, reapplies bootstrap data, and runs browser smoke coverage across `site`, `admin`, and `api`
+- `npm run test:e2e:screenshots` uses Playwright to capture the current public and admin pages into `artifacts/screenshots/`
 - `npm run test:e2e:install` is available if you want a managed Playwright Chromium install instead of using a local Chrome browser
 - `npm run env:check:api` loads `.env` when present and supports profiles like `runtime`, `internal`, `storage`, and `production`
 - `GET /health` checks process liveness, `GET /ready` checks runtime readiness, and `GET /version` exposes release metadata

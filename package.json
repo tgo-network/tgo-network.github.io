@@ -22,6 +22,8 @@
     "test:admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/admin test",
     "test:site": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/site test",
     "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e:screenshots": "node scripts/run-e2e.mjs --config=playwright.screenshots.config.ts",
+    "test:e2e:screenshots:headed": "node scripts/run-e2e.mjs --config=playwright.screenshots.config.ts --headed",
     "test:e2e:headed": "node scripts/run-e2e.mjs --headed",
     "test:e2e:install": "playwright install chromium",
     "env:check:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api validate-env",

@@ -76,6 +76,34 @@ export const formatEventRegistrationStatus = (value: string | EventRegistrationS
 export const formatApplicationStatus = (value: string | ApplicationStatus | null | undefined) =>
   formatOptionLabel(applicationStatusOptions, value);
 
+export const formatMembershipStatus = (value: string | null | undefined) => {
+  if (value === "active") {
+    return "有效成员";
+  }
+
+  if (value === "alumni") {
+    return "校友成员";
+  }
+
+  if (value === "paused") {
+    return "暂停展示";
+  }
+
+  return value ?? "-";
+};
+
+export const formatMemberVisibility = (value: string | null | undefined) => {
+  if (value === "public") {
+    return "公开";
+  }
+
+  if (value === "private") {
+    return "私有";
+  }
+
+  return value ?? "-";
+};
+
 export const formatStaffAccountStatus = (value: string | StaffAccountStatus | null | undefined) =>
   formatOptionLabel(staffAccountStatusOptions, value);
 
@@ -87,6 +115,22 @@ export const formatAssetStatus = (value: string | AssetStatus | null | undefined
 
 export const formatAdminAssetType = (value: string | AdminAssetType | null | undefined) =>
   formatOptionLabel(adminAssetTypeOptions, value);
+
+export const formatSystemHealth = (value: string | null | undefined) => {
+  if (value === "healthy") {
+    return "运行正常";
+  }
+
+  if (value === "degraded") {
+    return "需要关注";
+  }
+
+  if (value === "failing") {
+    return "异常";
+  }
+
+  return value ?? "未知";
+};
 
 export const slugify = (value: string) =>
   value

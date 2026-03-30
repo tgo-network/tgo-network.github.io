@@ -57,6 +57,49 @@ const slugTouched = ref(false);
 const articleId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => articleId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建文章" : `编辑文章：${article.value?.title ?? "加载中..."}`));
+const selectedAuthorLabel = computed(
+  () => references.value.authors.find((item) => item.id === form.authorId)?.label ?? "暂未选择作者"
+);
+const selectedBranchLabel = computed(
+  () => references.value.branches.find((item) => item.id === form.branchId)?.label ?? "未关联分会"
+);
+const articleParagraphs = computed(() =>
+  form.body
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+);
+const excerptLength = computed(() => form.excerpt.trim().length);
+const seoTitlePreview = computed(() => form.seoTitle.trim() || form.title.trim() || "将回退为文章标题");
+const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.excerpt.trim() || "将回退为文章摘要");
+const scheduledAtSummary = computed(() => (form.scheduledAt ? formatDateTime(form.scheduledAt) : "未设置定时发布"));
+const articleChecklist = computed(() => [
+  {
+    label: "标题",
+    ready: form.title.trim().length > 0,
+    hint: "文章列表卡片和详情页首屏都会直接使用标题。"
+  },
+  {
+    label: "摘要",
+    ready: form.excerpt.trim().length > 0,
+    hint: "列表页与详情页首屏都依赖摘要来解释内容定位。"
+  },
+  {
+    label: "正文",
+    ready: articleParagraphs.value.length > 0,
+    hint: "详情页正文会按空行拆成段落展示。"
+  },
+  {
+    label: "作者",
+    ready: Boolean(form.authorId),
+    hint: "发布前必须绑定作者，详情页右侧会展示作者信息。"
+  },
+  {
+    label: "URL 标识",
+    ready: form.slug.trim().length > 0,
+    hint: "公开站文章详情页会通过这个 slug 对外访问。"
+  }
+]);
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -199,32 +242,18 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>{{ pageTitle }}</h2>
-        <p>
-          在同一页面中管理文章元信息、正文内容、封面资源与发布状态。
-        </p>
+        <p>按前台文章列表与详情页的实际呈现结构，统一维护标题、摘要、正文、封面与发布信息。</p>
       </div>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/articles">
-          返回文章列表
-        </RouterLink>
+        <RouterLink class="button-link" to="/articles">返回文章列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建文章" : "保存修改" }}
         </button>
-        <button
-          class="button-link button-subtle"
-          type="button"
-          :disabled="!article || actioning"
-          @click="runAction('publish')"
-        >
+        <button class="button-link button-subtle" type="button" :disabled="!article || actioning" @click="runAction('publish')">
           {{ actioning ? "处理中..." : "发布" }}
         </button>
-        <button
-          class="button-link button-danger"
-          type="button"
-          :disabled="!article || actioning"
-          @click="runAction('archive')"
-        >
+        <button class="button-link button-danger" type="button" :disabled="!article || actioning" @click="runAction('archive')">
           归档
         </button>
       </div>
@@ -247,119 +276,221 @@ onMounted(() => {
 
     <div v-else class="editor-grid">
       <div class="panel editor-main stacked-gap">
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>标题</span>
-            <input v-model="form.title" type="text" placeholder="在不锁死技术栈的前提下交付内容平台" @input="onTitleInput" />
-            <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
-          </label>
-
-          <label class="field">
-            <span>状态</span>
-            <select v-model="form.status">
-              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-          </label>
-        </div>
-
-        <label class="field">
-          <span>URL 标识</span>
-          <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
-          <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-        </label>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>作者</span>
-            <select v-model="form.authorId">
-              <option :value="null">暂不选择作者</option>
-              <option v-for="option in references.authors" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
-          </label>
-
-          <label class="field">
-            <span>所属分会</span>
-            <select v-model="form.branchId">
-              <option :value="null">暂不关联分会</option>
-              <option v-for="option in references.branches" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
-          </label>
-        </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>定时发布时间</span>
-            <input v-model="form.scheduledAt" type="datetime-local" />
-            <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
-          </label>
-
-          <div class="panel panel-subtle">
-            <div class="brand-tag">归属信息</div>
-            <p>{{ references.branches.find((item) => item.id === form.branchId)?.label ?? "当前未关联分会" }}</p>
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">基本信息</div>
+            <h3>定义文章的公开入口</h3>
+            <p>标题、slug、作者与分会归属决定文章在公开站中的身份与组织关系。</p>
           </div>
-        </div>
 
-        <label class="field">
-          <span>摘要</span>
-          <textarea v-model="form.excerpt" rows="4" placeholder="用于文章列表与信息卡片的简短摘要。" />
-          <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
-        </label>
+          <div class="field-grid field-grid-2">
+            <label class="field">
+              <span>标题</span>
+              <input v-model="form.title" type="text" placeholder="在不锁死技术栈的前提下交付内容平台" @input="onTitleInput" />
+              <small class="field-hint">标题会同步用于文章列表卡片和详情页首屏。</small>
+              <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
+            </label>
 
-        <label class="field">
-          <span>正文</span>
-          <textarea v-model="form.body" rows="14" placeholder="文章正文内容。" />
-          <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
-        </label>
+            <label class="field">
+              <span>状态</span>
+              <select v-model="form.status">
+                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+              </select>
+              <small class="field-hint">后台状态用于控制编辑节奏，真正公开展示仍以发布结果为准。</small>
+              <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+            </label>
+          </div>
+
+          <label class="field">
+            <span>URL 标识</span>
+            <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
+            <small class="field-hint">新建时会跟随标题自动生成，也可以手动改成更稳定的公开 URL。</small>
+            <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+          </label>
+
+          <div class="field-grid field-grid-2">
+            <label class="field">
+              <span>作者</span>
+              <select v-model="form.authorId">
+                <option :value="null">暂不选择作者</option>
+                <option v-for="option in references.authors" :key="option.id" :value="option.id">{{ option.label }}</option>
+              </select>
+              <small class="field-hint">前台详情页会展示作者信息，发布前建议先完成绑定。</small>
+              <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
+            </label>
+
+            <label class="field">
+              <span>所属分会</span>
+              <select v-model="form.branchId">
+                <option :value="null">暂不关联分会</option>
+                <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+              </select>
+              <small class="field-hint">关联分会后，文章会更容易和成员、活动形成组织化叙事。</small>
+              <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+            </label>
+          </div>
+        </section>
+
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">前台列表摘要</div>
+            <h3>准备文章列表卡片信息</h3>
+            <p>文章列表页主要使用标题、摘要、作者和分会信息，因此摘要需要简洁且带有组织语境。</p>
+          </div>
+
+          <div class="field-grid field-grid-2">
+            <label class="field">
+              <span>定时发布时间</span>
+              <input v-model="form.scheduledAt" type="datetime-local" />
+              <small class="field-hint">需要定时上线时再填写；否则发布按钮会立即生效。</small>
+              <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
+            </label>
+
+            <div class="info-card">
+              <span>当前归属</span>
+              <strong>{{ selectedBranchLabel }}</strong>
+              <small class="field-hint">{{ selectedAuthorLabel }}</small>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>摘要</span>
+            <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
+            <small class="field-hint">建议 60-120 字，帮助访客快速判断文章与社区主线的关系。</small>
+            <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
+          </label>
+        </section>
+
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">正文内容</div>
+            <h3>按详情页阅读节奏组织正文</h3>
+            <p>详情页会先展示标题、摘要、作者和封面，再进入正文内容，正文建议按自然段留空行分隔。</p>
+          </div>
+
+          <label class="field">
+            <span>正文</span>
+            <textarea v-model="form.body" rows="16" placeholder="文章正文内容。" />
+            <small class="field-hint">用空行分段后，前台会按段落展示；长文也更利于后续拆分为多段阅读。</small>
+            <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
+          </label>
+        </section>
+
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">发布与 SEO</div>
+            <h3>补足搜索与分享所需信息</h3>
+            <p>SEO 字段不填时会分别回退到标题和摘要，只有需要定制搜索展示时再手动覆盖。</p>
+          </div>
+
+          <div class="field-grid field-grid-2">
+            <label class="field">
+              <span>SEO 标题</span>
+              <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
+              <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
+            </label>
+            <label class="field">
+              <span>SEO 描述</span>
+              <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
+              <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
+            </label>
+          </div>
+        </section>
       </div>
 
       <aside class="editor-side stacked-gap">
-        <CoverAssetField
-          v-model="form.coverAssetId"
-          :assets="coverAssets"
-          :error="fieldIssues.coverAssetId"
-          label="封面资源"
-        />
+        <CoverAssetField v-model="form.coverAssetId" :assets="coverAssets" :error="fieldIssues.coverAssetId" label="封面资源" />
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">SEO</div>
-          <label class="field">
-            <span>SEO 标题</span>
-            <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
-            <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
-          </label>
-          <label class="field">
-            <span>SEO 描述</span>
-            <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
-            <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
-          </label>
+          <div class="brand-tag">前台映射</div>
+
+          <div class="preview-stack">
+            <div class="preview-group">
+              <span class="preview-label">文章列表卡片</span>
+              <div class="preview-card">
+                <span class="preview-eyebrow">{{ selectedBranchLabel }}</span>
+                <strong class="preview-title">{{ form.title || "文章标题会展示在这里" }}</strong>
+                <p class="preview-copy">
+                  {{ form.excerpt || "摘要会出现在文章列表卡片和详情页首屏，用于解释这篇内容为何值得阅读。" }}
+                </p>
+                <div class="preview-meta">
+                  <span>{{ selectedAuthorLabel }}</span>
+                  <span>{{ excerptLength > 0 ? `${excerptLength} 字摘要` : "待补充摘要" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-group">
+              <span class="preview-label">文章详情页首屏</span>
+              <div class="preview-card preview-card-dark">
+                <span class="preview-eyebrow">文章详情</span>
+                <strong class="preview-title">{{ form.title || "详情页主标题" }}</strong>
+                <p class="preview-copy">
+                  {{ form.excerpt || "这里会显示摘要，帮助读者在进入正文前理解这篇文章的核心观点。" }}
+                </p>
+                <ul class="preview-list">
+                  <li>
+                    <span>作者</span>
+                    <strong>{{ selectedAuthorLabel }}</strong>
+                  </li>
+                  <li>
+                    <span>分会</span>
+                    <strong>{{ selectedBranchLabel }}</strong>
+                  </li>
+                  <li>
+                    <span>正文段落</span>
+                    <strong>{{ articleParagraphs.length > 0 ? `${articleParagraphs.length} 段` : "尚未填写正文" }}</strong>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="preview-group">
+              <span class="preview-label">SEO 回退结果</span>
+              <div class="preview-card">
+                <ul class="preview-list">
+                  <li>
+                    <span>标题</span>
+                    <strong>{{ seoTitlePreview }}</strong>
+                  </li>
+                  <li>
+                    <span>描述</span>
+                    <strong>{{ seoDescriptionPreview }}</strong>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="panel stacked-gap">
-          <div class="brand-tag">工作流</div>
+          <div class="brand-tag">发布提示</div>
           <div class="info-row">
             <span>当前状态</span>
             <strong class="status-pill">{{ formatContentStatus(article?.status ?? form.status) }}</strong>
           </div>
           <div class="info-row">
-            <span>更新时间</span>
+            <span>定时发布时间</span>
+            <strong>{{ scheduledAtSummary }}</strong>
+          </div>
+          <div class="info-row">
+            <span>最近更新</span>
             <strong>{{ formatDateTime(article?.updatedAt) }}</strong>
           </div>
           <div class="info-row">
             <span>发布时间</span>
             <strong>{{ formatDateTime(article?.publishedAt) }}</strong>
           </div>
-          <p>
-            文章在发布前必须具备标题、URL 标识、摘要、正文和作者。分会归属是可选项，但建议补全以便前台展示组织关联。
-          </p>
+
+          <ul class="checklist">
+            <li v-for="item in articleChecklist" :key="item.label">
+              <span class="checklist-indicator" :class="item.ready ? 'is-ready' : 'is-pending'"></span>
+              <div>
+                <strong>{{ item.label }}</strong>
+                <small>{{ item.hint }}</small>
+              </div>
+            </li>
+          </ul>
         </div>
       </aside>
     </div>

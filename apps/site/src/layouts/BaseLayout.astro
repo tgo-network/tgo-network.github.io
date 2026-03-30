@@ -13,6 +13,32 @@ const {
   description = "TGO 鲲鹏会公开站：以静态优先方式呈现组织介绍、分会、成员、活动与内容。"
 } = Astro.props;
 const config = await getSiteConfig();
+const footerGroups = [
+  {
+    title: "组织结构",
+    links: [
+      { label: "首页总览", href: "/" },
+      { label: "分会网络", href: "/branches" },
+      { label: "成员档案", href: "/members" }
+    ]
+  },
+  {
+    title: "学习活动",
+    links: [
+      { label: "活动日历", href: "/events" },
+      { label: "社区文章", href: "/articles" },
+      { label: "加入说明", href: "/join" }
+    ]
+  },
+  {
+    title: "关于与条款",
+    links: [
+      { label: "关于 TGO", href: "/about" },
+      { label: "隐私说明", href: "/privacy" },
+      { label: "使用条款", href: "/terms" }
+    ]
+  }
+] as const;
 ---
 
 <!doctype html>
@@ -28,12 +54,30 @@ const config = await getSiteConfig();
     <slot />
 
     <footer class="site-footer">
-      <div class="page-shell site-footer-inner">
-        <p>{config.footerTagline}</p>
-        <div class="site-footer-links">
-          {config.supportEmail && <a href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>}
-          <a href="/privacy">隐私说明</a>
-          <a href="/terms">使用条款</a>
+      <div class="page-shell site-footer-shell">
+        <div class="site-footer-brand">
+          <a class="site-brand site-footer-brand-link" href="/">
+            <span class="site-brand-mark">TGO</span>
+            <span class="site-brand-text">
+              <strong>{config.platformName}</strong>
+              <small>科技领导者社区</small>
+            </span>
+          </a>
+          <p>{config.footerTagline}</p>
+          {config.supportEmail && <a class="site-footer-email" href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>}
+        </div>
+
+        <div class="site-footer-grid">
+          {
+            footerGroups.map((group) => (
+              <div class="site-footer-group">
+                <h2>{group.title}</h2>
+                <div class="site-footer-links">
+                  {group.links.map((link) => <a href={link.href}>{link.label}</a>)}
+                </div>
+              </div>
+            ))
+          }
         </div>
       </div>
     </footer>

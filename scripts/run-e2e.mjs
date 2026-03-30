@@ -1,12 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const playwrightArgs = process.argv.slice(2);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const playwrightCommand = path.join(
+  repoRoot,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "playwright.cmd" : "playwright"
+);
+const playwrightArgs = process.argv.slice(2);
 
 const loadEnvironmentFile = (fileName) => {
   const filePath = path.join(repoRoot, fileName);
@@ -86,4 +92,9 @@ const parsedUrl = new URL(databaseUrl);
 await waitForPort(parsedUrl.hostname, Number(parsedUrl.port || "5432"));
 
 run(npmCommand, ["run", "bootstrap:dev"]);
-run(npmCommand, ["exec", "playwright", "test", ...playwrightArgs]);
+
+if (existsSync(playwrightCommand)) {
+  run(playwrightCommand, ["test", ...playwrightArgs]);
+} else {
+  run(npmCommand, ["exec", "playwright", "test", ...playwrightArgs]);
+}
