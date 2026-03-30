@@ -14,11 +14,58 @@ export const getStaticPaths = async () => {
 };
 
 const slug = Astro.params.slug!;
-const member = await getMember(slug);
+const [members, member] = await Promise.all([listMembers(), getMember(slug)]);
 
 if (!member) {
   throw new Error(`成员不存在：${slug}`);
 }
+
+const sameBranchMembers = members
+  .filter((candidate) => candidate.slug !== member.slug && candidate.branch?.slug === member.branch?.slug)
+  .slice(0, 3);
+const fallbackMembers = members.filter((candidate) => candidate.slug !== member.slug).slice(0, 3);
+const relatedMembers = sameBranchMembers.length > 0 ? sameBranchMembers : fallbackMembers;
+
+const memberSignals = [
+  {
+    label: "所在公司",
+    value: member.company,
+    summary: "公开资料会先展示成员当前所在机构与技术管理角色。"
+  },
+  {
+    label: "组织身份",
+    value: "TGO 成员",
+    summary: "成员与工作人员是完全独立的两套身份，不共享后台权限。"
+  },
+  {
+    label: "参与方式",
+    value: member.branch?.name ?? "公开活动",
+    summary: "成员通常通过分会活动、公开学习与长期交流持续参与社区。"
+  }
+];
+
+const nextPaths = [
+  {
+    title: member.branch ? `回到 ${member.branch.name}` : "查看分会董事会",
+    summary: member.branch
+      ? `继续理解 ${member.branch.cityName} 城市节点下的组织结构与董事会成员。`
+      : "先从城市节点理解这个社区是如何被组织起来的。",
+    href: member.branch ? `/branches#${member.branch.slug}` : "/branches",
+    action: member.branch ? "浏览所属分会" : "浏览分会"
+  },
+  {
+    title: "查看公开活动",
+    summary: "成员与非成员都可以在前台查看公开活动，并由工作人员在后台审核报名。",
+    href: "/events",
+    action: "进入活动页"
+  },
+  {
+    title: "返回成员网络",
+    summary: "回到成员列表，从更大的网络视角继续理解社区覆盖的公司、角色与城市。",
+    href: "/members",
+    action: "查看成员列表"
+  }
+];
 ---
 
 <BaseLayout title={`${member.name} | 成员 | TGO 鲲鹏会`} description={`${member.company} · ${member.title}`}>
@@ -34,6 +81,18 @@ if (!member) {
             <li>{member.branch?.cityName ?? "待补充城市"}</li>
             <li>{formatDate(member.joinedAt)}</li>
           </ul>
+
+          <div class="member-signal-grid">
+            {
+              memberSignals.map((item) => (
+                <article class="member-signal-card">
+                  <div class="member-signal-label">{item.label}</div>
+                  <strong>{item.value}</strong>
+                  <p>{item.summary}</p>
+                </article>
+              ))
+            }
+          </div>
         </div>
 
         <aside class="member-detail-side">
@@ -64,32 +123,88 @@ if (!member) {
               </li>
             </ul>
           </div>
+
+          <div class="member-detail-actions">
+            {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
+            <a class="button secondary" href="/events">浏览活动</a>
+          </div>
         </aside>
       </div>
     </section>
 
     <section class="section member-detail-grid">
-      <article class="panel prose-panel">
+      <article class="panel prose-panel member-story-panel">
         <div class="card-label">个人简介</div>
         <h2 class="card-title">关于这位成员</h2>
         <p>{member.bio}</p>
+        <p>
+          当前成员详情页的目标不是展示完整履历，而是让访客快速理解这位成员在社区中的位置：
+          他来自哪座城市、哪类公司、承担怎样的技术管理职责，以及为什么这能帮助社区形成真实的同侪网络。
+        </p>
       </article>
 
       <aside class="panel panel-soft member-note-panel">
         <div>
           <div class="card-label">组织位置</div>
           <p class="card-copy">
-            当前公开成员页用于展示真实的人与组织结构，帮助访客理解这个社区覆盖了哪些城市、哪些公司，以及哪些技术管理角色。
+            {member.branch
+              ? `${member.name} 当前展示在 ${member.branch.name} 的公开成员网络中，说明该分会已经形成了真实的城市节点与成员结构。`
+              : `${member.name} 当前展示在公开成员网络中，用于帮助访客理解社区覆盖的成员类型与技术角色。`}
           </p>
         </div>
 
         <div>
           <div class="card-label">参与方式</div>
           <ul class="meta-list vertical-list">
-            <li>可参与分会活动与公开学习活动</li>
-            <li>可通过长期交流沉淀同侪连接</li>
-            <li>成员与工作人员是完全分开的两套身份</li>
+            <li>可浏览公开活动并提交报名，由工作人员继续审核与确认</li>
+            <li>可通过分会活动与长期交流形成更稳定的同侪连接</li>
+            <li>成员身份不会自动获得后台权限，后台仅对工作人员开放</li>
           </ul>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section member-follow-grid">
+      <div class="panel related-members-panel">
+        <div class="section-head related-members-head">
+          <div>
+            <div class="card-label">相关成员</div>
+            <h2>{sameBranchMembers.length > 0 ? "同分会成员" : "继续浏览其他成员"}</h2>
+          </div>
+        </div>
+
+        <div class="related-member-grid">
+          {
+            relatedMembers.map((candidate) => (
+              <a class="related-member-card" href={`/members/${candidate.slug}`}>
+                <div>
+                  <div class="card-label">{candidate.branch?.name ?? "成员"}</div>
+                  <h3>{candidate.name}</h3>
+                  <p class="card-copy">{candidate.company} · {candidate.title}</p>
+                </div>
+                <span class="text-link">查看详情</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <aside class="panel panel-soft member-next-panel">
+        <div>
+          <div class="card-label">继续浏览</div>
+          <h2>从成员继续走向分会、活动与整体网络</h2>
+        </div>
+
+        <div class="member-next-links">
+          {
+            nextPaths.map((item) => (
+              <a class="member-next-card" href={item.href}>
+                <h3>{item.title}</h3>
+                <p class="card-copy">{item.summary}</p>
+                <span class="text-link">{item.action}</span>
+              </a>
+            ))
+          }
         </div>
       </aside>
     </section>
@@ -100,7 +215,7 @@ if (!member) {
   .member-detail-hero {
     display: grid;
     gap: 22px;
-    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
       linear-gradient(135deg, #171717 0%, #211d18 100%);
@@ -109,11 +224,14 @@ if (!member) {
   }
 
   .member-detail-hero h1,
-  .member-detail-hero h2 {
+  .member-detail-hero h2,
+  .member-next-card h3,
+  .related-member-card h3 {
     color: #fff7ef;
   }
 
-  .member-detail-hero p {
+  .member-detail-hero p,
+  .member-detail-hero .card-copy {
     color: rgba(248, 241, 232, 0.76);
   }
 
@@ -121,6 +239,52 @@ if (!member) {
     color: #f1d5a0;
     border-color: rgba(215, 179, 117, 0.28);
     background: rgba(255, 255, 255, 0.06);
+  }
+
+  .member-detail-main {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+  }
+
+  .member-signal-grid,
+  .member-follow-grid,
+  .related-member-grid,
+  .member-next-links {
+    display: grid;
+    gap: 18px;
+  }
+
+  .member-signal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-signal-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .member-signal-label {
+    color: rgba(248, 241, 232, 0.58);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .member-signal-card strong {
+    color: #fff7ef;
+    font-size: 1.02rem;
+    line-height: 1.4;
+  }
+
+  .member-signal-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
   }
 
   .member-detail-side {
@@ -179,13 +343,23 @@ if (!member) {
     line-height: 1.6;
   }
 
-  .member-detail-grid {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  .member-detail-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
-  .member-note-panel {
+  .member-detail-grid,
+  .member-follow-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+
+  .member-story-panel {
+    min-height: 100%;
+  }
+
+  .member-note-panel,
+  .member-next-panel {
     display: grid;
     gap: 18px;
     align-content: start;
@@ -196,9 +370,57 @@ if (!member) {
     gap: 10px;
   }
 
+  .related-members-panel {
+    display: grid;
+    gap: 18px;
+  }
+
+  .related-members-head {
+    margin-bottom: 0;
+  }
+
+  .related-member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .related-member-card,
+  .member-next-card {
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 22px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.62);
+    transition: transform 180ms ease, border-color 180ms ease;
+  }
+
+  .related-member-card h3,
+  .member-next-card h3 {
+    margin: 12px 0 10px;
+    color: var(--ink);
+  }
+
+  .related-member-card:hover,
+  .member-next-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.24);
+  }
+
+  .member-next-links {
+    grid-template-columns: 1fr;
+  }
+
   @media (max-width: 980px) {
     .member-detail-hero,
-    .member-detail-grid {
+    .member-detail-grid,
+    .member-follow-grid,
+    .related-member-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .member-signal-grid {
       grid-template-columns: 1fr;
     }
   }

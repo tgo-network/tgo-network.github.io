@@ -24,10 +24,53 @@ if (!event) {
 const registrationEnabled = event.registrationState === "open" || event.registrationState === "waitlist";
 const registrationTitle = event.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
 const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
+const branchName = event.branch?.name ?? `${event.cityName}活动`;
+const eventBodyBlocks = event.body
+  .replace(/\r/g, "")
+  .split(/\n{2,}/)
+  .flatMap((block) => block.split("\n"))
+  .map((block) => block.trim())
+  .filter(Boolean);
+
 const participationNotes = [
   "成员与非成员都可以提交公开活动报名。",
   "工作人员会在后台审核报名记录，并决定通过、拒绝或转为候补。",
   "提交信息越完整，越便于工作人员理解你的参会诉求与背景。"
+];
+
+const audienceCards = [
+  {
+    title: "适合谁来",
+    summary: "适合希望围绕技术管理、组织实践、AI 落地或跨团队协作进行高质量线下交流的人。"
+  },
+  {
+    title: "组织关系",
+    summary: `${branchName} 当前对外展示这场活动，说明它不是孤立事件，而是城市分会运营节奏的一部分。`
+  },
+  {
+    title: "报名预期",
+    summary: registrationEnabled
+      ? "提交报名后不会立即确认席位，仍会进入工作人员后台继续审核与联系。"
+      : "当前活动不处于开放报名阶段，建议先阅读详情并关注后续开放节奏。"
+  }
+];
+
+const registrationSteps = [
+  {
+    step: "01",
+    title: "填写资料",
+    summary: "至少填写姓名与手机号，最好补充公司、职称与参会诉求。"
+  },
+  {
+    step: "02",
+    title: "进入审核",
+    summary: "报名信息会进入工作人员后台，由工作人员统一审核与联系。"
+  },
+  {
+    step: "03",
+    title: "确认结果",
+    summary: "工作人员会根据活动定位、报名信息与容量，决定通过、拒绝或转候补。"
+  }
 ];
 ---
 
@@ -40,10 +83,21 @@ const participationNotes = [
           <h1>{event.title}</h1>
           <p>{event.summary}</p>
           <ul class="stat-row">
-            <li>{event.branch?.name ?? `${event.cityName}活动`}</li>
+            <li>{branchName}</li>
             <li>{formatRegistrationState(event.registrationState)}</li>
             <li>{event.venueName}</li>
           </ul>
+
+          <div class="event-highlight-grid">
+            {
+              audienceCards.map((item) => (
+                <article class="event-highlight-card">
+                  <h2>{item.title}</h2>
+                  <p>{item.summary}</p>
+                </article>
+              ))
+            }
+          </div>
         </div>
 
         <aside class="event-detail-side">
@@ -69,6 +123,13 @@ const participationNotes = [
             </ul>
           </div>
 
+          <div class="detail-side-block detail-side-block-soft">
+            <div class="card-label card-label-on-dark">阅读建议</div>
+            <p>
+              先看活动背景与议程，再决定是否报名；如果你是第一次访问，也建议顺带查看所属分会与成员网络，理解这场活动在整个社区中的位置。
+            </p>
+          </div>
+
           {
             event.coverImage && (
               <figure class="event-detail-figure">
@@ -81,32 +142,41 @@ const participationNotes = [
     </section>
 
     <section class="section event-detail-grid">
-      <article class="panel prose-panel">
+      <article class="panel prose-panel event-body-panel">
         <div class="card-label">活动概览</div>
         <h2 class="card-title">这场活动希望解决什么问题</h2>
-        <p>{event.body}</p>
+        {(eventBodyBlocks.length > 0 ? eventBodyBlocks : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
         <ul class="meta-list">
-          <li>{event.branch?.name ?? `${event.cityName}活动`}</li>
+          <li>{branchName}</li>
           <li>{event.cityName}</li>
           <li>{event.venueName}</li>
         </ul>
       </article>
 
-      <article class="panel panel-soft agenda-panel">
-        <div class="card-label">议程安排</div>
-        <ul class="agenda-list">
-          {
-            event.agenda.map((item) => (
-              <li>
-                <strong>{item.time}</strong>
-                <span>{item.title}</span>
-                <em>{item.speaker}</em>
-                <p>{item.summary}</p>
-              </li>
-            ))
-          }
-        </ul>
-      </article>
+      <div class="event-side-stack">
+        <article class="panel panel-soft audience-panel">
+          <div class="card-label">参与预期</div>
+          <ul class="audience-list">
+            {participationNotes.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+
+        <article class="panel panel-soft agenda-panel">
+          <div class="card-label">议程安排</div>
+          <ul class="agenda-list">
+            {
+              event.agenda.map((item) => (
+                <li>
+                  <strong>{item.time}</strong>
+                  <span>{item.title}</span>
+                  <em>{item.speaker}</em>
+                  <p>{item.summary}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </article>
+      </div>
     </section>
 
     <section class="section registration-shell">
@@ -116,6 +186,18 @@ const participationNotes = [
         <p class="registration-copy">
           当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员可根据活动定位、报名信息与活动容量确认是否通过、拒绝或转为候补。
         </p>
+
+        <div class="registration-process-grid">
+          {
+            registrationSteps.map((item) => (
+              <article class="registration-process-card">
+                <span>{item.step}</span>
+                <strong>{item.title}</strong>
+                <p>{item.summary}</p>
+              </article>
+            ))
+          }
+        </div>
 
         {
           registrationEnabled ? (
@@ -188,6 +270,15 @@ const participationNotes = [
             如果你能补充当前职责、所在团队规模、关注议题或参会目的，工作人员会更容易判断这场活动是否适合你。
           </p>
         </div>
+
+        <div>
+          <div class="card-label">继续浏览</div>
+          <div class="event-next-links">
+            <a class="button secondary" href="/events">返回活动列表</a>
+            {event.branch && <a class="button secondary" href={`/branches#${event.branch.slug}`}>查看所属分会</a>}
+            <a class="button secondary" href="/join">了解加入申请</a>
+          </div>
+        </div>
       </aside>
     </section>
   </main>
@@ -244,7 +335,7 @@ const participationNotes = [
   .event-detail-hero {
     display: grid;
     gap: 22px;
-    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
       linear-gradient(135deg, #171717 0%, #211d18 100%);
@@ -267,9 +358,40 @@ const participationNotes = [
     background: rgba(255, 255, 255, 0.06);
   }
 
-  .event-detail-side {
+  .event-detail-main,
+  .event-detail-side,
+  .event-side-stack,
+  .registration-side,
+  .event-next-links {
     display: grid;
     gap: 18px;
+  }
+
+  .event-highlight-grid,
+  .registration-process-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .event-highlight-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .event-highlight-card h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .event-highlight-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
   }
 
   .detail-side-block {
@@ -277,6 +399,10 @@ const participationNotes = [
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(215, 179, 117, 0.14);
+  }
+
+  .detail-side-block-soft p {
+    margin: 12px 0 0;
   }
 
   .detail-side-list {
@@ -325,6 +451,31 @@ const participationNotes = [
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   }
 
+  .event-body-panel {
+    min-height: 100%;
+  }
+
+  .audience-panel {
+    align-content: start;
+  }
+
+  .audience-list {
+    display: grid;
+    gap: 12px;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  .audience-list li {
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.58);
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
   .agenda-panel {
     min-height: 100%;
   }
@@ -336,6 +487,33 @@ const participationNotes = [
 
   .registration-copy {
     margin: 0 0 20px;
+  }
+
+  .registration-process-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 249, 239, 0.92);
+    border: 1px solid rgba(31, 26, 23, 0.08);
+  }
+
+  .registration-process-card span {
+    color: var(--accent-strong);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .registration-process-card strong {
+    line-height: 1.5;
+  }
+
+  .registration-process-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
   }
 
   .registration-actions {
@@ -350,9 +528,11 @@ const participationNotes = [
   }
 
   .registration-side {
-    display: grid;
-    gap: 18px;
     align-content: start;
+  }
+
+  .event-next-links {
+    margin-top: 16px;
   }
 
   .registration-note p {
@@ -362,7 +542,9 @@ const participationNotes = [
   @media (max-width: 980px) {
     .event-detail-hero,
     .event-detail-grid,
-    .registration-shell {
+    .registration-shell,
+    .event-highlight-grid,
+    .registration-process-grid {
       grid-template-columns: 1fr;
     }
   }

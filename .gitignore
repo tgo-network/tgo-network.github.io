@@ -15,6 +15,7 @@ coverage/
 playwright-report/
 test-results/
 artifacts/screenshots/
+.artifacts/
 apps/site/public/imports/tgo-infoq/**
 !apps/site/public/imports/tgo-infoq/.gitkeep
 

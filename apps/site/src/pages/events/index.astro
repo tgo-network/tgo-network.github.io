@@ -8,6 +8,42 @@ const initialEvents = initialEventPage.items;
 const initialMeta = initialEventPage.meta;
 const apiBaseUrl = getPublicApiBaseUrl();
 const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta.registrationStateCounts.notOpen;
+
+const browseCards = [
+  {
+    label: "先按城市",
+    title: "先从城市筛选开始看",
+    summary: "活动背后对应的是真实分会与城市节点，所以先看城市能更快理解活动归属。"
+  },
+  {
+    label: "再看状态",
+    title: "再判断是否适合立即报名",
+    summary: "开放报名、候补中和暂未开放代表不同的参与节奏，避免访客误以为所有活动都能即时进入。"
+  },
+  {
+    label: "最后深入",
+    title: "进入详情页查看议程与报名说明",
+    summary: "活动详情页会进一步说明议程、适合人群、报名预期，以及提交后会发生什么。"
+  }
+];
+
+const registrationFlow = [
+  {
+    step: "01",
+    title: "公开展示",
+    summary: "活动由工作人员在后台发布，再同步到前台展示时间、城市、场地与报名状态。"
+  },
+  {
+    step: "02",
+    title: "提交报名",
+    summary: "成员与非成员都可以在开放状态下提交报名资料，不要求当前先登录。"
+  },
+  {
+    step: "03",
+    title: "后台审核",
+    summary: "报名资料会进入后台继续审核，由工作人员确认通过、拒绝或转入候补。"
+  }
+];
 ---
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看近期活动、分会动态与公开报名入口。">
@@ -86,6 +122,49 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
     </section>
 
     <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">浏览说明</div>
+          <h2>第一次访问时，建议按这条路径理解活动页</h2>
+        </div>
+      </div>
+
+      <div class="event-guide-grid">
+        {
+          browseCards.map((item) => (
+            <article class="panel event-guide-card">
+              <div class="card-label">{item.label}</div>
+              <h3>{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="panel event-process-panel">
+        <div>
+          <div class="card-label">报名机制</div>
+          <h2>活动对外开放，但最终是否通过由后台审核决定</h2>
+          <p class="card-copy">
+            当前活动页的重点不是把所有信息挤进一张卡片，而是让访客逐步理解城市归属、报名状态、活动定位与审核预期。
+          </p>
+        </div>
+
+        <div class="event-process-grid">
+          {
+            registrationFlow.map((item) => (
+              <article class="event-process-card">
+                <span>{item.step}</span>
+                <strong>{item.title}</strong>
+                <p>{item.summary}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">城市筛选</div>
@@ -134,13 +213,14 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
                   <div>
                     <div class="card-label">{event.cityName}</div>
                     <h3 class="event-card-title">{event.title}</h3>
+                    <p class="event-branch-name">{event.branch?.name ?? "公开活动"}</p>
                   </div>
                   <span class:list={["event-state", `event-state-${event.registrationState}`]}>
                     {formatRegistrationState(event.registrationState)}
                   </span>
                 </div>
 
-                <p class="card-copy">{event.summary}</p>
+                <p class="card-copy event-card-summary">{event.summary}</p>
 
                 <ul class="event-meta-list">
                   <li>{formatDateRange(event.startsAt, event.endsAt)}</li>
@@ -148,7 +228,7 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
                   {event.branch?.name && <li>{event.branch.name}</li>}
                 </ul>
 
-                <span class="text-link">查看活动详情</span>
+                <span class="text-link">查看议程与报名</span>
               </a>
             </article>
           ))
@@ -173,6 +253,23 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
         >
           下一页
         </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel events-cta-panel">
+        <div>
+          <div class="card-label">继续浏览</div>
+          <h2>活动页解决的是“现在发生什么”，而不是全部组织信息</h2>
+          <p class="card-copy">
+            如果你想继续理解活动背后的组织结构，可以回到分会和成员页；如果你已经认同这种社区方式，再进入加入申请页会更顺畅。
+          </p>
+        </div>
+        <div class="events-cta-actions">
+          <a class="button primary" href="/branches">浏览分会董事会</a>
+          <a class="button secondary" href="/members">查看成员</a>
+          <a class="button secondary" href="/join">加入申请</a>
+        </div>
       </div>
     </section>
   </main>
@@ -258,6 +355,7 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
         `
         : "";
       const branchTag = event.branch?.name ? `<li>${escapeHtml(event.branch.name)}</li>` : "";
+      const branchName = event.branch?.name ? escapeHtml(event.branch.name) : "公开活动";
 
       return `
         <article class="panel event-card">
@@ -267,16 +365,17 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
               <div>
                 <div class="card-label">${escapeHtml(event.cityName)}</div>
                 <h3 class="event-card-title">${escapeHtml(event.title)}</h3>
+                <p class="event-branch-name">${branchName}</p>
               </div>
               <span class="event-state event-state-${escapeHtml(event.registrationState)}">${formatRegistrationStateLabel(event.registrationState)}</span>
             </div>
-            <p class="card-copy">${escapeHtml(event.summary)}</p>
+            <p class="card-copy event-card-summary">${escapeHtml(event.summary)}</p>
             <ul class="event-meta-list">
               <li>${escapeHtml(formatEventDateRange(event.startsAt, event.endsAt))}</li>
               <li>${escapeHtml(event.venueName)}</li>
               ${branchTag}
             </ul>
-            <span class="text-link">查看活动详情</span>
+            <span class="text-link">查看议程与报名</span>
           </a>
         </article>
       `;
@@ -490,12 +589,15 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
   }
 
   .event-hero-card h1,
-  .event-hero-card h2 {
+  .event-hero-card h2,
+  .event-guide-card h3,
+  .events-cta-panel h2 {
     color: #fff7ef;
   }
 
   .event-hero-card p,
-  .event-hero-card .card-copy {
+  .event-hero-card .card-copy,
+  .event-process-card p {
     color: rgba(248, 241, 232, 0.76);
   }
 
@@ -544,6 +646,73 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
     margin-top: 24px;
   }
 
+  .format-grid,
+  .event-guide-grid,
+  .event-process-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .format-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .format-card,
+  .event-guide-card {
+    min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+  }
+
+  .event-guide-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 18px;
+  }
+
+  .event-guide-card h3,
+  .event-process-panel h2,
+  .events-cta-panel h2 {
+    margin: 12px 0 10px;
+  }
+
+  .event-process-panel {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    background: linear-gradient(135deg, #1a1714 0%, #26211c 100%);
+    color: #f8f1e8;
+  }
+
+  .event-process-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .event-process-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .event-process-card span {
+    color: #f1d5a0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .event-process-card strong {
+    color: #fff7ef;
+    line-height: 1.5;
+  }
+
+  .event-process-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
   .section-head-stack {
     align-items: flex-start;
   }
@@ -552,17 +721,6 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
     margin: 10px 0 0;
     color: var(--muted);
     max-width: 56ch;
-  }
-
-  .format-grid {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .format-card {
-    min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
   }
 
   .filter-bar {
@@ -659,8 +817,15 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
   }
 
   .event-card-title {
-    margin: 10px 0 0;
+    margin: 10px 0 8px;
     font-size: 1.4rem;
+  }
+
+  .event-branch-name {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
   .event-state {
@@ -690,8 +855,9 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
     color: #5f5148;
   }
 
-  .event-card .card-copy {
+  .event-card-summary {
     margin: 16px 0 0;
+    min-height: 4.8em;
   }
 
   .event-meta-list {
@@ -737,10 +903,29 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
     font-size: 0.95rem;
   }
 
+  .events-cta-panel {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .events-cta-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   @media (max-width: 1000px) {
     .event-hero-card,
+    .event-guide-grid,
+    .event-process-panel,
+    .event-process-grid,
     .event-grid,
-    .format-grid {
+    .format-grid,
+    .events-cta-panel {
       grid-template-columns: 1fr;
     }
 
@@ -748,11 +933,19 @@ const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta
       flex-direction: column;
       align-items: flex-start;
     }
+
+    .events-cta-actions {
+      justify-content: flex-start;
+    }
   }
 
   @media (max-width: 720px) {
     .event-hero-meta-grid {
       grid-template-columns: 1fr;
+    }
+
+    .event-card-summary {
+      min-height: 0;
     }
   }
 </style>

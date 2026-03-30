@@ -3,10 +3,95 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDate } from "../../lib/format";
 import { listMembers } from "../../lib/public-api";
 
-const members = await listMembers();
-const uniqueBranches = Array.from(new Set(members.map((member) => member.branch?.name).filter((value): value is string => Boolean(value))));
-const uniqueCities = Array.from(new Set(members.map((member) => member.branch?.cityName).filter((value): value is string => Boolean(value))));
+const members = (await listMembers()).slice().sort((left, right) => {
+  const leftTime = Date.parse(left.joinedAt);
+  const rightTime = Date.parse(right.joinedAt);
+
+  if (Number.isNaN(leftTime) && Number.isNaN(rightTime)) {
+    return left.name.localeCompare(right.name, "zh-CN");
+  }
+
+  if (Number.isNaN(leftTime)) {
+    return 1;
+  }
+
+  if (Number.isNaN(rightTime)) {
+    return -1;
+  }
+
+  return rightTime - leftTime || left.name.localeCompare(right.name, "zh-CN");
+});
+
+const uniqueBranches = Array.from(
+  new Set(members.map((member) => member.branch?.name).filter((value): value is string => Boolean(value)))
+);
+const uniqueCities = Array.from(
+  new Set(members.map((member) => member.branch?.cityName).filter((value): value is string => Boolean(value)))
+);
 const uniqueCompanies = Array.from(new Set(members.map((member) => member.company))).length;
+const recentMembers = members.slice(0, 3);
+
+const branchNetworkMap = new Map<
+  string,
+  {
+    slug: string | null;
+    name: string;
+    cityName: string;
+    count: number;
+    companySet: Set<string>;
+    members: typeof members;
+    latestJoinedAt: string;
+  }
+>();
+
+members.forEach((member) => {
+  const key = member.branch?.slug ?? `unknown-${member.company}`;
+  const current = branchNetworkMap.get(key) ?? {
+    slug: member.branch?.slug ?? null,
+    name: member.branch?.name ?? "待补充分会",
+    cityName: member.branch?.cityName ?? "城市待补充",
+    count: 0,
+    companySet: new Set<string>(),
+    members: [] as typeof members,
+    latestJoinedAt: member.joinedAt
+  };
+
+  current.count += 1;
+  current.companySet.add(member.company);
+  current.members.push(member);
+
+  if (Date.parse(member.joinedAt) > Date.parse(current.latestJoinedAt)) {
+    current.latestJoinedAt = member.joinedAt;
+  }
+
+  branchNetworkMap.set(key, current);
+});
+
+const branchNetwork = Array.from(branchNetworkMap.values())
+  .map(({ companySet, members: groupedMembers, ...entry }) => ({
+    ...entry,
+    companyCount: companySet.size,
+    members: groupedMembers.slice(0, 3)
+  }))
+  .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name, "zh-CN"));
+
+const browseGuides = [
+  {
+    label: "先看分会",
+    title: "先从城市节点理解成员网络",
+    summary: "成员并不是孤立名片，而是分布在不同分会中的真实技术管理者。"
+  },
+  {
+    label: "再看角色",
+    title: "再看公司与技术管理职责",
+    summary: "公开资料会帮助访客快速理解社区覆盖了哪些公司、岗位与技术方向。"
+  },
+  {
+    label: "最后深入",
+    title: "进入成员详情继续理解参与方式",
+    summary: "单个成员页会继续解释其组织位置、参与路径，以及与分会和活动的关系。"
+  }
+];
 ---
 
 <BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员的公开资料。">
@@ -17,24 +102,46 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
           <span class="eyebrow">成员列表</span>
           <h1>来自不同公司与城市分会的技术领导者</h1>
           <p>
-            当前展示为公开可见的成员资料，包含头像、姓名、公司、职称与加入时间。
-            这里强调真实的人与组织结构，而不只是栏目式内容浏览。
+            当前页面的重点不是把成员堆成名片墙，而是帮助访客看见一个真实存在的成员网络：
+            这些成员来自不同城市、不同公司，也通过分会活动与长期交流被组织在一起。
           </p>
+
+          <div class="hero-actions">
+            <a class="button primary" href="/branches">先看分会结构</a>
+            <a class="button secondary" href="/join">了解加入方式</a>
+          </div>
         </div>
 
         <aside class="member-hero-aside">
-          <article>
-            <strong>{members.length}</strong>
-            <span>公开成员</span>
-          </article>
-          <article>
-            <strong>{uniqueBranches.length}</strong>
-            <span>覆盖分会</span>
-          </article>
-          <article>
-            <strong>{uniqueCompanies}</strong>
-            <span>所在公司</span>
-          </article>
+          <div class="member-hero-metrics" aria-label="成员网络概览">
+            <article>
+              <strong>{members.length}</strong>
+              <span>公开成员</span>
+            </article>
+            <article>
+              <strong>{uniqueBranches.length}</strong>
+              <span>覆盖分会</span>
+            </article>
+            <article>
+              <strong>{uniqueCompanies}</strong>
+              <span>所在公司</span>
+            </article>
+          </div>
+
+          <div class="member-hero-recent">
+            <div class="card-label card-label-on-dark">最近加入</div>
+            <ul>
+              {
+                recentMembers.map((member) => (
+                  <li>
+                    <strong>{member.name}</strong>
+                    <span>{member.branch?.name ?? "成员网络"}</span>
+                    <em>{formatDate(member.joinedAt)}</em>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
         </aside>
       </div>
     </section>
@@ -42,17 +149,63 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="card-label">分会覆盖</div>
-          <h2>成员来自不同城市节点与技术团队</h2>
+          <div class="card-label">浏览建议</div>
+          <h2>把这页当作组织网络入口，而不是简单的人物目录</h2>
         </div>
       </div>
 
-      <div class="member-chip-row">
+      <div class="member-guide-grid">
+        {
+          browseGuides.map((item) => (
+            <article class="panel member-guide-card">
+              <div class="card-label">{item.label}</div>
+              <h3>{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head section-head-stack">
+        <div>
+          <div class="card-label">分会覆盖</div>
+          <h2>成员分布在不同城市节点与技术团队之中</h2>
+        </div>
+        <p class="section-note">先看分会与城市分布，再进入具体成员资料，会更容易理解这个社区是如何被组织起来的。</p>
+      </div>
+
+      <div class="member-branch-grid">
+        {
+          branchNetwork.map((branch) => (
+            <a class="panel member-branch-card" href={branch.slug ? `/branches#${branch.slug}` : "/branches"}>
+              <div class="card-label">{branch.cityName}</div>
+              <h3>{branch.name}</h3>
+              <p class="card-copy">当前公开可见 {branch.count} 位成员，覆盖 {branch.companyCount} 家公司。</p>
+              <ul class="meta-list">
+                <li>最近加入：{formatDate(branch.latestJoinedAt)}</li>
+                <li>{branch.count} 位公开成员</li>
+              </ul>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="member-chip-row" aria-label="覆盖城市">
         {uniqueCities.map((city) => <span class="member-chip">{city}</span>)}
       </div>
     </section>
 
     <section class="section">
+      <div class="section-head section-head-stack">
+        <div>
+          <div class="card-label">成员列表</div>
+          <h2>继续进入具体成员资料</h2>
+        </div>
+        <p class="section-note">成员详情页会继续说明其组织位置、加入时间，以及与分会、活动和加入流程的关系。</p>
+      </div>
+
       <div class="member-grid">
         {
           members.map((member) => (
@@ -81,9 +234,28 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
                 {member.branch?.cityName && <li>{member.branch.cityName}</li>}
                 <li>{formatDate(member.joinedAt)}</li>
               </ul>
+
+              <span class="text-link">查看成员详情</span>
             </a>
           ))
         }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel member-cta-panel">
+        <div>
+          <div class="card-label">继续浏览</div>
+          <h2>如果你想继续理解这个社区，下一步建议看这些页面</h2>
+          <p class="card-copy">
+            分会页帮助你理解城市组织结构，活动页帮助你理解社区的公开入口，而加入申请页则承接真正的转化动作。
+          </p>
+        </div>
+        <div class="member-cta-actions">
+          <a class="button primary" href="/branches">浏览分会董事会</a>
+          <a class="button secondary" href="/events">查看活动</a>
+          <a class="button secondary" href="/join">加入申请</a>
+        </div>
       </div>
     </section>
   </main>
@@ -93,20 +265,39 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
   .member-hero-card {
     display: grid;
     gap: 22px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
       linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
-  .member-hero-aside {
+  .member-hero-main p {
+    max-width: 58ch;
+  }
+
+  .member-hero-aside,
+  .member-hero-metrics,
+  .member-guide-grid,
+  .member-branch-grid {
     display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .member-hero-aside {
     align-content: start;
   }
 
-  .member-hero-aside article {
+  .member-hero-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-hero-metrics article,
+  .member-guide-card,
+  .member-branch-card {
+    min-height: 100%;
+  }
+
+  .member-hero-metrics article {
     display: grid;
     gap: 4px;
     padding: 18px 14px;
@@ -116,20 +307,99 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
     text-align: center;
   }
 
-  .member-hero-aside strong {
+  .member-hero-metrics strong {
     font-family: var(--font-display);
     font-size: 1.7rem;
   }
 
-  .member-hero-aside span {
+  .member-hero-metrics span {
     color: var(--muted);
     font-size: 0.9rem;
+  }
+
+  .member-hero-recent {
+    display: grid;
+    gap: 14px;
+    padding: 22px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1b1815 0%, #26211c 100%);
+    color: #f8f1e8;
+    box-shadow: var(--shadow-strong);
+  }
+
+  .member-hero-recent ul {
+    display: grid;
+    gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .member-hero-recent li {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .member-hero-recent strong {
+    color: #fff7ef;
+  }
+
+  .member-hero-recent span,
+  .member-hero-recent em {
+    color: rgba(248, 241, 232, 0.72);
+    font-style: normal;
+  }
+
+  .member-guide-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-guide-card {
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.94), rgba(248, 242, 232, 0.96));
+  }
+
+  .member-guide-card h3,
+  .member-branch-card h3,
+  .member-cta-panel h2 {
+    margin: 12px 0 10px;
+  }
+
+  .section-head-stack {
+    align-items: flex-start;
+  }
+
+  .section-note {
+    margin: 8px 0 0;
+    max-width: 58ch;
+    color: var(--muted);
+  }
+
+  .member-branch-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-branch-card {
+    display: grid;
+    gap: 12px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+    transition: transform 180ms ease, border-color 180ms ease;
+  }
+
+  .member-branch-card:hover,
+  .member-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.24);
   }
 
   .member-chip-row {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    margin-top: 18px;
   }
 
   .member-chip {
@@ -154,11 +424,6 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
     gap: 18px;
     min-height: 100%;
     transition: transform 180ms ease, border-color 180ms ease;
-  }
-
-  .member-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.22);
   }
 
   .member-card-head {
@@ -205,15 +470,41 @@ const uniqueCompanies = Array.from(new Set(members.map((member) => member.compan
     margin-top: auto;
   }
 
+  .member-card .text-link {
+    font-weight: 600;
+  }
+
+  .member-cta-panel {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .member-cta-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   @media (max-width: 980px) {
     .member-hero-card,
-    .member-grid {
+    .member-guide-grid,
+    .member-branch-grid,
+    .member-grid,
+    .member-cta-panel {
       grid-template-columns: 1fr;
+    }
+
+    .member-cta-actions {
+      justify-content: flex-start;
     }
   }
 
   @media (max-width: 720px) {
-    .member-hero-aside {
+    .member-hero-metrics {
       grid-template-columns: 1fr;
     }
   }
