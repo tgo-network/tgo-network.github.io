@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
+const openEventSlug = "event-1816";
+const openEventTitle = "第一届龙虾AI大会：ClawCon";
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 const keyRoutes = [
@@ -100,7 +102,7 @@ test("public application form submits successfully", async ({ page }) => {
 test("public event registration form submits successfully", async ({ page }) => {
   const suffix = createSuffix();
 
-  await page.goto(`${siteUrl}/events/shanghai-ai-leadership-salon`);
+  await page.goto(`${siteUrl}/events/${openEventSlug}`);
   await page.getByLabel("姓名").fill(`端到端报名人 ${suffix}`);
   await page.getByLabel("手机号").fill("13900139099");
   await page.getByLabel("邮箱").fill(`e2e-attendee-${suffix}@example.com`);
@@ -146,8 +148,8 @@ test("public content drill-down routes expose the expected detail content", asyn
   await expect(page.getByText("继续浏览")).toBeVisible();
   await expectNoHorizontalOverflow(page, "article-detail");
 
-  await page.goto(`${siteUrl}/events/shanghai-ai-leadership-salon`, { waitUntil: "networkidle" });
-  await expect(page.getByRole("heading", { name: "上海 AI 领导力闭门沙龙" })).toBeVisible();
+  await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: openEventTitle })).toBeVisible();
   await expect(page.locator(".registration-panel .card-label").filter({ hasText: "活动报名" })).toBeVisible();
   await expect(page.getByRole("button", { name: "提交报名" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "event-detail");

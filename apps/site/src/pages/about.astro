@@ -22,6 +22,45 @@ const activityFormats = [
     summary: "面向更广范围的技术领导者视角，吸收跨区域与跨行业的实践经验。"
   }
 ];
+
+const principles = [
+  {
+    label: "长期连接",
+    title: "以分会作为长期运营节点",
+    summary: "不是依赖单次活动热度，而是围绕城市分会持续建立稳定的同侪关系。"
+  },
+  {
+    label: "真实结构",
+    title: "通过成员、活动与内容共同形成组织感",
+    summary: "公开站点不只是资讯展示，而是让访客真正看到这个社区如何被组织起来。"
+  },
+  {
+    label: "开放窗口",
+    title: "对外开放浏览，但核心价值来自长期参与",
+    summary: "活动、文章与申请页面是入口，真正的价值仍然来自长期、可信的交流网络。"
+  }
+];
+
+const browsePaths = [
+  {
+    title: "先看分会董事会",
+    summary: "如果你想先理解组织如何落到具体城市节点，这是最合适的入口。",
+    href: "/branches",
+    action: "浏览分会"
+  },
+  {
+    title: "再看成员网络",
+    summary: "通过成员公开资料理解社区覆盖的公司、角色与城市分布。",
+    href: "/members",
+    action: "查看成员"
+  },
+  {
+    title: "最后进入加入申请",
+    summary: "认同这种组织方式后，再进一步查看加入条件、权益与申请流程。",
+    href: "/join",
+    action: "进入申请"
+  }
+];
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
@@ -32,32 +71,77 @@ const activityFormats = [
           <span class="eyebrow">{page.hero.eyebrow}</span>
           <h1>{page.hero.title}</h1>
           <p>{page.hero.summary}</p>
+
+          <div class="about-hero-stats">
+            <article>
+              <strong>{branches.length}</strong>
+              <span>分会</span>
+            </article>
+            <article>
+              <strong>{members.length}</strong>
+              <span>公开成员</span>
+            </article>
+            <article>
+              <strong>{events.length}</strong>
+              <span>活动</span>
+            </article>
+          </div>
         </div>
 
         <aside class="about-hero-aside">
-          <article>
-            <strong>{branches.length}</strong>
-            <span>分会</span>
-          </article>
-          <article>
-            <strong>{members.length}</strong>
-            <span>公开成员</span>
-          </article>
-          <article>
-            <strong>{events.length}</strong>
-            <span>活动</span>
-          </article>
+          <div>
+            <div class="card-label card-label-on-dark">组织方法</div>
+            <h2>分会、成员、活动与公开内容共同构成长期社区</h2>
+            <p>
+              我们不是单纯的内容栏目集合，而是通过分会运营、成员连接、活动组织与公开内容沉淀，
+              形成彼此联动的组织化社区。
+            </p>
+          </div>
+
+          <ul class="about-hero-list">
+            <li>分会承担城市节点的长期运营职责</li>
+            <li>成员网络帮助访客理解真实覆盖范围</li>
+            <li>活动与文章负责把组织价值向外表达</li>
+          </ul>
         </aside>
       </div>
     </section>
 
     <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">组织原则</div>
+          <h2>为什么这个社区会以这样的方式被组织起来</h2>
+        </div>
+      </div>
+
+      <div class="principle-grid">
+        {
+          principles.map((item) => (
+            <article class="panel principle-card">
+              <div class="card-label">{item.label}</div>
+              <h3 class="card-title">{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">关于我们</div>
+          <h2>从组织定位、交流方式与外部表达理解 TGO 鲲鹏会</h2>
+        </div>
+      </div>
+
       <div class="content-grid">
         {
           page.sections.map((section) => (
             <article class="panel prose-panel about-section-card">
               <div class="card-label">关于我们</div>
-              <h2 class="card-title">{section.title}</h2>
+              <h3 class="card-title">{section.title}</h3>
               {section.body.map((paragraph) => <p>{paragraph}</p>)}
             </article>
           ))
@@ -86,6 +170,27 @@ const activityFormats = [
     </section>
 
     <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">继续浏览</div>
+          <h2>如果你想继续理解这个组织，建议按这条路径看下去</h2>
+        </div>
+      </div>
+
+      <div class="browse-grid">
+        {
+          browsePaths.map((item) => (
+            <a class="panel browse-card" href={item.href}>
+              <h3>{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+              <span class="text-link">{item.action}</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
       <div class="panel about-cta-panel">
         <div>
           <div class="card-label">下一步</div>
@@ -107,47 +212,112 @@ const activityFormats = [
   .about-hero-card {
     display: grid;
     gap: 22px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+    padding: clamp(28px, 4vw, 44px);
     background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
-      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 228, 0.96));
   }
 
-  .about-hero-aside {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-content: start;
+  .about-hero-main h1 {
+    max-width: 9ch;
+    line-height: 0.98;
   }
 
-  .about-hero-aside article {
-    display: grid;
-    gap: 4px;
-    padding: 18px 14px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    text-align: center;
+  .about-hero-main p {
+    max-width: 56ch;
   }
 
-  .about-hero-aside strong {
-    font-family: var(--font-display);
-    font-size: 1.7rem;
-  }
-
-  .about-hero-aside span {
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
+  .about-hero-stats,
+  .principle-grid,
   .content-grid,
-  .activity-grid {
+  .activity-grid,
+  .browse-grid {
     display: grid;
     gap: 18px;
   }
 
-  .content-grid {
+  .about-hero-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 28px;
+  }
+
+  .about-hero-stats article,
+  .principle-card,
+  .browse-card {
+    min-height: 100%;
+  }
+
+  .about-hero-stats article {
+    display: grid;
+    gap: 6px;
+    padding: 18px 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .about-hero-stats strong {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: var(--ink);
+  }
+
+  .about-hero-stats span {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .about-hero-aside {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+    padding: 24px;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(37, 31, 26, 0.96), rgba(47, 39, 33, 0.94));
+    border: 1px solid rgba(215, 179, 117, 0.14);
+    box-shadow: var(--shadow-strong);
+  }
+
+  .about-hero-aside h2 {
+    margin: 12px 0 10px;
+    color: #fff7ef;
+    font-size: clamp(1.55rem, 2.4vw, 2.1rem);
+  }
+
+  .about-hero-aside p,
+  .about-hero-list {
+    color: rgba(248, 241, 232, 0.76);
+  }
+
+  .about-hero-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.7;
+  }
+
+  .principle-grid,
+  .content-grid,
+  .browse-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .principle-card {
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+  }
+
+  .browse-card {
+    display: grid;
+    gap: 12px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+    transition: transform 180ms ease, border-color 180ms ease;
+  }
+
+  .browse-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.24);
   }
 
   .about-section-card {
@@ -182,10 +352,18 @@ const activityFormats = [
     flex-wrap: wrap;
   }
 
-  @media (max-width: 1000px) {
-    .about-hero-card,
-    .content-grid,
+  @media (max-width: 1100px) {
     .activity-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .about-hero-card,
+    .principle-grid,
+    .content-grid,
+    .activity-grid,
+    .browse-grid {
       grid-template-columns: 1fr;
     }
 
@@ -196,7 +374,7 @@ const activityFormats = [
   }
 
   @media (max-width: 720px) {
-    .about-hero-aside {
+    .about-hero-stats {
       grid-template-columns: 1fr;
     }
   }

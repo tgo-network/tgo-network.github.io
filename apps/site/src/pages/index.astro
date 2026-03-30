@@ -11,6 +11,7 @@ const [home, branches, members, articles, events] = await Promise.all([
   listArticles(),
   listEvents()
 ]);
+const featuredMembers = members.slice(0, 4);
 
 const networkStats = [
   {
@@ -93,6 +94,45 @@ const joinSteps = [
     summary: "申请进入后台后由工作人员跟进审核，必要时继续沟通与你的参与诉求。"
   }
 ];
+
+const siteMapCards = [
+  {
+    label: "首页",
+    title: "先理解组织定位与整体结构",
+    summary: "用一页看清 TGO 鲲鹏会的组织形式、覆盖人群、核心活动与加入路径。",
+    href: "/"
+  },
+  {
+    label: "分会董事会",
+    title: "查看各地分会与董事会成员",
+    summary: "帮助访客理解这个社区如何以城市节点持续运转。",
+    href: "/branches"
+  },
+  {
+    label: "成员列表",
+    title: "看到真实的人与组织网络",
+    summary: "通过成员公开资料了解社区覆盖的城市、公司与技术管理角色。",
+    href: "/members"
+  },
+  {
+    label: "活动",
+    title: "浏览各地活动与报名入口",
+    summary: "公开活动可直接报名，再由工作人员在后台继续审核与跟进。",
+    href: "/events"
+  },
+  {
+    label: "文章",
+    title: "阅读社区经验沉淀",
+    summary: "文章用于把活动观点与组织实践继续转化为长期内容资产。",
+    href: "/articles"
+  },
+  {
+    label: "加入申请",
+    title: "确认条件后再提交申请",
+    summary: "在理解组织定位与参与方式之后，直接进入正式申请流程。",
+    href: "/join"
+  }
+];
 ---
 
 <BaseLayout
@@ -157,6 +197,27 @@ const joinSteps = [
             {home.audience.items.map((item) => <li>{item}</li>)}
           </ul>
         </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">网站导览</div>
+          <h2>先知道每一页分别解决什么问题</h2>
+        </div>
+      </div>
+
+      <div class="site-map-grid">
+        {
+          siteMapCards.map((item) => (
+            <a class="panel site-map-card" href={item.href}>
+              <div class="card-label">{item.label}</div>
+              <h3>{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+            </a>
+          ))
+        }
       </div>
     </section>
 
@@ -235,6 +296,48 @@ const joinSteps = [
               image={branch.coverImage}
               meta={[branch.cityName, `${branch.boardMemberCount} 位董事会成员`]}
             />
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">精选成员</div>
+          <h2>让访客尽早看到社区里真实存在的人</h2>
+        </div>
+        <a class="text-link" href="/members">查看完整成员列表</a>
+      </div>
+
+      <div class="featured-member-grid">
+        {
+          featuredMembers.map((member) => (
+            <a class="panel featured-member-card" href={`/members/${member.slug}`}>
+              <div class="featured-member-head">
+                {
+                  member.avatar ? (
+                    <img class="featured-member-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                  ) : (
+                    <div class="featured-member-avatar featured-member-avatar-fallback" aria-hidden="true">
+                      {member.name.slice(0, 1)}
+                    </div>
+                  )
+                }
+
+                <div class="featured-member-copy">
+                  <div class="card-label">{member.branch?.name ?? "成员"}</div>
+                  <h3>{member.name}</h3>
+                  <p class="card-copy">{member.company}</p>
+                </div>
+              </div>
+
+              <p class="featured-member-title">{member.title}</p>
+              <ul class="meta-list featured-member-meta">
+                {member.branch?.cityName && <li>{member.branch.cityName}</li>}
+                <li>{formatDate(member.joinedAt)}</li>
+              </ul>
+            </a>
           ))
         }
       </div>
@@ -473,10 +576,43 @@ const joinSteps = [
   }
 
   .intro-grid,
-  .dual-highlight-grid {
+  .dual-highlight-grid,
+  .featured-member-grid,
+  .site-map-grid {
     display: grid;
     gap: 18px;
+  }
+
+  .intro-grid,
+  .dual-highlight-grid {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+
+  .site-map-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-map-card,
+  .featured-member-card {
+    min-height: 100%;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .site-map-card {
+    display: grid;
+    gap: 12px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .site-map-card:hover,
+  .featured-member-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.24);
+  }
+
+  .site-map-card h3,
+  .featured-member-copy h3 {
+    margin: 0;
   }
 
   .intro-panel {
@@ -499,6 +635,60 @@ const joinSteps = [
   .value-grid {
     display: grid;
     gap: 18px;
+  }
+
+  .featured-member-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .featured-member-card {
+    display: grid;
+    gap: 16px;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+  }
+
+  .featured-member-head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .featured-member-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: rgba(31, 26, 23, 0.08);
+  }
+
+  .featured-member-avatar-fallback {
+    display: inline-grid;
+    place-items: center;
+    color: #fff7ef;
+    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.9));
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .featured-member-copy {
+    display: grid;
+    gap: 6px;
+  }
+
+  .featured-member-copy :global(.card-copy),
+  .featured-member-title {
+    margin: 0;
+  }
+
+  .featured-member-title {
+    min-height: 3.4em;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .featured-member-meta {
+    margin-top: auto;
   }
 
   .value-card {
@@ -569,7 +759,8 @@ const joinSteps = [
   @media (max-width: 1100px) {
     .hero-stat-grid,
     .activity-grid,
-    .join-step-grid {
+    .join-step-grid,
+    .featured-member-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -577,7 +768,9 @@ const joinSteps = [
   @media (max-width: 900px) {
     .hero-home-card,
     .intro-grid,
-    .dual-highlight-grid {
+    .dual-highlight-grid,
+    .site-map-grid,
+    .featured-member-grid {
       grid-template-columns: 1fr;
     }
 

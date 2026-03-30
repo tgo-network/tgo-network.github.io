@@ -28,6 +28,42 @@ const applicationTips = [
   "说明你希望加入后的参与方式与交流诉求。",
   "留下便于联系的手机号与微信号。"
 ];
+
+const decisionCards = [
+  {
+    label: "组织匹配",
+    title: "先确认你是否认同这种长期社区方式",
+    summary: "这里更适合愿意持续参与同侪交流、而不是只寻找一次性活动机会的人。"
+  },
+  {
+    label: "参与预期",
+    title: "加入之后仍以真实交流和活动参与为核心",
+    summary: "成员权益不只是信息获取，更来自分会活动、私密交流与跨城市连接。"
+  },
+  {
+    label: "审核机制",
+    title: "提交申请后会进入工作人员后台继续审核",
+    summary: "当前申请不是即时加入，而是由工作人员审核、联系并推进后续安排。"
+  }
+];
+
+const postSubmitSteps = [
+  {
+    step: "01",
+    title: "进入后台审核",
+    summary: "申请资料会先进入工作人员后台，进入待处理队列。"
+  },
+  {
+    step: "02",
+    title: "工作人员联系",
+    summary: "工作人员会根据资料完整度、分会安排与你继续沟通。"
+  },
+  {
+    step: "03",
+    title: "确认参与方式",
+    summary: "在理解背景与诉求后，再进入后续分会安排或继续跟进。"
+  }
+];
 ---
 
 <BaseLayout title="加入申请 | TGO 鲲鹏会" description={page.hero.summary}>
@@ -58,6 +94,27 @@ const applicationTips = [
             {page.process.map((item) => <li>{item}</li>)}
           </ol>
         </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="card-label">申请前确认</div>
+          <h2>先确认这三件事，再进入正式申请</h2>
+        </div>
+      </div>
+
+      <div class="decision-grid">
+        {
+          decisionCards.map((item) => (
+            <article class="panel decision-card">
+              <div class="card-label">{item.label}</div>
+              <h3 class="card-title">{item.title}</h3>
+              <p class="card-copy">{item.summary}</p>
+            </article>
+          ))
+        }
       </div>
     </section>
 
@@ -149,6 +206,18 @@ const applicationTips = [
         <p class="registration-copy">
           请填写姓名、手机号、微信号、邮箱、个人介绍与申请信息。提交后会由工作人员在后台审核并联系你。
         </p>
+
+        <div class="submit-flow-grid">
+          {
+            postSubmitSteps.map((item) => (
+              <article class="submit-flow-card">
+                <span>{item.step}</span>
+                <strong>{item.title}</strong>
+                <p>{item.summary}</p>
+              </article>
+            ))
+          }
+        </div>
 
         <form class="form-panel" data-application-form data-api-base={apiBaseUrl}>
           <div class="form-grid">
@@ -305,12 +374,15 @@ const applicationTips = [
   }
 
   .join-info-grid,
+  .decision-grid,
   .format-grid,
-  .registration-shell {
+  .registration-shell,
+  .submit-flow-grid {
     display: grid;
     gap: 18px;
   }
 
+  .decision-grid,
   .join-info-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -320,8 +392,14 @@ const applicationTips = [
   }
 
   .join-info-card,
-  .format-card {
+  .format-card,
+  .decision-card,
+  .submit-flow-card {
     min-height: 100%;
+  }
+
+  .decision-card {
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
   .vertical-list {
@@ -362,6 +440,37 @@ const applicationTips = [
     margin: 0 0 20px;
   }
 
+  .submit-flow-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 22px;
+  }
+
+  .submit-flow-card {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .submit-flow-card span {
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .submit-flow-card strong,
+  .submit-flow-card p {
+    margin: 0;
+  }
+
+  .submit-flow-card p {
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
   .registration-side {
     display: grid;
     gap: 18px;
@@ -370,9 +479,11 @@ const applicationTips = [
 
   @media (max-width: 1000px) {
     .join-hero-card,
+    .decision-grid,
     .join-info-grid,
     .format-grid,
-    .registration-shell {
+    .registration-shell,
+    .submit-flow-grid {
       grid-template-columns: 1fr;
     }
   }
