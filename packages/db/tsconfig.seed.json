@@ -5,6 +5,7 @@
   },
   "include": [
     "src/seed.ts",
+    "src/import-tgo-infoq.ts",
     "src/client.ts",
     "src/index.ts",
     "src/schema/**/*.ts",

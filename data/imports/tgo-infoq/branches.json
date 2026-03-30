@@ -1,0 +1,1327 @@
+{
+  "generatedAt": "2026-03-30T10:46:04Z",
+  "source": "https://tgo.infoq.cn/we/branches",
+  "count": 12,
+  "branches": [
+    {
+      "sourceBranchId": 1,
+      "slug": "beijing",
+      "name": "北京分会",
+      "cityName": "北京",
+      "region": "华北",
+      "summary": "北京分会当前公开展示 16 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 北京分会公开展示的 16 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/8c/53/8c1b4ed3909428950538db36b7813153.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/beijing.png"
+      },
+      "boardMemberCount": 16,
+      "boardMembers": [
+        {
+          "sourceUserId": 1171,
+          "displayName": "陈肃",
+          "company": "涛思数据",
+          "organizationRole": "负责人",
+          "jobTitle": "高级副总裁",
+          "bio": "现任职务：高级副总裁",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/c/2/ccfa0f474b2fe7a63a42acee3ff7a5c2.png",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/1171.png"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 23,
+          "displayName": "史海峰",
+          "company": "方正证券",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "架构平台负责人",
+          "bio": "现任职务：架构平台负责人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E5%8F%B2%E6%B5%B7%E5%B3%B0.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/23.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 260,
+          "displayName": "卢亿雷",
+          "company": "白海科技",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "创始人 兼 CEO",
+          "bio": "现任职务：创始人 兼 CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/fc/6b/fcc3cb233a52a572f3e317b658021f6b.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/260.jpg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 6276,
+          "displayName": "肖睿",
+          "company": "北大青鸟",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/7e/40/7e095eb0d14ba842debcd73b90d6a540.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/6276.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 24,
+          "displayName": "梁宇鹏",
+          "company": "蓝莺 AI",
+          "organizationRole": "服务负责人",
+          "jobTitle": "创始人 兼 CEO",
+          "bio": "现任职务：创始人 兼 CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/7/4/7f9ed3caac6f41865232f126dbf0f194.png",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/24.png"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 1297,
+          "displayName": "张子天",
+          "company": "蜂量科技",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/e/b/eec81bbf6ce70247063c94fa775df4db.png",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/1297.png"
+          },
+          "sortOrder": 5
+        },
+        {
+          "sourceUserId": 1102,
+          "displayName": "房晓乐",
+          "company": "北京平凯星辰科技发展公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "高级技术总监",
+          "bio": "现任职务：高级技术总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/86/28/861e671c5ef030aac5c5d20a6405b128.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/1102.jpg"
+          },
+          "sortOrder": 6
+        },
+        {
+          "sourceUserId": 3189,
+          "displayName": "宜博",
+          "company": "宜创（北京）科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "创始人 兼 CEO",
+          "bio": "现任职务：创始人 兼 CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/91/ff/91c6e816de2a788258eccb0d7d7b5bff.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/3189.jpg"
+          },
+          "sortOrder": 7
+        },
+        {
+          "sourceUserId": 1607,
+          "displayName": "陈文",
+          "company": "北京乐可互动科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "联合创始人&CTO",
+          "bio": "现任职务：联合创始人&CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E9%99%88%E6%96%87.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/1607.jpg"
+          },
+          "sortOrder": 8
+        },
+        {
+          "sourceUserId": 330,
+          "displayName": "焦洋",
+          "company": "盖娅互娱",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/0d/cb/0d1bc540410d58f68ae48529133046cb.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/330.jpg"
+          },
+          "sortOrder": 9
+        },
+        {
+          "sourceUserId": 581,
+          "displayName": "高琦",
+          "company": "北京搜狐新媒体信息技术有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "研发总监",
+          "bio": "现任职务：研发总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E9%AB%98%E7%90%A6.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/581.jpeg"
+          },
+          "sortOrder": 10
+        },
+        {
+          "sourceUserId": 688,
+          "displayName": "赵新龙",
+          "company": "北京万界数据科技有限责任公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "万界数据副总裁、万界方舟总经理",
+          "bio": "现任职务：万界数据副总裁、万界方舟总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/5/a/5c6f24ded70b2875bd69e7496d771c8a.png",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/688.png"
+          },
+          "sortOrder": 11
+        },
+        {
+          "sourceUserId": 3443,
+          "displayName": "郑曌",
+          "company": "第四范式",
+          "organizationRole": "小组负责人",
+          "jobTitle": "技术VP/副总裁",
+          "bio": "现任职务：技术VP/副总裁",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/bd/cf/bd22f3c9f80b93bb9937b60281f661cf.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/3443.jpg"
+          },
+          "sortOrder": 12
+        },
+        {
+          "sourceUserId": 1205,
+          "displayName": "于游",
+          "company": "金山云",
+          "organizationRole": "顾问",
+          "jobTitle": "总经理",
+          "bio": "现任职务：总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/8e/22/8e06540a159f10d39b34635f522f2c22.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/1205.jpg"
+          },
+          "sortOrder": 13
+        },
+        {
+          "sourceUserId": 324,
+          "displayName": "杨攀",
+          "company": "硅基流动",
+          "organizationRole": "顾问",
+          "jobTitle": "联合创始人和增长副总裁",
+          "bio": "现任职务：联合创始人和增长副总裁",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/f/7/f3d5be7c4d418a71785b2dedcee58327.png",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/324.png"
+          },
+          "sortOrder": 14
+        },
+        {
+          "sourceUserId": 336,
+          "displayName": "郭炜",
+          "company": "北京白鲸开源信息科技有限公司",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "CEO & Apache 基金会成员",
+          "bio": "现任职务：CEO & Apache 基金会成员",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/0d/52/0dac83c5655a9b863d9d431c7dc2e152.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/beijing/336.jpg"
+          },
+          "sortOrder": 15
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 2,
+      "slug": "shanghai",
+      "name": "上海分会",
+      "cityName": "上海",
+      "region": "华东",
+      "summary": "上海分会当前公开展示 12 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 上海分会公开展示的 12 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/30/48/3090ae16fb03460c271648f99efc2348.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/shanghai.png"
+      },
+      "boardMemberCount": 12,
+      "boardMembers": [
+        {
+          "sourceUserId": 674,
+          "displayName": "吴坚",
+          "company": "保时捷 (上海)数字科技有限公司",
+          "organizationRole": "负责人",
+          "jobTitle": "软件研发团队负责人",
+          "bio": "现任职务：软件研发团队负责人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/39/37/39f0ac92c603fc29af748cb4771e1437.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/674.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 1231,
+          "displayName": "丁言龙",
+          "company": "无",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "",
+          "bio": "",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/a5/af/a5427c6ba274d5e13ab3eba5412f02af.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/1231.png"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 3962,
+          "displayName": "黄哲铿",
+          "company": "顿悟山丘科技",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c5/dc/c548b1652db252046f62ce743bcd74dc.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/3962.jpeg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 5527,
+          "displayName": "吕睿韬",
+          "company": "喜马拉雅",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "研发总监",
+          "bio": "现任职务：研发总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/0e/ec/0e4d340bd2d39a6738f96aa399yy2bec.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/5527.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 294,
+          "displayName": "朱攀",
+          "company": "硅星纪元 FiClaw",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/6/9/6e948000e8d38abb45b93d5c5e3b4709.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/294.png"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 2708,
+          "displayName": "杨冠军",
+          "company": "上海数产",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "大数据产业部 总经理",
+          "bio": "现任职务：大数据产业部 总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/3/b/317c72cf13175146ab3ed6565097e1bb.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/2708.png"
+          },
+          "sortOrder": 5
+        },
+        {
+          "sourceUserId": 1103,
+          "displayName": "李婷婷",
+          "company": "EMOO 搜索",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "创始人 & CEO",
+          "bio": "现任职务：创始人 & CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/34/27/3495242c6cf774b6c353daad96d2e727.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/1103.png"
+          },
+          "sortOrder": 6
+        },
+        {
+          "sourceUserId": 412,
+          "displayName": "解安亮",
+          "company": "谱域科技",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "创始人，CEO",
+          "bio": "现任职务：创始人，CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E8%A7%A3%E5%AE%89%E4%BA%AE.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/412.jpeg"
+          },
+          "sortOrder": 7
+        },
+        {
+          "sourceUserId": 2066,
+          "displayName": "王朝成",
+          "company": "恒科智算（上海）信息技术服务有限公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "VP",
+          "bio": "现任职务：VP",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/41/5c/41135f61b01dcc0ff17683cbf29d2e5c.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/2066.png"
+          },
+          "sortOrder": 8
+        },
+        {
+          "sourceUserId": 4238,
+          "displayName": "叶盛",
+          "company": "上海屹峙信息技术有限公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/b/a/b1bd17d1d7274ae633c11b47c2932b9a.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/4238.png"
+          },
+          "sortOrder": 9
+        },
+        {
+          "sourceUserId": 1225,
+          "displayName": "陈冲",
+          "company": "上海允度软件开发有限公司",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/5b/b6/5b2156ddcf7d3be157584c8385b8dfb6.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/1225.png"
+          },
+          "sortOrder": 10
+        },
+        {
+          "sourceUserId": 191,
+          "displayName": "黄勇",
+          "company": "Meetsocial 飞书深诺",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "副总裁",
+          "bio": "现任职务：副总裁",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/4c/60/4cfd81859bafd57b3508e060b7127760.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shanghai/191.png"
+          },
+          "sortOrder": 11
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 3,
+      "slug": "hangzhou",
+      "name": "杭州分会",
+      "cityName": "杭州",
+      "region": "华东",
+      "summary": "杭州分会当前公开展示 7 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 杭州分会公开展示的 7 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/24/6d/243af9fa2663493da70d5b3de872156d.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/hangzhou.png"
+      },
+      "boardMemberCount": 7,
+      "boardMembers": [
+        {
+          "sourceUserId": 178,
+          "displayName": "芦宇峰",
+          "company": "杭州擎路科技",
+          "organizationRole": "负责人",
+          "jobTitle": "联合创始人 & CTO",
+          "bio": "现任职务：联合创始人 & CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/af/b6/af76538d17b7424de60e39b3592d7bb6.png",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/178.png"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 419,
+          "displayName": "褚亮",
+          "company": "杭州咿啦科技有限公司",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "联合创始人，CTO",
+          "bio": "现任职务：联合创始人，CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E8%A4%9A%E4%BA%AE.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/419.jpeg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 7,
+          "displayName": "张新波",
+          "company": "Glotera AI",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E5%BC%A0%E6%96%B0%E6%B3%A2.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/7.jpg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 389,
+          "displayName": "张志成",
+          "company": "阿里巴巴 通义实验室",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "高级技术专家",
+          "bio": "现任职务：高级技术专家",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/88/1b/8855b823ca36c6ef486fafbb3712671b.png",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/389.png"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 3477,
+          "displayName": "杜仲（肖劲青）",
+          "company": "杭州健信科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/40/50/40b0e5efbf6f4a7b1ffa68a6776dea50.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/3477.jpg"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 299,
+          "displayName": "李卓",
+          "company": "道富信息科技",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "总经理",
+          "bio": "现任职务：总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/68/7c/682c8c9ca525a88eabb689991b08197c.png",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/299.png"
+          },
+          "sortOrder": 5
+        },
+        {
+          "sourceUserId": 420,
+          "displayName": "沈淦",
+          "company": "杭州正马软件科技有限公司",
+          "organizationRole": "顾问",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/25/b8/259bfc0081142f1022130f67b34638b8.png",
+            "localPath": "/imports/tgo-infoq/branches/members/hangzhou/420.png"
+          },
+          "sortOrder": 6
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 4,
+      "slug": "guangzhou",
+      "name": "广州分会",
+      "cityName": "广州",
+      "region": "华南",
+      "summary": "广州分会当前公开展示 14 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 广州分会公开展示的 14 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/e7/43/e7a9950851bba9c52e2f22e159a1ae43.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/guangzhou.png"
+      },
+      "boardMemberCount": 14,
+      "boardMembers": [
+        {
+          "sourceUserId": 1606,
+          "displayName": "杨韶伟",
+          "company": "广州威而比科技有限公司",
+          "organizationRole": "负责人",
+          "jobTitle": "联合创始人&CTO",
+          "bio": "现任职务：联合创始人&CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/94/fb/941c64d46bc2cbcb00ee93c38d844cfb.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/1606.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 224,
+          "displayName": "谢金牛",
+          "company": "广州德心",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "总经理",
+          "bio": "现任职务：总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/d3/0a/d3e3154a2606a0809d9b04b8b6f74e0a.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/224.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 1045,
+          "displayName": "冯大双",
+          "company": "广东很久文化传播有限公司",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "高级技术总监",
+          "bio": "现任职务：高级技术总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/f8/88/f8b70314yyecc111eca97f8045458588.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/1045.jpg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 1690,
+          "displayName": "何丹",
+          "company": "网易",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "技术总监",
+          "bio": "现任职务：技术总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c8/ab/c8b37f0f71617f47180fe09bf576afab.png",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/1690.png"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 464,
+          "displayName": "李少春",
+          "company": "广州博泰数据有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "总经理",
+          "bio": "现任职务：总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/61/52/61fc141535556f7bca0b9922bf309a52.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/464.jpg"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 2781,
+          "displayName": "刘劲松",
+          "company": "广州道本信息科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/8b/4a/8b69445217c4a67c1bda05e88249374a.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/2781.jpg"
+          },
+          "sortOrder": 5
+        },
+        {
+          "sourceUserId": 2770,
+          "displayName": "黄均河",
+          "company": "广州屯大软件有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/32/60/32c6f4ea60659b478e2c7900af140f60.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/2770.jpg"
+          },
+          "sortOrder": 6
+        },
+        {
+          "sourceUserId": 683,
+          "displayName": "李渭宁",
+          "company": "汇丰科技",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "企业架构师",
+          "bio": "现任职务：企业架构师",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/2f/0c/2f082463b30a5d3651f44bcfde1b280c.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/683.jpg"
+          },
+          "sortOrder": 7
+        },
+        {
+          "sourceUserId": 338,
+          "displayName": "陈颖棠",
+          "company": "论客科技（广州）有限公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "总架构师",
+          "bio": "现任职务：总架构师",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/bc/96/bc3ef3167145ffbf54c7ebbb2a7b7d96.png",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/338.png"
+          },
+          "sortOrder": 8
+        },
+        {
+          "sourceUserId": 3031,
+          "displayName": "伍航恩",
+          "company": "深圳敏捷云计算科技有限公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/c/a/c12cf46f3634c01703b21dddad33c1da.png",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/3031.png"
+          },
+          "sortOrder": 9
+        },
+        {
+          "sourceUserId": 362,
+          "displayName": "暨家愉",
+          "company": "腾讯",
+          "organizationRole": "小组负责人",
+          "jobTitle": "专家架构师",
+          "bio": "现任职务：专家架构师",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/e/2/e935f01404d4a7d8b14f932a729adb12.png",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/362.png"
+          },
+          "sortOrder": 10
+        },
+        {
+          "sourceUserId": 14,
+          "displayName": "邹光先",
+          "company": "其他",
+          "organizationRole": "顾问",
+          "jobTitle": "",
+          "bio": "",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c2/69/c2dfa98cfac5428778e1a7a4ffe91769.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/14.jpg"
+          },
+          "sortOrder": 11
+        },
+        {
+          "sourceUserId": 121,
+          "displayName": "路文杰",
+          "company": "甘果科技",
+          "organizationRole": "顾问",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/9e/9c/9e8305820d7debc70e29aeb54c4bd09c.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/121.jpg"
+          },
+          "sortOrder": 12
+        },
+        {
+          "sourceUserId": 293,
+          "displayName": "贾锦杰",
+          "company": "Keep",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "战略 & PMO leader",
+          "bio": "现任职务：战略 & PMO leader",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/0c/e4/0c398eaf7798a748caed29096a821fe4.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/guangzhou/293.jpg"
+          },
+          "sortOrder": 13
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 5,
+      "slug": "shenzhen",
+      "name": "深圳分会",
+      "cityName": "深圳",
+      "region": "华南",
+      "summary": "深圳分会当前公开展示 10 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 深圳分会公开展示的 10 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/c4/88/c48c7b19fc9e8fae43bf9aebb698cf88.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/shenzhen.png"
+      },
+      "boardMemberCount": 10,
+      "boardMembers": [
+        {
+          "sourceUserId": 149,
+          "displayName": "王拓",
+          "company": "芯安信息安全",
+          "organizationRole": "负责人",
+          "jobTitle": "联合创始人、副总经理",
+          "bio": "现任职务：联合创始人、副总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/7e/4e/7e4b62b4eb6698ed2626476238b1454e.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/149.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 1282,
+          "displayName": "洪小军",
+          "company": "AfterShip",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/20/d9/201f159e57ccaafa34498872d1fee8d9.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/1282.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 1681,
+          "displayName": "田野",
+          "company": "壁虎软件科技(深圳)有限公司",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "联合创始人&首席数据科学家",
+          "bio": "现任职务：联合创始人&首席数据科学家",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E7%94%B0%E9%87%8E.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/1681.jpeg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 297,
+          "displayName": "冯斌",
+          "company": "ONES",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/78/79/7851deac1debed0c7e8b0eyy26623079.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/297.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 6813,
+          "displayName": "张林安",
+          "company": "北京平流智能数据科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "战略总监",
+          "bio": "现任职务：战略总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/05/28/05fcaf11c6d7363d0cd34f7755d0d528.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/6813.jpg"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 1230,
+          "displayName": "单致豪",
+          "company": "腾讯",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "开源联盟主席&腾源会导师",
+          "bio": "现任职务：开源联盟主席&腾源会导师",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/d3/11/d31035304840f418yyc5c2a975077a11.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/1230.jpg"
+          },
+          "sortOrder": 5
+        },
+        {
+          "sourceUserId": 522,
+          "displayName": "杨文",
+          "company": "AfterShip",
+          "organizationRole": "小组负责人",
+          "jobTitle": "高级技术经理",
+          "bio": "现任职务：高级技术经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/f3/e5/f34cc65a230eb9c16657a5202a0679e5.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/522.jpg"
+          },
+          "sortOrder": 6
+        },
+        {
+          "sourceUserId": 3374,
+          "displayName": "吴亚昆",
+          "company": "新流智能",
+          "organizationRole": "小组负责人",
+          "jobTitle": "联合创始人&CEO",
+          "bio": "现任职务：联合创始人&CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/e/9/ed1eee4e317c04a040d1dfa13552e379.png",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/3374.png"
+          },
+          "sortOrder": 7
+        },
+        {
+          "sourceUserId": 17,
+          "displayName": "黄良懿",
+          "company": "嘉立创集团",
+          "organizationRole": "顾问",
+          "jobTitle": "互联网 CTO",
+          "bio": "现任职务：互联网 CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c5/31/c53825ae00b0c07a905e1aa098e41c31.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/17.jpg"
+          },
+          "sortOrder": 8
+        },
+        {
+          "sourceUserId": 95,
+          "displayName": "龚银",
+          "company": "安克创新",
+          "organizationRole": "顾问",
+          "jobTitle": "首席信息官",
+          "bio": "现任职务：首席信息官",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/a3/59/a382779f824ea6b02d5b9bcdd8c89959.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/shenzhen/95.jpg"
+          },
+          "sortOrder": 9
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 6,
+      "slug": "chengdu",
+      "name": "成都分会",
+      "cityName": "成都",
+      "region": "西南",
+      "summary": "成都分会当前公开展示 5 位董事会成员，覆盖 负责人、服务负责人、会籍负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 成都分会公开展示的 5 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/51/30/51a695cfa2c359ff4d43237bdc04e730.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/chengdu.png"
+      },
+      "boardMemberCount": 5,
+      "boardMembers": [
+        {
+          "sourceUserId": 473,
+          "displayName": "马力遥",
+          "company": "互联极简",
+          "organizationRole": "负责人",
+          "jobTitle": "联合创始人 CTO",
+          "bio": "现任职务：联合创始人 CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/35/f2/35a87e4dfd177ef7fc5e2dfc8b1937f2.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/chengdu/473.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 510,
+          "displayName": "徐桢虎",
+          "company": "封面传媒科技&川报集团",
+          "organizationRole": "服务负责人",
+          "jobTitle": "封面科技 副总经理 兼CTO",
+          "bio": "现任职务：封面科技 副总经理 兼CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/59/f0/59d2c2e279cee23c286b2f3a1df5e6f0.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/chengdu/510.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 1977,
+          "displayName": "唐雷",
+          "company": "成都医联科技有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "研发高级总监",
+          "bio": "现任职务：研发高级总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/16/0b/1667cf6602ec4c9c89589089049f350b.png",
+            "localPath": "/imports/tgo-infoq/branches/members/chengdu/1977.png"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 334,
+          "displayName": "黎宏伟",
+          "company": "成都市美幻科技有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "技术总监",
+          "bio": "现任职务：技术总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/b0/91/b044b5d1c342740625143f6d46e98991.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/chengdu/334.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 465,
+          "displayName": "于君泽",
+          "company": "蚂蚁金服",
+          "organizationRole": "小组负责人",
+          "jobTitle": "资深技术专家",
+          "bio": "现任职务：资深技术专家",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/81/f8/8133fbe96ed411229f089ee35e42f9f8.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/chengdu/465.jpg"
+          },
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 7,
+      "slug": "silicon-valley",
+      "name": "硅谷分会",
+      "cityName": "硅谷",
+      "region": "北美",
+      "summary": "硅谷分会当前公开展示 1 位董事会成员，覆盖 会籍负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 硅谷分会公开展示的 1 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/8f/b6/8f429ab7f94a8316045bfeb0e18cb2b6.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/silicon-valley.png"
+      },
+      "boardMemberCount": 1,
+      "boardMembers": [
+        {
+          "sourceUserId": 347,
+          "displayName": "任腾",
+          "company": "上海湃舵智能科技有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E4%BB%BB%E8%85%BE.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/silicon-valley/347.jpeg"
+          },
+          "sortOrder": 0
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 8,
+      "slug": "nanjing",
+      "name": "南京分会",
+      "cityName": "南京",
+      "region": "华东",
+      "summary": "南京分会当前公开展示 5 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 南京分会公开展示的 5 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/f1/15/f1893378cfdc9a0cb5775b4072255e15.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/nanjing.png"
+      },
+      "boardMemberCount": 5,
+      "boardMembers": [
+        {
+          "sourceUserId": 1288,
+          "displayName": "嵇伟",
+          "company": "神笔软件有限责任公司",
+          "organizationRole": "负责人",
+          "jobTitle": "创始人",
+          "bio": "现任职务：创始人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/a4/47/a42ea57dab4a0ddc8a44f4a606fc5d47.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/nanjing/1288.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 377,
+          "displayName": "曹祖鹏",
+          "company": "南京知亦行信息技术有限公司",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/9d/8f/9d76c8b2cb4885fd64cbb66b63877b8f.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/nanjing/377.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 1289,
+          "displayName": "陈桂峰",
+          "company": "南京宽乐健康",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/13/b3/139b69ee966dd255fddd8e68df591ab3.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/nanjing/1289.jpg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 445,
+          "displayName": "樊伟伟",
+          "company": "北京微鲤科技有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "研发总监",
+          "bio": "现任职务：研发总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/1b/f2/1b12e4c07dc205071f6a3a862e99bcf2.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/nanjing/445.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 466,
+          "displayName": "李列为",
+          "company": "江苏华博实业集团有限公司",
+          "organizationRole": "顾问",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/11/d5/11d98257d5f57d04f90be2eda13535d5.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/nanjing/466.jpg"
+          },
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 9,
+      "slug": "wuhan",
+      "name": "武汉分会",
+      "cityName": "武汉",
+      "region": "华中",
+      "summary": "武汉分会当前公开展示 5 位董事会成员，覆盖 负责人、服务负责人、会籍负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 武汉分会公开展示的 5 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/ef/2f/ef7cb4771c8a875d4d22d2fc19fa8e2f.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/wuhan.png"
+      },
+      "boardMemberCount": 5,
+      "boardMembers": [
+        {
+          "sourceUserId": 591,
+          "displayName": "谢锐",
+          "company": "维克时光",
+          "organizationRole": "负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/2a/b2/2a3c6187d6ee6ffb0246f7e555c1e8b2.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/wuhan/591.jpg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 1748,
+          "displayName": "丁鹏",
+          "company": "北京万界智算科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "高级经理",
+          "bio": "现任职务：高级经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/58/da/58ab94bbe904026fa62d3e724460a6da.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/wuhan/1748.jpg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 1585,
+          "displayName": "谢强",
+          "company": "武汉极意网络科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E8%B0%A2%E5%BC%BA.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/wuhan/1585.jpeg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 579,
+          "displayName": "吕兆星",
+          "company": "北京万界数据技术有限责任公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/ff/34/ffce1152598a0c515d62394844cd5334.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/wuhan/579.jpg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 1252,
+          "displayName": "吴清忠",
+          "company": "北京万界数据科技责任有限公司武汉分公司",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "技术总监",
+          "bio": "现任职务：技术总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/94/f0/945b2ec5963e0584e9ec69659983bef0.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/wuhan/1252.jpg"
+          },
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 11,
+      "slug": "xiamen",
+      "name": "厦门分会",
+      "cityName": "厦门",
+      "region": "华南",
+      "summary": "厦门分会当前公开展示 6 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 厦门分会公开展示的 6 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/b7/d2/b7696adf65163ece97de30b0e775c0d2.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/xiamen.png"
+      },
+      "boardMemberCount": 6,
+      "boardMembers": [
+        {
+          "sourceUserId": 1292,
+          "displayName": "杨瑞",
+          "company": "英睿信息",
+          "organizationRole": "负责人",
+          "jobTitle": "CEO",
+          "bio": "现任职务：CEO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/e7/5b/e72a069b18970a0f819de7705a72055b.png",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/1292.png"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 1274,
+          "displayName": "张嵩",
+          "company": "七匹狼",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "CIO",
+          "bio": "现任职务：CIO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/dd/ba/dd29e74cc726a79395b97e150acb1aba.png",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/1274.png"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 815,
+          "displayName": "李剑洪",
+          "company": "厦门市梅沙科技有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "负责人",
+          "bio": "现任职务：负责人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/5c/a6/5cb51c50e920e87b0b7680c4ec1ae2a6.png",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/815.png"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 762,
+          "displayName": "祁俊超",
+          "company": "厦门南叁南科技有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "游戏制作人",
+          "bio": "现任职务：游戏制作人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/image/%E7%A5%81%E4%BF%8A%E8%B6%85.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/762.jpeg"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 768,
+          "displayName": "林赟",
+          "company": "广东美碳科技有限公司",
+          "organizationRole": "小组负责人",
+          "jobTitle": "副总经理",
+          "bio": "现任职务：副总经理",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/e4/2b/e4bd77878ac6c372547840d93f46f42b.png",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/768.png"
+          },
+          "sortOrder": 4
+        },
+        {
+          "sourceUserId": 3458,
+          "displayName": "黄剑新",
+          "company": "福州白鲸网络科技有限公司",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "联合创始人& CTO",
+          "bio": "现任职务：联合创始人& CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/files/tgo/2/e/2a6fb365ba09fc3ecd8d73fc56e0867e.png",
+            "localPath": "/imports/tgo-infoq/branches/members/xiamen/3458.png"
+          },
+          "sortOrder": 5
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 12,
+      "slug": "suzhou",
+      "name": "苏州分会",
+      "cityName": "苏州",
+      "region": "华东",
+      "summary": "苏州分会当前公开展示 5 位董事会成员，覆盖 负责人、学习产品负责人、服务负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 苏州分会公开展示的 5 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": {
+        "sourceUrl": "https://static001-test.geekbang.org/resource/image/e1/93/e1834c1e032a1cf20fcfcdd1aae33293.png",
+        "localPath": "/imports/tgo-infoq/branches/banners/suzhou.png"
+      },
+      "boardMemberCount": 5,
+      "boardMembers": [
+        {
+          "sourceUserId": 1271,
+          "displayName": "邱良军",
+          "company": "苏州正雄企业发展有限公司",
+          "organizationRole": "负责人",
+          "jobTitle": "CIO",
+          "bio": "现任职务：CIO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c1/bb/c1237828ccaaf37569bafdd2fbcbecbb.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/suzhou/1271.jpeg"
+          },
+          "sortOrder": 0
+        },
+        {
+          "sourceUserId": 1237,
+          "displayName": "钟晓樑",
+          "company": "盖雅工场",
+          "organizationRole": "学习产品负责人",
+          "jobTitle": "产品总监",
+          "bio": "现任职务：产品总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/c4/ba/c4692f2df4328b555c542f1e2a6f57ba.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/suzhou/1237.jpeg"
+          },
+          "sortOrder": 1
+        },
+        {
+          "sourceUserId": 371,
+          "displayName": "徐庆新",
+          "company": "苏州乐佰图信息技术有限公司",
+          "organizationRole": "服务负责人",
+          "jobTitle": "产品总监",
+          "bio": "现任职务：产品总监",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/2c/7a/2c1736ed7bf67f3d82eb294yy4489a7a.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/suzhou/371.jpg"
+          },
+          "sortOrder": 2
+        },
+        {
+          "sourceUserId": 2848,
+          "displayName": "熊伟",
+          "company": "苏州盖雅信息技术有限公司",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "联合创始人",
+          "bio": "现任职务：联合创始人",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/8e/10/8e3df8fed7dbc206c1a2c0dc7e1b8110.png",
+            "localPath": "/imports/tgo-infoq/branches/members/suzhou/2848.png"
+          },
+          "sortOrder": 3
+        },
+        {
+          "sourceUserId": 1251,
+          "displayName": "马金昌",
+          "company": "洛基英语",
+          "organizationRole": "外宣财务负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/f0/78/f018f073d37873beddc9325c86591978.jpeg",
+            "localPath": "/imports/tgo-infoq/branches/members/suzhou/1251.jpeg"
+          },
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "sourceBranchId": 19,
+      "slug": "singapore",
+      "name": "新加坡分会",
+      "cityName": "新加坡",
+      "region": "东南亚",
+      "summary": "新加坡分会当前公开展示 1 位董事会成员，覆盖 会籍负责人 等组织分工。",
+      "body": "本页数据来源于 TGO 鲲鹏会官网董事会成员页，当前整理了 新加坡分会公开展示的 1 位董事会成员信息，保留头像、姓名、公司与组织身份等后续部署所需字段。",
+      "coverImage": null,
+      "boardMemberCount": 1,
+      "boardMembers": [
+        {
+          "sourceUserId": 30,
+          "displayName": "丁宁",
+          "company": "荔枝集团",
+          "organizationRole": "会籍负责人",
+          "jobTitle": "CTO",
+          "bio": "现任职务：CTO",
+          "avatar": {
+            "sourceUrl": "https://static001.geekbang.org/resource/image/6c/f7/6c6f136e09ac09d724553951e6edfcf7.jpg",
+            "localPath": "/imports/tgo-infoq/branches/members/singapore/30.jpg"
+          },
+          "sortOrder": 0
+        }
+      ]
+    }
+  ]
+}

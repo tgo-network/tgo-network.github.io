@@ -26,6 +26,8 @@
     "test:e2e:screenshots:headed": "node scripts/run-e2e.mjs --config=playwright.screenshots.config.ts --headed",
     "test:e2e:headed": "node scripts/run-e2e.mjs --headed",
     "test:e2e:install": "playwright install chromium",
+    "data:fetch:tgo-infoq": "python3 scripts/scrape_tgo_infoq.py",
+    "db:import:tgo-infoq": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db import:tgo-infoq",
     "env:check:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api validate-env",
     "docker:build:api": "docker build -f apps/api/Dockerfile -t tgo-api .",
     "lint": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm -r --if-present lint",

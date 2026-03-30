@@ -222,6 +222,11 @@ export const getAssetPublicUrl = (objectKey: string, visibility: AssetVisibility
     return null;
   }
 
+  // Imported seed assets can live under the Astro site's public directory.
+  if (objectKey.startsWith("imports/")) {
+    return `/${encodeKey(objectKey)}`;
+  }
+
   const baseUrl = getPublicBaseUrl();
 
   return baseUrl ? `${baseUrl}/${encodeKey(objectKey)}` : null;

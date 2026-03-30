@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-03-30T10:46:04Z",
+  "source": {
+    "branches": "https://tgo.infoq.cn/we/branches",
+    "events": "https://tgo.infoq.cn/event"
+  },
+  "counts": {
+    "branches": 12,
+    "boardMembers": 87,
+    "events": 1497,
+    "downloadTasks": 2581
+  },
+  "downloads": {
+    "downloaded": 0,
+    "skipped": 2581,
+    "bytes": 0,
+    "errors": []
+  },
+  "durationSeconds": 40.87
+}

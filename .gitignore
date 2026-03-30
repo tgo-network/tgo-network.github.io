@@ -15,12 +15,15 @@ coverage/
 playwright-report/
 test-results/
 artifacts/screenshots/
+apps/site/public/imports/tgo-infoq/**
+!apps/site/public/imports/tgo-infoq/.gitkeep
 
 *.log
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+__pycache__/
 *.tsbuildinfo
 
 .DS_Store

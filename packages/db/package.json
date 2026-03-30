@@ -16,7 +16,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "seed": "node --env-file=../../.env --import tsx src/seed.ts"
+    "seed": "node --env-file=../../.env --import tsx src/seed.ts",
+    "import:tgo-infoq": "node --env-file=../../.env --import tsx src/import-tgo-infoq.ts"
   },
   "dependencies": {
     "@tgo/shared": "workspace:*",
