@@ -108,10 +108,11 @@ const browsePaths = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">组织原则</div>
           <h2>为什么这个社区会以这样的方式被组织起来</h2>
+          <p class="section-note">先理解这个社区为什么强调长期连接、真实结构与开放入口，再看后面的组织表达，会更容易看懂整个站点。</p>
         </div>
       </div>
 
@@ -129,10 +130,11 @@ const browsePaths = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">关于我们</div>
           <h2>从组织定位、交流方式与外部表达理解 TGO 鲲鹏会</h2>
+          <p class="section-note">这里不是单一的品牌介绍，而是把组织形式、活动路径与加入方式重新放回同一套社区叙事里。</p>
         </div>
       </div>
 
@@ -150,10 +152,11 @@ const browsePaths = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">活动形式</div>
           <h2>社区价值通过持续的线下连接被放大</h2>
+          <p class="section-note">不同活动形态承担的不是同一个任务，它们共同服务于长期同侪交流，而不是单次热度曝光。</p>
         </div>
       </div>
 
@@ -170,10 +173,11 @@ const browsePaths = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">继续浏览</div>
           <h2>如果你想继续理解这个组织，建议按这条路径看下去</h2>
+          <p class="section-note">继续浏览路径被设计成从组织结构到成员网络，再到加入转化的顺序，而不是随机跳页。</p>
         </div>
       </div>
 
@@ -306,6 +310,15 @@ const browsePaths = [
 
   .principle-card {
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .principle-card:hover,
+  .activity-card:hover,
+  .about-section-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.22);
+    box-shadow: 0 24px 44px rgba(40, 28, 18, 0.1);
   }
 
   .browse-card {
@@ -322,6 +335,7 @@ const browsePaths = [
 
   .about-section-card {
     min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
   .activity-grid {
@@ -334,10 +348,10 @@ const browsePaths = [
   }
 
   .about-cta-panel {
-    display: flex;
+    display: grid;
     gap: 18px;
-    align-items: flex-end;
-    justify-content: space-between;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    align-items: center;
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
   }
 
@@ -350,6 +364,7 @@ const browsePaths = [
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   @media (max-width: 1100px) {
@@ -368,8 +383,11 @@ const browsePaths = [
     }
 
     .about-cta-panel {
-      flex-direction: column;
-      align-items: flex-start;
+      grid-template-columns: 1fr;
+    }
+
+    .about-cta-actions {
+      justify-content: flex-start;
     }
   }
 

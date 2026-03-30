@@ -37,6 +37,7 @@ body {
   background:
     radial-gradient(circle at top left, rgba(200, 161, 93, 0.18), transparent 28%),
     radial-gradient(circle at top right, rgba(157, 111, 49, 0.14), transparent 22%),
+    repeating-linear-gradient(120deg, rgba(157, 111, 49, 0.035) 0 1px, transparent 1px 120px),
     linear-gradient(180deg, #f8f3ea 0%, var(--page-bg) 100%);
   font-family: var(--font-body);
 }
@@ -47,6 +48,7 @@ h3,
 h4 {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
+  text-wrap: balance;
 }
 
 code {
@@ -56,6 +58,18 @@ code {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid rgba(157, 111, 49, 0.22);
+  outline-offset: 3px;
 }
 
 .page-shell {
@@ -174,12 +188,33 @@ a {
   border: 1px solid var(--line);
   border-radius: 28px;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
   backdrop-filter: blur(18px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
 
 .hero-card {
   padding: 32px;
+}
+
+.hero-card::before,
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 38%, rgba(157, 111, 49, 0.04) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-card > *,
+.panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-card-media {
@@ -249,6 +284,12 @@ a {
   border: 1px solid var(--line);
   font-weight: 700;
   cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
 }
 
 .button.primary {
@@ -259,6 +300,19 @@ a {
 
 .button.secondary {
   background: rgba(255, 255, 255, 0.72);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button.primary:hover {
+  box-shadow: 0 18px 40px rgba(157, 111, 49, 0.24);
+}
+
+.button.secondary:hover {
+  border-color: rgba(157, 111, 49, 0.22);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .grid {
@@ -282,10 +336,22 @@ a {
   margin-bottom: 16px;
 }
 
+.section-head-stack {
+  align-items: flex-start;
+}
+
 .section-head h2,
 .promo-panel h2 {
   margin: 6px 0 0;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
+}
+
+.section-note {
+  margin: 10px 0 0;
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: 0.97rem;
+  line-height: 1.8;
 }
 
 .panel {
@@ -328,9 +394,30 @@ a {
   text-transform: uppercase;
 }
 
+.card-label-on-dark {
+  color: #f1d5a0;
+}
+
 .card-title {
   margin: 12px 0 10px;
   font-size: 1.2rem;
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.text-link::after {
+  content: "→";
+  transition: transform 180ms ease;
+}
+
+a:hover .text-link::after,
+.text-link:hover::after {
+  transform: translateX(2px);
 }
 
 .meta-list,
@@ -430,6 +517,15 @@ textarea {
   font: inherit;
 }
 
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(157, 111, 49, 0.18);
+  outline-offset: 2px;
+  border-color: rgba(157, 111, 49, 0.32);
+  box-shadow: 0 0 0 4px rgba(200, 161, 93, 0.12);
+}
+
 textarea {
   min-height: 160px;
   padding: 14px;
@@ -458,6 +554,112 @@ textarea {
 .agenda-list em {
   color: var(--accent-strong);
   font-style: normal;
+}
+
+.member-guide-grid,
+.event-guide-grid,
+.article-guide-grid,
+.member-branch-grid,
+.related-member-grid,
+.article-next-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.member-guide-card,
+.event-guide-card,
+.article-guide-card,
+.member-branch-card,
+.related-member-card,
+.member-next-card,
+.article-next-card {
+  min-height: 100%;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.member-guide-card,
+.event-guide-card,
+.article-guide-card {
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.96));
+}
+
+.member-branch-card,
+.related-member-card,
+.member-next-card,
+.article-next-card {
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+}
+
+.member-guide-card:hover,
+.event-guide-card:hover,
+.article-guide-card:hover,
+.member-branch-card:hover,
+.related-member-card:hover,
+.member-next-card:hover,
+.article-next-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(157, 111, 49, 0.24);
+  box-shadow: 0 26px 48px rgba(40, 28, 18, 0.12);
+}
+
+.member-guide-card h3,
+.event-guide-card h3,
+.article-guide-card h3,
+.member-branch-card h3,
+.member-next-card h3,
+.member-cta-panel h2,
+.events-cta-panel h2,
+.article-cta-panel h2 {
+  margin: 12px 0 10px;
+  color: var(--ink);
+}
+
+.member-signal-grid,
+.event-highlight-grid,
+.article-signal-grid,
+.registration-process-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.member-signal-card,
+.event-highlight-card,
+.article-signal-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(215, 179, 117, 0.12);
+}
+
+.member-signal-label,
+.article-signal-label {
+  color: rgba(248, 241, 232, 0.58);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.member-cta-panel,
+.events-cta-panel,
+.article-cta-panel {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.94));
+}
+
+.member-cta-actions,
+.events-cta-actions,
+.article-cta-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .site-footer {
@@ -555,5 +757,27 @@ textarea {
   .site-footer-shell,
   .site-footer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .member-guide-grid,
+  .event-guide-grid,
+  .article-guide-grid,
+  .member-branch-grid,
+  .member-signal-grid,
+  .event-highlight-grid,
+  .article-signal-grid,
+  .registration-process-grid,
+  .related-member-grid,
+  .article-next-grid,
+  .member-cta-panel,
+  .events-cta-panel,
+  .article-cta-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .member-cta-actions,
+  .events-cta-actions,
+  .article-cta-actions {
+    justify-content: flex-start;
   }
 }

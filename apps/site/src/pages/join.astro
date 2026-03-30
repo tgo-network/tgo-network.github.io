@@ -98,10 +98,11 @@ const postSubmitSteps = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">申请前确认</div>
           <h2>先确认这三件事，再进入正式申请</h2>
+          <p class="section-note">这里先校准组织匹配度、参与预期与审核方式，避免把加入申请误解成一个即时通过的表单动作。</p>
         </div>
       </div>
 
@@ -119,10 +120,11 @@ const postSubmitSteps = [
     </section>
 
     <section id="conditions" class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">加入说明</div>
           <h2>先确认你是否适合当前阶段的组织定位</h2>
+          <p class="section-note">加入说明同时覆盖条件、成员权益与审核流程，帮助访客在填写资料前先建立完整预期。</p>
         </div>
       </div>
 
@@ -151,10 +153,11 @@ const postSubmitSteps = [
     </section>
 
     <section class="section">
-      <div class="section-head">
+      <div class="section-head section-head-stack">
         <div>
           <div class="card-label">参与形式</div>
           <h2>加入之后，你更可能参与的是这些连接方式</h2>
+          <p class="section-note">这些活动并不是平行罗列的栏目，而是同一套社区连接方式在不同场景下的具体表现。</p>
         </div>
       </div>
 
@@ -388,7 +391,7 @@ const postSubmitSteps = [
   }
 
   .format-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .join-info-card,
@@ -396,10 +399,22 @@ const postSubmitSteps = [
   .decision-card,
   .submit-flow-card {
     min-height: 100%;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
-  .decision-card {
+  .join-info-card,
+  .decision-card,
+  .format-card {
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .join-info-card:hover,
+  .format-card:hover,
+  .decision-card:hover,
+  .submit-flow-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.22);
+    box-shadow: 0 24px 44px rgba(40, 28, 18, 0.1);
   }
 
   .vertical-list {
@@ -414,6 +429,11 @@ const postSubmitSteps = [
 
   .faq-item h3 {
     margin: 0 0 8px;
+  }
+
+  .faq-item + .faq-item {
+    padding-top: 16px;
+    border-top: 1px solid rgba(31, 26, 23, 0.08);
   }
 
   .faq-item p {
@@ -475,16 +495,27 @@ const postSubmitSteps = [
     display: grid;
     gap: 18px;
     align-content: start;
+    position: sticky;
+    top: 104px;
   }
 
   @media (max-width: 1000px) {
     .join-hero-card,
     .decision-grid,
     .join-info-grid,
-    .format-grid,
     .registration-shell,
     .submit-flow-grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .format-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .registration-side {
+      position: static;
     }
   }
 </style>

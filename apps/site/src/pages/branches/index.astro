@@ -7,24 +7,110 @@ const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMem
 const coveredCities = Array.from(new Set(branches.map((branch) => branch.cityName))).length;
 const coveredRegions = Array.from(new Set(branches.map((branch) => branch.region).filter(Boolean))).length;
 const defaultOpenBranchSlug = branches[0]?.slug ?? "";
+const regionHighlights = Array.from(
+  branches.reduce(
+    (map, branch) => {
+      const key = branch.region?.trim() || "重点城市";
+      const current = map.get(key) ?? {
+        name: key,
+        branchCount: 0,
+        boardMemberCount: 0,
+        citySet: new Set<string>()
+      };
+
+      current.branchCount += 1;
+      current.boardMemberCount += branch.boardMembers.length;
+      current.citySet.add(branch.cityName);
+      map.set(key, current);
+
+      return map;
+    },
+    new Map<
+      string,
+      {
+        name: string;
+        branchCount: number;
+        boardMemberCount: number;
+        citySet: Set<string>;
+      }
+    >()
+  ).values()
+)
+  .map(({ citySet, ...item }) => ({
+    ...item,
+    cityCount: citySet.size,
+    cities: Array.from(citySet)
+  }))
+  .sort((left, right) => {
+    return (
+      right.branchCount - left.branchCount ||
+      right.boardMemberCount - left.boardMemberCount ||
+      left.name.localeCompare(right.name, "zh-CN")
+    );
+  })
+  .slice(0, 4);
+const branchReadingSteps = [
+  "先通过城市跳转快速定位你关心的分会节点。",
+  "进入展开内容后继续看分会介绍与董事会成员构成。",
+  "如果想整体扫读，可直接使用批量展开查看全部分会。"
+];
 ---
 
 <BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会概况与董事会成员信息。">
   <main class="page-shell page-stack">
     <section class="hero">
       <div class="hero-card branch-hero-card">
-        <span class="eyebrow">分会董事会</span>
-        <h1>覆盖不同城市节点的技术领导者网络</h1>
-        <p>
-          每个分会围绕本地技术管理者的交流需求，组织闭门讨论、标杆走访、专题工作坊和成员协作。
-          当前页面重点展示分会概况与董事会成员，帮助访客快速理解组织的真实结构。
-        </p>
-        <ul class="stat-row branch-hero-stats">
-          <li>{branches.length} 个分会</li>
-          <li>{coveredCities} 个城市</li>
-          <li>{coveredRegions} 个区域</li>
-          <li>{totalBoardMembers} 位董事会成员</li>
-        </ul>
+        <div class="branch-hero-main">
+          <span class="eyebrow">分会董事会</span>
+          <h1>覆盖不同城市节点的技术领导者网络</h1>
+          <p>
+            每个分会围绕本地技术管理者的交流需求，组织闭门讨论、标杆走访、专题工作坊和成员协作。
+            当前页面重点展示分会概况与董事会成员，帮助访客快速理解组织的真实结构。
+          </p>
+          <ul class="stat-row branch-hero-stats">
+            <li>{branches.length} 个分会</li>
+            <li>{coveredCities} 个城市</li>
+            <li>{coveredRegions} 个区域</li>
+            <li>{totalBoardMembers} 位董事会成员</li>
+          </ul>
+        </div>
+
+        <aside class="branch-hero-aside">
+          <div>
+            <div class="card-label card-label-on-dark">阅读方式</div>
+            <h2>先看城市分布，再进入单个分会与董事会名单</h2>
+            <p>页面默认只展开一个分会，避免把所有城市信息一次性摊开；你可以按城市跳转，也可以在下方统一展开。</p>
+          </div>
+
+          <ol class="branch-reading-list">
+            {branchReadingSteps.map((item) => <li>{item}</li>)}
+          </ol>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head section-head-stack">
+        <div>
+          <div class="card-label">区域覆盖</div>
+          <h2>先从区域层面理解分会网络的分布密度</h2>
+          <p class="section-note">这里先给出一个区域级概览，帮助你在进入单个分会之前建立整体感，再回到城市节点继续阅读。</p>
+        </div>
+      </div>
+
+      <div class="branch-region-grid">
+        {
+          regionHighlights.map((region) => (
+            <article class="panel branch-region-card">
+              <div class="card-label">{region.name}</div>
+              <h3>{region.branchCount} 个分会节点</h3>
+              <p class="card-copy">覆盖 {region.cityCount} 个城市，当前公开 {region.boardMemberCount} 位董事会成员。</p>
+              <ul class="meta-list">
+                {region.cities.slice(0, 3).map((city) => <li>{city}</li>)}
+              </ul>
+            </article>
+          ))
+        }
       </div>
     </section>
 
@@ -33,10 +119,10 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
         <div>
           <div class="card-label">快速跳转</div>
           <h2>按城市查看分会</h2>
+          <p class="section-note">
+            为了避免一次展开全部分会信息造成过长滚动，页面默认只展开一个分会；你可以按城市跳转，或使用下方操作批量展开 / 收起。
+          </p>
         </div>
-        <p class="section-note">
-          为了避免一次展开全部分会信息造成过长滚动，页面默认只展开一个分会；你可以按城市跳转，或使用下方操作批量展开 / 收起。
-        </p>
       </div>
 
       <div class="branch-chip-row">
@@ -116,12 +202,13 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
                               )
                             }
 
-                            <div>
+                            <div class="board-copy">
+                              <span class="board-role">{member.title}</span>
                               <h3>{member.displayName}</h3>
-                              <p class="card-copy">{member.company} · {member.title}</p>
+                              <p class="board-company">{member.company}</p>
                             </div>
                           </div>
-                          <p class="card-copy">{member.bio}</p>
+                          <p class="card-copy board-bio">{member.bio}</p>
                         </div>
                       ))
                     }
@@ -195,23 +282,72 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
 
 <style>
   .branch-hero-card {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+    padding: clamp(28px, 4vw, 44px);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.14), transparent 24%),
       linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  }
+
+  .branch-hero-main h1 {
+    max-width: 10ch;
+    line-height: 0.98;
+  }
+
+  .branch-hero-main p {
+    max-width: 58ch;
   }
 
   .branch-hero-stats {
     margin-top: 22px;
   }
 
-  .section-head-stack {
-    align-items: flex-start;
+  .branch-hero-aside {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+    padding: 24px;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(37, 31, 26, 0.96), rgba(47, 39, 33, 0.94));
+    border: 1px solid rgba(215, 179, 117, 0.14);
+    box-shadow: var(--shadow-strong);
   }
 
-  .section-note {
-    margin: 10px 0 0;
-    max-width: 60ch;
-    color: var(--muted);
+  .branch-hero-aside h2 {
+    margin: 12px 0 10px;
+    color: #fff7ef;
+    font-size: clamp(1.55rem, 2.4vw, 2.1rem);
+  }
+
+  .branch-hero-aside p,
+  .branch-reading-list {
+    color: rgba(248, 241, 232, 0.76);
+  }
+
+  .branch-reading-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.7;
+  }
+
+  .branch-region-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .branch-region-card {
+    min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+  }
+
+  .branch-region-card h3 {
+    margin: 12px 0 10px;
+    font-size: 1.12rem;
   }
 
   .branch-chip-row {
@@ -259,6 +395,14 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
     display: grid;
     gap: 20px;
     scroll-margin-top: 110px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .branch-panel:hover {
+    transform: translateY(-2px);
+    border-color: rgba(157, 111, 49, 0.18);
+    box-shadow: 0 26px 52px rgba(40, 28, 18, 0.12);
   }
 
   .branch-head {
@@ -310,10 +454,22 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
     border: 1px solid rgba(31, 26, 23, 0.08);
     cursor: pointer;
     list-style: none;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
   }
 
   .branch-disclosure-summary::-webkit-details-marker {
     display: none;
+  }
+
+  .branch-disclosure-summary:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157, 111, 49, 0.22);
+    background: rgba(255, 250, 242, 0.92);
+  }
+
+  .branch-disclosure[open] .branch-disclosure-summary {
+    background: linear-gradient(180deg, rgba(255, 248, 236, 0.96), rgba(249, 240, 228, 0.94));
+    border-color: rgba(157, 111, 49, 0.2);
   }
 
   .branch-disclosure-copy {
@@ -366,12 +522,24 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid rgba(31, 26, 23, 0.08);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .board-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(157, 111, 49, 0.18);
+    box-shadow: 0 18px 34px rgba(40, 28, 18, 0.08);
   }
 
   .board-person {
     display: flex;
     gap: 14px;
     align-items: center;
+  }
+
+  .board-copy {
+    display: grid;
+    gap: 6px;
   }
 
   .board-avatar {
@@ -391,20 +559,49 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
     font-weight: 700;
   }
 
+  .board-role {
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(157, 111, 49, 0.16);
+    background: rgba(255, 248, 238, 0.86);
+    color: var(--accent-strong);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
   .board-item h3 {
     margin: 0 0 8px;
     font-size: 1.05rem;
   }
 
+  .board-company,
   .board-item p {
     margin: 0;
   }
 
+  .board-company {
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .board-bio {
+    line-height: 1.72;
+  }
+
   @media (max-width: 980px) {
+    .branch-hero-card,
     .branch-head,
     .branch-body {
       grid-template-columns: 1fr;
       display: grid;
+    }
+
+    .branch-region-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .branch-cover-wrap {
@@ -413,6 +610,10 @@ const defaultOpenBranchSlug = branches[0]?.slug ?? "";
   }
 
   @media (max-width: 720px) {
+    .branch-region-grid {
+      grid-template-columns: 1fr;
+    }
+
     .branch-actions {
       flex-direction: column;
       align-items: stretch;
