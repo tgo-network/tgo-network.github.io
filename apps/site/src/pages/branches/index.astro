@@ -2,7 +2,19 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { listBranches } from "../../lib/public-api";
 
-const branches = await listBranches();
+const rawBranches = await listBranches();
+const branchPreview = (value: string) =>
+  value
+    .split(/(?<=[。！？])/u)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+
+const branches = rawBranches.map((branch) => ({
+  ...branch,
+  preview: branch.summary || branchPreview(branch.body)
+}));
 const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMembers.length, 0);
 ---
 
@@ -21,18 +33,19 @@ const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMem
       {
         branches.map((branch) => (
           <article id={branch.slug} class="panel branch-record">
-            <div class="branch-record-head">
-              <div>
+            <div class="branch-record-side">
+              <div class="branch-record-head">
                 <div class="card-label">{branch.cityName}</div>
                 <h2 class="branch-record-title">{branch.name}</h2>
               </div>
+
+              {branch.preview && <p class="branch-record-summary">{branch.preview}</p>}
+
               <ul class="meta-list branch-record-meta">
                 {branch.region && <li>{branch.region}</li>}
                 <li>{branch.boardMembers.length} 位董事会成员</li>
               </ul>
             </div>
-
-            {branch.summary && <p class="branch-record-summary">{branch.summary}</p>}
 
             <div class="branch-board-grid">
               {
@@ -74,42 +87,48 @@ const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMem
 
   .branch-record {
     display: grid;
-    gap: 20px;
+    gap: 24px;
+    grid-template-columns: minmax(240px, 0.34fr) minmax(0, 0.66fr);
     padding: clamp(22px, 3vw, 30px);
+    align-items: start;
+  }
+
+  .branch-record-side {
+    display: grid;
+    gap: 16px;
+    align-content: start;
   }
 
   .branch-record-head {
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: grid;
+    gap: 10px;
   }
 
   .branch-record-title {
-    margin: 10px 0 0;
+    margin: 0;
     font-size: clamp(1.7rem, 3vw, 2.4rem);
   }
 
   .branch-record-meta {
     margin-top: 0;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .branch-record-summary {
     margin: 0;
     color: var(--muted);
-    line-height: 1.85;
+    line-height: 1.8;
   }
 
   .branch-board-grid {
     display: grid;
     gap: 16px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .branch-board-card {
     min-height: 100%;
-    padding: 20px;
+    padding: 18px;
     border-radius: 22px;
     border: 1px solid rgba(31, 26, 23, 0.08);
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 240, 231, 0.96));
@@ -117,15 +136,15 @@ const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMem
 
   .branch-board-head {
     display: grid;
-    gap: 14px;
-    grid-template-columns: 72px minmax(0, 1fr);
-    align-items: center;
+    gap: 12px;
+    grid-template-columns: 60px minmax(0, 1fr);
+    align-items: start;
   }
 
   .branch-board-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
     object-fit: cover;
     box-shadow: 0 16px 32px rgba(40, 28, 18, 0.12);
   }
@@ -140,23 +159,37 @@ const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMem
   }
 
   .branch-board-copy h3 {
-    margin: 8px 0 6px;
-    font-size: 1.2rem;
+    margin: 8px 0 4px;
+    font-size: 1.08rem;
   }
 
   .branch-board-copy p {
     margin: 0;
     color: var(--muted);
     line-height: 1.7;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  @media (max-width: 1120px) {
+    .branch-board-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 900px) {
-    .branch-record-head,
-    .branch-record-meta {
-      flex-direction: column;
-      align-items: flex-start;
+    .branch-record {
+      grid-template-columns: 1fr;
     }
 
+    .branch-board-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
     .branch-board-grid {
       grid-template-columns: 1fr;
     }

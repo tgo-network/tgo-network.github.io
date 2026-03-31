@@ -726,6 +726,14 @@ textarea {
   color: var(--accent-strong);
   font-size: 0.85rem;
   font-weight: 600;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.site-footer-highlight:hover {
+  transform: translateY(-1px);
+  border-color: rgba(157, 111, 49, 0.28);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--accent-ink);
 }
 
 .site-footer-brand-link {
@@ -737,6 +745,10 @@ textarea {
   margin: 0;
   color: var(--muted);
   line-height: 1.8;
+}
+
+.site-footer-brand p {
+  max-width: 34em;
 }
 
 .site-footer-email {

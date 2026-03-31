@@ -39,7 +39,12 @@ const footerGroups = [
     ]
   }
 ] as const;
-const footerHighlights = ["分会交流", "活动报名", "成员展示", "加入申请"] as const;
+const footerHighlights = [
+  { label: "分会交流", href: "/branches" },
+  { label: "活动报名", href: "/events" },
+  { label: "成员展示", href: "/members" },
+  { label: "加入申请", href: "/join" }
+] as const;
 ---
 
 <!doctype html>
@@ -67,7 +72,7 @@ const footerHighlights = ["分会交流", "活动报名", "成员展示", "加�
             </a>
             <p>{config.footerTagline}</p>
             <div class="site-footer-highlight-row">
-              {footerHighlights.map((item) => <span class="site-footer-highlight">{item}</span>)}
+              {footerHighlights.map((item) => <a class="site-footer-highlight" href={item.href}>{item.label}</a>)}
             </div>
             {
               config.supportEmail && (
