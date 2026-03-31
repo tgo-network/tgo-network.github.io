@@ -479,6 +479,30 @@ describe("admin and internal API integration", () => {
     assert.equal(staleBindings.length, 0);
   });
 
+  test("removes transient verification articles when the seed script reruns", async () => {
+    const transientSlugs = [`auto-article-${randomUUID()}`, `scheduled-smoke-${randomUUID()}`];
+
+    await directDb.insert(articles).values(
+      transientSlugs.map((slug, index) => ({
+        slug,
+        title: `Transient Article ${index + 1}`,
+        excerpt: "This article should be removed when the demo seed reruns.",
+        bodyRichtext: "Transient body",
+        status: index === 0 ? "published" : "draft",
+        publishedAt: index === 0 ? new Date() : null
+      }))
+    );
+
+    await seedDatabase(directDb);
+
+    const remainingTransientArticles = await directDb
+      .select({ slug: articles.slug })
+      .from(articles)
+      .where(inArray(articles.slug, transientSlugs));
+
+    assert.equal(remainingTransientArticles.length, 0);
+  });
+
   test("allows article publishing without legacy topic or city bindings", async () => {
     const superAdmin = await createSignedInUser(["super_admin"]);
     const author = await directDb.query.authors.findFirst();
@@ -830,6 +854,7 @@ describe("public API integration", () => {
 
   test("lists only published content and hides unpublished article detail routes", async () => {
     const hiddenSlug = `draft-hidden-${randomUUID()}`;
+    const transientSlug = `auto-article-${randomUUID()}`;
 
     await directDb.insert(articles).values({
       slug: hiddenSlug,
@@ -837,6 +862,14 @@ describe("public API integration", () => {
       excerpt: "This draft should stay private.",
       bodyRichtext: "Draft body",
       status: "draft"
+    });
+    await directDb.insert(articles).values({
+      slug: transientSlug,
+      title: "Auto Article Hidden From Public",
+      excerpt: "This generated verification article should stay private.",
+      bodyRichtext: "Generated body",
+      status: "published",
+      publishedAt: new Date()
     });
 
     const articleListResult = await requestJson("/api/public/v1/articles");
@@ -853,6 +886,9 @@ describe("public API integration", () => {
     assert.ok(
       articleListResult.payload.data.every((article: { slug: string }) => article.slug !== hiddenSlug)
     );
+    assert.ok(
+      articleListResult.payload.data.every((article: { slug: string }) => article.slug !== transientSlug)
+    );
 
     const visibleDetailResult = await requestJson("/api/public/v1/articles/shipping-an-editorial-platform");
 
@@ -865,9 +901,13 @@ describe("public API integration", () => {
 
     const hiddenDetailResult = await request("/api/public/v1/articles/" + hiddenSlug);
     const hiddenDetailPayload = await getJson(hiddenDetailResult);
+    const transientDetailResult = await request("/api/public/v1/articles/" + transientSlug);
+    const transientDetailPayload = await getJson(transientDetailResult);
 
     assert.equal(hiddenDetailResult.status, 404);
     assert.equal(hiddenDetailPayload.error.code, "NOT_FOUND");
+    assert.equal(transientDetailResult.status, 404);
+    assert.equal(transientDetailPayload.error.code, "NOT_FOUND");
   });
 
   test("retires legacy public routes and supports waitlist registrations", async () => {

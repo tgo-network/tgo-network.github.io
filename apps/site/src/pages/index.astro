@@ -1,8 +1,8 @@
 ---
 import CollectionCard from "../components/CollectionCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { listPublicEditorialArticles } from "../lib/editorial-order";
 import { formatDate, formatDateRange } from "../lib/format";
-import { sortEditorialArticles } from "../lib/editorial-order";
 import { getHomePayload, listMembers } from "../lib/public-api";
 
 const [home, members] = await Promise.all([getHomePayload(), listMembers()]);
@@ -43,36 +43,46 @@ const pickFeaturedMembers = () => {
 };
 
 const featuredMembers = pickFeaturedMembers();
-const featuredArticles = sortEditorialArticles(home.featuredArticles).slice(0, 3);
+const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slice(0, 3);
 
 const heroContent = {
   titleLines: ["面向科技领导者的", "高质量学习社区"],
-  summary: "连接技术、经验与同行关系，形成长期稳定的学习与交流网络。"
+  summary: "TGO 鲲鹏会聚焦有技术背景的科技领导者，通过闭门讨论、公开学习与跨城交流，建立长期稳定的同行网络。",
+  supportingCopy: "围绕技术决策、组织管理与业务协同等真实议题，形成可持续的学习、交流与经验连接。"
 };
 
-const heroAudienceTitle = "适合长期参与的科技领导者";
 const heroAudienceRoles = ["CTO", "技术 VP", "研发负责人", "技术创业者"];
 
-const heroHighlights = ["小组活动与闭门讨论", "公开学习与跨城交流", "长期同行与经验复用"];
-
-const introParagraph =
-  "现代互联网正在形成越来越多的规模性协作社群。TGO 希望围绕有技术背景的科技领导者，建立一个有边界、重质量、能长期同行的社区组织。";
-
-const introHighlights = [
+const heroSupportCards = [
   {
-    label: "组织定位",
-    title: "有边界的技术社群组织",
-    summary: "围绕技术领导者展开长期学习、交流与连接。"
+    label: "适合谁加入",
+    title: "科技领导者与技术创业者",
+    summary: "面向 CTO、技术 VP、研发负责人，以及具备技术背景的创业者。"
   },
   {
-    label: "小组活动",
-    title: "围绕真实议题进行深度交流",
-    summary: "以稳定的小组活动和闭门讨论沉淀经验与判断。"
+    label: "组织形式",
+    title: "小组活动与闭门交流",
+    summary: "围绕真实议题进行小范围讨论，沉淀更有判断力的经验与反馈。"
   },
   {
     label: "公开学习",
-    title: "月度活动连接城市与行业经验",
-    summary: "通过公开学习活动、跨城联动与经验对话扩展组织视野。"
+    title: "跨城活动连接行业经验",
+    summary: "通过专题分享、月度活动与城市联动扩展组织视野。"
+  }
+];
+
+const heroContextItems = [
+  {
+    label: "闭门交流",
+    summary: "围绕真实议题进行更深入的讨论与反馈。"
+  },
+  {
+    label: "跨城活动",
+    summary: "持续连接不同城市与行业的一线经验。"
+  },
+  {
+    label: "长期同行",
+    summary: "建立稳定、可信、可复用的同侪关系。"
   }
 ];
 
@@ -117,7 +127,10 @@ const joinSteps = [
           <h1 aria-label={heroContent.titleLines.join("")}>
             {heroContent.titleLines.map((line) => <span class="hero-title-line">{line}</span>)}
           </h1>
-          <p class="hero-summary">{heroContent.summary}</p>
+          <div class="hero-copy-block">
+            <p class="hero-summary">{heroContent.summary}</p>
+            <p class="hero-supporting-copy">{heroContent.supportingCopy}</p>
+          </div>
 
           <div class="hero-actions">
             {
@@ -128,51 +141,35 @@ const joinSteps = [
               ))
             }
           </div>
+
+          <div class="hero-context-grid" aria-label="社区特点">
+            {
+              heroContextItems.map((item) => (
+                <article class="hero-context-card">
+                  <div class="hero-context-label">{item.label}</div>
+                  <p>{item.summary}</p>
+                </article>
+              ))
+            }
+          </div>
         </div>
 
         <aside class="hero-home-aside">
-          <div class="hero-aside-block">
-            <div class="card-label card-label-on-dark">适合谁加入</div>
-            <h2 class="hero-aside-title">{heroAudienceTitle}</h2>
-            <div class="hero-role-grid" aria-label="适合加入的角色">
-              {heroAudienceRoles.map((role) => <span class="hero-role-chip">{role}</span>)}
-            </div>
-            <p class="hero-aside-copy">围绕技术决策、组织管理与业务协同展开长期交流。</p>
-          </div>
-
-          <ul class="hero-bullet-list">
-            {heroHighlights.map((item) => <li>{item}</li>)}
-          </ul>
-        </aside>
-      </div>
-    </section>
-
-    <section id="intro" class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">TGO 介绍</div>
-          <h2>一个有边界、重质量、能长期同行的科技领导者社区</h2>
-        </div>
-      </div>
-
-      <div class="intro-grid">
-        <article class="panel intro-story-panel">
-          <div class="card-label">组织介绍</div>
-          <h3>通过技术、资源与知识连接彼此</h3>
-          <p>{introParagraph}</p>
-        </article>
-
-        <div class="intro-highlight-stack">
           {
-            introHighlights.map((item) => (
-              <article class="panel intro-highlight-card">
-                <div class="card-label">{item.label}</div>
-                <h3>{item.title}</h3>
-                <p class="card-copy">{item.summary}</p>
+            heroSupportCards.map((item, index) => (
+              <article class:list={["hero-support-card", index === 0 && "hero-support-card-accent"]}>
+                <div class="card-label card-label-on-dark">{item.label}</div>
+                <h3 class="hero-support-title">{item.title}</h3>
+                {index === 0 ? (
+                  <div class="hero-role-grid" aria-label="适合加入的角色">
+                    {heroAudienceRoles.map((role) => <span class="hero-role-chip">{role}</span>)}
+                  </div>
+                ) : null}
+                <p class="hero-aside-copy">{item.summary}</p>
               </article>
             ))
           }
-        </div>
+        </aside>
       </div>
     </section>
 
@@ -342,29 +339,55 @@ const joinSteps = [
   }
 
   .hero-summary {
+    margin: 0;
     max-width: 28em;
     color: rgba(247, 239, 227, 0.82);
     font-size: 1rem;
     line-height: 1.78;
   }
 
+  .hero-copy-block {
+    display: grid;
+    gap: 10px;
+  }
+
+  .hero-supporting-copy {
+    margin: 0;
+    max-width: 32em;
+    color: rgba(247, 239, 227, 0.68);
+    line-height: 1.72;
+  }
+
   .hero-home-aside {
     display: grid;
     gap: 16px;
-    align-self: stretch;
+    align-self: start;
     padding: 20px;
     border-radius: 24px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
     border: 1px solid rgba(215, 179, 117, 0.16);
   }
 
-  .hero-aside-block,
   .join-step-card {
     display: grid;
     gap: 10px;
   }
 
-  .hero-aside-title {
+  .hero-support-card {
+    display: grid;
+    gap: 10px;
+    padding: 18px 18px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(215, 179, 117, 0.1);
+  }
+
+  .hero-support-card-accent {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+    border-color: rgba(215, 179, 117, 0.16);
+  }
+
+  .hero-support-title {
     margin: 6px 0 0;
     font-size: clamp(1.35rem, 2vw, 1.72rem);
     color: #fff7ee;
@@ -372,10 +395,40 @@ const joinSteps = [
   }
 
   .join-step-grid,
-  .testimonial-grid,
-  .intro-highlight-stack {
+  .testimonial-grid {
     display: grid;
     gap: 14px;
+  }
+
+  .hero-context-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 22px;
+  }
+
+  .hero-context-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(215, 179, 117, 0.1);
+  }
+
+  .hero-context-label {
+    color: #f1d5a0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero-context-card p {
+    margin: 0;
+    color: rgba(247, 239, 227, 0.74);
+    line-height: 1.68;
+    font-size: 0.94rem;
   }
 
   .hero-role-grid {
@@ -401,22 +454,6 @@ const joinSteps = [
     line-height: 1.72;
   }
 
-  .hero-bullet-list {
-    display: grid;
-    gap: 0;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    border-top: 1px solid rgba(215, 179, 117, 0.12);
-  }
-
-  .hero-bullet-list li {
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(215, 179, 117, 0.12);
-    color: rgba(247, 239, 227, 0.82);
-    line-height: 1.65;
-  }
-
   .join-step-index {
     color: rgba(215, 179, 117, 0.9);
     font-size: 0.78rem;
@@ -430,49 +467,12 @@ const joinSteps = [
     line-height: 1.7;
   }
 
-  .intro-highlight-card h3,
   .join-step-card h3 {
     margin: 0;
   }
 
-  .intro-grid {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-    align-items: start;
-  }
-
-  .intro-story-panel {
-    display: grid;
-    gap: 12px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-    border-color: rgba(157, 111, 49, 0.14);
-  }
-
-  .intro-story-panel h3,
   .testimonial-quote,
   .join-panel-head h2 {
-    margin: 0;
-  }
-
-  .intro-story-panel p {
-    margin: 0;
-    color: var(--muted);
-    max-width: 34em;
-    line-height: 1.78;
-  }
-
-  .intro-highlight-stack {
-    align-content: start;
-  }
-
-  .intro-highlight-card {
-    display: grid;
-    gap: 8px;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(250, 244, 235, 0.94));
-  }
-
-  .intro-highlight-card .card-copy {
     margin: 0;
   }
 
@@ -605,16 +605,18 @@ const joinSteps = [
 
   @media (max-width: 1100px) {
     .join-step-grid,
-    .testimonial-grid,
-    .intro-grid {
+    .testimonial-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-context-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 900px) {
     .hero-home-card,
-    .testimonial-grid,
-    .intro-grid {
+    .testimonial-grid {
       grid-template-columns: 1fr;
     }
 
@@ -633,8 +635,16 @@ const joinSteps = [
       grid-template-columns: 1fr;
     }
 
+    .hero-context-grid {
+      grid-template-columns: 1fr;
+    }
+
     .hero-home-card h1 {
       width: min(100%, 8.2em);
+    }
+
+    .hero-support-card {
+      padding: 16px;
     }
 
     .hero-role-chip {

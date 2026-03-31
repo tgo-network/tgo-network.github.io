@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDate } from "../../lib/format";
-import { getMember, listMembers } from "../../lib/public-api";
+import { getBranch, getMember, listMembers } from "../../lib/public-api";
 
 export const getStaticPaths = async () => {
   const members = await listMembers();
@@ -15,10 +15,20 @@ export const getStaticPaths = async () => {
 
 const slug = Astro.params.slug!;
 const member = await getMember(slug);
+const branch = member?.branch ? await getBranch(member.branch.slug) : null;
 
 if (!member) {
   throw new Error(`成员不存在：${slug}`);
 }
+
+const branchBodyExcerpt = branch
+  ? branch.body
+      .split(/(?<=[。！？])/u)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+  : "";
 ---
 
 <BaseLayout title={`${member.name} | 成员 | TGO 鲲鹏会`} description={`${member.company} · ${member.title}`}>
@@ -29,7 +39,9 @@ if (!member) {
         <h1>{member.name}</h1>
         <p>{member.company} · {member.title}</p>
       </div>
-      <p class="page-intro-meta">加入时间：{formatDate(member.joinedAt)}</p>
+      <p class="page-intro-meta">
+        {member.branch ? `${member.branch.name} · ` : ""}加入时间：{formatDate(member.joinedAt)}
+      </p>
     </section>
 
     <section class="section member-profile-layout">
@@ -96,6 +108,42 @@ if (!member) {
         </div>
       </aside>
     </section>
+
+    {branch && (
+      <section class="section member-context-grid">
+        <article class="panel prose-panel member-branch-panel">
+          <div class="card-label">所属分会</div>
+          <h2>{branch.name}</h2>
+          <p>{branch.summary}</p>
+          {branchBodyExcerpt && <p>{branchBodyExcerpt}</p>}
+          <ul class="meta-list member-branch-meta">
+            <li>{branch.cityName}</li>
+            <li>{branch.region}</li>
+            <li>{branch.boardMemberCount} 位董事会成员</li>
+          </ul>
+          <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
+        </article>
+
+        <aside class="panel panel-soft member-board-panel">
+          <div>
+            <div class="card-label">董事会成员</div>
+            <h2>与 {member.name} 同属 {branch.name} 的董事会</h2>
+          </div>
+
+          <div class="member-board-list">
+            {
+              branch.boardMembers.slice(0, 4).map((boardMember) => (
+                <article class="member-board-card">
+                  <strong>{boardMember.displayName}</strong>
+                  <span>{boardMember.title}</span>
+                  <small>{boardMember.company}</small>
+                </article>
+              ))
+            }
+          </div>
+        </aside>
+      </section>
+    )}
   </main>
 </BaseLayout>
 
@@ -186,9 +234,57 @@ if (!member) {
     flex-wrap: wrap;
   }
 
+  .member-context-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  }
+
+  .member-branch-panel,
+  .member-board-panel {
+    display: grid;
+    gap: 16px;
+    min-height: 100%;
+  }
+
+  .member-branch-panel h2,
+  .member-board-panel h2 {
+    margin: 0;
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
+  }
+
+  .member-branch-panel p {
+    margin: 0;
+  }
+
+  .member-branch-meta {
+    margin-top: 4px;
+  }
+
+  .member-board-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .member-board-card {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.66);
+  }
+
+  .member-board-card span,
+  .member-board-card small {
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
   @media (max-width: 900px) {
     .member-profile-layout,
-    .member-profile-head {
+    .member-profile-head,
+    .member-context-grid {
       grid-template-columns: 1fr;
     }
   }

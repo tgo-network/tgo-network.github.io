@@ -5,6 +5,13 @@ import { getAboutPage } from "../lib/public-api";
 const page = await getAboutPage();
 const journeySections = page.sections.filter((section) => section.title !== "即刻申请加入 TGO 鲲鹏会");
 const applySection = page.sections.find((section) => section.title === "即刻申请加入 TGO 鲲鹏会");
+const [leadSection, ...otherSections] = journeySections;
+const toSectionId = (title: string) =>
+  title
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\u4e00-\u9fff-]/g, "");
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
@@ -17,37 +24,43 @@ const applySection = page.sections.find((section) => section.title === "即刻�
       </div>
     </section>
 
-    <section class="section about-section-overview">
-      <div class="section-head section-head-stack">
+    <section class="section">
+      <div class="panel about-nav-panel">
         <div>
-          <div class="card-label">活动模块</div>
-          <h2>定义你的 TGO 鲲鹏会之旅</h2>
+          <div class="card-label">内容导览</div>
+          <h2>从组织定位到参与方式，快速了解 TGO 鲲鹏会</h2>
+          <p class="card-copy">围绕组织定位、会员机制、社群连接与活动方式，建立对社区的完整认识。</p>
+        </div>
+
+        <div class="about-nav-links">
+          {journeySections.map((section) => <a class="chip" href={`#${toSectionId(section.title)}`}>{section.title}</a>)}
         </div>
       </div>
+    </section>
 
-      <div class="about-overview-grid">
+    {leadSection && (
+      <section class="section">
+        <article class="panel prose-panel about-lead-card" id={toSectionId(leadSection.title)}>
+          <div class="card-label">核心介绍</div>
+          <h2>{leadSection.title}</h2>
+          {leadSection.body.map((paragraph) => <p>{paragraph}</p>)}
+        </article>
+      </section>
+    )}
+
+    {otherSections.length > 0 && (
+      <section class="section about-content-grid">
         {
-          journeySections.map((section, index) => (
-            <article class="panel about-overview-card">
-              <div class="card-label">{String(index + 1).padStart(2, "0")}</div>
-              <h3>{section.title}</h3>
+          otherSections.map((section) => (
+            <article class="panel prose-panel about-content-card" id={toSectionId(section.title)}>
+              <div class="card-label">关于 TGO</div>
+              <h2>{section.title}</h2>
+              {section.body.map((paragraph) => <p>{paragraph}</p>)}
             </article>
           ))
         }
-      </div>
-    </section>
-
-    <section class="section about-content-grid">
-      {
-        journeySections.map((section) => (
-          <article class="panel prose-panel about-content-card">
-            <div class="card-label">关于 TGO</div>
-            <h2>{section.title}</h2>
-            {section.body.map((paragraph) => <p>{paragraph}</p>)}
-          </article>
-        ))
-      }
-    </section>
+      </section>
+    )}
 
     {applySection && (
       <section class="section">
@@ -73,38 +86,42 @@ const applySection = page.sections.find((section) => section.title === "即刻�
     padding-bottom: 16px;
   }
 
-  .about-section-overview {
-    display: grid;
-    gap: 18px;
-  }
-
-  .about-overview-grid,
+  .about-nav-panel,
   .about-content-grid {
     display: grid;
     gap: 18px;
   }
 
-  .about-overview-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .about-nav-panel {
+    background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
   }
 
-  .about-overview-card,
-  .about-content-card {
-    min-height: 100%;
-  }
-
-  .about-overview-card h3,
+  .about-nav-panel h2,
+  .about-lead-card h2,
   .about-content-card h2,
   .about-apply-panel h2 {
     margin: 10px 0 0;
+  }
+
+  .about-nav-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .about-content-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .about-lead-card {
+    padding: clamp(24px, 3vw, 34px);
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.98), rgba(247, 241, 232, 0.96));
+    border-color: rgba(157, 111, 49, 0.12);
+  }
+
   .about-content-card {
     padding: clamp(22px, 3vw, 30px);
+    min-height: 100%;
   }
 
   .about-apply-panel {
@@ -123,7 +140,6 @@ const applySection = page.sections.find((section) => section.title === "即刻�
   }
 
   @media (max-width: 900px) {
-    .about-overview-grid,
     .about-content-grid,
     .about-apply-panel {
       grid-template-columns: 1fr;

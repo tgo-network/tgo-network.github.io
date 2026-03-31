@@ -1,10 +1,10 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { sortEditorialArticles } from "../../lib/editorial-order";
+import { listPublicEditorialArticles } from "../../lib/editorial-order";
 import { formatDate } from "../../lib/format";
 import { listArticles } from "../../lib/public-api";
 
-const articles = sortEditorialArticles(await listArticles());
+const articles = listPublicEditorialArticles(await listArticles());
 
 const [leadArticle, ...otherArticles] = articles;
 ---

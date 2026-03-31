@@ -1,17 +1,13 @@
-import type { PublicArticleSummaryV2 } from "@tgo/shared";
+import { isVisiblePublicArticleSummary, type PublicArticleSummaryV2 } from "@tgo/shared";
 
-const hasChineseContent = (value: string) => /[\u3400-\u9fff]/u.test(value);
+export const isGeneratedEditorialArticle = (article: PublicArticleSummaryV2) => !isVisiblePublicArticleSummary(article);
 
-const looksGeneratedArticle = (article: PublicArticleSummaryV2) => {
-  const combinedText = [article.title, article.excerpt, article.authorName].join(" ");
-
-  return article.slug.startsWith("auto-article-") || !hasChineseContent(combinedText);
-};
+export const isPublicEditorialArticle = (article: PublicArticleSummaryV2) => !isGeneratedEditorialArticle(article);
 
 export const sortEditorialArticles = (articles: PublicArticleSummaryV2[]) =>
   [...articles].sort((left, right) => {
-    const leftGenerated = looksGeneratedArticle(left);
-    const rightGenerated = looksGeneratedArticle(right);
+    const leftGenerated = isGeneratedEditorialArticle(left);
+    const rightGenerated = isGeneratedEditorialArticle(right);
 
     if (leftGenerated !== rightGenerated) {
       return leftGenerated ? 1 : -1;
@@ -26,3 +22,6 @@ export const sortEditorialArticles = (articles: PublicArticleSummaryV2[]) =>
 
     return left.title.localeCompare(right.title, "zh-CN");
   });
+
+export const listPublicEditorialArticles = (articles: PublicArticleSummaryV2[]) =>
+  sortEditorialArticles(articles).filter((article) => isPublicEditorialArticle(article));

@@ -35,9 +35,11 @@ import type {
 import {
   aboutPagePayload,
   branchDetails,
+  filterVisiblePublicArticleSummaries,
   getMemberDetail,
   getPublicArticleDetailV2,
   getPublicEventDetailV2,
+  isTransientPublicArticleSlug,
   joinPagePayload,
   memberSummaries,
   publicArticleSummariesV2,
@@ -145,7 +147,8 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
   const assetById = new Map(assetRows.map((row) => [row.id, row]));
   const branchById = new Map(branchRows.map((row) => [row.id, row]));
 
-  return articleRows.map((article) => {
+  return articleRows
+    .map((article) => {
     const author = article.authorId ? authorById.get(article.authorId) : null;
     const branch = article.branchId ? branchById.get(article.branchId) ?? null : null;
 
@@ -161,7 +164,8 @@ const listPublishedArticleSummariesFromDb = async (): Promise<Array<{ id: string
         branch: toBranchReference(branch)
       }
     };
-  });
+    })
+    .filter((row) => filterVisiblePublicArticleSummaries([row.summary]).length > 0);
 };
 
 const listPublishedBranchSummariesFromDb = async (): Promise<Array<{ id: string; summary: BranchSummary }> | undefined> => {
@@ -374,6 +378,10 @@ export const getArticleDetailV2FromDb = async (slug: string): Promise<PublicArti
   });
 
   if (!article) {
+    return null;
+  }
+
+  if (isTransientPublicArticleSlug(article.slug)) {
     return null;
   }
 
@@ -595,6 +603,18 @@ export const getHomePayloadV2FromDb = async (): Promise<PublicHomePayloadV2 | un
   const articleById = new Map(articleRows.map((row) => [row.id, row.summary]));
   const eventById = new Map(eventRows.map((row) => [row.id, row.summary]));
   const branchById = new Map(branchRows.map((row) => [row.id, row.summary]));
+  const fallbackFeaturedArticles = articleRows.map((row) => row.summary).slice(0, 3);
+  const fallbackFeaturedEvents = eventRows.map((row) => row.summary).slice(0, 3);
+  const fallbackBranchHighlights = branchRows.map((row) => row.summary).slice(0, 3);
+  const featuredArticles = featuredArticleIds
+    .map((id) => articleById.get(id))
+    .filter((value): value is PublicArticleSummaryV2 => Boolean(value));
+  const featuredEvents = featuredEventIds
+    .map((id) => eventById.get(id))
+    .filter((value): value is PublicEventSummaryV2 => Boolean(value));
+  const branchHighlights = branchHighlightIds
+    .map((id) => branchById.get(id))
+    .filter((value): value is BranchSummary => Boolean(value));
   const metrics = Array.isArray(payload.metrics)
     ? payload.metrics
         .filter((item): item is { label?: string; value?: string; description?: string } => typeof item === "object" && item !== null)
@@ -633,11 +653,9 @@ export const getHomePayloadV2FromDb = async (): Promise<PublicHomePayloadV2 | un
         : publicHomePayloadV2.audience.items
     },
     metrics: metrics.length > 0 ? metrics : publicHomePayloadV2.metrics,
-    featuredArticles: featuredArticleIds
-      .map((id) => articleById.get(id))
-      .filter((value): value is PublicArticleSummaryV2 => Boolean(value)),
-    featuredEvents: featuredEventIds.map((id) => eventById.get(id)).filter((value): value is PublicEventSummaryV2 => Boolean(value)),
-    branchHighlights: branchHighlightIds.map((id) => branchById.get(id)).filter((value): value is BranchSummary => Boolean(value)),
+    featuredArticles: featuredArticles.length > 0 ? featuredArticles : fallbackFeaturedArticles,
+    featuredEvents: featuredEvents.length > 0 ? featuredEvents : fallbackFeaturedEvents,
+    branchHighlights: branchHighlights.length > 0 ? branchHighlights : fallbackBranchHighlights,
     joinCallout: {
       title: typeof payload.joinTitle === "string" && payload.joinTitle.trim().length > 0 ? payload.joinTitle : publicHomePayloadV2.joinCallout.title,
       summary: typeof payload.joinSummary === "string" && payload.joinSummary.trim().length > 0 ? payload.joinSummary : publicHomePayloadV2.joinCallout.summary,

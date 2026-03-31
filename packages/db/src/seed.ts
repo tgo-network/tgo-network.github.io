@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 
-import { count, eq, inArray, sql } from "drizzle-orm";
+import { count, eq, inArray, like, or, sql } from "drizzle-orm";
 
 import {
   aboutPagePayload,
@@ -10,7 +10,8 @@ import {
   platformName,
   publicArticleDetailsV2,
   publicEventDetailsV2,
-  publicHomePayloadV2
+  publicHomePayloadV2,
+  transientPublicArticleSlugPrefixes
 } from "@tgo/shared";
 
 import { createDb, type Database } from "./client.js";
@@ -287,6 +288,11 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
 
   const authorRows = await db.select().from(authors);
   const authorIdByName = new Map(authorRows.map((row) => [row.displayName, row.id]));
+
+  // Clean up transient verification articles so local bootstrap reruns do not keep admin/test residue.
+  await db
+    .delete(articles)
+    .where(or(...transientPublicArticleSlugPrefixes.map((prefix) => like(articles.slug, `${prefix}%`))));
 
   await db
     .insert(articles)
