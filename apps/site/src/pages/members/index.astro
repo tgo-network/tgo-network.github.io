@@ -22,479 +22,347 @@ const members = (await listMembers()).slice().sort((left, right) => {
   return rightTime - leftTime || left.name.localeCompare(right.name, "zh-CN");
 });
 
-const uniqueBranches = Array.from(
-  new Set(members.map((member) => member.branch?.name).filter((value): value is string => Boolean(value)))
+const pageSize = 48;
+const cityOptions = Array.from(new Set(members.map((member) => member.branch?.cityName || "未标注分会"))).sort((left, right) =>
+  left.localeCompare(right, "zh-CN")
 );
-const uniqueCities = Array.from(
-  new Set(members.map((member) => member.branch?.cityName).filter((value): value is string => Boolean(value)))
-);
-const uniqueCompanies = Array.from(new Set(members.map((member) => member.company))).length;
-const recentMembers = members.slice(0, 3);
-
-const branchNetworkMap = new Map<
-  string,
-  {
-    slug: string | null;
-    name: string;
-    cityName: string;
-    count: number;
-    companySet: Set<string>;
-    members: typeof members;
-    latestJoinedAt: string;
-  }
->();
-
-members.forEach((member) => {
-  const key = member.branch?.slug ?? `unknown-${member.company}`;
-  const current = branchNetworkMap.get(key) ?? {
-    slug: member.branch?.slug ?? null,
-    name: member.branch?.name ?? "待补充分会",
-    cityName: member.branch?.cityName ?? "城市待补充",
-    count: 0,
-    companySet: new Set<string>(),
-    members: [] as typeof members,
-    latestJoinedAt: member.joinedAt
-  };
-
-  current.count += 1;
-  current.companySet.add(member.company);
-  current.members.push(member);
-
-  if (Date.parse(member.joinedAt) > Date.parse(current.latestJoinedAt)) {
-    current.latestJoinedAt = member.joinedAt;
-  }
-
-  branchNetworkMap.set(key, current);
-});
-
-const branchNetwork = Array.from(branchNetworkMap.values())
-  .map(({ companySet, members: groupedMembers, ...entry }) => ({
-    ...entry,
-    companyCount: companySet.size,
-    members: groupedMembers.slice(0, 3)
-  }))
-  .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name, "zh-CN"));
-
-const browseGuides = [
-  {
-    label: "先看分会",
-    title: "先从城市节点理解成员网络",
-    summary: "成员并不是孤立名片，而是分布在不同分会中的真实技术管理者。"
-  },
-  {
-    label: "再看角色",
-    title: "再看公司与技术管理职责",
-    summary: "公开资料会帮助访客快速理解社区覆盖了哪些公司、岗位与技术方向。"
-  },
-  {
-    label: "最后深入",
-    title: "进入成员详情继续理解参与方式",
-    summary: "单个成员页会继续解释其组织位置、参与路径，以及与分会和活动的关系。"
-  }
-];
+const initialMembers = members.slice(0, pageSize);
 ---
 
-<BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员的公开资料。">
+<BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员资料。">
   <main class="page-shell page-stack">
-    <section class="hero">
-      <div class="hero-card member-hero-card">
-        <div class="member-hero-main">
-          <span class="eyebrow">成员列表</span>
-          <h1>来自不同公司与城市分会的技术领导者</h1>
-          <p>
-            当前页面的重点不是把成员堆成名片墙，而是帮助访客看见一个真实存在的成员网络：
-            这些成员来自不同城市、不同公司，也通过分会活动与长期交流被组织在一起。
-          </p>
-
-          <div class="hero-actions">
-            <a class="button primary" href="/branches">先看分会结构</a>
-            <a class="button secondary" href="/join">了解加入方式</a>
-          </div>
-        </div>
-
-        <aside class="member-hero-aside">
-          <div class="member-hero-metrics" aria-label="成员网络概览">
-            <article>
-              <strong>{members.length}</strong>
-              <span>公开成员</span>
-            </article>
-            <article>
-              <strong>{uniqueBranches.length}</strong>
-              <span>覆盖分会</span>
-            </article>
-            <article>
-              <strong>{uniqueCompanies}</strong>
-              <span>所在公司</span>
-            </article>
-          </div>
-
-          <div class="member-hero-recent">
-            <div class="card-label card-label-on-dark">最近加入</div>
-            <ul>
-              {
-                recentMembers.map((member) => (
-                  <li>
-                    <strong>{member.name}</strong>
-                    <span>{member.branch?.name ?? "成员网络"}</span>
-                    <em>{formatDate(member.joinedAt)}</em>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
-        </aside>
+    <section class="page-intro">
+      <div class="page-intro-copy">
+        <div class="card-label">成员列表</div>
+        <h1>TGO 鲲鹏会成员</h1>
+        <p>展示成员的头像、姓名、公司、职务与加入时间，支持按城市分会筛选与分页浏览。</p>
       </div>
+      <p class="page-intro-meta">{members.length} 位成员</p>
     </section>
 
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">浏览建议</div>
-          <h2>把这页当作组织网络入口，而不是简单的人物目录</h2>
+    <section class="section member-directory-section">
+      <div class="member-toolbar">
+        <div class="filter-bar" data-member-filters>
+          <button class="filter-chip is-active" type="button" data-member-city="all">全部成员</button>
+          {
+            cityOptions.map((city) => (
+              <button class="filter-chip" type="button" data-member-city={city}>
+                {city}
+              </button>
+            ))
+          }
         </div>
+        <p class="results-summary" data-member-summary>
+          第 1 / {Math.max(1, Math.ceil(members.length / pageSize))} 页，当前显示 {initialMembers.length} 位，共 {members.length} 位
+        </p>
       </div>
 
-      <div class="member-guide-grid">
+      <div class="member-directory-grid" data-member-grid>
         {
-          browseGuides.map((item) => (
-            <article class="panel member-guide-card">
-              <div class="card-label">{item.label}</div>
-              <h3>{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">分会覆盖</div>
-          <h2>成员分布在不同城市节点与技术团队之中</h2>
-        </div>
-        <p class="section-note">先看分会与城市分布，再进入具体成员资料，会更容易理解这个社区是如何被组织起来的。</p>
-      </div>
-
-      <div class="member-branch-grid">
-        {
-          branchNetwork.map((branch) => (
-            <a class="panel member-branch-card" href={branch.slug ? `/branches#${branch.slug}` : "/branches"}>
-              <div class="card-label">{branch.cityName}</div>
-              <h3>{branch.name}</h3>
-              <p class="card-copy">当前公开可见 {branch.count} 位成员，覆盖 {branch.companyCount} 家公司。</p>
-              <ul class="meta-list">
-                <li>最近加入：{formatDate(branch.latestJoinedAt)}</li>
-                <li>{branch.count} 位公开成员</li>
-              </ul>
-            </a>
-          ))
-        }
-      </div>
-
-      <div class="member-chip-row" aria-label="覆盖城市">
-        {uniqueCities.map((city) => <span class="member-chip">{city}</span>)}
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">成员列表</div>
-          <h2>继续进入具体成员资料</h2>
-        </div>
-        <p class="section-note">成员详情页会继续说明其组织位置、加入时间，以及与分会、活动和加入流程的关系。</p>
-      </div>
-
-      <div class="member-grid">
-        {
-          members.map((member) => (
-            <a class="panel member-card" href={`/members/${member.slug}`}>
-              <div class="member-card-head">
+          initialMembers.map((member) => (
+            <a class="panel member-directory-card" href={`/members/${member.slug}`}>
+              <div class="member-directory-head">
                 {
                   member.avatar ? (
-                    <img class="member-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                    <img class="member-directory-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
                   ) : (
-                    <div class="member-avatar member-avatar-fallback" aria-hidden="true">
+                    <div class="member-directory-avatar member-directory-avatar-fallback" aria-hidden="true">
                       {member.name.slice(0, 1)}
                     </div>
                   )
                 }
 
                 <div>
-                  <div class="card-label">{member.branch?.name ?? "成员"}</div>
-                  <h2 class="member-name">{member.name}</h2>
-                  <p class="member-company">{member.company}</p>
+                  <div class="card-label">{member.branch?.cityName ?? "未标注分会"}</div>
+                  <h2>{member.name}</h2>
+                  <p class="member-directory-company">{member.company}</p>
                 </div>
               </div>
 
-              <p class="member-title">{member.title}</p>
+              <p class="member-directory-title">{member.title}</p>
 
-              <ul class="meta-list member-meta-list">
-                {member.branch?.cityName && <li>{member.branch.cityName}</li>}
+              <ul class="meta-list member-directory-meta">
+                <li>{member.branch?.name ?? "成员"}</li>
                 <li>{formatDate(member.joinedAt)}</li>
               </ul>
-
-              <span class="text-link">查看成员详情</span>
             </a>
           ))
         }
       </div>
-    </section>
 
-    <section class="section">
-      <div class="panel member-cta-panel">
-        <div>
-          <div class="card-label">继续浏览</div>
-          <h2>如果你想继续理解这个社区，下一步建议看这些页面</h2>
-          <p class="card-copy">
-            分会页帮助你理解城市组织结构，活动页帮助你理解社区的公开入口，而加入申请页则承接真正的转化动作。
-          </p>
-        </div>
-        <div class="member-cta-actions">
-          <a class="button primary" href="/branches">浏览分会董事会</a>
-          <a class="button secondary" href="/events">查看活动</a>
-          <a class="button secondary" href="/join">加入申请</a>
-        </div>
+      <div class="panel panel-soft empty-state" data-member-empty hidden={initialMembers.length > 0}>
+        <div class="card-label">暂无结果</div>
+        <p class="card-copy">当前筛选条件下没有可显示的成员，请切换其他城市继续查看。</p>
+      </div>
+
+      <div class="pagination-bar">
+        <button class="button secondary pagination-button" type="button" data-member-prev disabled>
+          上一页
+        </button>
+        <span class="pagination-indicator" data-member-page>第 1 / {Math.max(1, Math.ceil(members.length / pageSize))} 页</span>
+        <button
+          class="button secondary pagination-button"
+          type="button"
+          data-member-next
+          disabled={members.length <= pageSize}
+        >
+          下一页
+        </button>
       </div>
     </section>
   </main>
+
+  <script define:vars={{ initialMembers: members, pageSize }} is:inline>
+    const members = Array.isArray(initialMembers) ? initialMembers : [];
+    const memberGrid = document.querySelector("[data-member-grid]");
+    const memberEmpty = document.querySelector("[data-member-empty]");
+    const memberSummary = document.querySelector("[data-member-summary]");
+    const memberPage = document.querySelector("[data-member-page]");
+    const prevButton = document.querySelector("[data-member-prev]");
+    const nextButton = document.querySelector("[data-member-next]");
+    const filterRoot = document.querySelector("[data-member-filters]");
+    const filterButtons = filterRoot instanceof HTMLElement ? Array.from(filterRoot.querySelectorAll("[data-member-city]")) : [];
+
+    let currentCity = "all";
+    let currentPage = 1;
+
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const formatDate = (value) => {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return "时间待补充";
+      }
+
+      return new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric"
+      }).format(date);
+    };
+
+    const getMemberCity = (member) => member.branch?.cityName || "未标注分会";
+    const getMemberBranch = (member) => member.branch?.name || "成员";
+
+    const renderCard = (member) => {
+      const avatar = member.avatar
+        ? `<img class="member-directory-avatar" src="${escapeHtml(member.avatar.url)}" alt="${escapeHtml(member.avatar.alt)}" loading="lazy" />`
+        : `<div class="member-directory-avatar member-directory-avatar-fallback" aria-hidden="true">${escapeHtml((member.name || "成").slice(0, 1))}</div>`;
+
+      return `
+        <a class="panel member-directory-card" href="/members/${encodeURIComponent(member.slug)}">
+          <div class="member-directory-head">
+            ${avatar}
+            <div>
+              <div class="card-label">${escapeHtml(getMemberCity(member))}</div>
+              <h2>${escapeHtml(member.name)}</h2>
+              <p class="member-directory-company">${escapeHtml(member.company)}</p>
+            </div>
+          </div>
+          <p class="member-directory-title">${escapeHtml(member.title)}</p>
+          <ul class="meta-list member-directory-meta">
+            <li>${escapeHtml(getMemberBranch(member))}</li>
+            <li>${escapeHtml(formatDate(member.joinedAt))}</li>
+          </ul>
+        </a>
+      `;
+    };
+
+    const syncFilters = () => {
+      filterButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.memberCity === currentCity);
+      });
+    };
+
+    const getFilteredMembers = () => {
+      if (currentCity === "all") {
+        return members;
+      }
+
+      return members.filter((member) => getMemberCity(member) === currentCity);
+    };
+
+    const render = () => {
+      if (!(memberGrid instanceof HTMLElement) || !(memberEmpty instanceof HTMLElement)) {
+        return;
+      }
+
+      const filteredMembers = getFilteredMembers();
+      const pageCount = Math.max(1, Math.ceil(filteredMembers.length / pageSize));
+      currentPage = Math.min(currentPage, pageCount);
+      const start = (currentPage - 1) * pageSize;
+      const pageItems = filteredMembers.slice(start, start + pageSize);
+
+      memberGrid.innerHTML = pageItems.map((member) => renderCard(member)).join("");
+      memberEmpty.hidden = pageItems.length > 0;
+
+      if (memberSummary instanceof HTMLElement) {
+        memberSummary.textContent = `第 ${currentPage} / ${pageCount} 页，当前显示 ${pageItems.length} 位，共 ${filteredMembers.length} 位`;
+      }
+
+      if (memberPage instanceof HTMLElement) {
+        memberPage.textContent = `第 ${currentPage} / ${pageCount} 页`;
+      }
+
+      if (prevButton instanceof HTMLButtonElement) {
+        prevButton.disabled = currentPage <= 1;
+      }
+
+      if (nextButton instanceof HTMLButtonElement) {
+        nextButton.disabled = currentPage >= pageCount;
+      }
+    };
+
+    syncFilters();
+    render();
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentCity = button.dataset.memberCity || "all";
+        currentPage = 1;
+        syncFilters();
+        render();
+      });
+    });
+
+    prevButton?.addEventListener("click", () => {
+      if (currentPage <= 1) {
+        return;
+      }
+
+      currentPage -= 1;
+      render();
+    });
+
+    nextButton?.addEventListener("click", () => {
+      currentPage += 1;
+      render();
+    });
+  </script>
 </BaseLayout>
 
 <style>
-  .member-hero-card {
-    display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-    background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
-      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-  }
-
-  .member-hero-main p {
-    max-width: 58ch;
-  }
-
-  .member-hero-aside,
-  .member-hero-metrics,
-  .member-guide-grid,
-  .member-branch-grid {
+  .member-directory-section {
     display: grid;
     gap: 18px;
   }
 
-  .member-hero-aside {
-    align-content: start;
-  }
-
-  .member-hero-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .member-hero-metrics article,
-  .member-guide-card,
-  .member-branch-card {
-    min-height: 100%;
-  }
-
-  .member-hero-metrics article {
-    display: grid;
-    gap: 4px;
-    padding: 18px 14px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    text-align: center;
-  }
-
-  .member-hero-metrics strong {
-    font-family: var(--font-display);
-    font-size: 1.7rem;
-  }
-
-  .member-hero-metrics span {
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  .member-hero-recent {
+  .member-toolbar {
     display: grid;
     gap: 14px;
-    padding: 22px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #1b1815 0%, #26211c 100%);
-    color: #f8f1e8;
-    box-shadow: var(--shadow-strong);
   }
 
-  .member-hero-recent ul {
-    display: grid;
-    gap: 12px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .member-hero-recent li {
-    display: grid;
-    gap: 4px;
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(215, 179, 117, 0.12);
-  }
-
-  .member-hero-recent strong {
-    color: #fff7ef;
-  }
-
-  .member-hero-recent span,
-  .member-hero-recent em {
-    color: rgba(248, 241, 232, 0.72);
-    font-style: normal;
-  }
-
-  .member-guide-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .member-guide-card {
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.94), rgba(248, 242, 232, 0.96));
-  }
-
-  .member-guide-card h3,
-  .member-branch-card h3,
-  .member-cta-panel h2 {
-    margin: 12px 0 10px;
-  }
-
-  .member-branch-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .member-branch-card {
-    display: grid;
-    gap: 12px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-    transition: transform 180ms ease, border-color 180ms ease;
-  }
-
-  .member-branch-card:hover,
-  .member-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.24);
-  }
-
-  .member-chip-row {
+  .filter-bar {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 18px;
   }
 
-  .member-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px;
-    padding: 0 14px;
+  .filter-chip {
+    padding: 10px 16px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    color: var(--muted);
+    border: 1px solid rgba(31, 26, 23, 0.1);
+    background: rgba(255, 255, 255, 0.84);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
   }
 
-  .member-grid {
+  .filter-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157, 111, 49, 0.32);
+  }
+
+  .filter-chip.is-active {
+    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.92));
+    border-color: transparent;
+    color: #fff7ef;
+  }
+
+  .results-summary {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .member-directory-grid {
     display: grid;
     gap: 18px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .member-card {
+  .member-directory-card {
     display: grid;
     gap: 18px;
     min-height: 100%;
-    transition: transform 180ms ease, border-color 180ms ease;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
-  .member-card-head {
-    display: flex;
-    gap: 16px;
+  .member-directory-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 111, 49, 0.24);
+    box-shadow: 0 24px 42px rgba(40, 28, 18, 0.12);
+  }
+
+  .member-directory-head {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 76px minmax(0, 1fr);
     align-items: center;
   }
 
-  .member-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+  .member-directory-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
     object-fit: cover;
-    flex: 0 0 auto;
-    background: rgba(31, 26, 23, 0.08);
+    box-shadow: 0 14px 28px rgba(40, 28, 18, 0.12);
   }
 
-  .member-avatar-fallback {
-    display: inline-grid;
+  .member-directory-avatar-fallback {
+    display: grid;
     place-items: center;
+    background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
     color: #fff7ef;
-    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.9));
-    font-weight: 700;
-    font-size: 1.3rem;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
   }
 
-  .member-name {
-    margin: 10px 0 8px;
-    font-size: 1.35rem;
+  .member-directory-head h2 {
+    margin: 8px 0 6px;
+    font-size: 1.24rem;
   }
 
-  .member-company,
-  .member-title {
+  .member-directory-company,
+  .member-directory-title {
     margin: 0;
     color: var(--muted);
     line-height: 1.7;
   }
 
-  .member-title {
+  .member-directory-title {
     min-height: 3.4em;
   }
 
-  .member-meta-list {
-    margin-top: auto;
+  .member-directory-meta {
+    margin-top: 0;
   }
 
-  .member-card .text-link {
-    font-weight: 600;
-  }
-
-  .member-cta-panel {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
-    align-items: center;
-    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.94));
-  }
-
-  .member-cta-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 980px) {
-    .member-hero-card,
-    .member-guide-grid,
-    .member-branch-grid,
-    .member-grid,
-    .member-cta-panel {
-      grid-template-columns: 1fr;
-    }
-
-    .member-cta-actions {
-      justify-content: flex-start;
+  @media (max-width: 1000px) {
+    .member-directory-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 720px) {
-    .member-hero-metrics {
+    .member-directory-grid {
       grid-template-columns: 1fr;
     }
   }

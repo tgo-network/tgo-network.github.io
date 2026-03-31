@@ -25,25 +25,25 @@ const participationFormats = [
 
 const applicationTips = [
   "尽量写清当前负责的技术管理工作。",
-  "说明你希望加入后的参与方式与交流诉求。",
-  "留下便于联系的手机号与微信号。"
+  "写明希望参与的交流方向与加入诉求。",
+  "留下常用手机号与微信号。"
 ];
 
 const decisionCards = [
   {
-    label: "组织匹配",
-    title: "先确认你是否认同这种长期社区方式",
-    summary: "这里更适合愿意持续参与同侪交流、而不是只寻找一次性活动机会的人。"
+    label: "组织定位",
+    title: "面向愿意长期参与的技术领导者",
+    summary: "更适合愿意持续参与同侪交流、分会活动与长期连接的人。"
   },
   {
-    label: "参与预期",
-    title: "加入之后仍以真实交流和活动参与为核心",
-    summary: "成员权益不只是信息获取，更来自分会活动、私密交流与跨城市连接。"
+    label: "参与方式",
+    title: "以分会活动、私密交流与跨城连接为核心",
+    summary: "加入后的主要参与方式来自长期交流、专题活动与同侪连接。"
   },
   {
     label: "审核机制",
-    title: "提交申请后会进入工作人员后台继续审核",
-    summary: "当前申请不是即时加入，而是由工作人员审核、联系并推进后续安排。"
+    title: "提交申请后由工作人员审核",
+    summary: "申请提交后会进入审核流程，由工作人员联系并推进后续安排。"
   }
 ];
 
@@ -51,7 +51,7 @@ const postSubmitSteps = [
   {
     step: "01",
     title: "进入后台审核",
-    summary: "申请资料会先进入工作人员后台，进入待处理队列。"
+    summary: "申请资料会先进入审核队列。"
   },
   {
     step: "02",
@@ -61,7 +61,7 @@ const postSubmitSteps = [
   {
     step: "03",
     title: "确认参与方式",
-    summary: "在理解背景与诉求后，再进入后续分会安排或继续跟进。"
+    summary: "根据沟通结果进入后续分会安排。"
   }
 ];
 ---
@@ -77,17 +77,14 @@ const postSubmitSteps = [
 
           <div class="hero-actions">
             <a class="button primary" href="#application-form">填写申请表</a>
-            <a class="button secondary" href="#conditions">先看加入说明</a>
+            <a class="button secondary" href="#conditions">查看加入条件</a>
           </div>
         </div>
 
         <aside class="join-hero-aside">
           <div>
             <div class="card-label card-label-on-dark">如何开始</div>
-            <h2>先理解定位，再提交申请</h2>
-            <p>
-              这不是一个单纯填写表单的页面，而是先帮助访客理解：这个组织适合谁、提供什么价值，以及申请后会发生什么。
-            </p>
+            <h2>申请流程</h2>
           </div>
 
           <ol class="join-step-list">
@@ -101,8 +98,7 @@ const postSubmitSteps = [
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">申请前确认</div>
-          <h2>先确认这三件事，再进入正式申请</h2>
-          <p class="section-note">这里先校准组织匹配度、参与预期与审核方式，避免把加入申请误解成一个即时通过的表单动作。</p>
+          <h2>加入前请了解以下三项信息</h2>
         </div>
       </div>
 
@@ -122,9 +118,8 @@ const postSubmitSteps = [
     <section id="conditions" class="section">
       <div class="section-head section-head-stack">
         <div>
-          <div class="card-label">加入说明</div>
-          <h2>先确认你是否适合当前阶段的组织定位</h2>
-          <p class="section-note">加入说明同时覆盖条件、成员权益与审核流程，帮助访客在填写资料前先建立完整预期。</p>
+          <div class="card-label">加入条件</div>
+          <h2>加入条件、成员权益与审核流程</h2>
         </div>
       </div>
 
@@ -157,7 +152,6 @@ const postSubmitSteps = [
         <div>
           <div class="card-label">参与形式</div>
           <h2>加入之后，你更可能参与的是这些连接方式</h2>
-          <p class="section-note">这些活动并不是平行罗列的栏目，而是同一套社区连接方式在不同场景下的具体表现。</p>
         </div>
       </div>
 
@@ -191,7 +185,7 @@ const postSubmitSteps = [
       <aside class="panel panel-soft stack-sm join-side-panel">
         <div>
           <div class="card-label">提交后会发生什么</div>
-          <p class="card-copy">申请资料会进入工作人员后台，由工作人员审核、联系并持续跟进后续流程。</p>
+          <p class="card-copy">申请资料提交后会进入审核流程，由工作人员审核并联系你。</p>
         </div>
         <div>
           <div class="card-label">填写建议</div>
@@ -268,14 +262,14 @@ const postSubmitSteps = [
           <ul class="meta-list vertical-list">
             <li>非成员可以直接提交加入申请。</li>
             <li>成员与工作人员是两套独立身份体系。</li>
-            <li>当前阶段成员不需要登录即可查看前台公开内容。</li>
+            <li>站点内容与活动信息可直接浏览。</li>
           </ul>
         </div>
 
         <div>
-          <div class="card-label">联系预期</div>
+          <div class="card-label">联系安排</div>
           <p class="card-copy">
-            如果你的申请进入后续沟通，工作人员会基于分会安排与你继续联系，确认背景、诉求与适合的参与方式。
+            如进入后续沟通阶段，工作人员会根据分会安排与你联系，并确认后续参与方式。
           </p>
         </div>
       </aside>

@@ -2,151 +2,122 @@
 import CollectionCard from "../components/CollectionCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { formatDate, formatDateRange } from "../lib/format";
-import { getHomePayload, listArticles, listBranches, listEvents, listMembers } from "../lib/public-api";
+import { sortEditorialArticles } from "../lib/editorial-order";
+import { getHomePayload, listMembers } from "../lib/public-api";
 
-const [home, branches, members, articles, events] = await Promise.all([
-  getHomePayload(),
-  listBranches(),
-  listMembers(),
-  listArticles(),
-  listEvents()
-]);
-const featuredMembers = members.slice(0, 4);
+const [home, members] = await Promise.all([getHomePayload(), listMembers()]);
 
-const networkStats = [
+const pickFeaturedMembers = () => {
+  const featured = [] as typeof members;
+  const usedCities = new Set<string>();
+
+  for (const member of members) {
+    const cityName = member.branch?.cityName ?? "";
+    const hasRichProfile = member.company !== "暂未公开" || member.title !== "成员";
+
+    if (!hasRichProfile || !cityName || usedCities.has(cityName)) {
+      continue;
+    }
+
+    featured.push(member);
+    usedCities.add(cityName);
+
+    if (featured.length >= 3) {
+      return featured;
+    }
+  }
+
+  for (const member of members) {
+    if (featured.find((item) => item.slug === member.slug)) {
+      continue;
+    }
+
+    featured.push(member);
+
+    if (featured.length >= 3) {
+      break;
+    }
+  }
+
+  return featured;
+};
+
+const featuredMembers = pickFeaturedMembers();
+const featuredArticles = sortEditorialArticles(home.featuredArticles).slice(0, 3);
+
+const heroContent = {
+  titleLines: ["面向科技领导者的", "高质量学习社区"],
+  summary: "连接技术、经验与同行关系，形成长期稳定的学习与交流网络。"
+};
+
+const heroAudienceTitle = "适合长期参与的科技领导者";
+const heroAudienceRoles = ["CTO", "技术 VP", "研发负责人", "技术创业者"];
+
+const heroHighlights = ["小组活动与闭门讨论", "公开学习与跨城交流", "长期同行与经验复用"];
+
+const introParagraph =
+  "现代互联网正在形成越来越多的规模性协作社群。TGO 希望围绕有技术背景的科技领导者，建立一个有边界、重质量、能长期同行的社区组织。";
+
+const introHighlights = [
   {
-    label: "重点分会",
-    value: String(branches.length),
-    description: "以城市节点组织长期交流"
+    label: "组织定位",
+    title: "有边界的技术社群组织",
+    summary: "围绕技术领导者展开长期学习、交流与连接。"
   },
   {
-    label: "公开成员",
-    value: String(members.length),
-    description: "展示真实成员与组织结构"
+    label: "小组活动",
+    title: "围绕真实议题进行深度交流",
+    summary: "以稳定的小组活动和闭门讨论沉淀经验与判断。"
   },
   {
-    label: "近期活动",
-    value: String(events.length),
-    description: "活动支持公开报名与后台审核"
-  },
-  {
-    label: "已发布文章",
-    value: String(articles.length),
-    description: "沉淀技术管理与组织实践"
+    label: "公开学习",
+    title: "月度活动连接城市与行业经验",
+    summary: "通过公开学习活动、跨城联动与经验对话扩展组织视野。"
   }
 ];
 
-const valuePillars = [
-  {
-    label: "组织形式",
-    title: "以分会和董事会构成长线组织网络",
-    summary: "每个分会围绕本地技术管理者的交流需求组织长期活动，由董事会成员协同推动节奏。"
-  },
-  {
-    label: "覆盖人群",
-    title: home.audience.title,
-    summary: home.audience.items.join("；")
-  },
-  {
-    label: "内容定位",
-    title: "内容是组织价值的延展，而不是唯一主体",
-    summary: "文章、活动回顾与成员观点用于强化品牌表达，真正核心仍然是成员之间的高质量连接。"
-  }
-];
+const testimonialFallbacks: Record<string, string> = {
+  "zhou-yang": "能长期和一线技术管理者交流，很多组织与平台建设问题都更快找到参照系。",
+  "lin-wen": "相比一次性的大会曝光，我更看重能持续讨论真实问题、彼此长期反馈的同侪关系。",
+  "shen-lan": "无论是工程效率、团队协作还是业务落地，社区交流都能让经验回到更大的视角中重新理解。"
+};
 
-const activityFormats = [
-  {
-    code: "01",
-    title: "私密小组活动",
-    summary: "围绕真实技术管理议题进行小范围深聊，强调长期稳定的同侪关系。"
-  },
-  {
-    code: "02",
-    title: "闭门沙龙",
-    summary: "聚焦组织治理、工程效率、技术战略与团队协作等一线问题。"
-  },
-  {
-    code: "03",
-    title: "专题工作坊",
-    summary: "通过专题拆解与案例讨论，让经验可以被复用，而不是停留在口号层面。"
-  },
-  {
-    code: "04",
-    title: "标杆走访",
-    summary: "走进企业现场，围绕团队管理、平台工程与业务协同获得新的观察。"
-  }
-];
+const featuredTestimonials = featuredMembers.map((member) => ({
+  ...member,
+  quote:
+    testimonialFallbacks[member.slug] ??
+    "可以和真正处在一线的技术管理者持续交流，获得长期稳定的同行反馈。"
+}));
 
 const joinSteps = [
   {
     step: "01",
-    title: "先理解组织定位与加入条件",
-    summary: "确认你是否适合当前阶段的组织定位，再进入正式申请。"
+    title: "了解组织定位与加入条件",
+    summary: "阅读加入条件、参与方式与审核流程。"
   },
   {
     step: "02",
-    title: "在线提交加入申请",
-    summary: "填写姓名、手机号、微信号、邮箱与个人介绍，让工作人员快速理解你的背景。"
+    title: "在线提交申请信息",
+    summary: "填写姓名、电话、微信、邮箱和个人介绍。"
   },
   {
     step: "03",
-    title: "等待工作人员审核与联系",
-    summary: "申请进入后台后由工作人员跟进审核，必要时继续沟通与你的参与诉求。"
-  }
-];
-
-const siteMapCards = [
-  {
-    label: "首页",
-    title: "先理解组织定位与整体结构",
-    summary: "用一页看清 TGO 鲲鹏会的组织形式、覆盖人群、核心活动与加入路径。",
-    href: "/"
-  },
-  {
-    label: "分会董事会",
-    title: "查看各地分会与董事会成员",
-    summary: "帮助访客理解这个社区如何以城市节点持续运转。",
-    href: "/branches"
-  },
-  {
-    label: "成员列表",
-    title: "看到真实的人与组织网络",
-    summary: "通过成员公开资料了解社区覆盖的城市、公司与技术管理角色。",
-    href: "/members"
-  },
-  {
-    label: "活动",
-    title: "浏览各地活动与报名入口",
-    summary: "公开活动可直接报名，再由工作人员在后台继续审核与跟进。",
-    href: "/events"
-  },
-  {
-    label: "文章",
-    title: "阅读社区经验沉淀",
-    summary: "文章用于把活动观点与组织实践继续转化为长期内容资产。",
-    href: "/articles"
-  },
-  {
-    label: "加入申请",
-    title: "确认条件后再提交申请",
-    summary: "在理解组织定位与参与方式之后，直接进入正式申请流程。",
-    href: "/join"
+    title: "等待审核与进一步联系",
+    summary: "提交后由工作人员审核，并在需要时进一步联系。"
   }
 ];
 ---
 
-<BaseLayout
-  title="TGO 鲲鹏会 | 首页"
-  description="TGO 鲲鹏会面向技术领导者的公开站点，展示组织定位、分会网络、成员、活动与内容。"
->
+<BaseLayout title="TGO 鲲鹏会 | 首页" description="TGO 鲲鹏会面向技术领导者，展示组织介绍、成员推荐、学习活动与加入路径。">
   <main class="page-shell page-stack">
     <section class="hero hero-home">
       <div class="hero-card hero-home-card">
         <div class="hero-home-main">
           <span class="eyebrow">{home.hero.eyebrow}</span>
-          <p class="hero-kicker">科技领导者社区</p>
-          <h1>{home.hero.title}</h1>
-          <p class="hero-summary">{home.hero.summary}</p>
+          <h1 aria-label={heroContent.titleLines.join("")}>
+            {heroContent.titleLines.map((line) => <span class="hero-title-line">{line}</span>)}
+          </h1>
+          <p class="hero-summary">{heroContent.summary}</p>
 
           <div class="hero-actions">
             {
@@ -157,68 +128,22 @@ const siteMapCards = [
               ))
             }
           </div>
-
-          <div class="hero-stat-grid" aria-label="站点概览指标">
-            {
-              networkStats.map((stat) => (
-                <article class="hero-stat-card">
-                  <div class="hero-stat-label">{stat.label}</div>
-                  <div class="hero-stat-value">{stat.value}</div>
-                  <p>{stat.description}</p>
-                </article>
-              ))
-            }
-          </div>
         </div>
 
         <aside class="hero-home-aside">
-          <div>
-            <div class="card-label card-label-on-dark">社区定位</div>
-            <h2 class="hero-aside-title">高质量、长期、同侪式的学习网络</h2>
-            <p class="hero-aside-copy">
-              首页不再只是内容聚合，而是先回答“这是什么组织、面向谁、为什么值得加入”，
-              再承接分会、成员、活动与加入路径。
-            </p>
+          <div class="hero-aside-block">
+            <div class="card-label card-label-on-dark">适合谁加入</div>
+            <h2 class="hero-aside-title">{heroAudienceTitle}</h2>
+            <div class="hero-role-grid" aria-label="适合加入的角色">
+              {heroAudienceRoles.map((role) => <span class="hero-role-chip">{role}</span>)}
+            </div>
+            <p class="hero-aside-copy">围绕技术决策、组织管理与业务协同展开长期交流。</p>
           </div>
 
-          <div class="signal-grid">
-            {
-              home.metrics.map((metric) => (
-                <article class="signal-card">
-                  <div class="signal-label">{metric.label}</div>
-                  <div class="signal-value">{metric.value}</div>
-                  <p>{metric.description}</p>
-                </article>
-              ))
-            }
-          </div>
-
-          <ul class="hero-audience-list">
-            {home.audience.items.map((item) => <li>{item}</li>)}
+          <ul class="hero-bullet-list">
+            {heroHighlights.map((item) => <li>{item}</li>)}
           </ul>
         </aside>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">网站导览</div>
-          <h2>先知道每一页分别解决什么问题</h2>
-          <p class="section-note">首页不是把导航项平铺出来，而是先给第一次访问的人建立一条更顺手的阅读顺序。</p>
-        </div>
-      </div>
-
-      <div class="site-map-grid">
-        {
-          siteMapCards.map((item) => (
-            <a class="panel site-map-card" href={item.href}>
-              <div class="card-label">{item.label}</div>
-              <h3>{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </a>
-          ))
-        }
       </div>
     </section>
 
@@ -226,26 +151,21 @@ const siteMapCards = [
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">TGO 介绍</div>
-          <h2>围绕技术领导者成长，建立可信任的长期连接</h2>
-          <p class="section-note">先读组织定位，再继续看活动、分会与成员，首页会更像一条完整叙事线，而不是内容拼盘。</p>
+          <h2>一个有边界、重质量、能长期同行的科技领导者社区</h2>
         </div>
       </div>
 
       <div class="intro-grid">
-        <article class="panel intro-panel">
-          <div class="card-label">组织定位</div>
-          <h3 class="intro-title">{home.intro.title}</h3>
-          <p class="intro-lead">{home.intro.summary}</p>
-          <p class="card-copy">
-            相比普通内容站，当前首页更强调组织结构、成员网络、活动形态与加入逻辑，
-            让访客在第一屏和前几段内容里就能感受到这是一个有边界的社区型产品。
-          </p>
+        <article class="panel intro-story-panel">
+          <div class="card-label">组织介绍</div>
+          <h3>通过技术、资源与知识连接彼此</h3>
+          <p>{introParagraph}</p>
         </article>
 
-        <div class="value-grid">
+        <div class="intro-highlight-stack">
           {
-            valuePillars.map((item) => (
-              <article class="panel value-card">
+            introHighlights.map((item) => (
+              <article class="panel intro-highlight-card">
                 <div class="card-label">{item.label}</div>
                 <h3>{item.title}</h3>
                 <p class="card-copy">{item.summary}</p>
@@ -259,116 +179,41 @@ const siteMapCards = [
     <section class="section">
       <div class="section-head section-head-stack">
         <div>
-          <div class="card-label">精彩活动</div>
-          <h2>围绕技术管理者成长的活动形态</h2>
-          <p class="section-note">这一段先解释社区如何组织线下交流，再承接后面的公开活动与报名入口。</p>
+          <div class="card-label">成员推荐</div>
+          <h2>成员推荐</h2>
         </div>
-        <a class="text-link" href="/events">查看活动日历</a>
+        <a class="text-link" href="/members">查看成员列表</a>
       </div>
 
-      <div class="activity-grid">
+      <div class="testimonial-grid">
         {
-          activityFormats.map((item) => (
-            <article class="panel activity-card">
-              <div class="activity-code">{item.code}</div>
-              <h3 class="card-title">{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
+          featuredTestimonials.map((member) => (
+            <article class="panel testimonial-card">
+              <p class="testimonial-quote">“{member.quote}”</p>
 
-    <section class="section">
-      <div class="panel collection-showcase collection-showcase-branches">
-        <div class="section-head section-head-stack collection-showcase-head">
-          <div>
-            <div class="card-label">分会董事会</div>
-            <h2>以城市节点构建长期稳定的同侪连接</h2>
-            <p class="section-note">分会是这个社区的长期组织节点，不是活动的附属容器；先看分会，组织感会更清晰。</p>
-          </div>
-          <a class="text-link" href="/branches">查看全部分会</a>
-        </div>
-
-        <div class="grid grid-3">
-          {
-            home.branchHighlights.map((branch) => (
-              <CollectionCard
-                href={`/branches#${branch.slug}`}
-                label={branch.region || branch.cityName}
-                title={branch.name}
-                summary={branch.summary}
-                image={branch.coverImage}
-                meta={[branch.cityName, `${branch.boardMemberCount} 位董事会成员`]}
-              />
-            ))
-          }
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">精选成员</div>
-          <h2>让访客尽早看到社区里真实存在的人</h2>
-          <p class="section-note">先看到真实成员，再去理解活动与文章，整个组织的可信度和覆盖范围会更直观。</p>
-        </div>
-        <a class="text-link" href="/members">查看完整成员列表</a>
-      </div>
-
-      <div class="featured-member-grid">
-        {
-          featuredMembers.map((member) => (
-            <a class="panel featured-member-card" href={`/members/${member.slug}`}>
-              <div class="featured-member-head">
+              <div class="testimonial-member">
                 {
                   member.avatar ? (
-                    <img class="featured-member-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                    <img class="testimonial-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
                   ) : (
-                    <div class="featured-member-avatar featured-member-avatar-fallback" aria-hidden="true">
+                    <div class="testimonial-avatar testimonial-avatar-fallback" aria-hidden="true">
                       {member.name.slice(0, 1)}
                     </div>
                   )
                 }
 
-                <div class="featured-member-copy">
-                  <div class="card-label">{member.branch?.name ?? "成员"}</div>
-                  <h3>{member.name}</h3>
-                  <p class="card-copy">{member.company}</p>
+                <div class="testimonial-copy">
+                  <strong>{member.name}</strong>
+                  <span>{member.company}</span>
+                  <small>
+                    {member.title}
+                    {member.branch ? ` · ${member.branch.name}` : ""}
+                  </small>
                 </div>
               </div>
-
-              <p class="featured-member-title">{member.title}</p>
-              <ul class="meta-list featured-member-meta">
-                {member.branch?.cityName && <li>{member.branch.cityName}</li>}
-                <li>{formatDate(member.joinedAt)}</li>
-              </ul>
-            </a>
+            </article>
           ))
         }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="dual-highlight-grid">
-        <article class="panel emphasis-panel">
-          <div class="card-label">成员网络</div>
-          <h2 class="card-title">公开展示成员信息，形成真实的人与组织结构</h2>
-          <p class="card-copy">
-            当前阶段成员不做认证，但前台会持续展示成员名单与详情，帮助访客理解组织的真实构成与覆盖范围。
-          </p>
-          <a class="text-link" href="/members">浏览成员列表</a>
-        </article>
-
-        <article class="panel emphasis-panel">
-          <div class="card-label">内容沉淀</div>
-          <h2 class="card-title">把活动后的观点与实践继续沉淀为长期内容资产</h2>
-          <p class="card-copy">
-            文章由后台统一发布，用来沉淀技术管理、组织实践与社区观察，强化组织认知，而不是喧宾夺主。
-          </p>
-          <a class="text-link" href="/articles">查看文章</a>
-        </article>
       </div>
     </section>
 
@@ -377,8 +222,7 @@ const siteMapCards = [
         <div class="section-head section-head-stack collection-showcase-head">
           <div>
             <div class="card-label">近期活动</div>
-            <h2>近期活动与线下交流安排</h2>
-            <p class="section-note">这里展示的是前台公开入口，真正的通过结果仍然要进入工作人员后台继续审核。</p>
+            <h2>近期活动</h2>
           </div>
           <a class="text-link" href="/events">浏览活动</a>
         </div>
@@ -405,22 +249,21 @@ const siteMapCards = [
         <div class="section-head section-head-stack collection-showcase-head">
           <div>
             <div class="card-label">文章</div>
-            <h2>来自技术管理与组织实践的一线内容</h2>
-            <p class="section-note">内容不是单独的媒体栏目，而是把活动之后的观点与组织经验继续沉淀下来。</p>
+            <h2>文章</h2>
           </div>
           <a class="text-link" href="/articles">查看文章</a>
         </div>
 
         <div class="grid grid-3">
           {
-            home.featuredArticles.map((article) => (
+            featuredArticles.map((article) => (
               <CollectionCard
                 href={`/articles/${article.slug}`}
                 label={formatDate(article.publishedAt)}
                 title={article.title}
                 summary={article.excerpt}
                 image={article.coverImage}
-                meta={[article.authorName, "公开文章"]}
+                meta={[article.authorName, "社区文章"]}
               />
             ))
           }
@@ -458,9 +301,9 @@ const siteMapCards = [
 <style>
   .hero-home-card {
     display: grid;
-    gap: 24px;
-    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
-    padding: clamp(28px, 4vw, 44px);
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.34fr) minmax(280px, 0.66fr);
+    padding: clamp(28px, 4vw, 42px);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.2), transparent 26%),
       linear-gradient(135deg, #111313 0%, #181714 44%, #231d17 100%);
@@ -482,238 +325,225 @@ const siteMapCards = [
     background: rgba(255, 255, 255, 0.06);
   }
 
-  .hero-kicker {
-    margin: 18px 0 0;
-    color: rgba(247, 239, 227, 0.72);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-size: 0.9rem;
+  .hero-home-card h1 {
+    width: min(100%, 9.4em);
+    max-width: none;
+    margin: 18px 0 14px;
+    font-size: clamp(2.45rem, 5.2vw, 4.3rem);
+    line-height: 0.98;
   }
 
-  .hero-home-card h1 {
-    max-width: 11ch;
-    margin: 16px 0 14px;
-    line-height: 1.02;
+  .hero-title-line {
+    display: block;
+  }
+
+  .hero-title-line + .hero-title-line {
+    margin-top: 0.12em;
   }
 
   .hero-summary {
-    max-width: 60ch;
+    max-width: 28em;
     color: rgba(247, 239, 227, 0.82);
-    font-size: 1.06rem;
-    line-height: 1.8;
+    font-size: 1rem;
+    line-height: 1.78;
   }
 
   .hero-home-aside {
     display: grid;
-    gap: 18px;
+    gap: 16px;
     align-self: stretch;
-    padding: 24px;
+    padding: 20px;
     border-radius: 24px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
     border: 1px solid rgba(215, 179, 117, 0.16);
   }
 
+  .hero-aside-block,
+  .join-step-card {
+    display: grid;
+    gap: 10px;
+  }
+
   .hero-aside-title {
-    margin: 12px 0 10px;
-    font-size: clamp(1.6rem, 2vw, 2rem);
+    margin: 6px 0 0;
+    font-size: clamp(1.35rem, 2vw, 1.72rem);
     color: #fff7ee;
+    line-height: 1.35;
   }
 
-  .hero-aside-copy,
-  .signal-card p,
-  .join-step-card p,
-  .hero-stat-card p {
-    margin: 0;
-    color: rgba(247, 239, 227, 0.72);
-    line-height: 1.7;
-  }
-
-  .hero-stat-grid,
-  .signal-grid,
-  .activity-grid,
-  .join-step-grid {
+  .join-step-grid,
+  .testimonial-grid,
+  .intro-highlight-stack {
     display: grid;
     gap: 14px;
   }
 
-  .hero-stat-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-top: 28px;
+  .hero-role-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
-  .hero-stat-card,
-  .signal-card {
-    padding: 16px;
-    border-radius: 20px;
-    border: 1px solid rgba(215, 179, 117, 0.14);
+  .hero-role-chip {
+    display: inline-flex;
+    padding: 9px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(215, 179, 117, 0.16);
     background: rgba(255, 255, 255, 0.06);
+    color: rgba(247, 239, 227, 0.86);
+    font-size: 0.92rem;
+    line-height: 1;
   }
 
-  .hero-stat-label,
-  .signal-label,
-  .join-step-index,
-  .activity-code {
+  .hero-aside-copy {
+    margin: 0;
+    color: rgba(247, 239, 227, 0.76);
+    line-height: 1.72;
+  }
+
+  .hero-bullet-list {
+    display: grid;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border-top: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .hero-bullet-list li {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(215, 179, 117, 0.12);
+    color: rgba(247, 239, 227, 0.82);
+    line-height: 1.65;
+  }
+
+  .join-step-index {
     color: rgba(215, 179, 117, 0.9);
     font-size: 0.78rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
-  .hero-stat-value,
-  .signal-value {
-    margin: 10px 0 6px;
-    font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    color: #fffdf8;
+  .join-step-card p {
+    margin: 0;
+    color: rgba(247, 239, 227, 0.72);
+    line-height: 1.7;
   }
 
-  .hero-audience-list {
-    display: grid;
-    gap: 10px;
-    list-style: none;
-    padding: 0;
+  .intro-highlight-card h3,
+  .join-step-card h3 {
     margin: 0;
   }
 
-  .hero-audience-list li,
-  .join-step-card {
-    padding: 14px 16px;
-    border-radius: 18px;
-    border: 1px solid rgba(215, 179, 117, 0.12);
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(247, 239, 227, 0.78);
-  }
-
-  .intro-grid,
-  .dual-highlight-grid,
-  .featured-member-grid,
-  .site-map-grid,
-  .collection-showcase {
+  .intro-grid {
     display: grid;
     gap: 18px;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: start;
   }
 
-  .intro-grid,
-  .dual-highlight-grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  }
-
-  .site-map-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .site-map-card,
-  .featured-member-card {
-    min-height: 100%;
-    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-  }
-
-  .site-map-card {
+  .intro-story-panel {
     display: grid;
     gap: 12px;
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+    border-color: rgba(157, 111, 49, 0.14);
   }
 
-  .site-map-card:hover,
-  .featured-member-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.24);
-  }
-
-  .site-map-card h3,
-  .featured-member-copy h3 {
+  .intro-story-panel h3,
+  .testimonial-quote,
+  .join-panel-head h2 {
     margin: 0;
   }
 
-  .intro-panel {
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
+  .intro-story-panel p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 34em;
+    line-height: 1.78;
   }
 
-  .intro-title,
-  .value-card h3,
-  .join-step-card h3 {
-    margin: 12px 0 10px;
+  .intro-highlight-stack {
+    align-content: start;
   }
 
-  .intro-lead {
-    margin: 0 0 18px;
-    font-size: 1.15rem;
-    line-height: 1.9;
-    color: #241c17;
-  }
-
-  .value-grid {
+  .intro-highlight-card {
     display: grid;
-    gap: 18px;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(250, 244, 235, 0.94));
   }
 
-  .featured-member-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .intro-highlight-card .card-copy {
+    margin: 0;
   }
 
-  .featured-member-card {
+  .testimonial-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .testimonial-card {
     display: grid;
-    gap: 16px;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
+    gap: 22px;
+    min-height: 100%;
+    background: linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(246, 238, 227, 0.94));
   }
 
-  .featured-member-head {
+  .testimonial-quote {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1.34rem;
+    line-height: 1.7;
+  }
+
+  .testimonial-member {
     display: flex;
     gap: 14px;
     align-items: center;
+    margin-top: auto;
   }
 
-  .featured-member-avatar {
-    width: 68px;
-    height: 68px;
+  .testimonial-avatar {
+    width: 64px;
+    height: 64px;
     border-radius: 20px;
     object-fit: cover;
     flex: 0 0 auto;
     background: rgba(31, 26, 23, 0.08);
   }
 
-  .featured-member-avatar-fallback {
+  .testimonial-avatar-fallback {
     display: inline-grid;
     place-items: center;
     color: #fff7ef;
     background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.9));
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     font-weight: 700;
   }
 
-  .featured-member-copy {
+  .testimonial-copy {
     display: grid;
-    gap: 6px;
+    gap: 4px;
   }
 
-  .featured-member-copy :global(.card-copy),
-  .featured-member-title {
-    margin: 0;
+  .testimonial-copy strong,
+  .testimonial-copy span,
+  .testimonial-copy small {
+    line-height: 1.5;
   }
 
-  .featured-member-title {
-    min-height: 3.4em;
+  .testimonial-copy span,
+  .testimonial-copy small {
     color: var(--muted);
-    line-height: 1.7;
-  }
-
-  .featured-member-meta {
-    margin-top: auto;
   }
 
   .collection-showcase {
+    display: grid;
+    gap: 18px;
     padding: 28px;
     border-radius: 30px;
   }
 
   .collection-showcase-head {
     margin-bottom: 0;
-  }
-
-  .collection-showcase-branches {
-    background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.12), transparent 28%),
-      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
   .collection-showcase-events {
@@ -730,42 +560,10 @@ const siteMapCards = [
     color: #fff7ef;
   }
 
-  .collection-showcase-events .collection-showcase-head .section-note {
-    color: rgba(247, 239, 227, 0.72);
-  }
-
   .collection-showcase-articles {
     background:
       radial-gradient(circle at top left, rgba(215, 179, 117, 0.1), transparent 22%),
       linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
-  }
-
-  .value-card {
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(250, 244, 235, 0.94));
-  }
-
-  .activity-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .activity-card {
-    background: linear-gradient(180deg, #171818 0%, #231d18 100%);
-    border-color: rgba(215, 179, 117, 0.12);
-  }
-
-  .activity-card :global(.card-title) {
-    color: #fff7ee;
-  }
-
-  .activity-card :global(.card-copy) {
-    color: rgba(247, 239, 227, 0.72);
-  }
-
-  .emphasis-panel {
-    display: grid;
-    gap: 10px;
-    align-content: start;
-    min-height: 100%;
   }
 
   .join-panel {
@@ -782,7 +580,6 @@ const siteMapCards = [
   }
 
   .join-panel-head h2 {
-    margin: 8px 0 10px;
     font-size: clamp(1.6rem, 3vw, 2.2rem);
   }
 
@@ -791,9 +588,10 @@ const siteMapCards = [
   }
 
   .join-step-card {
-    background: rgba(255, 255, 255, 0.7);
-    border-color: rgba(31, 26, 23, 0.08);
-    color: var(--muted);
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(31, 26, 23, 0.08);
   }
 
   .join-step-card h3 {
@@ -806,20 +604,17 @@ const siteMapCards = [
   }
 
   @media (max-width: 1100px) {
-    .hero-stat-grid,
-    .activity-grid,
     .join-step-grid,
-    .featured-member-grid {
+    .testimonial-grid,
+    .intro-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 900px) {
     .hero-home-card,
-    .intro-grid,
-    .dual-highlight-grid,
-    .site-map-grid,
-    .featured-member-grid {
+    .testimonial-grid,
+    .intro-grid {
       grid-template-columns: 1fr;
     }
 
@@ -834,14 +629,17 @@ const siteMapCards = [
   }
 
   @media (max-width: 720px) {
-    .hero-stat-grid,
-    .activity-grid,
     .join-step-grid {
       grid-template-columns: 1fr;
     }
 
     .hero-home-card h1 {
-      max-width: none;
+      width: min(100%, 8.2em);
+    }
+
+    .hero-role-chip {
+      padding-inline: 11px;
+      font-size: 0.88rem;
     }
   }
 </style>

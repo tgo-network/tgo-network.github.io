@@ -5,30 +5,30 @@ const openEventSlug = "event-1816";
 const openEventTitle = "第一届龙虾AI大会：ClawCon";
 const leadArticleSlug = "what-a-city-hub-needs";
 const leadArticleTitle = "一座城市主页在真正活起来之前需要什么";
-const leadMemberSlug = "zhou-yang";
-const leadMemberName = "周扬";
+const leadMemberSlug = "member-2";
+const leadMemberName = "郭理靖";
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 const keyRoutes = [
   {
     path: "/",
-    heading: "连接技术领导者、分会活动与长期交流网络"
+    heading: "面向科技领导者的高质量学习社区"
   },
   {
     path: "/branches",
-    heading: "覆盖不同城市节点的技术领导者网络"
+    heading: "分会与董事会成员"
   },
   {
     path: "/members",
-    heading: "来自不同公司与城市分会的技术领导者"
+    heading: "TGO 鲲鹏会成员"
   },
   {
     path: "/events",
-    heading: "各地分会活动与公开报名入口"
+    heading: "各地分会活动"
   },
   {
     path: "/articles",
-    heading: "围绕技术管理、组织实践与社区观察的内容沉淀"
+    heading: "技术管理与组织实践文章"
   },
   {
     path: "/join",
@@ -36,7 +36,7 @@ const keyRoutes = [
   },
   {
     path: "/about",
-    heading: "一个围绕技术领导者成长而组织起来的长期社区网络"
+    heading: "构建全球化的有技术背景的优秀人才同侪学习成长平台"
   }
 ] as const;
 const detailRoutes = [
@@ -87,17 +87,17 @@ const expectNoHorizontalOverflow = async (page: Page, label: string) => {
 
 test("public homepage exposes the main content collections", async ({ page }) => {
   await page.goto(siteUrl);
+  const primaryNav = page.getByRole("navigation", { name: "主导航" });
 
-  await expect(page.getByRole("heading", { name: "连接技术领导者、分会活动与长期交流网络" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "分会董事会", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "成员列表", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "活动", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "文章", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "加入申请", exact: true })).toBeVisible();
-
-  await page.getByRole("link", { name: "查看全部分会" }).click();
-  await expect(page).toHaveURL(/\/branches\/?$/);
-  await expect(page.getByRole("heading", { name: "覆盖不同城市节点的技术领导者网络" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "面向科技领导者的高质量学习社区" })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "分会董事会", exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "成员列表", exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "活动", exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "文章", exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "加入申请", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "成员推荐" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期活动" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "文章" })).toBeVisible();
 });
 
 test("public application form submits successfully", async ({ page }) => {
@@ -170,17 +170,20 @@ test("public detail pages keep desktop and mobile layouts within the viewport", 
 
 test("public content drill-down routes expose the expected detail content", async ({ page }) => {
   await page.goto(`${siteUrl}/members`, { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: /周扬/ }).click();
-  await expect(page).toHaveURL(new RegExp(`/members/${leadMemberSlug}$`));
-  await expect(page.getByRole("heading", { name: leadMemberName })).toBeVisible();
-  await expect(page.locator(".member-detail-side-card .card-label").filter({ hasText: "成员档案" })).toBeVisible();
+  const firstMemberCard = page.locator("[data-member-grid] a").first();
+  const firstMemberName = (await firstMemberCard.locator("h2").textContent())?.trim() ?? "";
+  const firstMemberHref = await firstMemberCard.getAttribute("href");
+  await firstMemberCard.click();
+  await expect(page).toHaveURL(new RegExp(`${firstMemberHref ?? "/members/.+"}$`));
+  await expect(page.locator("main h1").filter({ hasText: firstMemberName })).toBeVisible();
+  await expect(page.locator(".member-profile-side .card-label").filter({ hasText: "成员档案" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "member-detail");
 
   await page.goto(`${siteUrl}/articles`, { waitUntil: "networkidle" });
   await page.getByRole("link", { name: /一座城市主页在真正活起来之前需要什么/ }).first().click();
   await expect(page).toHaveURL(/\/articles\/[^/]+$/);
   await expect(page.getByRole("heading", { name: leadArticleTitle })).toBeVisible();
-  await expect(page.getByText("继续浏览")).toBeVisible();
+  await expect(page.getByRole("link", { name: "返回文章列表" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "article-detail");
 
   await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });
@@ -190,31 +193,15 @@ test("public content drill-down routes expose the expected detail content", asyn
   await expectNoHorizontalOverflow(page, "event-detail");
 
   await page.goto(`${siteUrl}/about`, { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "查看加入说明" }).click();
+  await page.getByRole("link", { name: "查看加入申请" }).click();
   await expect(page).toHaveURL(/\/join$/);
   await expect(page.locator("main h1").filter({ hasText: "面向技术领导者的高质量同侪网络" })).toBeVisible();
 });
 
-test("branch quick-jump chips open the targeted branch disclosure", async ({ page }) => {
+test("branches page shows imported board member records", async ({ page }) => {
   await page.goto(`${siteUrl}/branches`, { waitUntil: "networkidle" });
-
-  const chips = page.locator(".branch-chip-row a");
-  const chipCount = await chips.count();
-  expect(chipCount).toBeGreaterThan(1);
-
-  const targetChip = chips.last();
-  const href = await targetChip.getAttribute("href");
-  const slug = href?.replace(/^#/, "") ?? "";
-
-  expect(slug).not.toBe("");
-  await targetChip.click();
-  await expect(page).toHaveURL(new RegExp(`#${slug}$`));
-
-  const disclosure = page.locator(`[data-branch-disclosure][data-branch-slug="${slug}"]`);
-  await expect
-    .poll(async () => disclosure.evaluate((node) => node.hasAttribute("open")), {
-      message: `expected disclosure for ${slug} to open after quick jump`
-    })
-    .toBe(true);
-  await expectNoHorizontalOverflow(page, "branches-disclosure");
+  await expect(page.getByRole("heading", { name: "广州分会" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "杨韶伟" })).toBeVisible();
+  await expect(page.getByText("广州威而比科技有限公司", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "branches-board-list");
 });

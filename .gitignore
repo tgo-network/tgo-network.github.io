@@ -18,6 +18,7 @@ artifacts/screenshots/
 .artifacts/
 apps/site/public/imports/tgo-infoq/**
 !apps/site/public/imports/tgo-infoq/.gitkeep
+data/private-imports/
 
 *.log
 npm-debug.log*
@@ -26,5 +27,6 @@ yarn-debug.log*
 yarn-error.log*
 __pycache__/
 *.tsbuildinfo
+~$*.xlsx
 
 .DS_Store

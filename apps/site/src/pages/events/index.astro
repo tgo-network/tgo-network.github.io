@@ -1,178 +1,34 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
-import { getPublicApiBaseUrl, listEventPage } from "../../lib/public-api";
+import { listEvents } from "../../lib/public-api";
 
-const initialEventPage = await listEventPage({ page: 1, pageSize: 24 });
-const initialEvents = initialEventPage.items;
-const initialMeta = initialEventPage.meta;
-const apiBaseUrl = getPublicApiBaseUrl();
-const closedLikeCount = initialMeta.registrationStateCounts.closed + initialMeta.registrationStateCounts.notOpen;
-
-const browseCards = [
-  {
-    label: "先按城市",
-    title: "先从城市筛选开始看",
-    summary: "活动背后对应的是真实分会与城市节点，所以先看城市能更快理解活动归属。"
-  },
-  {
-    label: "再看状态",
-    title: "再判断是否适合立即报名",
-    summary: "开放报名、候补中和暂未开放代表不同的参与节奏，避免访客误以为所有活动都能即时进入。"
-  },
-  {
-    label: "最后深入",
-    title: "进入详情页查看议程与报名说明",
-    summary: "活动详情页会进一步说明议程、适合人群、报名预期，以及提交后会发生什么。"
-  }
-];
-
-const registrationFlow = [
-  {
-    step: "01",
-    title: "公开展示",
-    summary: "活动由工作人员在后台发布，再同步到前台展示时间、城市、场地与报名状态。"
-  },
-  {
-    step: "02",
-    title: "提交报名",
-    summary: "成员与非成员都可以在开放状态下提交报名资料，不要求当前先登录。"
-  },
-  {
-    step: "03",
-    title: "后台审核",
-    summary: "报名资料会进入后台继续审核，由工作人员确认通过、拒绝或转入候补。"
-  }
-];
+const pageSize = 24;
+const allEvents = await listEvents();
+const initialEvents = allEvents.slice(0, pageSize);
+const initialMeta = {
+  total: allEvents.length,
+  page: 1,
+  pageSize,
+  pageCount: Math.max(1, Math.ceil(allEvents.length / pageSize)),
+  cityOptions: Array.from(new Set(allEvents.map((event) => event.cityName).filter(Boolean))).sort((left, right) =>
+    left.localeCompare(right, "zh-CN")
+  )
+};
 ---
 
-<BaseLayout title="活动 | TGO 鲲鹏会" description="查看近期活动、分会动态与公开报名入口。">
+<BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack">
-    <section class="hero">
-      <div class="hero-card event-hero-card">
-        <div class="event-hero-main">
-          <span class="eyebrow">活动</span>
-          <h1>各地分会活动与公开报名入口</h1>
-          <p>
-            活动由工作人员后台发布，前台面向成员与访客展示城市、时间、地点、议程与报名状态。
-            当前阶段活动支持开放报名，再由工作人员在后台进行审核确认。
-          </p>
-          <ul class="stat-row event-hero-stats">
-            <li data-event-total>{initialMeta.total} 场活动</li>
-            <li data-event-city-total>{initialMeta.cityOptions.length} 个城市</li>
-            <li data-event-open-total>{initialMeta.registrationStateCounts.open} 场开放报名</li>
-            <li data-event-waitlist-total>{initialMeta.registrationStateCounts.waitlist} 场候补中</li>
-          </ul>
-        </div>
-
-        <aside class="event-hero-aside">
-          <div>
-            <div class="card-label card-label-on-dark">活动机制</div>
-            <h2>公开报名 + 后台审核</h2>
-            <p>
-              当前活动保持开放提交，但是否通过、是否进入候补，以及后续联系与确认，
-              都由工作人员在后台统一处理。
-            </p>
-          </div>
-
-          <div class="event-hero-meta-grid">
-            <article>
-              <strong data-event-open-card>{initialMeta.registrationStateCounts.open}</strong>
-              <span>开放报名</span>
-            </article>
-            <article>
-              <strong data-event-waitlist-card>{initialMeta.registrationStateCounts.waitlist}</strong>
-              <span>候补中</span>
-            </article>
-            <article>
-              <strong data-event-closed-card>{closedLikeCount}</strong>
-              <span>非开放</span>
-            </article>
-          </div>
-        </aside>
+    <section class="page-intro">
+      <div class="page-intro-copy">
+        <div class="card-label">活动</div>
+        <h1>各地分会活动</h1>
+        <p>展示各地分会活动，支持按城市筛选，并查看活动详情与报名入口。</p>
       </div>
+      <p class="page-intro-meta">{initialMeta.total} 场活动 · {initialMeta.cityOptions.length} 个城市</p>
     </section>
 
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">活动形态</div>
-          <h2>围绕技术管理者成长组织不同层次的线下交流</h2>
-        </div>
-      </div>
-
-      <div class="format-grid">
-        <article class="panel format-card">
-          <div class="card-label">私密小组</div>
-          <p class="card-copy">适合更高频、更稳定的小范围同侪交流，强调问题复盘与长期关系。</p>
-        </article>
-        <article class="panel format-card">
-          <div class="card-label">闭门沙龙</div>
-          <p class="card-copy">围绕技术战略、组织治理、工程效率等关键问题进行定向讨论。</p>
-        </article>
-        <article class="panel format-card">
-          <div class="card-label">公开学习</div>
-          <p class="card-copy">适合拓展外部连接与扩大触达范围，仍然保持主题与人群筛选。</p>
-        </article>
-        <article class="panel format-card">
-          <div class="card-label">标杆走访</div>
-          <p class="card-copy">通过进入企业现场获得更具体的组织观察、工程经验与业务协作启发。</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <div class="card-label">浏览说明</div>
-          <h2>第一次访问时，建议按这条路径理解活动页</h2>
-        </div>
-      </div>
-
-      <div class="event-guide-grid">
-        {
-          browseCards.map((item) => (
-            <article class="panel event-guide-card">
-              <div class="card-label">{item.label}</div>
-              <h3>{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-
-      <div class="panel event-process-panel">
-        <div>
-          <div class="card-label">报名机制</div>
-          <h2>活动对外开放，但最终是否通过由后台审核决定</h2>
-          <p class="card-copy">
-            当前活动页的重点不是把所有信息挤进一张卡片，而是让访客逐步理解城市归属、报名状态、活动定位与审核预期。
-          </p>
-        </div>
-
-        <div class="event-process-grid">
-          {
-            registrationFlow.map((item) => (
-              <article class="event-process-card">
-                <span>{item.step}</span>
-                <strong>{item.title}</strong>
-                <p>{item.summary}</p>
-              </article>
-            ))
-          }
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">城市筛选</div>
-          <h2>按城市查看活动</h2>
-        </div>
-        <p class="section-note">活动默认按时间倒序展示，当前列表按 24 场一页加载，避免一次性展开全部历史活动。</p>
-      </div>
-
+    <section class="section event-list-section">
       <div class="filter-bar" data-event-filters>
         <button class="filter-chip is-active" type="button" data-city-filter="all">全部城市</button>
         {
@@ -183,13 +39,11 @@ const registrationFlow = [
           ))
         }
       </div>
-    </section>
 
-    <section class="section" data-event-results-section>
       <div class="results-head">
         <div>
           <div class="card-label">活动列表</div>
-          <h2>浏览已导入的公开活动</h2>
+          <h2>活动列表</h2>
         </div>
         <p class="results-summary" data-event-page-summary>
           第 {initialMeta.page} / {initialMeta.pageCount} 页，当前显示 {initialEvents.length} 场，共 {initialMeta.total} 场
@@ -213,7 +67,7 @@ const registrationFlow = [
                   <div>
                     <div class="card-label">{event.cityName}</div>
                     <h3 class="event-card-title">{event.title}</h3>
-                    <p class="event-branch-name">{event.branch?.name ?? "公开活动"}</p>
+                    <p class="event-branch-name">{event.branch?.name ?? "活动"}</p>
                   </div>
                   <span class:list={["event-state", `event-state-${event.registrationState}`]}>
                     {formatRegistrationState(event.registrationState)}
@@ -255,26 +109,10 @@ const registrationFlow = [
         </button>
       </div>
     </section>
-
-    <section class="section">
-      <div class="panel events-cta-panel">
-        <div>
-          <div class="card-label">继续浏览</div>
-          <h2>活动页解决的是“现在发生什么”，而不是全部组织信息</h2>
-          <p class="card-copy">
-            如果你想继续理解活动背后的组织结构，可以回到分会和成员页；如果你已经认同这种社区方式，再进入加入申请页会更顺畅。
-          </p>
-        </div>
-        <div class="events-cta-actions">
-          <a class="button primary" href="/branches">浏览分会董事会</a>
-          <a class="button secondary" href="/members">查看成员</a>
-          <a class="button secondary" href="/join">加入申请</a>
-        </div>
-      </div>
-    </section>
   </main>
 
-  <script define:vars={{ apiBaseUrl, initialMeta, initialPageSize: initialMeta.pageSize, initialItemCount: initialEvents.length }} is:inline>
+  <script define:vars={{ initialEvents: allEvents, pageSize }} is:inline>
+    const events = Array.isArray(initialEvents) ? initialEvents : [];
     const filterRoot = document.querySelector("[data-event-filters]");
     const grid = document.querySelector("[data-event-grid]");
     const emptyState = document.querySelector("[data-event-empty]");
@@ -282,18 +120,7 @@ const registrationFlow = [
     const nextButton = document.querySelector("[data-event-page-next]");
     const pageIndicator = document.querySelector("[data-event-page-indicator]");
     const pageSummary = document.querySelector("[data-event-page-summary]");
-    const resultsSection = document.querySelector("[data-event-results-section]");
-    const totalStat = document.querySelector("[data-event-total]");
-    const cityTotalStat = document.querySelector("[data-event-city-total]");
-    const openTotalStat = document.querySelector("[data-event-open-total]");
-    const waitlistTotalStat = document.querySelector("[data-event-waitlist-total]");
-    const openCard = document.querySelector("[data-event-open-card]");
-    const waitlistCard = document.querySelector("[data-event-waitlist-card]");
-    const closedCard = document.querySelector("[data-event-closed-card]");
-
-    const buttons = filterRoot instanceof HTMLElement
-      ? Array.from(filterRoot.querySelectorAll("[data-city-filter]"))
-      : [];
+    const buttons = filterRoot instanceof HTMLElement ? Array.from(filterRoot.querySelectorAll("[data-city-filter]")) : [];
 
     const escapeHtml = (value) =>
       String(value ?? "")
@@ -334,9 +161,7 @@ const registrationFlow = [
           minute: "2-digit"
         }).format(value);
 
-      const sameDay = start.toDateString() === end.toDateString();
-
-      if (sameDay) {
+      if (start.toDateString() === end.toDateString()) {
         return `${formatDate(start)} - ${new Intl.DateTimeFormat("zh-CN", {
           hour: "2-digit",
           minute: "2-digit"
@@ -355,7 +180,6 @@ const registrationFlow = [
         `
         : "";
       const branchTag = event.branch?.name ? `<li>${escapeHtml(event.branch.name)}</li>` : "";
-      const branchName = event.branch?.name ? escapeHtml(event.branch.name) : "公开活动";
 
       return `
         <article class="panel event-card">
@@ -365,7 +189,7 @@ const registrationFlow = [
               <div>
                 <div class="card-label">${escapeHtml(event.cityName)}</div>
                 <h3 class="event-card-title">${escapeHtml(event.title)}</h3>
-                <p class="event-branch-name">${branchName}</p>
+                <p class="event-branch-name">${escapeHtml(event.branch?.name || "活动")}</p>
               </div>
               <span class="event-state event-state-${escapeHtml(event.registrationState)}">${formatRegistrationStateLabel(event.registrationState)}</span>
             </div>
@@ -385,36 +209,6 @@ const registrationFlow = [
       buttons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.cityFilter === activeCity);
       });
-    };
-
-    const updateStats = (meta) => {
-      if (totalStat instanceof HTMLElement) {
-        totalStat.textContent = `${meta.total} 场活动`;
-      }
-
-      if (cityTotalStat instanceof HTMLElement) {
-        cityTotalStat.textContent = `${meta.cityOptions.length} 个城市`;
-      }
-
-      if (openTotalStat instanceof HTMLElement) {
-        openTotalStat.textContent = `${meta.registrationStateCounts.open} 场开放报名`;
-      }
-
-      if (waitlistTotalStat instanceof HTMLElement) {
-        waitlistTotalStat.textContent = `${meta.registrationStateCounts.waitlist} 场候补中`;
-      }
-
-      if (openCard instanceof HTMLElement) {
-        openCard.textContent = String(meta.registrationStateCounts.open);
-      }
-
-      if (waitlistCard instanceof HTMLElement) {
-        waitlistCard.textContent = String(meta.registrationStateCounts.waitlist);
-      }
-
-      if (closedCard instanceof HTMLElement) {
-        closedCard.textContent = String(meta.registrationStateCounts.closed + meta.registrationStateCounts.notOpen);
-      }
     };
 
     const updatePagination = (meta, itemCount) => {
@@ -444,36 +238,6 @@ const registrationFlow = [
       emptyState.hidden = events.length > 0;
     };
 
-    const setLoading = (loading) => {
-      if (grid instanceof HTMLElement) {
-        grid.toggleAttribute("aria-busy", loading);
-      }
-
-      if (prevButton instanceof HTMLButtonElement) {
-        prevButton.disabled = loading || prevButton.disabled;
-      }
-
-      if (nextButton instanceof HTMLButtonElement) {
-        nextButton.disabled = loading || nextButton.disabled;
-      }
-
-      buttons.forEach((button) => {
-        button.disabled = loading;
-      });
-    };
-
-    const buildApiUrl = (page, city) => {
-      const url = new URL("/api/public/v1/events", apiBaseUrl);
-      url.searchParams.set("page", String(page));
-      url.searchParams.set("pageSize", String(initialPageSize));
-
-      if (city !== "all") {
-        url.searchParams.set("city", city);
-      }
-
-      return url;
-    };
-
     const syncLocation = (page, city) => {
       const search = new URLSearchParams(window.location.search);
 
@@ -489,226 +253,82 @@ const registrationFlow = [
         search.set("page", String(page));
       }
 
-      const nextQuery = search.toString();
-      const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+      const searchText = search.toString();
+      const nextUrl = `${window.location.pathname}${searchText ? `?${searchText}` : ""}${window.location.hash}`;
       window.history.replaceState({}, "", nextUrl);
     };
 
-    let currentPage = initialMeta.page;
+    let currentPage = 1;
     let currentCity = "all";
 
-    const fetchPage = async (page, city) => {
-      const response = await fetch(buildApiUrl(page, city), {
-        headers: {
-          Accept: "application/json"
-        }
-      });
+    const getEventCity = (event) => event.cityName || "未标注城市";
+    const getFilteredEvents = () => (currentCity === "all" ? events : events.filter((event) => getEventCity(event) === currentCity));
 
-      if (!response.ok) {
-        throw new Error(`Failed to load events: ${response.status}`);
-      }
+    const render = () => {
+      const filteredEvents = getFilteredEvents();
+      const pageCount = Math.max(1, Math.ceil(filteredEvents.length / pageSize));
+      currentPage = Math.min(Math.max(currentPage, 1), pageCount);
+      const startIndex = (currentPage - 1) * pageSize;
+      const pageItems = filteredEvents.slice(startIndex, startIndex + pageSize);
 
-      const payload = await response.json();
-      return {
-        items: Array.isArray(payload.data) ? payload.data : [],
-        meta: payload.meta ?? initialMeta
-      };
+      renderGrid(pageItems);
+      updatePagination(
+        {
+          total: filteredEvents.length,
+          page: currentPage,
+          pageSize,
+          pageCount
+        },
+        pageItems.length
+      );
+      syncLocation(currentPage, currentCity);
     };
 
-    const applyPage = async (page, city, options = {}) => {
-      const { shouldScroll = false } = options;
-
-      try {
-        setLoading(true);
-        const result = await fetchPage(page, city);
-        currentPage = result.meta.page;
-        currentCity = city;
-        setButtonState(currentCity);
-        renderGrid(result.items);
-        updateStats(result.meta);
-        updatePagination(result.meta, result.items.length);
-        syncLocation(currentPage, currentCity);
-
-        if (shouldScroll && resultsSection instanceof HTMLElement) {
-          resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (filterRoot instanceof HTMLElement && grid instanceof HTMLElement && emptyState instanceof HTMLElement) {
+    if (grid instanceof HTMLElement && emptyState instanceof HTMLElement) {
       const search = new URLSearchParams(window.location.search);
       const requestedCity = search.get("city") ?? "all";
       const requestedPage = Number.parseInt(search.get("page") ?? "1", 10);
       const initialCity = buttons.some((button) => button.dataset.cityFilter === requestedCity) ? requestedCity : "all";
       const initialPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
-      setButtonState(initialCity);
-      updateStats(initialMeta);
-      updatePagination(initialMeta, initialItemCount);
       currentCity = initialCity;
       currentPage = initialPage;
-
-      if (initialCity !== "all" || initialPage !== 1) {
-        applyPage(initialPage, initialCity);
-      }
+      setButtonState(currentCity);
+      render();
 
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
-          const nextCity = button.dataset.cityFilter ?? "all";
-          applyPage(1, nextCity, { shouldScroll: true });
+          currentCity = button.dataset.cityFilter ?? "all";
+          currentPage = 1;
+          setButtonState(currentCity);
+          render();
         });
       });
 
       prevButton?.addEventListener("click", () => {
         if (currentPage > 1) {
-          applyPage(currentPage - 1, currentCity, { shouldScroll: true });
+          currentPage -= 1;
+          render();
         }
       });
 
       nextButton?.addEventListener("click", () => {
-        applyPage(currentPage + 1, currentCity, { shouldScroll: true });
+        const filteredEvents = getFilteredEvents();
+        const pageCount = Math.max(1, Math.ceil(filteredEvents.length / pageSize));
+
+        if (currentPage < pageCount) {
+          currentPage += 1;
+          render();
+        }
       });
     }
   </script>
 </BaseLayout>
 
 <style>
-  .event-hero-card {
-    display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-    background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
-      linear-gradient(135deg, #171717 0%, #201c17 100%);
-    border-color: rgba(215, 179, 117, 0.14);
-    color: #f8f1e8;
-  }
-
-  .event-hero-card h1,
-  .event-hero-card h2 {
-    color: #fff7ef;
-  }
-
-  .event-hero-card p,
-  .event-hero-card .card-copy,
-  .event-process-card p {
-    color: rgba(248, 241, 232, 0.76);
-  }
-
-  .event-hero-card .eyebrow {
-    color: #f1d5a0;
-    border-color: rgba(215, 179, 117, 0.28);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .event-hero-aside {
+  .event-list-section {
     display: grid;
     gap: 18px;
-    padding: 22px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(215, 179, 117, 0.12);
-  }
-
-  .event-hero-meta-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .event-hero-meta-grid article {
-    display: grid;
-    gap: 4px;
-    padding: 14px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.06);
-    text-align: center;
-  }
-
-  .event-hero-meta-grid strong {
-    font-family: var(--font-display);
-    font-size: 1.7rem;
-    color: #fffdf8;
-  }
-
-  .event-hero-meta-grid span {
-    color: rgba(248, 241, 232, 0.7);
-    font-size: 0.9rem;
-  }
-
-  .event-hero-stats {
-    margin-top: 24px;
-  }
-
-  .format-grid,
-  .event-guide-grid,
-  .event-process-grid {
-    display: grid;
-    gap: 18px;
-  }
-
-  .format-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .format-card,
-  .event-guide-card {
-    min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
-  }
-
-  .event-guide-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 18px;
-  }
-
-  .event-guide-card h3,
-  .event-process-panel h2,
-  .events-cta-panel h2 {
-    margin: 12px 0 10px;
-  }
-
-  .event-process-panel {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-    background: linear-gradient(135deg, #1a1714 0%, #26211c 100%);
-    color: #f8f1e8;
-  }
-
-  .event-process-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .event-process-card {
-    display: grid;
-    gap: 8px;
-    padding: 18px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(215, 179, 117, 0.12);
-  }
-
-  .event-process-card span {
-    color: #f1d5a0;
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-  }
-
-  .event-process-card strong {
-    color: #fff7ef;
-    line-height: 1.5;
-  }
-
-  .event-process-card p {
-    margin: 0;
-    font-size: 0.92rem;
-    line-height: 1.7;
   }
 
   .filter-bar {
@@ -744,7 +364,11 @@ const registrationFlow = [
     gap: 16px;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 18px;
+  }
+
+  .results-head h2 {
+    margin: 8px 0 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
   }
 
   .results-summary {
@@ -757,11 +381,6 @@ const registrationFlow = [
     display: grid;
     gap: 18px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .event-grid[aria-busy="true"] {
-    opacity: 0.72;
-    pointer-events: none;
   }
 
   .event-card {
@@ -786,17 +405,17 @@ const registrationFlow = [
     object-fit: cover;
   }
 
+  .event-card-link > :not(.event-card-media-wrap) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
   .event-card-head,
   .event-meta-list {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     justify-content: space-between;
-  }
-
-  .event-card-link > :not(.event-card-media-wrap) {
-    padding-left: 24px;
-    padding-right: 24px;
   }
 
   .event-card-head {
@@ -809,11 +428,16 @@ const registrationFlow = [
     font-size: 1.4rem;
   }
 
-  .event-branch-name {
+  .event-branch-name,
+  .event-card-summary {
     margin: 0;
     color: var(--muted);
-    font-size: 0.95rem;
-    line-height: 1.7;
+    line-height: 1.75;
+  }
+
+  .event-card-summary {
+    margin-top: 16px;
+    min-height: 4.8em;
   }
 
   .event-state {
@@ -843,11 +467,6 @@ const registrationFlow = [
     color: #5f5148;
   }
 
-  .event-card-summary {
-    margin: 16px 0 0;
-    min-height: 4.8em;
-  }
-
   .event-meta-list {
     list-style: none;
     margin: 18px 0 0;
@@ -868,72 +487,14 @@ const registrationFlow = [
     font-weight: 600;
   }
 
-  .empty-state {
-    margin-top: 18px;
-  }
-
-  .pagination-bar {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    align-items: center;
-    margin-top: 22px;
-    flex-wrap: wrap;
-  }
-
-  .pagination-button {
-    min-width: 118px;
-    justify-content: center;
-  }
-
-  .pagination-indicator {
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .events-cta-panel {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-    align-items: center;
-    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(247, 241, 232, 0.94));
-  }
-
-  .events-cta-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 1000px) {
-    .event-hero-card,
-    .event-guide-grid,
-    .event-process-panel,
-    .event-process-grid,
-    .event-grid,
-    .format-grid,
-    .events-cta-panel {
+  @media (max-width: 900px) {
+    .event-grid {
       grid-template-columns: 1fr;
     }
 
     .results-head {
       flex-direction: column;
       align-items: flex-start;
-    }
-
-    .events-cta-actions {
-      justify-content: flex-start;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .event-hero-meta-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .event-card-summary {
-      min-height: 0;
     }
   }
 </style>

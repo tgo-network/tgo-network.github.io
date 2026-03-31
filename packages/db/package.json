@@ -17,6 +17,7 @@
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
     "seed": "node --env-file=../../.env --import tsx src/seed.ts",
+    "import:members": "node --env-file=../../.env --import tsx src/import-members-workbook.ts",
     "import:tgo-infoq": "node --env-file=../../.env --import tsx src/import-tgo-infoq.ts",
     "cleanup:demo-events": "node --env-file=../../.env --import tsx src/cleanup-demo-events.ts",
     "sync-homepage:tgo-infoq": "node --env-file=../../.env --import tsx src/sync-tgo-infoq-homepage.ts"

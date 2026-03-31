@@ -17,6 +17,7 @@ import {
   getJoinPage,
   getPublicApiBaseUrl,
   getSiteConfig,
+  listBranches,
   listEventPage,
   listArticles,
   listMembers
@@ -108,7 +109,19 @@ test("falls back to shared join page content when the API request fails", async 
   assert.deepEqual(result, joinPagePayload);
 });
 
-test("falls back to shared member summaries when the API returns a non-ok response", async () => {
+test("falls back to imported branch records when the API request fails", async () => {
+  globalThis.fetch = (async () => {
+    throw new Error("network unavailable");
+  }) as typeof fetch;
+
+  const result = await listBranches();
+
+  assert.equal(result.length, 12);
+  assert.equal(result.find((branch) => branch.slug === "guangzhou")?.name, "广州分会");
+  assert.equal(result.find((branch) => branch.slug === "guangzhou")?.boardMembers[0]?.displayName, "杨韶伟");
+});
+
+test("falls back to imported member summaries when the API returns a non-ok response", async () => {
   globalThis.fetch = (async () =>
     new Response("unavailable", {
       status: 503
@@ -116,7 +129,10 @@ test("falls back to shared member summaries when the API returns a non-ok respon
 
   const result = await listMembers();
 
-  assert.deepEqual(result, memberSummaries);
+  assert.equal(result.length, 1215);
+  assert.equal(result[0]?.slug, "member-1");
+  assert.equal(result[1]?.name, "郭理靖");
+  assert.ok(result.length > memberSummaries.length);
 });
 
 test("falls back to shared article detail when the API returns a non-ok response", async () => {
@@ -172,17 +188,17 @@ test("reads paginated event data and meta from the configured public API base UR
   assert.equal(result.meta.total, 10);
 });
 
-test("falls back to shared paginated event data when the API request fails", async () => {
+test("falls back to imported paginated event data when the API request fails", async () => {
   globalThis.fetch = (async () => {
     throw new Error("network unavailable");
   }) as typeof fetch;
 
-  const result = await listEventPage({ page: 1, pageSize: 1, city: "上海" });
+  const result = await listEventPage({ page: 1, pageSize: 1, city: "北京" });
 
   assert.equal(result.items.length, 1);
-  assert.equal(result.items[0]?.slug, "shanghai-ai-leadership-salon");
-  assert.equal(result.meta.total, 1);
+  assert.equal(result.items[0]?.slug, "event-1816");
+  assert.ok(result.meta.total > 1);
   assert.equal(result.meta.page, 1);
-  assert.equal(result.meta.pageCount, 1);
-  assert.deepEqual(result.meta.cityOptions, ["上海"]);
+  assert.ok(result.meta.pageCount > 1);
+  assert.deepEqual(result.meta.cityOptions, ["北京"]);
 });

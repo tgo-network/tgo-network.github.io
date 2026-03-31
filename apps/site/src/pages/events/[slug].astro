@@ -33,26 +33,9 @@ const eventBodyBlocks = event.body
   .filter(Boolean);
 
 const participationNotes = [
-  "成员与非成员都可以提交公开活动报名。",
-  "工作人员会在后台审核报名记录，并决定通过、拒绝或转为候补。",
-  "提交信息越完整，越便于工作人员理解你的参会诉求与背景。"
-];
-
-const audienceCards = [
-  {
-    title: "适合谁来",
-    summary: "适合希望围绕技术管理、组织实践、AI 落地或跨团队协作进行高质量线下交流的人。"
-  },
-  {
-    title: "组织关系",
-    summary: `${branchName} 当前对外展示这场活动，说明它不是孤立事件，而是城市分会运营节奏的一部分。`
-  },
-  {
-    title: "报名预期",
-    summary: registrationEnabled
-      ? "提交报名后不会立即确认席位，仍会进入工作人员后台继续审核与联系。"
-      : "当前活动不处于开放报名阶段，建议先阅读详情并关注后续开放节奏。"
-  }
+  "成员与非成员都可以提交报名。",
+  "报名信息会进入工作人员后台审核。",
+  "建议补充公司、职称和参会诉求，便于工作人员判断。"
 ];
 
 const registrationSteps = [
@@ -87,17 +70,6 @@ const registrationSteps = [
             <li>{formatRegistrationState(event.registrationState)}</li>
             <li>{event.venueName}</li>
           </ul>
-
-          <div class="event-highlight-grid">
-            {
-              audienceCards.map((item) => (
-                <article class="event-highlight-card">
-                  <h2>{item.title}</h2>
-                  <p>{item.summary}</p>
-                </article>
-              ))
-            }
-          </div>
         </div>
 
         <aside class="event-detail-side">
@@ -123,13 +95,6 @@ const registrationSteps = [
             </ul>
           </div>
 
-          <div class="detail-side-block detail-side-block-soft">
-            <div class="card-label card-label-on-dark">阅读建议</div>
-            <p>
-              先看活动背景与议程，再决定是否报名；如果你是第一次访问，也建议顺带查看所属分会与成员网络，理解这场活动在整个社区中的位置。
-            </p>
-          </div>
-
           {
             event.coverImage && (
               <figure class="event-detail-figure">
@@ -144,7 +109,7 @@ const registrationSteps = [
     <section class="section event-detail-grid">
       <article class="panel prose-panel event-body-panel">
         <div class="card-label">活动概览</div>
-        <h2 class="card-title">这场活动希望解决什么问题</h2>
+        <h2 class="card-title">活动详情</h2>
         {(eventBodyBlocks.length > 0 ? eventBodyBlocks : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
         <ul class="meta-list">
           <li>{branchName}</li>
@@ -155,27 +120,31 @@ const registrationSteps = [
 
       <div class="event-side-stack">
         <article class="panel panel-soft audience-panel">
-          <div class="card-label">参与预期</div>
+          <div class="card-label">报名须知</div>
           <ul class="audience-list">
             {participationNotes.map((item) => <li>{item}</li>)}
           </ul>
         </article>
 
-        <article class="panel panel-soft agenda-panel">
-          <div class="card-label">议程安排</div>
-          <ul class="agenda-list">
-            {
-              event.agenda.map((item) => (
-                <li>
-                  <strong>{item.time}</strong>
-                  <span>{item.title}</span>
-                  <em>{item.speaker}</em>
-                  <p>{item.summary}</p>
-                </li>
-              ))
-            }
-          </ul>
-        </article>
+        {
+          event.agenda.length > 0 && (
+            <article class="panel panel-soft agenda-panel">
+              <div class="card-label">议程安排</div>
+              <ul class="agenda-list">
+                {
+                  event.agenda.map((item) => (
+                    <li>
+                      <strong>{item.time}</strong>
+                      <span>{item.title}</span>
+                      <em>{item.speaker}</em>
+                      <p>{item.summary}</p>
+                    </li>
+                  ))
+                }
+              </ul>
+            </article>
+          )
+        }
       </div>
     </section>
 
@@ -235,7 +204,7 @@ const registrationSteps = [
               </div>
 
               <label>
-                <span>补充说明</span>
+                <span>补充信息</span>
                 <textarea name="note" rows="5" placeholder="例如你的关注议题、参会目的，或你希望在活动中交流的问题。"></textarea>
               </label>
 
@@ -258,7 +227,7 @@ const registrationSteps = [
 
       <aside class="panel panel-soft registration-side">
         <div>
-          <div class="card-label">报名说明</div>
+          <div class="card-label">报名须知</div>
           <ul class="meta-list vertical-list">
             {participationNotes.map((item) => <li>{item}</li>)}
           </ul>
@@ -271,13 +240,10 @@ const registrationSteps = [
           </p>
         </div>
 
-        <div>
-          <div class="card-label">继续浏览</div>
-          <div class="event-next-links">
-            <a class="button secondary" href="/events">返回活动列表</a>
-            {event.branch && <a class="button secondary" href={`/branches#${event.branch.slug}`}>查看所属分会</a>}
-            <a class="button secondary" href="/join">了解加入申请</a>
-          </div>
+        <div class="event-next-links">
+          <a class="button secondary" href="/events">返回活动列表</a>
+          {event.branch && <a class="button secondary" href={`/branches#${event.branch.slug}`}>查看所属分会</a>}
+          <a class="button secondary" href="/join">了解加入申请</a>
         </div>
       </aside>
     </section>
@@ -378,31 +344,10 @@ const registrationSteps = [
     gap: 18px;
   }
 
-  .event-highlight-grid,
   .registration-process-grid {
     display: grid;
     gap: 16px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .event-highlight-card {
-    display: grid;
-    gap: 8px;
-    padding: 18px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(215, 179, 117, 0.12);
-  }
-
-  .event-highlight-card h2 {
-    margin: 0;
-    font-size: 1rem;
-  }
-
-  .event-highlight-card p {
-    margin: 0;
-    font-size: 0.92rem;
-    line-height: 1.7;
   }
 
   .detail-side-block {
@@ -415,10 +360,6 @@ const registrationSteps = [
   .event-detail-side {
     position: sticky;
     top: 104px;
-  }
-
-  .detail-side-block-soft p {
-    margin: 12px 0 0;
   }
 
   .detail-side-list {
@@ -573,7 +514,6 @@ const registrationSteps = [
     .event-detail-hero,
     .event-detail-grid,
     .registration-shell,
-    .event-highlight-grid,
     .registration-process-grid {
       grid-template-columns: 1fr;
     }

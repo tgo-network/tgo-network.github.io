@@ -1,399 +1,136 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getAboutPage, listBranches, listEvents, listMembers } from "../lib/public-api";
+import { getAboutPage } from "../lib/public-api";
 
-const [page, branches, members, events] = await Promise.all([getAboutPage(), listBranches(), listMembers(), listEvents()]);
-
-const activityFormats = [
-  {
-    title: "私密小组活动",
-    summary: "适合更高频、更稳定的小范围同侪交流，围绕真实问题持续复盘。"
-  },
-  {
-    title: "年度团聚与区域聚会",
-    summary: "把跨城市成员连接起来，让关系不只发生在一场活动之内。"
-  },
-  {
-    title: "月度公开学习活动",
-    summary: "以公开活动扩大主题影响力，同时继续保持质量、审核与组织节奏。"
-  },
-  {
-    title: "全球经验对话",
-    summary: "面向更广范围的技术领导者视角，吸收跨区域与跨行业的实践经验。"
-  }
-];
-
-const principles = [
-  {
-    label: "长期连接",
-    title: "以分会作为长期运营节点",
-    summary: "不是依赖单次活动热度，而是围绕城市分会持续建立稳定的同侪关系。"
-  },
-  {
-    label: "真实结构",
-    title: "通过成员、活动与内容共同形成组织感",
-    summary: "公开站点不只是资讯展示，而是让访客真正看到这个社区如何被组织起来。"
-  },
-  {
-    label: "开放窗口",
-    title: "对外开放浏览，但核心价值来自长期参与",
-    summary: "活动、文章与申请页面是入口，真正的价值仍然来自长期、可信的交流网络。"
-  }
-];
-
-const browsePaths = [
-  {
-    title: "先看分会董事会",
-    summary: "如果你想先理解组织如何落到具体城市节点，这是最合适的入口。",
-    href: "/branches",
-    action: "浏览分会"
-  },
-  {
-    title: "再看成员网络",
-    summary: "通过成员公开资料理解社区覆盖的公司、角色与城市分布。",
-    href: "/members",
-    action: "查看成员"
-  },
-  {
-    title: "最后进入加入申请",
-    summary: "认同这种组织方式后，再进一步查看加入条件、权益与申请流程。",
-    href: "/join",
-    action: "进入申请"
-  }
-];
+const page = await getAboutPage();
+const journeySections = page.sections.filter((section) => section.title !== "即刻申请加入 TGO 鲲鹏会");
+const applySection = page.sections.find((section) => section.title === "即刻申请加入 TGO 鲲鹏会");
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
   <main class="page-shell page-stack">
-    <section class="hero">
-      <div class="hero-card about-hero-card">
-        <div class="about-hero-main">
-          <span class="eyebrow">{page.hero.eyebrow}</span>
-          <h1>{page.hero.title}</h1>
-          <p>{page.hero.summary}</p>
+    <section class="page-intro about-page-intro">
+      <div class="page-intro-copy">
+        <div class="card-label">{page.hero.eyebrow}</div>
+        <h1>{page.hero.title}</h1>
+        <p>{page.hero.summary}</p>
+      </div>
+    </section>
 
-          <div class="about-hero-stats">
-            <article>
-              <strong>{branches.length}</strong>
-              <span>分会</span>
-            </article>
-            <article>
-              <strong>{members.length}</strong>
-              <span>公开成员</span>
-            </article>
-            <article>
-              <strong>{events.length}</strong>
-              <span>活动</span>
-            </article>
-          </div>
+    <section class="section about-section-overview">
+      <div class="section-head section-head-stack">
+        <div>
+          <div class="card-label">活动模块</div>
+          <h2>定义你的 TGO 鲲鹏会之旅</h2>
         </div>
+      </div>
 
-        <aside class="about-hero-aside">
+      <div class="about-overview-grid">
+        {
+          journeySections.map((section, index) => (
+            <article class="panel about-overview-card">
+              <div class="card-label">{String(index + 1).padStart(2, "0")}</div>
+              <h3>{section.title}</h3>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section about-content-grid">
+      {
+        journeySections.map((section) => (
+          <article class="panel prose-panel about-content-card">
+            <div class="card-label">关于 TGO</div>
+            <h2>{section.title}</h2>
+            {section.body.map((paragraph) => <p>{paragraph}</p>)}
+          </article>
+        ))
+      }
+    </section>
+
+    {applySection && (
+      <section class="section">
+        <div class="panel about-apply-panel">
           <div>
-            <div class="card-label card-label-on-dark">组织方法</div>
-            <h2>分会、成员、活动与公开内容共同构成长期社区</h2>
-            <p>
-              我们不是单纯的内容栏目集合，而是通过分会运营、成员连接、活动组织与公开内容沉淀，
-              形成彼此联动的组织化社区。
-            </p>
+            <div class="card-label">加入方式</div>
+            <h2>{applySection.title}</h2>
+            {applySection.body.map((paragraph) => <p class="card-copy">{paragraph}</p>)}
           </div>
 
-          <ul class="about-hero-list">
-            <li>分会承担城市节点的长期运营职责</li>
-            <li>成员网络帮助访客理解真实覆盖范围</li>
-            <li>活动与文章负责把组织价值向外表达</li>
-          </ul>
-        </aside>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">组织原则</div>
-          <h2>为什么这个社区会以这样的方式被组织起来</h2>
-          <p class="section-note">先理解这个社区为什么强调长期连接、真实结构与开放入口，再看后面的组织表达，会更容易看懂整个站点。</p>
+          <div class="about-apply-actions">
+            <a class="button primary" href="/join">查看加入申请</a>
+            <a class="button secondary" href="/branches">浏览分会董事会</a>
+          </div>
         </div>
-      </div>
-
-      <div class="principle-grid">
-        {
-          principles.map((item) => (
-            <article class="panel principle-card">
-              <div class="card-label">{item.label}</div>
-              <h3 class="card-title">{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">关于我们</div>
-          <h2>从组织定位、交流方式与外部表达理解 TGO 鲲鹏会</h2>
-          <p class="section-note">这里不是单一的品牌介绍，而是把组织形式、活动路径与加入方式重新放回同一套社区叙事里。</p>
-        </div>
-      </div>
-
-      <div class="content-grid">
-        {
-          page.sections.map((section) => (
-            <article class="panel prose-panel about-section-card">
-              <div class="card-label">关于我们</div>
-              <h3 class="card-title">{section.title}</h3>
-              {section.body.map((paragraph) => <p>{paragraph}</p>)}
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">活动形式</div>
-          <h2>社区价值通过持续的线下连接被放大</h2>
-          <p class="section-note">不同活动形态承担的不是同一个任务，它们共同服务于长期同侪交流，而不是单次热度曝光。</p>
-        </div>
-      </div>
-
-      <div class="activity-grid">
-        {
-          activityFormats.map((item) => (
-            <article class="panel activity-card">
-              <h3 class="card-title">{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">继续浏览</div>
-          <h2>如果你想继续理解这个组织，建议按这条路径看下去</h2>
-          <p class="section-note">继续浏览路径被设计成从组织结构到成员网络，再到加入转化的顺序，而不是随机跳页。</p>
-        </div>
-      </div>
-
-      <div class="browse-grid">
-        {
-          browsePaths.map((item) => (
-            <a class="panel browse-card" href={item.href}>
-              <h3>{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-              <span class="text-link">{item.action}</span>
-            </a>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="panel about-cta-panel">
-        <div>
-          <div class="card-label">下一步</div>
-          <h2>如果你认同这样的组织方式，可以继续查看加入说明</h2>
-          <p class="card-copy">
-            先确认组织定位与加入方式，再决定是否提交正式申请；如果你更想先理解结构，也可以先浏览分会董事会与成员列表。
-          </p>
-        </div>
-        <div class="about-cta-actions">
-          <a class="button primary" href="/join">查看加入说明</a>
-          <a class="button secondary" href="/branches">浏览分会董事会</a>
-        </div>
-      </div>
-    </section>
+      </section>
+    )}
   </main>
 </BaseLayout>
 
 <style>
-  .about-hero-card {
-    display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-    padding: clamp(28px, 4vw, 44px);
-    background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
-      linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 228, 0.96));
+  .about-page-intro {
+    padding-bottom: 16px;
   }
 
-  .about-hero-main h1 {
-    max-width: 9ch;
-    line-height: 0.98;
-  }
-
-  .about-hero-main p {
-    max-width: 56ch;
-  }
-
-  .about-hero-stats,
-  .principle-grid,
-  .content-grid,
-  .activity-grid,
-  .browse-grid {
+  .about-section-overview {
     display: grid;
     gap: 18px;
   }
 
-  .about-hero-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 28px;
-  }
-
-  .about-hero-stats article,
-  .principle-card,
-  .browse-card {
-    min-height: 100%;
-  }
-
-  .about-hero-stats article {
-    display: grid;
-    gap: 6px;
-    padding: 18px 16px;
-    border-radius: 22px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.72);
-  }
-
-  .about-hero-stats strong {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    color: var(--ink);
-  }
-
-  .about-hero-stats span {
-    color: var(--muted);
-    font-size: 0.92rem;
-  }
-
-  .about-hero-aside {
+  .about-overview-grid,
+  .about-content-grid {
     display: grid;
     gap: 18px;
-    align-content: start;
-    padding: 24px;
-    border-radius: 26px;
-    background: linear-gradient(180deg, rgba(37, 31, 26, 0.96), rgba(47, 39, 33, 0.94));
-    border: 1px solid rgba(215, 179, 117, 0.14);
-    box-shadow: var(--shadow-strong);
   }
 
-  .about-hero-aside h2 {
-    margin: 12px 0 10px;
-    color: #fff7ef;
-    font-size: clamp(1.55rem, 2.4vw, 2.1rem);
-  }
-
-  .about-hero-aside p,
-  .about-hero-list {
-    color: rgba(248, 241, 232, 0.76);
-  }
-
-  .about-hero-list {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding-left: 18px;
-    line-height: 1.7;
-  }
-
-  .principle-grid,
-  .content-grid,
-  .browse-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .principle-card {
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-  }
-
-  .principle-card:hover,
-  .activity-card:hover,
-  .about-section-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.22);
-    box-shadow: 0 24px 44px rgba(40, 28, 18, 0.1);
-  }
-
-  .browse-card {
-    display: grid;
-    gap: 12px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-    transition: transform 180ms ease, border-color 180ms ease;
-  }
-
-  .browse-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.24);
-  }
-
-  .about-section-card {
-    min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-  }
-
-  .activity-grid {
+  .about-overview-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .activity-card {
+  .about-overview-card,
+  .about-content-card {
     min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
   }
 
-  .about-cta-panel {
+  .about-overview-card h3,
+  .about-content-card h2,
+  .about-apply-panel h2 {
+    margin: 10px 0 0;
+  }
+
+  .about-content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-content-card {
+    padding: clamp(22px, 3vw, 30px);
+  }
+
+  .about-apply-panel {
     display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
     align-items: center;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
+    background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
   }
 
-  .about-cta-panel h2 {
-    margin: 8px 0 10px;
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-  }
-
-  .about-cta-actions {
+  .about-apply-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
 
-  @media (max-width: 1100px) {
-    .activity-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 980px) {
-    .about-hero-card,
-    .principle-grid,
-    .content-grid,
-    .activity-grid,
-    .browse-grid {
+  @media (max-width: 900px) {
+    .about-overview-grid,
+    .about-content-grid,
+    .about-apply-panel {
       grid-template-columns: 1fr;
     }
 
-    .about-cta-panel {
-      grid-template-columns: 1fr;
-    }
-
-    .about-cta-actions {
+    .about-apply-actions {
       justify-content: flex-start;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .about-hero-stats {
-      grid-template-columns: 1fr;
     }
   }
 </style>

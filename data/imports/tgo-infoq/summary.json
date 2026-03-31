@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T13:05:00Z",
+  "generatedAt": "2026-03-30T19:34:49Z",
   "source": {
     "branches": "https://tgo.infoq.cn/we/branches",
     "events": "https://tgo.infoq.cn/event"
@@ -16,5 +16,5 @@
     "bytes": 0,
     "errors": []
   },
-  "durationSeconds": 43.19
+  "durationSeconds": 43.76
 }

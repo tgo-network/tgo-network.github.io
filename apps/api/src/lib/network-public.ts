@@ -485,25 +485,49 @@ const mapJoinPagePayload = (row: typeof sitePages.$inferSelect | null): JoinPage
 
 const mapAboutPagePayload = (row: typeof sitePages.$inferSelect | null): AboutPagePayload => {
   const summary = row?.summary?.trim() || aboutPagePayload.hero.summary;
-  const body = (row?.bodyRichtext ?? "")
-    .split(/\n{2,}/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const body = (row?.bodyRichtext ?? "").trim();
+  const structuredSections = body
+    ? body
+        .split(/\n(?=##\s+)/)
+        .map((block) => block.trim())
+        .filter(Boolean)
+        .map((block) => {
+          const [headingLine, ...restLines] = block.split("\n");
+          const title = headingLine.replace(/^##\s*/, "").trim();
+          const paragraphs = restLines
+            .join("\n")
+            .split(/\n{2,}/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+
+          if (!title) {
+            return null;
+          }
+
+          return {
+            title,
+            body: paragraphs
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            title: string;
+            body: string[];
+          } => Boolean(item && item.body.length > 0)
+        )
+    : [];
 
   return {
     hero: {
-      eyebrow: "关于我们",
+      eyebrow: aboutPagePayload.hero.eyebrow,
       title: row?.title?.trim() || defaultPageTitle.about,
       summary
     },
     sections:
-      body.length > 0
-        ? [
-            {
-              title: row?.title?.trim() || defaultPageTitle.about,
-              body
-            }
-          ]
+      structuredSections.length > 0
+        ? structuredSections
         : aboutPagePayload.sections
   };
 };

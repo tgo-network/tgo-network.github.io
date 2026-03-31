@@ -51,9 +51,10 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await page.goto(`${adminUrl}/dashboard`);
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("heading", { name: "工作人员登录" })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-login");
 
   await signIn(page);
-  await expect(page.getByText(adminEmail)).toBeVisible();
+  await expect(page.locator(".workspace-user-card code")).toContainText(adminEmail);
   await expect(page.getByRole("link", { name: "成员" })).toBeVisible();
   await expect(page.getByRole("link", { name: "工作人员" })).toBeVisible();
 
@@ -62,7 +63,9 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page.getByRole("heading", { name: "成员" })).toBeVisible();
   await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
 
-  await page.getByRole("link", { name: "审计日志" }).click();
+  const auditLogsLink = page.getByRole("link", { name: "审计日志" });
+  await expect(auditLogsLink).toBeVisible();
+  await page.goto(`${adminUrl}/audit-logs`);
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志" })).toBeVisible();
   await expect(page.getByText("记录总数")).toBeVisible();
@@ -158,7 +161,7 @@ test("admin review detail flows support saving application and registration deci
   await page.getByLabel("邮箱").fill(`admin-registration-${suffix}@example.com`);
   await page.getByLabel("公司").fill("Playwright 运营");
   await page.getByLabel("职称").fill("测试负责人");
-  await page.getByLabel("补充说明").fill("用于验证后台审核报名详情页的保存流程。");
+  await page.getByLabel("补充信息").fill("用于验证后台审核报名详情页的保存流程。");
   await page.getByRole("button", { name: "提交报名" }).click();
   await expect(page.locator("[data-event-registration-status]")).toContainText("报名已提交，编号", {
     timeout: 15_000

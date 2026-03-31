@@ -151,8 +151,8 @@ onMounted(() => {
         </div>
 
         <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">补充说明</div>
-          <p>{{ registration.note || "未填写补充说明。" }}</p>
+          <div class="brand-tag">补充信息</div>
+          <p>{{ registration.note || "未填写补充信息。" }}</p>
         </div>
       </div>
 

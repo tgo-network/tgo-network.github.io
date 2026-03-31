@@ -27,7 +27,9 @@
     "test:e2e:headed": "node scripts/run-e2e.mjs --headed",
     "test:e2e:install": "playwright install chromium",
     "data:fetch:tgo-infoq": "python3 scripts/scrape_tgo_infoq.py",
+    "data:convert:members": "python3 scripts/convert_members_workbook.py",
     "db:import:tgo-infoq": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db import:tgo-infoq",
+    "db:import:members": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db import:members",
     "db:cleanup:demo-events": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db cleanup:demo-events",
     "db:sync-homepage:tgo-infoq": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db sync-homepage:tgo-infoq",
     "env:check:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api validate-env",
@@ -38,7 +40,7 @@
     "db:seed": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db seed",
     "auth:bootstrap-admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api bootstrap-admin",
     "bootstrap:dev": "npm run db:migrate && npm run db:seed && npm run auth:bootstrap-admin",
-    "bootstrap:tgo-infoq": "npm run db:migrate && npm run db:seed && npm run db:cleanup:demo-events && npm run db:import:tgo-infoq && npm run db:sync-homepage:tgo-infoq && npm run auth:bootstrap-admin"
+    "bootstrap:tgo-infoq": "npm run db:migrate && npm run db:seed && npm run db:cleanup:demo-events && npm run data:convert:members && npm run db:import:tgo-infoq && npm run db:import:members && npm run db:sync-homepage:tgo-infoq && npm run auth:bootstrap-admin"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0"

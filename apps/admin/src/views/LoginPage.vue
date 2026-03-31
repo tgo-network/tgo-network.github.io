@@ -63,67 +63,92 @@ const signIn = async () => {
 </script>
 
 <template>
-  <main
-    style="
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    "
-  >
-    <section class="panel" style="width: min(440px, 100%);">
-      <div class="brand-tag">Better Auth</div>
-      <h1 style="margin: 14px 0 10px;">工作人员登录</h1>
-      <p style="margin: 0 0 16px;">
-        管理后台已经接入 Better Auth 的邮箱密码登录流程。
-        当后端接入真实数据库并完成管理员账号初始化后，
-        这个表单就可以用于真实工作人员登录。
-      </p>
+  <main class="login-shell">
+    <section class="login-layout">
+      <aside class="login-hero">
+        <div class="brand-tag">工作人员后台</div>
+        <div class="login-hero-copy">
+          <h1>工作人员登录</h1>
+          <p>
+            进入运营控制台后，可以继续维护公开站点的组织表达、活动审核队列、成员信息与工作人员权限。
+          </p>
+        </div>
 
-      <p style="margin: 0 0 16px; color: var(--muted);">
-        本地初始化默认账号： <code>admin@tgo.local</code> /
-        <code>TgoAdmin123456!</code>
-      </p>
+        <div class="login-highlight-grid">
+          <article class="login-highlight-card">
+            <span>内容运营</span>
+            <strong>文章、活动与首页表达</strong>
+            <p>保证公开站点始终围绕分会、成员、活动与加入这条主线持续更新。</p>
+          </article>
 
-      <form
-        @submit.prevent="signIn"
-        style="display: grid; gap: 12px;"
-      >
-        <label style="display: grid; gap: 6px;">
-          <span>邮箱</span>
-          <input
-            v-model="form.email"
-            type="email"
-            autocomplete="email"
-            required
-            style="min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line);"
-          />
-        </label>
+          <article class="login-highlight-card">
+            <span>审核队列</span>
+            <strong>加入申请与活动报名</strong>
+            <p>公开入口负责收集信息，最终通过与否仍在后台审核中统一完成。</p>
+          </article>
 
-        <label style="display: grid; gap: 6px;">
-          <span>密码</span>
-          <input
-            v-model="form.password"
-            type="password"
-            autocomplete="current-password"
-            required
-            style="min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line);"
-          />
-        </label>
+          <article class="login-highlight-card">
+            <span>权限边界</span>
+            <strong>工作人员与角色配置</strong>
+            <p>成员和工作人员完全分离，后台权限只通过工作人员账号与角色生效。</p>
+          </article>
+        </div>
+      </aside>
 
-        <button
-          type="submit"
-          :disabled="loading"
-          class="nav-link router-link-active"
-          style="cursor: pointer;"
-        >
-          {{ loading ? "登录中..." : "登录" }}
-        </button>
-      </form>
+      <section class="panel login-card">
+        <div class="login-card-head">
+          <div class="brand-tag">Better Auth</div>
+          <h2>登录控制台</h2>
+          <p class="login-card-copy">
+            后台已接入 Better Auth 邮箱密码登录。完成本地初始化后，这个表单可以直接用于真实工作人员登录。
+          </p>
+        </div>
 
-      <p v-if="errorMessage" style="margin: 14px 0 0; color: #9f2d22;">
-        {{ errorMessage }}
-      </p>
+        <div class="login-credential-note">
+          <span class="preview-label">本地默认账号</span>
+          <p>
+            <code>admin@tgo.local</code>
+            <span>/</span>
+            <code>TgoAdmin123456!</code>
+          </p>
+        </div>
+
+        <form class="login-form" @submit.prevent="signIn">
+          <label class="field">
+            <span>邮箱</span>
+            <input
+              v-model="form.email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="请输入工作人员邮箱"
+            />
+          </label>
+
+          <label class="field">
+            <span>密码</span>
+            <input
+              v-model="form.password"
+              type="password"
+              autocomplete="current-password"
+              required
+              placeholder="请输入密码"
+            />
+          </label>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="button-link button-primary login-submit"
+          >
+            {{ loading ? "登录中..." : "登录" }}
+          </button>
+        </form>
+
+        <p v-if="errorMessage" class="login-error">
+          {{ errorMessage }}
+        </p>
+      </section>
     </section>
   </main>
 </template>

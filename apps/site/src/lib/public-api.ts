@@ -33,6 +33,15 @@ import {
   siteConfig
 } from "@tgo/shared";
 
+import {
+  getImportedBranchFallback,
+  getImportedEventDetailFallback,
+  getImportedEventSummariesFallback,
+  getImportedHomePayloadFallback,
+  getImportedMemberDetailFallback,
+  getImportedMemberSummariesFallback
+} from "./imported-fallbacks.js";
+
 type ImportMetaEnvWithPublicApi = ImportMeta & {
   env?: {
     PUBLIC_API_BASE_URL?: string;
@@ -43,6 +52,9 @@ const getConfiguredApiBaseUrl = () =>
   (import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ??
   process.env.PUBLIC_API_BASE_URL ??
   "http://127.0.0.1:8787";
+
+const hasExplicitPublicApiBaseUrl = () =>
+  Boolean((import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ?? process.env.PUBLIC_API_BASE_URL);
 
 const defaultEventPageSize = 24;
 
@@ -82,6 +94,14 @@ const normalizePageNumber = (value: number | undefined, fallback: number) => {
   }
 
   return Math.max(1, Math.trunc(value ?? fallback));
+};
+
+const preferRicherCollection = <T>(apiItems: T[] | null, importedItems: T[] | null) => {
+  if (importedItems && (!apiItems || importedItems.length > apiItems.length)) {
+    return importedItems;
+  }
+
+  return apiItems ?? importedItems;
 };
 
 const sortEventSummaries = (events: PublicEventSummaryV2[]) =>
@@ -210,20 +230,57 @@ export const getPublicApiBaseUrl = () => getConfiguredApiBaseUrl();
 export const getSiteConfig = async (): Promise<PublicSiteConfig> =>
   (await fetchPublic<PublicSiteConfig>("/api/public/v1/site-config")) ?? siteConfig;
 
-export const getHomePayload = async (): Promise<PublicHomePayloadV2> =>
-  (await fetchPublic<PublicHomePayloadV2>("/api/public/v1/home")) ?? publicHomePayloadV2;
+export const getHomePayload = async (): Promise<PublicHomePayloadV2> => {
+  const apiHome = await fetchPublic<PublicHomePayloadV2>("/api/public/v1/home");
+  const importedHome = await getImportedHomePayloadFallback();
 
-export const listBranches = async (): Promise<BranchDetail[]> =>
-  (await fetchPublic<BranchDetail[]>("/api/public/v1/branches")) ?? branchDetails;
+  if (apiHome && hasExplicitPublicApiBaseUrl()) {
+    return apiHome;
+  }
+
+  if (apiHome && importedHome) {
+    const importedEventSlugs = new Set(importedHome.featuredEvents.map((event) => event.slug));
+    const hasImportedFeaturedEvent = apiHome.featuredEvents.some((event) => importedEventSlugs.has(event.slug));
+
+    if (!hasImportedFeaturedEvent && importedHome.featuredEvents.length > 0) {
+      return importedHome;
+    }
+  }
+
+  return apiHome ?? importedHome ?? publicHomePayloadV2;
+};
+
+export const listBranches = async (): Promise<BranchDetail[]> => {
+  const apiBranches = await fetchPublic<BranchDetail[]>("/api/public/v1/branches");
+  const importedBranches = await getImportedBranchFallback();
+
+  if (apiBranches && hasExplicitPublicApiBaseUrl()) {
+    return apiBranches;
+  }
+
+  return preferRicherCollection(apiBranches, importedBranches) ?? branchDetails;
+};
 
 export const getBranch = async (slug: string): Promise<BranchDetail | null> =>
-  (await fetchPublic<BranchDetail>(`/api/public/v1/branches/${slug}`)) ?? getBranchDetail(slug);
+  (await fetchPublic<BranchDetail>(`/api/public/v1/branches/${slug}`)) ??
+  (await getImportedBranchFallback())?.find((branch: BranchDetail) => branch.slug === slug) ??
+  getBranchDetail(slug);
 
-export const listMembers = async (): Promise<MemberSummary[]> =>
-  (await fetchPublic<MemberSummary[]>("/api/public/v1/members")) ?? memberSummaries;
+export const listMembers = async (): Promise<MemberSummary[]> => {
+  const apiMembers = await fetchPublic<MemberSummary[]>("/api/public/v1/members");
+  const importedMembers = await getImportedMemberSummariesFallback();
+
+  if (apiMembers && hasExplicitPublicApiBaseUrl()) {
+    return apiMembers;
+  }
+
+  return preferRicherCollection(apiMembers, importedMembers) ?? memberSummaries;
+};
 
 export const getMember = async (slug: string): Promise<MemberDetail | null> =>
-  (await fetchPublic<MemberDetail>(`/api/public/v1/members/${slug}`)) ?? getMemberDetail(slug);
+  (await fetchPublic<MemberDetail>(`/api/public/v1/members/${slug}`)) ??
+  (await getImportedMemberDetailFallback(slug)) ??
+  getMemberDetail(slug);
 
 export const getJoinPage = async (): Promise<JoinPagePayload> =>
   (await fetchPublic<JoinPagePayload>("/api/public/v1/join")) ?? joinPagePayload;
@@ -240,6 +297,9 @@ export const getArticle = async (slug: string): Promise<PublicArticleDetailV2 | 
 export const listEventPage = async (query: PublicEventListQuery = {}): Promise<PublicEventListResult> => {
   const page = normalizePageNumber(query.page, 1);
   const pageSize = normalizePageNumber(query.pageSize, defaultEventPageSize);
+  const fallbackEvents = (await getImportedEventSummariesFallback()) ?? publicEventSummariesV2;
+  const fallbackFiltered = filterEventSummaries(fallbackEvents, query);
+  const fallbackStartIndex = (page - 1) * pageSize;
   const path = buildEventListPath({
     ...query,
     page,
@@ -249,23 +309,28 @@ export const listEventPage = async (query: PublicEventListQuery = {}): Promise<P
 
   if (payload) {
     const meta = payload.meta as PublicEventListMeta | undefined;
+    const payloadTotal = meta?.total ?? payload.data.length;
+
+    if (hasExplicitPublicApiBaseUrl() || payloadTotal >= fallbackFiltered.length) {
+      return {
+        items: payload.data,
+        meta:
+          meta ?? {
+            ...createEventListMeta(payload.data.length, page, pageSize, payload.data),
+            total: payload.data.length
+          }
+      };
+    }
 
     return {
-      items: payload.data,
-      meta:
-        meta ?? {
-          ...createEventListMeta(payload.data.length, page, pageSize, payload.data),
-          total: payload.data.length
-        }
+      items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize),
+      meta: createEventListMeta(fallbackFiltered.length, page, pageSize, fallbackFiltered)
     };
   }
 
-  const filtered = filterEventSummaries(publicEventSummariesV2, query);
-  const startIndex = (page - 1) * pageSize;
-
   return {
-    items: filtered.slice(startIndex, startIndex + pageSize),
-    meta: createEventListMeta(filtered.length, page, pageSize, filtered)
+    items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize),
+    meta: createEventListMeta(fallbackFiltered.length, page, pageSize, fallbackFiltered)
   };
 };
 
@@ -278,7 +343,9 @@ export const listEvents = async (): Promise<PublicEventSummaryV2[]> =>
   ).items;
 
 export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null> =>
-  (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ?? getPublicEventDetailV2(slug);
+  (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ??
+  (await getImportedEventDetailFallback(slug)) ??
+  getPublicEventDetailV2(slug);
 
 export const submitJoinApplication = async (payload: unknown): Promise<JoinApplicationReceipt | null> =>
   fetch(new URL("/api/public/v1/join-applications", getConfiguredApiBaseUrl()), {

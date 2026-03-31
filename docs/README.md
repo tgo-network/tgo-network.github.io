@@ -82,3 +82,7 @@
   - `about` / `join` / `branches` 的页面级节奏统一与可用性补强
 - `site-visual-polish-phase-3.md`
   - 首页节奏优化，以及成员 / 活动 / 文章详情页的 typography 与侧栏收尾
+- `site-visual-polish-phase-4.md`
+  - 首页进一步收敛：精简 Hero 与 Intro、移除首页分会展示，并将成员区改为推荐语表达
+- `admin-visual-polish-phase-1.md`
+  - 后台外壳、登录页以及核心列表工作台体验的第一轮视觉收敛

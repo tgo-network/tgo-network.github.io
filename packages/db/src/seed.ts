@@ -155,8 +155,8 @@ const joinBodyText = [
 ].join("\n");
 
 const aboutBodyText = aboutPagePayload.sections
-  .flatMap((section) => [section.title, ...section.body, ""])
-  .join("\n");
+  .flatMap((section) => [`## ${section.title}`, ...section.body, ""])
+  .join("\n\n");
 
 export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> => {
   const existingRetiredPermissions = await db

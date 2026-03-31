@@ -30,6 +30,7 @@ Current implementation status:
 - Astro public data helpers now have lightweight Node tests for configured API access and fallback behavior
 - Public write endpoints now have baseline rate limiting, and asset finalization now enforces stronger metadata checks
 - Local bootstrap scripts are in place for `PostgreSQL`, optional `MinIO`, database seeding, and the initial super admin account
+- Official TGO scraped branches/events plus the `members.xlsx` member roster can now be converted/imported as the local initialization baseline
 - `.gitignore` is now in place for local env files, package artifacts, and framework build output
 - GitHub Actions CI now validates API environment config and runs `typecheck`, `build`, and the full test suite on pushes and pull requests
 - API deployment now has a monorepo-aware Dockerfile plus an environment validation script for release checks
@@ -111,6 +112,8 @@ Environment notes:
 - Copy `.env.example` to `.env` before enabling auth-backed API flows
 - `DATABASE_URL` and `BETTER_AUTH_SECRET` are required for `/api/auth/*` and protected admin endpoints
 - `npm run bootstrap:tgo-infoq` keeps the baseline roles/pages/admin setup from `db:seed`, then removes seeded demo events and imports the scraped TGO branch/event dataset
+- `npm run data:convert:members` converts the first worksheet in `members.xlsx` into public and private JSON exports under `data/imports/tgo-members/` and `data/private-imports/tgo-members/`
+- `npm run db:import:members` imports `data/imports/tgo-members/members.json` into the `members` table and refreshes the homepage featured member baseline
 - `INTERNAL_API_TOKEN` protects `/api/internal/v1/*` automation routes such as scheduled publishing
 - `APP_ENV`, `APP_VERSION`, and `GIT_SHA` optionally enrich runtime readiness and version probes
 - `LOG_FORMAT` supports `logfmt` for local readability and `json` for structured staging or production logs
@@ -125,7 +128,7 @@ Environment notes:
 - `GET /health` checks process liveness, `GET /ready` checks runtime readiness, and `GET /version` exposes release metadata
 - API responses expose `X-Request-ID`, and error bodies include `error.requestId` for log correlation
 - Without those values, public APIs still work and protected admin endpoints return `AUTH_NOT_CONFIGURED`
-- The Astro site falls back to shared demo content when the API is not running, so static builds still succeed locally
+- When the API is not running, the Astro site now prefers local imported TGO branch/event/member data and only falls back to shared demo content as a last resort
 
 Project planning documents:
 

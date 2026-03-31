@@ -4,626 +4,160 @@ import { listBranches } from "../../lib/public-api";
 
 const branches = await listBranches();
 const totalBoardMembers = branches.reduce((sum, branch) => sum + branch.boardMembers.length, 0);
-const coveredCities = Array.from(new Set(branches.map((branch) => branch.cityName))).length;
-const coveredRegions = Array.from(new Set(branches.map((branch) => branch.region).filter(Boolean))).length;
-const defaultOpenBranchSlug = branches[0]?.slug ?? "";
-const regionHighlights = Array.from(
-  branches.reduce(
-    (map, branch) => {
-      const key = branch.region?.trim() || "重点城市";
-      const current = map.get(key) ?? {
-        name: key,
-        branchCount: 0,
-        boardMemberCount: 0,
-        citySet: new Set<string>()
-      };
-
-      current.branchCount += 1;
-      current.boardMemberCount += branch.boardMembers.length;
-      current.citySet.add(branch.cityName);
-      map.set(key, current);
-
-      return map;
-    },
-    new Map<
-      string,
-      {
-        name: string;
-        branchCount: number;
-        boardMemberCount: number;
-        citySet: Set<string>;
-      }
-    >()
-  ).values()
-)
-  .map(({ citySet, ...item }) => ({
-    ...item,
-    cityCount: citySet.size,
-    cities: Array.from(citySet)
-  }))
-  .sort((left, right) => {
-    return (
-      right.branchCount - left.branchCount ||
-      right.boardMemberCount - left.boardMemberCount ||
-      left.name.localeCompare(right.name, "zh-CN")
-    );
-  })
-  .slice(0, 4);
-const branchReadingSteps = [
-  "先通过城市跳转快速定位你关心的分会节点。",
-  "进入展开内容后继续看分会介绍与董事会成员构成。",
-  "如果想整体扫读，可直接使用批量展开查看全部分会。"
-];
 ---
 
-<BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会概况与董事会成员信息。">
+<BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会与董事会成员信息。">
   <main class="page-shell page-stack">
-    <section class="hero">
-      <div class="hero-card branch-hero-card">
-        <div class="branch-hero-main">
-          <span class="eyebrow">分会董事会</span>
-          <h1>覆盖不同城市节点的技术领导者网络</h1>
-          <p>
-            每个分会围绕本地技术管理者的交流需求，组织闭门讨论、标杆走访、专题工作坊和成员协作。
-            当前页面重点展示分会概况与董事会成员，帮助访客快速理解组织的真实结构。
-          </p>
-          <ul class="stat-row branch-hero-stats">
-            <li>{branches.length} 个分会</li>
-            <li>{coveredCities} 个城市</li>
-            <li>{coveredRegions} 个区域</li>
-            <li>{totalBoardMembers} 位董事会成员</li>
-          </ul>
-        </div>
-
-        <aside class="branch-hero-aside">
-          <div>
-            <div class="card-label card-label-on-dark">阅读方式</div>
-            <h2>先看城市分布，再进入单个分会与董事会名单</h2>
-            <p>页面默认只展开一个分会，避免把所有城市信息一次性摊开；你可以按城市跳转，也可以在下方统一展开。</p>
-          </div>
-
-          <ol class="branch-reading-list">
-            {branchReadingSteps.map((item) => <li>{item}</li>)}
-          </ol>
-        </aside>
+    <section class="page-intro">
+      <div class="page-intro-copy">
+        <div class="card-label">分会董事会</div>
+        <h1>分会与董事会成员</h1>
+        <p>查看各地分会与董事会成员名单。</p>
       </div>
+      <p class="page-intro-meta">{branches.length} 个分会 · {totalBoardMembers} 位董事会成员</p>
     </section>
 
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">区域覆盖</div>
-          <h2>先从区域层面理解分会网络的分布密度</h2>
-          <p class="section-note">这里先给出一个区域级概览，帮助你在进入单个分会之前建立整体感，再回到城市节点继续阅读。</p>
-        </div>
-      </div>
-
-      <div class="branch-region-grid">
-        {
-          regionHighlights.map((region) => (
-            <article class="panel branch-region-card">
-              <div class="card-label">{region.name}</div>
-              <h3>{region.branchCount} 个分会节点</h3>
-              <p class="card-copy">覆盖 {region.cityCount} 个城市，当前公开 {region.boardMemberCount} 位董事会成员。</p>
-              <ul class="meta-list">
-                {region.cities.slice(0, 3).map((city) => <li>{city}</li>)}
-              </ul>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head section-head-stack">
-        <div>
-          <div class="card-label">快速跳转</div>
-          <h2>按城市查看分会</h2>
-          <p class="section-note">
-            为了避免一次展开全部分会信息造成过长滚动，页面默认只展开一个分会；你可以按城市跳转，或使用下方操作批量展开 / 收起。
-          </p>
-        </div>
-      </div>
-
-      <div class="branch-chip-row">
-        {
-          branches.map((branch) => (
-            <a class="branch-chip" href={`#${branch.slug}`}>
-              {branch.cityName}
-            </a>
-          ))
-        }
-      </div>
-
-      <div class="branch-actions" data-branch-actions>
-        <button class="button secondary branch-action-button" type="button" data-branch-expand-all>展开全部分会</button>
-        <button class="button secondary branch-action-button" type="button" data-branch-collapse-all>收起全部分会</button>
-      </div>
-    </section>
-
-    <section class="section stack-list">
+    <section class="section branch-record-list">
       {
         branches.map((branch) => (
-          <article id={branch.slug} class="panel branch-panel">
-            <div class="branch-head">
-              <div class="branch-copy">
-                <div class="card-label">{branch.region || branch.cityName}</div>
-                <h2 class="card-title branch-title">{branch.name}</h2>
-                <p class="card-copy">{branch.summary}</p>
-                <ul class="meta-list branch-meta">
-                  <li>{branch.cityName}</li>
-                  <li>{branch.boardMembers.length} 位董事会成员</li>
-                </ul>
+          <article id={branch.slug} class="panel branch-record">
+            <div class="branch-record-head">
+              <div>
+                <div class="card-label">{branch.cityName}</div>
+                <h2 class="branch-record-title">{branch.name}</h2>
               </div>
-
-              {
-                branch.coverImage && (
-                  <div class="branch-cover-wrap">
-                    <img class="branch-cover" src={branch.coverImage.url} alt={branch.coverImage.alt} loading="lazy" />
-                  </div>
-                )
-              }
+              <ul class="meta-list branch-record-meta">
+                {branch.region && <li>{branch.region}</li>}
+                <li>{branch.boardMembers.length} 位董事会成员</li>
+              </ul>
             </div>
 
-            <details
-              class="branch-disclosure"
-              data-branch-disclosure
-              data-branch-slug={branch.slug}
-              open={branch.slug === defaultOpenBranchSlug}
-            >
-              <summary class="branch-disclosure-summary">
-                <span class="branch-disclosure-copy">
-                  <strong>{branch.name}</strong>
-                  <span>查看分会介绍与 {branch.boardMembers.length} 位董事会成员</span>
-                </span>
-                <span class="branch-disclosure-icon" aria-hidden="true"></span>
-              </summary>
+            {branch.summary && <p class="branch-record-summary">{branch.summary}</p>}
 
-              <div class="branch-body">
-                <article class="panel panel-soft">
-                  <div class="card-label">分会介绍</div>
-                  <p class="card-copy">{branch.body}</p>
-                </article>
-
-                <article class="panel panel-soft">
-                  <div class="card-label">董事会成员</div>
-                  <div class="board-grid">
-                    {
-                      branch.boardMembers.map((member) => (
-                        <div class="board-item">
-                          <div class="board-person">
-                            {
-                              member.avatar ? (
-                                <img class="board-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
-                              ) : (
-                                <div class="board-avatar board-avatar-fallback" aria-hidden="true">
-                                  {member.displayName.slice(0, 1)}
-                                </div>
-                              )
-                            }
-
-                            <div class="board-copy">
-                              <span class="board-role">{member.title}</span>
-                              <h3>{member.displayName}</h3>
-                              <p class="board-company">{member.company}</p>
-                            </div>
+            <div class="branch-board-grid">
+              {
+                branch.boardMembers.map((member) => (
+                  <article class="branch-board-card">
+                    <div class="branch-board-head">
+                      {
+                        member.avatar ? (
+                          <img class="branch-board-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                        ) : (
+                          <div class="branch-board-avatar branch-board-avatar-fallback" aria-hidden="true">
+                            {member.displayName.slice(0, 1)}
                           </div>
-                          <p class="card-copy board-bio">{member.bio}</p>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </article>
-              </div>
-            </details>
+                        )
+                      }
+
+                      <div class="branch-board-copy">
+                        <div class="card-label">{member.title}</div>
+                        <h3>{member.displayName}</h3>
+                        <p>{member.company}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              }
+            </div>
           </article>
         ))
       }
     </section>
   </main>
-
-  <script is:inline>
-    const disclosures = Array.from(document.querySelectorAll("[data-branch-disclosure]"));
-    const expandAllButton = document.querySelector("[data-branch-expand-all]");
-    const collapseAllButton = document.querySelector("[data-branch-collapse-all]");
-
-    const normalizeHash = (value) => value.replace(/^#/, "").trim();
-
-    const openBranchByHash = () => {
-      const hash = normalizeHash(window.location.hash);
-
-      if (!hash) {
-        return;
-      }
-
-      const nextDisclosure = disclosures.find((item) => item instanceof HTMLDetailsElement && item.dataset.branchSlug === hash);
-
-      if (!(nextDisclosure instanceof HTMLDetailsElement)) {
-        return;
-      }
-
-      disclosures.forEach((item) => {
-        if (item instanceof HTMLDetailsElement) {
-          item.open = item === nextDisclosure;
-        }
-      });
-
-      nextDisclosure.open = true;
-      nextDisclosure.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    };
-
-    expandAllButton?.addEventListener("click", () => {
-      disclosures.forEach((item) => {
-        if (item instanceof HTMLDetailsElement) {
-          item.open = true;
-        }
-      });
-    });
-
-    collapseAllButton?.addEventListener("click", () => {
-      disclosures.forEach((item) => {
-        if (item instanceof HTMLDetailsElement) {
-          item.open = false;
-        }
-      });
-
-      if (window.location.hash) {
-        history.replaceState({}, "", window.location.pathname + window.location.search);
-      }
-    });
-
-    window.addEventListener("hashchange", openBranchByHash);
-    openBranchByHash();
-  </script>
 </BaseLayout>
 
 <style>
-  .branch-hero-card {
+  .branch-record-list {
     display: grid;
     gap: 22px;
-    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-    padding: clamp(28px, 4vw, 44px);
-    background:
-      radial-gradient(circle at top right, rgba(215, 179, 117, 0.14), transparent 24%),
-      linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
-  .branch-hero-main h1 {
-    max-width: 10ch;
-    line-height: 0.98;
-  }
-
-  .branch-hero-main p {
-    max-width: 58ch;
-  }
-
-  .branch-hero-stats {
-    margin-top: 22px;
-  }
-
-  .branch-hero-aside {
-    display: grid;
-    gap: 18px;
-    align-content: start;
-    padding: 24px;
-    border-radius: 26px;
-    background: linear-gradient(180deg, rgba(37, 31, 26, 0.96), rgba(47, 39, 33, 0.94));
-    border: 1px solid rgba(215, 179, 117, 0.14);
-    box-shadow: var(--shadow-strong);
-  }
-
-  .branch-hero-aside h2 {
-    margin: 12px 0 10px;
-    color: #fff7ef;
-    font-size: clamp(1.55rem, 2.4vw, 2.1rem);
-  }
-
-  .branch-hero-aside p,
-  .branch-reading-list {
-    color: rgba(248, 241, 232, 0.76);
-  }
-
-  .branch-reading-list {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding-left: 18px;
-    line-height: 1.7;
-  }
-
-  .branch-region-grid {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .branch-region-card {
-    min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 249, 239, 0.92), rgba(249, 242, 232, 0.96));
-  }
-
-  .branch-region-card h3 {
-    margin: 12px 0 10px;
-    font-size: 1.12rem;
-  }
-
-  .branch-chip-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .branch-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 42px;
-    padding: 0 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(31, 26, 23, 0.1);
-    background: rgba(255, 255, 255, 0.78);
-    color: var(--muted);
-    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-  }
-
-  .branch-chip:hover {
-    transform: translateY(-1px);
-    border-color: rgba(157, 111, 49, 0.3);
-    background: rgba(255, 249, 239, 0.92);
-  }
-
-  .branch-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-
-  .branch-action-button {
-    min-width: 140px;
-    justify-content: center;
-  }
-
-  .stack-list {
-    display: grid;
-    gap: 18px;
-  }
-
-  .branch-panel {
+  .branch-record {
     display: grid;
     gap: 20px;
-    scroll-margin-top: 110px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    padding: clamp(22px, 3vw, 30px);
   }
 
-  .branch-panel:hover {
-    transform: translateY(-2px);
-    border-color: rgba(157, 111, 49, 0.18);
-    box-shadow: 0 26px 52px rgba(40, 28, 18, 0.12);
-  }
-
-  .branch-head {
+  .branch-record-head {
     display: flex;
-    gap: 22px;
+    gap: 16px;
     justify-content: space-between;
     align-items: flex-start;
   }
 
-  .branch-copy {
-    flex: 1;
+  .branch-record-title {
+    margin: 10px 0 0;
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
   }
 
-  .branch-title {
-    margin-top: 8px;
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
+  .branch-record-meta {
+    margin-top: 0;
+    justify-content: flex-end;
   }
 
-  .branch-meta {
-    margin-top: 16px;
-  }
-
-  .branch-cover-wrap {
-    width: min(340px, 100%);
-    flex: 0 0 auto;
-  }
-
-  .branch-cover {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    border-radius: 22px;
-  }
-
-  .branch-disclosure {
-    display: grid;
-    gap: 18px;
-  }
-
-  .branch-disclosure-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 16px 18px;
-    border-radius: 20px;
-    background: rgba(255, 249, 239, 0.74);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    cursor: pointer;
-    list-style: none;
-    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-  }
-
-  .branch-disclosure-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .branch-disclosure-summary:hover {
-    transform: translateY(-1px);
-    border-color: rgba(157, 111, 49, 0.22);
-    background: rgba(255, 250, 242, 0.92);
-  }
-
-  .branch-disclosure[open] .branch-disclosure-summary {
-    background: linear-gradient(180deg, rgba(255, 248, 236, 0.96), rgba(249, 240, 228, 0.94));
-    border-color: rgba(157, 111, 49, 0.2);
-  }
-
-  .branch-disclosure-copy {
-    display: grid;
-    gap: 4px;
-  }
-
-  .branch-disclosure-copy strong {
-    font-size: 1.02rem;
-  }
-
-  .branch-disclosure-copy span {
-    color: var(--muted);
-    font-size: 0.94rem;
-  }
-
-  .branch-disclosure-icon {
-    width: 14px;
-    height: 14px;
-    border-right: 2px solid rgba(31, 26, 23, 0.72);
-    border-bottom: 2px solid rgba(31, 26, 23, 0.72);
-    transform: rotate(45deg);
-    transition: transform 180ms ease;
-    flex: 0 0 auto;
-    margin-right: 6px;
-  }
-
-  .branch-disclosure[open] .branch-disclosure-icon {
-    transform: rotate(225deg);
-    margin-top: 8px;
-  }
-
-  .branch-body {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  }
-
-  .board-grid {
-    display: grid;
-    gap: 14px;
-    margin-top: 16px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .board-item {
-    display: grid;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-  }
-
-  .board-item:hover {
-    transform: translateY(-2px);
-    border-color: rgba(157, 111, 49, 0.18);
-    box-shadow: 0 18px 34px rgba(40, 28, 18, 0.08);
-  }
-
-  .board-person {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-  }
-
-  .board-copy {
-    display: grid;
-    gap: 6px;
-  }
-
-  .board-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-    object-fit: cover;
-    flex: 0 0 auto;
-    background: rgba(31, 26, 23, 0.08);
-  }
-
-  .board-avatar-fallback {
-    display: inline-grid;
-    place-items: center;
-    color: #fff7ef;
-    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(202, 155, 88, 0.9));
-    font-weight: 700;
-  }
-
-  .board-role {
-    display: inline-flex;
-    width: fit-content;
-    padding: 5px 9px;
-    border-radius: 999px;
-    border: 1px solid rgba(157, 111, 49, 0.16);
-    background: rgba(255, 248, 238, 0.86);
-    color: var(--accent-strong);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .board-item h3 {
-    margin: 0 0 8px;
-    font-size: 1.05rem;
-  }
-
-  .board-company,
-  .board-item p {
+  .branch-record-summary {
     margin: 0;
-  }
-
-  .board-company {
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.85;
   }
 
-  .board-bio {
-    line-height: 1.72;
+  .branch-board-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  @media (max-width: 980px) {
-    .branch-hero-card,
-    .branch-head,
-    .branch-body {
-      grid-template-columns: 1fr;
-      display: grid;
-    }
-
-    .branch-region-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .branch-cover-wrap {
-      width: 100%;
-    }
+  .branch-board-card {
+    min-height: 100%;
+    padding: 20px;
+    border-radius: 22px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 240, 231, 0.96));
   }
 
-  @media (max-width: 720px) {
-    .branch-region-grid {
-      grid-template-columns: 1fr;
-    }
+  .branch-board-head {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    align-items: center;
+  }
 
-    .branch-actions {
+  .branch-board-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow: 0 16px 32px rgba(40, 28, 18, 0.12);
+  }
+
+  .branch-board-avatar-fallback {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
+    color: #fff7ef;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+  }
+
+  .branch-board-copy h3 {
+    margin: 8px 0 6px;
+    font-size: 1.2rem;
+  }
+
+  .branch-board-copy p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .branch-record-head,
+    .branch-record-meta {
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
     }
 
-    .branch-action-button {
-      width: 100%;
-    }
-
-    .board-grid {
+    .branch-board-grid {
       grid-template-columns: 1fr;
     }
   }
