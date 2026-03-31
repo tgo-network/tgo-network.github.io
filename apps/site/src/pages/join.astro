@@ -29,6 +29,18 @@ const applicationTips = [
   "留下常用手机号与微信号。"
 ];
 
+const reviewFocus = [
+  "工作人员会重点查看你的当前职责、团队范围与技术管理背景。",
+  "如果希望加入特定分会，建议在申请信息里写清目标城市与参与诉求。",
+  "资料越完整，后续联系与审核判断会越高效。"
+];
+
+const currentRules = [
+  "非成员可以直接提交加入申请。",
+  "成员与工作人员是两套独立身份体系。",
+  "站点内容与活动信息可直接浏览。"
+];
+
 const decisionCards = [
   {
     label: "组织定位",
@@ -84,7 +96,8 @@ const postSubmitSteps = [
         <aside class="join-hero-aside">
           <div>
             <div class="card-label card-label-on-dark">如何开始</div>
-            <h2>申请流程</h2>
+            <h2>三步完成加入申请</h2>
+            <p class="join-hero-note">先确认加入条件，再提交完整资料，之后由工作人员继续审核与联系。</p>
           </div>
 
           <ol class="join-step-list">
@@ -98,7 +111,7 @@ const postSubmitSteps = [
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">申请前确认</div>
-          <h2>加入前请了解以下三项信息</h2>
+          <h2>加入前先确认这三件事</h2>
         </div>
       </div>
 
@@ -119,7 +132,7 @@ const postSubmitSteps = [
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">加入条件</div>
-          <h2>加入条件、成员权益与审核流程</h2>
+          <h2>加入条件、成员权益与审核方式</h2>
         </div>
       </div>
 
@@ -150,50 +163,41 @@ const postSubmitSteps = [
     <section class="section">
       <div class="section-head section-head-stack">
         <div>
-          <div class="card-label">参与形式</div>
-          <h2>加入之后，你更可能参与的是这些连接方式</h2>
+          <div class="card-label">加入之后</div>
+          <h2>成员会如何持续参与</h2>
         </div>
       </div>
 
-      <div class="format-grid">
-        {
-          participationFormats.map((item) => (
-            <article class="panel format-card">
-              <h3 class="card-title">{item.title}</h3>
-              <p class="card-copy">{item.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="section detail-grid">
-      <article class="panel prose-panel">
-        <div class="card-label">常见问题</div>
-        <div class="faq-list">
+      <div class="join-context-layout">
+        <div class="format-grid">
           {
-            page.faq.map((item) => (
-              <div class="faq-item">
-                <h3>{item.question}</h3>
-                <p>{item.answer}</p>
-              </div>
+            participationFormats.map((item) => (
+              <article class="panel format-card">
+                <h3 class="card-title">{item.title}</h3>
+                <p class="card-copy">{item.summary}</p>
+              </article>
             ))
           }
         </div>
-      </article>
 
-      <aside class="panel panel-soft stack-sm join-side-panel">
-        <div>
-          <div class="card-label">提交后会发生什么</div>
-          <p class="card-copy">申请资料提交后会进入审核流程，由工作人员审核并联系你。</p>
-        </div>
-        <div>
-          <div class="card-label">填写建议</div>
-          <ul class="meta-list vertical-list">
-            {applicationTips.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-      </aside>
+        <aside class="panel panel-soft join-guidance-panel">
+          <div>
+            <div class="card-label">常见问题</div>
+            <p class="card-copy join-guidance-copy">把最常见的加入疑问集中在这里，帮助你更快判断是否适合当前阶段申请。</p>
+          </div>
+
+          <div class="faq-list faq-list-compact">
+            {
+              page.faq.map((item) => (
+                <div class="faq-item">
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </div>
+              ))
+            }
+          </div>
+        </aside>
+      </div>
     </section>
 
     <section id="application-form" class="section registration-shell">
@@ -256,13 +260,25 @@ const postSubmitSteps = [
         </form>
       </div>
 
-      <aside class="panel panel-soft registration-side">
+      <aside class="panel panel-soft registration-side join-form-support">
+        <div>
+          <div class="card-label">填写建议</div>
+          <ul class="join-rule-list">
+            {applicationTips.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div>
+          <div class="card-label">审核关注</div>
+          <ul class="join-rule-list">
+            {reviewFocus.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+
         <div>
           <div class="card-label">当前规则</div>
-          <ul class="meta-list vertical-list">
-            <li>非成员可以直接提交加入申请。</li>
-            <li>成员与工作人员是两套独立身份体系。</li>
-            <li>站点内容与活动信息可直接浏览。</li>
+          <ul class="join-rule-list">
+            {currentRules.map((item) => <li>{item}</li>)}
           </ul>
         </div>
 
@@ -321,8 +337,8 @@ const postSubmitSteps = [
 <style>
   .join-hero-card {
     display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.32fr) minmax(300px, 0.68fr);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
       linear-gradient(135deg, #171717 0%, #201c17 100%);
@@ -352,13 +368,32 @@ const postSubmitSteps = [
     color: #f8f1e8;
   }
 
+  .join-hero-main h1 {
+    max-width: 10.5ch;
+    font-size: clamp(2.25rem, 4.8vw, 3.85rem);
+    line-height: 0.98;
+  }
+
+  .join-hero-main p {
+    max-width: 44rem;
+  }
+
   .join-hero-aside {
     display: grid;
     gap: 18px;
-    padding: 24px;
+    padding: 22px;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .join-hero-aside h2 {
+    margin: 8px 0 0;
+  }
+
+  .join-hero-note {
+    margin: 10px 0 0;
+    line-height: 1.75;
   }
 
   .join-step-list {
@@ -373,6 +408,7 @@ const postSubmitSteps = [
   .join-info-grid,
   .decision-grid,
   .format-grid,
+  .join-context-layout,
   .registration-shell,
   .submit-flow-grid {
     display: grid;
@@ -386,6 +422,11 @@ const postSubmitSteps = [
 
   .format-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .join-context-layout {
+    grid-template-columns: minmax(0, 1.14fr) minmax(300px, 0.86fr);
+    align-items: start;
   }
 
   .join-info-card,
@@ -411,18 +452,18 @@ const postSubmitSteps = [
     box-shadow: 0 24px 44px rgba(40, 28, 18, 0.1);
   }
 
-  .vertical-list {
-    display: grid;
-    gap: 10px;
-  }
-
   .faq-list {
     display: grid;
     gap: 16px;
   }
 
+  .faq-list-compact {
+    margin-top: 6px;
+  }
+
   .faq-item h3 {
     margin: 0 0 8px;
+    font-size: 1rem;
   }
 
   .faq-item + .faq-item {
@@ -432,12 +473,39 @@ const postSubmitSteps = [
 
   .faq-item p {
     margin: 0;
+    line-height: 1.72;
   }
 
-  .join-side-panel {
+  .join-guidance-panel,
+  .registration-side {
     display: grid;
     gap: 18px;
     align-content: start;
+  }
+
+  .join-guidance-panel {
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
+  }
+
+  .join-guidance-copy {
+    margin-top: 10px;
+  }
+
+  .join-rule-list {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .join-rule-list li {
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.62);
+    color: var(--muted);
+    line-height: 1.72;
   }
 
   .registration-shell {
@@ -485,31 +553,30 @@ const postSubmitSteps = [
     line-height: 1.65;
   }
 
-  .registration-side {
-    display: grid;
-    gap: 18px;
-    align-content: start;
+  .join-form-support {
     position: sticky;
     top: 104px;
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
   }
 
   @media (max-width: 1000px) {
     .join-hero-card,
     .decision-grid,
     .join-info-grid,
+    .join-context-layout,
     .registration-shell,
     .submit-flow-grid {
       grid-template-columns: 1fr;
+    }
+
+    .join-form-support {
+      position: static;
     }
   }
 
   @media (max-width: 720px) {
     .format-grid {
       grid-template-columns: 1fr;
-    }
-
-    .registration-side {
-      position: static;
     }
   }
 </style>

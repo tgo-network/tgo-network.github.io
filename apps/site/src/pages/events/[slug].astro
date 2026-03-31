@@ -13,6 +13,21 @@ export const getStaticPaths = async () => {
   }));
 };
 
+type EventBodySection = {
+  title: string;
+  items: string[];
+};
+
+type EventContentBlock = {
+  paragraphs: string[];
+  bullets: string[];
+};
+
+type AudienceCard = {
+  title: string;
+  summary: string;
+};
+
 const slug = Astro.params.slug!;
 const event = await getEvent(slug);
 const apiBaseUrl = getPublicApiBaseUrl();
@@ -25,25 +40,204 @@ const registrationEnabled = event.registrationState === "open" || event.registra
 const registrationTitle = event.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
 const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
 const branchName = event.branch?.name ?? `${event.cityName}活动`;
-const eventBodyBlocks = event.body
+
+const eventBodyHeadingPatterns = [
+  /^活动简介$/,
+  /^活动流程$/,
+  /^参会须知$/,
+  /^谁该来.*参与.*$/,
+  /^活动亮点$/,
+  /^适合谁(?:参加)?$/,
+  /^适合人群$/,
+  /^报名方式$/,
+  /^报名链接$/,
+  /^温馨提示$/,
+  /^参会标准$/,
+  /^非会员申请标准$/
+];
+
+const stripListMarker = (value: string) => value.replace(/^[•●▪■◆★⭐-]\s*/, "").replace(/^\d+[、.．)]\s*/, "").trim();
+const isPureUrl = (value: string) => /^https?:\/\/\S+$/i.test(value);
+const isHeadingLine = (value: string) => eventBodyHeadingPatterns.some((pattern) => pattern.test(value));
+
+const eventBodySections = event.body
   .replace(/\r/g, "")
-  .split(/\n{2,}/)
-  .flatMap((block) => block.split("\n"))
-  .map((block) => block.trim())
-  .filter(Boolean);
+  .split("\n")
+  .map((line) => line.trim())
+  .filter(Boolean)
+  .reduce<EventBodySection[]>((sections, line) => {
+    if (isHeadingLine(line)) {
+      const previous = sections.at(-1);
 
-const participationNotes = [
-  "活动对成员与非成员都开放报名。",
-  "报名信息会进入工作人员后台审核。",
-  "建议补充公司、职称和参会诉求，便于工作人员判断。"
+      if (previous?.title !== line) {
+        sections.push({
+          title: line,
+          items: []
+        });
+      }
+
+      return sections;
+    }
+
+    if (sections.length === 0) {
+      sections.push({
+        title: "活动简介",
+        items: []
+      });
+    }
+
+    const currentSection = sections[sections.length - 1]!;
+
+    if (line !== currentSection.title) {
+      currentSection.items.push(line);
+    }
+
+    return sections;
+  }, []);
+
+const createContentBlock = (items: string[]): EventContentBlock => {
+  const paragraphs: string[] = [];
+  const bullets: string[] = [];
+
+  for (const item of items) {
+    const trimmed = item.trim();
+
+    if (!trimmed || isPureUrl(trimmed)) {
+      continue;
+    }
+
+    if (/^[•●▪■◆★⭐-]/.test(trimmed) || /^\d+[、.．)]/.test(trimmed)) {
+      bullets.push(stripListMarker(trimmed));
+      continue;
+    }
+
+    paragraphs.push(trimmed);
+  }
+
+  return {
+    paragraphs,
+    bullets
+  };
+};
+
+const createAudienceCards = (items: string[]): AudienceCard[] => {
+  const cards: { title: string; details: string[] }[] = [];
+  let currentCard: { title: string; details: string[] } | null = null;
+
+  const pushCurrentCard = () => {
+    if (!currentCard) {
+      return;
+    }
+
+    cards.push(currentCard);
+    currentCard = null;
+  };
+
+  for (const item of items) {
+    const cleaned = item.trim();
+
+    if (!cleaned || isPureUrl(cleaned)) {
+      continue;
+    }
+
+    const isCardTitle = cleaned.startsWith("🦞") || /^(如果你是|适合|面向)/.test(cleaned);
+
+    if (isCardTitle) {
+      pushCurrentCard();
+      currentCard = {
+        title: cleaned.replace(/^🦞\s*/, "").trim(),
+        details: []
+      };
+      continue;
+    }
+
+    if (!currentCard) {
+      currentCard = {
+        title: "适合参与的人",
+        details: []
+      };
+    }
+
+    currentCard.details.push(stripListMarker(cleaned));
+  }
+
+  pushCurrentCard();
+
+  return cards
+    .map((card) => ({
+      title: card.title,
+      summary: card.details.join(" ").trim()
+    }))
+    .filter((card) => card.title && card.summary);
+};
+
+const bodyLinks = Array.from(event.body.matchAll(/https?:\/\/\S+/gi)).map(([value]) =>
+  value.replace(/[)）。，；、]+$/g, "")
+);
+const registrationUrl = event.registrationUrl ?? bodyLinks[0] ?? null;
+const narrativeSections = eventBodySections.filter(
+  (section) =>
+    section.items.length > 0 &&
+    !/^活动流程$/.test(section.title) &&
+    !/^参会须知$/.test(section.title) &&
+    !/^报名方式$/.test(section.title) &&
+    !/^报名链接$/.test(section.title) &&
+    !/^参会标准$/.test(section.title) &&
+    !/^非会员申请标准$/.test(section.title) &&
+    !/^谁该来.*参与.*$/.test(section.title) &&
+    !/^适合/.test(section.title)
+);
+const introSection = narrativeSections[0] ?? {
+  title: "活动介绍",
+  items: [event.summary]
+};
+const introContent = createContentBlock(introSection.items);
+const additionalNarrativeSections = narrativeSections.slice(1).map((section) => ({
+  title: section.title,
+  content: createContentBlock(section.items)
+}));
+const audienceSectionItems = eventBodySections
+  .filter((section) => /^谁该来.*参与.*$/.test(section.title) || /^适合/.test(section.title))
+  .flatMap((section) => section.items);
+const audienceCards = createAudienceCards(audienceSectionItems);
+const fallbackAudienceCards = [
+  {
+    title: "开放报名",
+    summary: "活动对成员与非成员都开放报名，提交后统一进入工作人员后台审核。"
+  },
+  {
+    title: "资料完整更容易通过",
+    summary: "建议补充公司、职称和参会诉求，方便工作人员更快判断是否匹配活动定位。"
+  },
+  {
+    title: "审核后继续联系",
+    summary: "审核结果可能为通过、拒绝或候补，工作人员会继续跟进后续安排。"
+  }
 ];
-
-const registrationSideNotes = [
-  "提交后会进入工作人员后台，由工作人员统一审核。",
-  "审核结果可能为通过、拒绝或转为候补。",
-  "审核通过后，工作人员会进一步联系并确认参与信息。"
-];
-
+const displayedAudienceCards = audienceCards.length > 0 ? audienceCards : fallbackAudienceCards;
+const registrationNoticeItems = Array.from(
+  new Set(
+    eventBodySections
+      .filter(
+        (section) =>
+          /^参会须知$/.test(section.title) ||
+          /^报名方式$/.test(section.title) ||
+          /^参会标准$/.test(section.title) ||
+          /^非会员申请标准$/.test(section.title)
+      )
+      .flatMap((section) => section.items)
+      .map((item) => stripListMarker(item))
+      .filter((item) => item && !isPureUrl(item))
+  )
+);
+const registrationSideNotes =
+  registrationNoticeItems.length > 0
+    ? registrationNoticeItems
+    : [
+        "提交后会进入工作人员后台，由工作人员统一审核。",
+        "审核结果可能为通过、拒绝或转为候补。",
+        "审核通过后，工作人员会进一步联系并确认参与信息。"
+      ];
 const registrationSteps = [
   {
     step: "01",
@@ -114,22 +308,54 @@ const registrationSteps = [
 
     <section class="section event-detail-grid">
       <article class="panel prose-panel event-body-panel">
-        <div class="card-label">活动概览</div>
-        <h2 class="card-title">活动详情</h2>
-        {(eventBodyBlocks.length > 0 ? eventBodyBlocks : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
-        <ul class="meta-list">
-          <li>{branchName}</li>
-          <li>{event.cityName}</li>
-          <li>{event.venueName}</li>
-        </ul>
+        <div class="card-label">活动内容</div>
+        <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
+        {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
+
+        {
+          introContent.bullets.length > 0 && (
+            <ul class="event-rich-list">
+              {introContent.bullets.map((item) => <li>{item}</li>)}
+            </ul>
+          )
+        }
+
+        {
+          additionalNarrativeSections.length > 0 && (
+            <div class="event-section-stack">
+              {
+                additionalNarrativeSections.map((section) => (
+                  <section class="event-section-block">
+                    <h3>{section.title}</h3>
+                    {section.content.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+                    {
+                      section.content.bullets.length > 0 && (
+                        <ul class="event-rich-list event-rich-list-compact">
+                          {section.content.bullets.map((item) => <li>{item}</li>)}
+                        </ul>
+                      )
+                    }
+                  </section>
+                ))
+              }
+            </div>
+          )
+        }
       </article>
 
       <div class="event-side-stack">
         <article class="panel panel-soft audience-panel">
           <div class="card-label">参与说明</div>
-          <ul class="audience-list">
-            {participationNotes.map((item) => <li>{item}</li>)}
-          </ul>
+          <div class="audience-card-grid">
+            {
+              displayedAudienceCards.map((item) => (
+                <article class="audience-card">
+                  <h3>{item.title}</h3>
+                  <p>{item.summary}</p>
+                </article>
+              ))
+            }
+          </div>
         </article>
 
         {
@@ -142,8 +368,8 @@ const registrationSteps = [
                     <li>
                       <strong>{item.time}</strong>
                       <span>{item.title}</span>
-                      <em>{item.speaker}</em>
-                      <p>{item.summary}</p>
+                      {item.speaker ? <em>{item.speaker}</em> : null}
+                      {item.summary ? <p>{item.summary}</p> : null}
                     </li>
                   ))
                 }
@@ -159,7 +385,7 @@ const registrationSteps = [
         <div class="card-label">活动报名</div>
         <h2>{registrationTitle}</h2>
         <p class="registration-copy">
-          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员可根据活动定位、报名信息与活动容量确认是否通过、拒绝或转为候补。
+          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员会结合活动定位、报名信息与现场容量确认是否通过、拒绝或转为候补。
         </p>
 
         <div class="registration-process-grid">
@@ -217,7 +443,7 @@ const registrationSteps = [
               <div class="form-actions">
                 <div class="registration-actions">
                   <button class="button primary" type="submit">{registrationSubmitLabel}</button>
-                  {event.registrationUrl && <a class="button secondary" href={event.registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
+                  {registrationUrl && <a class="button secondary" href={registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
                 </div>
                 <p class="form-status" data-event-registration-status>请至少填写姓名和手机号，便于工作人员联系。</p>
               </div>
@@ -225,7 +451,7 @@ const registrationSteps = [
           ) : (
             <div class="registration-note">
               <p>{event.registrationState === "closed" ? "这场活动的报名已经关闭。" : "报名暂未开放，请稍后再来查看。"}</p>
-              {event.registrationUrl && <a class="button secondary" href={event.registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
+              {registrationUrl && <a class="button secondary" href={registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
             </div>
           )
         }
@@ -233,10 +459,10 @@ const registrationSteps = [
 
       <aside class="panel panel-soft registration-side">
         <div>
-          <div class="card-label">审核方式</div>
-          <ul class="meta-list vertical-list">
-            {registrationSideNotes.map((item) => <li>{item}</li>)}
-          </ul>
+          <div class="card-label">报名须知</div>
+          <div class="registration-note-list">
+            {registrationSideNotes.map((item) => <article class="registration-note-card">{item}</article>)}
+          </div>
         </div>
 
         <div>
@@ -316,7 +542,8 @@ const registrationSteps = [
   }
 
   .event-detail-hero h1,
-  .event-detail-hero h2 {
+  .event-detail-hero h2,
+  .event-detail-hero h3 {
     color: #fff7ef;
   }
 
@@ -345,7 +572,9 @@ const registrationSteps = [
   .event-detail-side,
   .event-side-stack,
   .registration-side,
-  .event-next-links {
+  .event-next-links,
+  .audience-card-grid,
+  .event-section-stack {
     display: grid;
     gap: 18px;
   }
@@ -419,9 +648,13 @@ const registrationSteps = [
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 241, 232, 0.94));
   }
 
+  .event-body-panel .card-title {
+    margin: 10px 0 14px;
+  }
+
   .event-body-panel p {
     max-width: 68ch;
-    line-height: 1.88;
+    line-height: 1.86;
   }
 
   .event-body-panel p:first-of-type {
@@ -429,26 +662,53 @@ const registrationSteps = [
     color: var(--ink);
   }
 
+  .event-section-block h3,
+  .audience-card h3 {
+    margin: 0;
+    font-size: 1.06rem;
+  }
+
+  .event-section-block p:last-child,
+  .audience-card p:last-child {
+    margin-bottom: 0;
+  }
+
+  .event-rich-list {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 6px;
+    padding-left: 20px;
+    color: var(--ink);
+  }
+
+  .event-rich-list li {
+    line-height: 1.76;
+  }
+
+  .event-rich-list-compact {
+    margin-top: 12px;
+  }
+
   .audience-panel {
     align-content: start;
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
   }
 
-  .audience-list {
-    display: grid;
-    gap: 12px;
-    list-style: none;
-    margin: 16px 0 0;
-    padding: 0;
+  .audience-card-grid {
+    margin-top: 16px;
   }
 
-  .audience-list li {
-    padding: 16px;
-    border-radius: 18px;
+  .audience-card {
+    padding: 16px 18px;
+    border-radius: 20px;
     border: 1px solid rgba(31, 26, 23, 0.08);
     background: rgba(255, 255, 255, 0.58);
+  }
+
+  .audience-card p {
+    margin: 10px 0 0;
     color: var(--muted);
-    line-height: 1.8;
+    line-height: 1.76;
   }
 
   .agenda-panel {
@@ -506,10 +766,26 @@ const registrationSteps = [
     align-content: start;
     position: sticky;
     top: 104px;
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
   }
 
   .event-next-links {
     margin-top: 16px;
+  }
+
+  .registration-note-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .registration-note-card {
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.62);
+    color: var(--muted);
+    line-height: 1.72;
   }
 
   .registration-note p {

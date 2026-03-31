@@ -6,6 +6,23 @@ const page = await getAboutPage();
 const journeySections = page.sections.filter((section) => section.title !== "即刻申请加入 TGO 鲲鹏会");
 const applySection = page.sections.find((section) => section.title === "即刻申请加入 TGO 鲲鹏会");
 const [leadSection, ...otherSections] = journeySections;
+const aboutHighlights = [
+  {
+    label: "组织定位",
+    title: "面向有技术背景的科技领导者",
+    summary: "围绕技术判断、组织协作与长期成长，建立高质量的同侪学习网络。"
+  },
+  {
+    label: "覆盖城市",
+    title: "跨城市持续组织学习活动",
+    summary: "北京、上海、深圳、广州、杭州、成都、武汉、南京等城市保持长期分会运营。"
+  },
+  {
+    label: "参与方式",
+    title: "小组交流、公开学习与跨城连接并行",
+    summary: "把私密讨论、月度活动、家宴与导师辅导组合成长期参与路径。"
+  }
+];
 const toSectionId = (title: string) =>
   title
     .trim()
@@ -16,25 +33,43 @@ const toSectionId = (title: string) =>
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
   <main class="page-shell page-stack">
-    <section class="page-intro about-page-intro">
-      <div class="page-intro-copy">
-        <div class="card-label">{page.hero.eyebrow}</div>
-        <h1>{page.hero.title}</h1>
-        <p>{page.hero.summary}</p>
-      </div>
-    </section>
+    <section class="hero">
+      <div class="hero-card about-hero-card">
+        <div class="about-hero-main">
+          <span class="eyebrow">{page.hero.eyebrow}</span>
+          <h1>{page.hero.title}</h1>
+          <p class="about-hero-summary">{page.hero.summary}</p>
 
-    <section class="section">
-      <div class="panel about-nav-panel">
-        <div>
-          <div class="card-label">内容导览</div>
-          <h2>从组织定位到参与方式，快速了解 TGO 鲲鹏会</h2>
-          <p class="card-copy">围绕组织定位、会员机制、社群连接与活动方式，建立对社区的完整认识。</p>
+          <div class="about-hero-actions">
+            <a class="button primary" href="/join">了解加入方式</a>
+            <a class="button secondary" href="/branches">浏览分会董事会</a>
+          </div>
         </div>
 
-        <div class="about-nav-links">
-          {journeySections.map((section) => <a class="chip" href={`#${toSectionId(section.title)}`}>{section.title}</a>)}
-        </div>
+        <aside class="about-hero-side">
+          <div class="about-highlight-grid">
+            {
+              aboutHighlights.map((item) => (
+                <article class="about-highlight-card">
+                  <div class="card-label card-label-on-dark">{item.label}</div>
+                  <h2>{item.title}</h2>
+                  <p>{item.summary}</p>
+                </article>
+              ))
+            }
+          </div>
+
+          <div class="about-nav-panel">
+            <div>
+              <div class="card-label card-label-on-dark">内容导览</div>
+              <p class="about-nav-copy">从组织定位、活动方式到加入路径，快速浏览 TGO 鲲鹏会的主要内容。</p>
+            </div>
+
+            <div class="about-nav-links">
+              {journeySections.map((section) => <a class="chip" href={`#${toSectionId(section.title)}`}>{section.title}</a>)}
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -82,21 +117,117 @@ const toSectionId = (title: string) =>
 </BaseLayout>
 
 <style>
-  .about-page-intro {
-    padding-bottom: 16px;
-  }
-
+  .about-hero-card,
+  .about-highlight-grid,
   .about-nav-panel,
   .about-content-grid {
     display: grid;
     gap: 18px;
   }
 
-  .about-nav-panel {
-    background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
+  .about-hero-card {
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    background:
+      radial-gradient(circle at top right, rgba(215, 179, 117, 0.18), transparent 24%),
+      linear-gradient(135deg, #171717 0%, #211d18 100%);
+    border-color: rgba(215, 179, 117, 0.14);
+    color: #f8f1e8;
   }
 
-  .about-nav-panel h2,
+  .about-hero-card h1,
+  .about-hero-card h2 {
+    color: #fff7ef;
+  }
+
+  .about-hero-card p {
+    color: rgba(248, 241, 232, 0.76);
+  }
+
+  .about-hero-card .eyebrow {
+    color: #f1d5a0;
+    border-color: rgba(215, 179, 117, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .about-hero-card :global(.button.secondary) {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f1e8;
+  }
+
+  .about-hero-main {
+    display: grid;
+    gap: 16px;
+    align-content: center;
+  }
+
+  .about-hero-main h1 {
+    margin: 0;
+    max-width: 14ch;
+    font-size: clamp(2.3rem, 4.6vw, 3.9rem);
+    line-height: 1;
+  }
+
+  .about-hero-summary {
+    margin: 0;
+    max-width: 58ch;
+    line-height: 1.84;
+  }
+
+  .about-hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .about-hero-side {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .about-highlight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-highlight-card {
+    display: grid;
+    gap: 10px;
+    padding: 18px 18px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .about-highlight-card h2 {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.45;
+  }
+
+  .about-highlight-card p {
+    margin: 0;
+    line-height: 1.72;
+    font-size: 0.94rem;
+  }
+
+  .about-highlight-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .about-nav-panel {
+    padding: 20px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(215, 179, 117, 0.12);
+  }
+
+  .about-nav-copy {
+    margin: 10px 0 0;
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+
   .about-lead-card h2,
   .about-content-card h2,
   .about-apply-panel h2 {
@@ -110,7 +241,7 @@ const toSectionId = (title: string) =>
   }
 
   .about-content-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .about-lead-card {
@@ -122,6 +253,12 @@ const toSectionId = (title: string) =>
   .about-content-card {
     padding: clamp(22px, 3vw, 30px);
     min-height: 100%;
+  }
+
+  .about-content-card p:last-child,
+  .about-lead-card p:last-child,
+  .about-apply-panel p:last-child {
+    margin-bottom: 0;
   }
 
   .about-apply-panel {
@@ -139,10 +276,26 @@ const toSectionId = (title: string) =>
     justify-content: flex-end;
   }
 
+  @media (max-width: 1100px) {
+    .about-hero-card,
+    .about-highlight-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-content-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 900px) {
     .about-content-grid,
     .about-apply-panel {
       grid-template-columns: 1fr;
+    }
+
+    .about-hero-main h1 {
+      max-width: 11ch;
+      font-size: clamp(2.1rem, 10vw, 3.2rem);
     }
 
     .about-apply-actions {
