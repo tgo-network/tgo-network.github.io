@@ -15,7 +15,7 @@ const [leadArticle, ...otherArticles] = articles;
       <div class="page-intro-copy">
         <div class="card-label">文章</div>
         <h1>技术管理与组织实践文章</h1>
-        <p>展示由工作人员持续发布的社区文章，沉淀活动观察、组织实践与技术管理经验。</p>
+        <p>沉淀社区活动观察、组织实践与技术管理经验，形成可持续复用的内容资产。</p>
       </div>
       <p class="page-intro-meta">{articles.length} 篇已发布文章</p>
     </section>
@@ -24,7 +24,7 @@ const [leadArticle, ...otherArticles] = articles;
       leadArticle && (
         <section class="section">
           <a class="panel article-lead-card" href={`/articles/${leadArticle.slug}`}>
-            <div>
+            <div class="article-lead-copy">
               <div class="card-label">最新发布</div>
               <h2>{leadArticle.title}</h2>
               <p class="card-copy">{leadArticle.excerpt}</p>
@@ -84,10 +84,20 @@ const [leadArticle, ...otherArticles] = articles;
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 239, 229, 0.96));
   }
 
+  .article-lead-copy {
+    display: grid;
+    gap: 10px;
+  }
+
   .article-lead-card h2 {
-    margin: 10px 0 12px;
+    margin: 0;
     font-size: clamp(2rem, 4vw, 3rem);
     line-height: 1.02;
+  }
+
+  .article-lead-card .card-copy {
+    margin: 0;
+    max-width: 40em;
   }
 
   .article-lead-meta {
@@ -103,12 +113,12 @@ const [leadArticle, ...otherArticles] = articles;
   .article-list-grid {
     display: grid;
     gap: 18px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
   .article-list-card {
     display: grid;
-    gap: 14px;
+    gap: 12px;
     min-height: 100%;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
@@ -121,7 +131,15 @@ const [leadArticle, ...otherArticles] = articles;
 
   .article-list-card h3 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.26rem;
+    line-height: 1.38;
+  }
+
+  .article-list-card .card-copy {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .article-list-meta {

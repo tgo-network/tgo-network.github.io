@@ -33,9 +33,15 @@ const eventBodyBlocks = event.body
   .filter(Boolean);
 
 const participationNotes = [
-  "成员与非成员都可以提交报名。",
+  "活动对成员与非成员都开放报名。",
   "报名信息会进入工作人员后台审核。",
   "建议补充公司、职称和参会诉求，便于工作人员判断。"
+];
+
+const registrationSideNotes = [
+  "提交后会进入工作人员后台，由工作人员统一审核。",
+  "审核结果可能为通过、拒绝或转为候补。",
+  "审核通过后，工作人员会进一步联系并确认参与信息。"
 ];
 
 const registrationSteps = [
@@ -120,7 +126,7 @@ const registrationSteps = [
 
       <div class="event-side-stack">
         <article class="panel panel-soft audience-panel">
-          <div class="card-label">报名须知</div>
+          <div class="card-label">参与说明</div>
           <ul class="audience-list">
             {participationNotes.map((item) => <li>{item}</li>)}
           </ul>
@@ -227,9 +233,9 @@ const registrationSteps = [
 
       <aside class="panel panel-soft registration-side">
         <div>
-          <div class="card-label">报名须知</div>
+          <div class="card-label">审核方式</div>
           <ul class="meta-list vertical-list">
-            {participationNotes.map((item) => <li>{item}</li>)}
+            {registrationSideNotes.map((item) => <li>{item}</li>)}
           </ul>
         </div>
 

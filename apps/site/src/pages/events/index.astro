@@ -3,7 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
 import { listEvents } from "../../lib/public-api";
 
-const pageSize = 24;
+const pageSize = 12;
 const allEvents = await listEvents();
 const initialEvents = allEvents.slice(0, pageSize);
 const initialMeta = {
@@ -29,25 +29,24 @@ const initialMeta = {
     </section>
 
     <section class="section event-list-section">
-      <div class="filter-bar" data-event-filters>
-        <button class="filter-chip is-active" type="button" data-city-filter="all">全部城市</button>
-        {
-          initialMeta.cityOptions.map((city) => (
-            <button class="filter-chip" type="button" data-city-filter={city}>
-              {city}
-            </button>
-          ))
-        }
-      </div>
-
-      <div class="results-head">
-        <div>
-          <div class="card-label">活动列表</div>
-          <h2>活动列表</h2>
+      <div class="panel panel-soft event-toolbar-panel">
+        <div class="event-toolbar-copy">
+          <div class="card-label">城市筛选</div>
+          <p class="results-summary" data-event-page-summary>
+            第 {initialMeta.page} / {initialMeta.pageCount} 页 · 当前 {initialEvents.length} 场 / 共 {initialMeta.total} 场
+          </p>
         </div>
-        <p class="results-summary" data-event-page-summary>
-          第 {initialMeta.page} / {initialMeta.pageCount} 页，当前显示 {initialEvents.length} 场，共 {initialMeta.total} 场
-        </p>
+
+        <div class="filter-bar" data-event-filters>
+          <button class="filter-chip is-active" type="button" data-city-filter="all">全部城市</button>
+          {
+            initialMeta.cityOptions.map((city) => (
+              <button class="filter-chip" type="button" data-city-filter={city}>
+                {city}
+              </button>
+            ))
+          }
+        </div>
       </div>
 
       <div class="event-grid" data-event-grid>
@@ -217,7 +216,7 @@ const initialMeta = {
       }
 
       if (pageSummary instanceof HTMLElement) {
-        pageSummary.textContent = `第 ${meta.page} / ${meta.pageCount} 页，当前显示 ${itemCount} 场，共 ${meta.total} 场`;
+        pageSummary.textContent = `第 ${meta.page} / ${meta.pageCount} 页 · 当前 ${itemCount} 场 / 共 ${meta.total} 场`;
       }
 
       if (prevButton instanceof HTMLButtonElement) {
@@ -331,6 +330,16 @@ const initialMeta = {
     gap: 18px;
   }
 
+  .event-toolbar-panel,
+  .event-toolbar-copy {
+    display: grid;
+    gap: 14px;
+  }
+
+  .event-toolbar-panel {
+    background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
   .filter-bar {
     display: flex;
     gap: 10px;
@@ -359,18 +368,6 @@ const initialMeta = {
     color: #fff7ef;
   }
 
-  .results-head {
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .results-head h2 {
-    margin: 8px 0 0;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-  }
-
   .results-summary {
     margin: 0;
     color: var(--muted);
@@ -380,7 +377,7 @@ const initialMeta = {
   .event-grid {
     display: grid;
     gap: 18px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .event-card {
@@ -401,13 +398,13 @@ const initialMeta = {
   .event-card-media {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 8.4;
     object-fit: cover;
   }
 
   .event-card-link > :not(.event-card-media-wrap) {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .event-card-head,
@@ -420,12 +417,13 @@ const initialMeta = {
 
   .event-card-head {
     align-items: flex-start;
-    padding-top: 24px;
+    padding-top: 20px;
   }
 
   .event-card-title {
-    margin: 10px 0 8px;
-    font-size: 1.4rem;
+    margin: 10px 0 6px;
+    font-size: 1.22rem;
+    line-height: 1.4;
   }
 
   .event-branch-name,
@@ -436,8 +434,11 @@ const initialMeta = {
   }
 
   .event-card-summary {
-    margin-top: 16px;
-    min-height: 4.8em;
+    margin-top: 14px;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .event-state {
@@ -469,32 +470,50 @@ const initialMeta = {
 
   .event-meta-list {
     list-style: none;
-    margin: 18px 0 0;
-    padding: 0 24px 22px;
+    margin: 16px 0 0;
+    padding: 0 20px 18px;
   }
 
   .event-meta-list li {
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 999px;
     border: 1px solid rgba(31, 26, 23, 0.08);
     background: rgba(255, 255, 255, 0.66);
     color: var(--muted);
-    font-size: 0.92rem;
+    font-size: 0.86rem;
   }
 
   .event-card .text-link {
-    padding-bottom: 24px;
+    padding-bottom: 20px;
     font-weight: 600;
+  }
+
+  @media (max-width: 1080px) {
+    .event-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 900px) {
     .event-grid {
       grid-template-columns: 1fr;
     }
+  }
 
-    .results-head {
-      flex-direction: column;
-      align-items: flex-start;
+  @media (max-width: 720px) {
+    .event-toolbar-panel {
+      padding: 18px;
+    }
+
+    .filter-bar {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .filter-chip {
+      flex: 0 0 auto;
     }
   }
 </style>

@@ -21,129 +21,195 @@ if (!article) {
 }
 
 const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length / 220));
+const contextSummary = article.branch
+  ? `${article.author.name} 从 ${article.branch.name} 的活动观察与组织实践中整理出本文。`
+  : `${article.author.name} 围绕社区活动观察与组织实践经验整理出本文。`;
+const contextFollowup = article.branch
+  ? "如果你希望继续了解相关背景，可以继续查看对应分会与公开活动。"
+  : "如果你希望继续了解社区背景，可以继续浏览活动、分会与更多文章内容。";
 ---
 
 <BaseLayout title={`${article.title} | 文章 | TGO 鲲鹏会`} description={article.excerpt}>
   <main class="page-shell page-stack">
-    <section class="section article-detail-layout">
+    <section class="section article-detail-stack">
+      <article class:list={["panel article-header-panel", !article.coverImage && "article-header-panel-single"]}>
+        <div class="article-header-copy">
+          <div class="card-label">文章</div>
+          <h1>{article.title}</h1>
+          <p class="article-detail-excerpt">{article.excerpt}</p>
+          <ul class="meta-list article-header-meta">
+            <li>{formatDate(article.publishedAt)}</li>
+            <li>{article.author.name}</li>
+            <li>{article.author.role}</li>
+            <li>{estimatedReadMinutes} 分钟</li>
+            {article.branch?.name && <li>{article.branch.name}</li>}
+          </ul>
+        </div>
+
+        {
+          article.coverImage && (
+            <figure class="article-header-figure">
+              <img class="article-header-image" src={article.coverImage.url} alt={article.coverImage.alt} />
+            </figure>
+          )
+        }
+      </article>
+
       <article class="panel prose-panel article-body-panel">
         <div class="card-label">文章正文</div>
         {article.body.map((paragraph) => <p>{paragraph}</p>)}
       </article>
 
-      <aside class="panel panel-soft article-detail-side">
-        <div class="card-label">文章</div>
-        <h1>{article.title}</h1>
-        <p class="article-detail-excerpt">{article.excerpt}</p>
+      <section class="panel panel-soft article-context-panel">
+        <div class="article-context-copy">
+          <div class="card-label">阅读信息</div>
+          <h2>作者与内容背景</h2>
+          <p class="card-copy">{contextSummary}</p>
+          <p class="card-copy">{contextFollowup}</p>
+        </div>
 
-        <ul class="article-detail-list">
-          <li>
-            <span>发布时间</span>
-            <strong>{formatDate(article.publishedAt)}</strong>
-          </li>
-          <li>
+        <div class="article-context-grid">
+          <article class="article-context-item">
             <span>作者</span>
             <strong>{article.author.name}</strong>
-          </li>
-          <li>
-            <span>作者角色</span>
-            <strong>{article.author.role}</strong>
-          </li>
-          <li>
-            <span>阅读时长</span>
-            <strong>{estimatedReadMinutes} 分钟</strong>
-          </li>
+            <small>{article.author.role}</small>
+          </article>
+
+          <article class="article-context-item">
+            <span>发布时间</span>
+            <strong>{formatDate(article.publishedAt)}</strong>
+            <small>预计阅读 {estimatedReadMinutes} 分钟</small>
+          </article>
+
           {article.branch?.name && (
-            <li>
+            <article class="article-context-item">
               <span>相关分会</span>
               <strong>{article.branch.name}</strong>
-            </li>
+              <small>对应公开分会内容</small>
+            </article>
           )}
-        </ul>
-
-        {
-          article.coverImage && (
-            <figure class="article-detail-figure">
-              <img class="article-detail-image" src={article.coverImage.url} alt={article.coverImage.alt} />
-            </figure>
-          )
-        }
+        </div>
 
         <div class="article-detail-actions">
           <a class="button secondary" href="/articles">返回文章列表</a>
           {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
         </div>
-      </aside>
+      </section>
     </section>
   </main>
 </BaseLayout>
 
 <style>
-  .article-detail-layout {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-    align-items: start;
-  }
-
-  .article-body-panel {
-    padding: clamp(22px, 3vw, 32px);
-  }
-
-  .article-body-panel p:last-child {
-    margin-bottom: 0;
-  }
-
-  .article-detail-side {
+  .article-detail-stack {
     display: grid;
     gap: 18px;
-    position: sticky;
-    top: 104px;
   }
 
-  .article-detail-side h1 {
+  .article-header-panel {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+    align-items: start;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 239, 229, 0.96));
+  }
+
+  .article-header-panel-single {
+    grid-template-columns: 1fr;
+  }
+
+  .article-header-copy,
+  .article-context-panel {
+    display: grid;
+    gap: 16px;
+  }
+
+  .article-header-copy h1 {
     margin: 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.04;
+    font-size: clamp(2.2rem, 4.6vw, 3.8rem);
+    line-height: 1.03;
   }
 
   .article-detail-excerpt {
     margin: 0;
+    max-width: 42em;
     color: var(--muted);
     line-height: 1.85;
   }
 
-  .article-detail-list {
-    display: grid;
-    gap: 12px;
+  .article-header-meta {
+    margin-top: 2px;
+  }
+
+  .article-header-figure {
     margin: 0;
-    padding: 0;
-    list-style: none;
+    height: 100%;
   }
 
-  .article-detail-list li {
-    display: grid;
-    gap: 6px;
-    padding: 14px 16px;
-    border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.6);
-  }
-
-  .article-detail-list span {
-    color: var(--muted);
-    font-size: 0.86rem;
-  }
-
-  .article-detail-figure {
-    margin: 0;
-  }
-
-  .article-detail-image {
+  .article-header-image {
     display: block;
     width: 100%;
-    border-radius: 22px;
+    height: 100%;
+    min-height: 280px;
+    border-radius: 24px;
     object-fit: cover;
+  }
+
+  .article-body-panel {
+    padding: clamp(22px, 3vw, 32px);
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .article-body-panel p {
+    max-width: 72ch;
+    line-height: 1.9;
+  }
+
+  .article-body-panel p:first-of-type {
+    color: var(--ink);
+    font-size: 1.06rem;
+  }
+
+  .article-body-panel p:last-child {
+    margin: 0;
+  }
+
+  .article-context-panel {
+    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
+  .article-context-copy h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .article-context-copy .card-copy {
+    margin: 0;
+  }
+
+  .article-context-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .article-context-item {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  .article-context-item span {
+    color: var(--muted);
+    font-size: 0.84rem;
+    letter-spacing: 0.04em;
+  }
+
+  .article-context-item small {
+    color: var(--muted);
+    line-height: 1.6;
   }
 
   .article-detail-actions {
@@ -153,12 +219,18 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
   }
 
   @media (max-width: 900px) {
-    .article-detail-layout {
+    .article-header-panel {
       grid-template-columns: 1fr;
     }
 
-    .article-detail-side {
-      position: static;
+    .article-header-image {
+      min-height: 220px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .article-context-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
