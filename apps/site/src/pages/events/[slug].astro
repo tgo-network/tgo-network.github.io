@@ -40,6 +40,7 @@ const registrationEnabled = event.registrationState === "open" || event.registra
 const registrationTitle = event.registrationState === "waitlist" ? "加入候补名单" : "提交报名意向";
 const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
 const branchName = event.branch?.name ?? `${event.cityName}活动`;
+const eventLocation = event.venueAddress || event.venueName;
 
 const eventBodyHeadingPatterns = [
   /^活动简介$/,
@@ -238,6 +239,8 @@ const registrationSideNotes =
         "审核结果可能为通过、拒绝或转为候补。",
         "审核通过后，工作人员会进一步联系并确认参与信息。"
       ];
+const registrationNoticeLabel = registrationNoticeItems.length > 0 ? "报名须知" : "审核说明";
+const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName, event.venueName];
 const registrationSteps = [
   {
     step: "01",
@@ -265,14 +268,26 @@ const registrationSteps = [
           <span class="eyebrow">活动详情</span>
           <h1>{event.title}</h1>
           <p class="event-detail-lead">{event.summary}</p>
-          <ul class="stat-row">
-            <li>{branchName}</li>
-            <li>{formatRegistrationState(event.registrationState)}</li>
-            <li>{event.venueName}</li>
+
+          <ul class="event-detail-meta" aria-label="活动概览">
+            {heroMetaItems.map((item) => <li>{item}</li>)}
           </ul>
+
+          <div class="hero-actions event-detail-actions">
+            {registrationEnabled && <a class="button primary" href="#event-registration">{registrationTitle}</a>}
+            <a class="button secondary" href="/events">返回活动列表</a>
+          </div>
         </div>
 
         <aside class="event-detail-side">
+          {
+            event.coverImage && (
+              <figure class="event-detail-figure">
+                <img class="event-detail-image" src={event.coverImage.url} alt={event.coverImage.alt} />
+              </figure>
+            )
+          }
+
           <div class="detail-side-block">
             <div class="card-label card-label-on-dark">活动信息</div>
             <ul class="detail-side-list">
@@ -282,11 +297,11 @@ const registrationSteps = [
               </li>
               <li>
                 <span>地点</span>
-                <strong>{event.venueAddress || event.venueName}</strong>
+                <strong>{eventLocation}</strong>
               </li>
               <li>
-                <span>城市</span>
-                <strong>{event.cityName}</strong>
+                <span>所属分会</span>
+                <strong>{branchName}</strong>
               </li>
               <li>
                 <span>报名状态</span>
@@ -294,14 +309,6 @@ const registrationSteps = [
               </li>
             </ul>
           </div>
-
-          {
-            event.coverImage && (
-              <figure class="event-detail-figure">
-                <img class="event-detail-image" src={event.coverImage.url} alt={event.coverImage.alt} />
-              </figure>
-            )
-          }
         </aside>
       </div>
     </section>
@@ -345,7 +352,7 @@ const registrationSteps = [
 
       <div class="event-side-stack">
         <article class="panel panel-soft audience-panel">
-          <div class="card-label">参与说明</div>
+          <div class="card-label">适合参与</div>
           <div class="audience-card-grid">
             {
               displayedAudienceCards.map((item) => (
@@ -380,7 +387,7 @@ const registrationSteps = [
       </div>
     </section>
 
-    <section class="section registration-shell">
+    <section class="section registration-shell" id="event-registration">
       <div class="panel registration-panel">
         <div class="card-label">活动报名</div>
         <h2>{registrationTitle}</h2>
@@ -457,21 +464,15 @@ const registrationSteps = [
 
       <aside class="panel panel-soft registration-side">
         <div>
-          <div class="card-label">报名须知</div>
+          <div class="card-label">{registrationNoticeLabel}</div>
           <div class="registration-note-list">
             {registrationSideNotes.map((item) => <article class="registration-note-card">{item}</article>)}
           </div>
         </div>
 
-        <div>
-          <div class="card-label">建议填写内容</div>
-          <p class="card-copy">建议补充公司、职称与参会诉求，便于工作人员更快完成审核与联系。</p>
-        </div>
-
         <div class="event-next-links">
           <a class="button secondary" href="/events">返回活动列表</a>
           {event.branch && <a class="button secondary" href={`/branches#${event.branch.slug}`}>查看所属分会</a>}
-          <a class="button secondary" href="/join">了解加入申请</a>
         </div>
       </aside>
     </section>
@@ -562,9 +563,28 @@ const registrationSteps = [
   }
 
   .event-detail-lead {
+    margin: 0;
     max-width: 62ch;
     font-size: 1.02rem;
     line-height: 1.8;
+  }
+
+  .event-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .event-detail-meta li {
+    padding: 9px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(215, 179, 117, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(248, 241, 232, 0.82);
+    font-size: 0.92rem;
   }
 
   .event-detail-main,
@@ -582,6 +602,10 @@ const registrationSteps = [
     display: grid;
     gap: 16px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .event-detail-actions {
+    margin-top: 24px;
   }
 
   .detail-side-block {
@@ -720,6 +744,7 @@ const registrationSteps = [
   }
 
   .registration-copy {
+    max-width: 44rem;
     margin: 0 0 20px;
   }
 
@@ -769,7 +794,7 @@ const registrationSteps = [
   }
 
   .event-next-links {
-    margin-top: 16px;
+    margin-top: 4px;
   }
 
   .registration-note-list {
@@ -802,6 +827,16 @@ const registrationSteps = [
     .event-detail-side,
     .registration-side {
       position: static;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .event-detail-actions {
+      margin-top: 20px;
+    }
+
+    .event-detail-meta {
+      margin-top: 18px;
     }
   }
 </style>
