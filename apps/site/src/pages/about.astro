@@ -1,23 +1,25 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { officialAboutIntro, officialAboutSections } from "../lib/official-content";
+
+const getVisibleImages = (images: typeof officialAboutSections[number]["images"]) => images.slice(0, Math.min(images.length, 2));
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
   <main class="page-shell page-stack">
-    <section class="page-intro about-page-intro">
-      <div class="page-intro-copy">
-        <div class="card-label">{officialAboutIntro.label}</div>
-        <h1>{officialAboutIntro.title}</h1>
-        <p>{officialAboutIntro.summary}</p>
-      </div>
-    </section>
+    <section class="section">
+      <article class="panel about-intro-card">
+        <div class="about-intro-copy">
+          <div class="card-label">{officialAboutIntro.label}</div>
+          <h1>{officialAboutIntro.title}</h1>
+          <p>{officialAboutIntro.summary}</p>
+        </div>
 
-    <section class="section about-lead-section">
-      <article class="panel about-lead-card">
-        <div class="card-label">组织概览</div>
-        <h2>{officialAboutIntro.leadTitle}</h2>
-        <p>{officialAboutIntro.leadBody}</p>
+        <div class="about-intro-lead">
+          <div class="card-label">组织概览</div>
+          <h2>{officialAboutIntro.leadTitle}</h2>
+          <p>{officialAboutIntro.leadBody}</p>
+        </div>
       </article>
     </section>
 
@@ -25,15 +27,16 @@ import { officialAboutIntro, officialAboutSections } from "../lib/official-conte
       {
         officialAboutSections.map((section, index) => {
           const externalLink = section.link?.href.startsWith("http");
+          const visibleImages = getVisibleImages(section.images);
 
           return (
             <article class:list={["panel about-section-card", index % 2 === 1 && "is-reversed"]}>
-              <div class:list={["about-section-media", section.images.length > 1 && "has-gallery"]}>
-                {section.images.map((image) => <img src={image.src} alt={image.alt} loading="lazy" />)}
+              <div class:list={["about-section-media", visibleImages.length > 1 && "has-gallery"]}>
+                {visibleImages.map((image) => <img src={image.src} alt={image.alt} loading="eager" />)}
               </div>
 
               <div class="about-section-copy">
-                <div class="card-label">TGO 体验</div>
+                <div class="about-section-index">{String(index + 1).padStart(2, "0")}</div>
                 <h2>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
                 {section.link && (
@@ -66,29 +69,53 @@ import { officialAboutIntro, officialAboutSections } from "../lib/official-conte
 </BaseLayout>
 
 <style>
-  .about-page-intro,
   .about-section-list {
     display: grid;
     gap: 24px;
   }
 
-  .about-page-intro {
-    padding-bottom: 0;
-  }
-
-  .about-lead-card {
-    padding: clamp(24px, 3vw, 32px);
-    background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
+  .about-intro-card {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    padding: clamp(24px, 3vw, 34px);
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
+      linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
     border-color: rgba(157, 111, 49, 0.14);
   }
 
-  .about-lead-card h2,
-  .about-section-copy h2,
-  .about-cta-card h2 {
-    margin: 10px 0 0;
+  .about-intro-copy,
+  .about-intro-lead {
+    display: grid;
+    gap: 12px;
+    align-content: start;
   }
 
-  .about-lead-card p,
+  .about-intro-copy h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+
+  .about-intro-copy p,
+  .about-intro-lead p {
+    margin: 0;
+    line-height: 1.82;
+  }
+
+  .about-intro-lead {
+    padding: clamp(20px, 3vw, 28px);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.54);
+    border: 1px solid rgba(157, 111, 49, 0.12);
+  }
+
+  .about-intro-lead h2,
+  .about-section-copy h2,
+  .about-cta-card h2 {
+    margin: 0;
+  }
+
   .about-section-copy p,
   .about-cta-card p {
     margin-bottom: 0;
@@ -137,15 +164,24 @@ import { officialAboutIntro, officialAboutSections } from "../lib/official-conte
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .about-section-media.has-gallery img:first-child:last-child,
-  .about-section-media.has-gallery img:nth-child(3) {
-    grid-column: 1 / -1;
-  }
-
   .about-section-copy {
     display: grid;
     gap: 14px;
     align-content: start;
+  }
+
+  .about-section-index {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(200, 161, 93, 0.12);
+    color: var(--accent-strong);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
   }
 
   .about-section-copy p {
@@ -167,6 +203,7 @@ import { officialAboutIntro, officialAboutSections } from "../lib/official-conte
   }
 
   @media (max-width: 980px) {
+    .about-intro-card,
     .about-section-card,
     .about-section-card.is-reversed,
     .about-cta-card {

@@ -30,16 +30,15 @@ const initialMembers = members.slice(0, pageSize);
 
 <BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员资料。">
   <main class="page-shell page-stack">
-    <section class="page-intro member-page-intro">
-      <div class="page-intro-copy">
-        <div class="card-label">成员列表</div>
-        <h1>TGO 鲲鹏会成员</h1>
-      </div>
-    </section>
-
     <section class="section member-directory-section">
-      <div class="panel panel-soft member-toolbar-panel">
-        <div class="card-label">城市分会</div>
+      <div class="panel member-toolbar-panel">
+        <div class="member-toolbar-head">
+          <div>
+            <div class="card-label">成员列表</div>
+            <h1>TGO 鲲鹏会成员</h1>
+          </div>
+        </div>
+
         <div class="filter-bar" data-member-filters>
           <button class="filter-chip is-active" type="button" data-member-city="all">全部</button>
           {
@@ -74,6 +73,10 @@ const initialMembers = members.slice(0, pageSize);
               </div>
 
               <p class="member-directory-title">{member.title}</p>
+
+              <div class="member-directory-meta">
+                <span class="member-directory-branch">{member.branch?.name ?? "未标注分会"}</span>
+              </div>
             </a>
           ))
         }
@@ -137,6 +140,9 @@ const initialMembers = members.slice(0, pageSize);
             </div>
           </div>
           <p class="member-directory-title">${escapeHtml(member.title)}</p>
+          <div class="member-directory-meta">
+            <span class="member-directory-branch">${escapeHtml(member.branch?.name || "未标注分会")}</span>
+          </div>
         </a>
       `;
     };
@@ -207,10 +213,6 @@ const initialMembers = members.slice(0, pageSize);
 </BaseLayout>
 
 <style>
-  .member-page-intro {
-    padding-bottom: 0;
-  }
-
   .member-directory-section,
   .member-toolbar-panel {
     display: grid;
@@ -218,7 +220,15 @@ const initialMembers = members.slice(0, pageSize);
   }
 
   .member-toolbar-panel {
-    background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+    padding: clamp(24px, 3vw, 30px);
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
+  .member-toolbar-head h1 {
+    margin: 6px 0 0;
+    font-size: clamp(2rem, 4vw, 3rem);
   }
 
   .filter-bar {
@@ -260,6 +270,7 @@ const initialMembers = members.slice(0, pageSize);
     gap: 14px;
     padding: 20px;
     min-height: 100%;
+    align-content: start;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
@@ -320,6 +331,23 @@ const initialMembers = members.slice(0, pageSize);
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+  }
+
+  :global(.member-directory-meta) {
+    margin-top: auto;
+  }
+
+  :global(.member-directory-branch) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 249, 239, 0.92);
+    color: var(--accent-ink);
+    font-size: 0.84rem;
+    font-weight: 600;
   }
 
   .member-pagination-bar {

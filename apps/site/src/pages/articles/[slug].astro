@@ -49,46 +49,46 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
         }
       </article>
 
-      <article class="panel prose-panel article-body-panel">
-        <div class="card-label">文章正文</div>
-        {article.body.map((paragraph) => <p>{paragraph}</p>)}
-      </article>
+      <div class="article-content-layout">
+        <article class="panel prose-panel article-body-panel">
+          <div class="card-label">文章正文</div>
+          {article.body.map((paragraph) => <p>{paragraph}</p>)}
+        </article>
 
-      <section class="panel panel-soft article-context-panel">
-        <div class="article-context-head">
-          <div>
-            <div class="card-label">文章信息</div>
-            <h2>作者与发布信息</h2>
+        <aside class="panel panel-soft article-context-panel">
+          <div class="article-context-head">
+            <div class="card-label">发布信息</div>
+            <h2>作者与发布时间</h2>
+          </div>
+
+          <div class="article-context-grid">
+            <article class="article-context-item">
+              <span>作者</span>
+              <strong>{article.author.name}</strong>
+              <small>{article.author.role}</small>
+            </article>
+
+            <article class="article-context-item">
+              <span>发布时间</span>
+              <strong>{formatDate(article.publishedAt)}</strong>
+              <small>预计阅读 {estimatedReadMinutes} 分钟</small>
+            </article>
+
+            {article.branch?.name && (
+              <article class="article-context-item">
+                <span>相关分会</span>
+                <strong>{article.branch.name}</strong>
+                <small>对应公开分会内容</small>
+              </article>
+            )}
           </div>
 
           <div class="article-detail-actions">
             <a class="button secondary" href="/articles">返回文章列表</a>
             {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
           </div>
-        </div>
-
-        <div class="article-context-grid">
-          <article class="article-context-item">
-            <span>作者</span>
-            <strong>{article.author.name}</strong>
-            <small>{article.author.role}</small>
-          </article>
-
-          <article class="article-context-item">
-            <span>发布时间</span>
-            <strong>{formatDate(article.publishedAt)}</strong>
-            <small>预计阅读 {estimatedReadMinutes} 分钟</small>
-          </article>
-
-          {article.branch?.name && (
-            <article class="article-context-item">
-              <span>相关分会</span>
-              <strong>{article.branch.name}</strong>
-              <small>对应公开分会内容</small>
-            </article>
-          )}
-        </div>
-      </section>
+        </aside>
+      </div>
     </section>
   </main>
 </BaseLayout>
@@ -97,6 +97,13 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
   .article-detail-stack {
     display: grid;
     gap: 18px;
+  }
+
+  .article-content-layout {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    align-items: start;
   }
 
   .article-header-panel {
@@ -119,7 +126,7 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
 
   .article-header-copy h1 {
     margin: 0;
-    font-size: clamp(2.2rem, 4.6vw, 3.8rem);
+    font-size: clamp(2.1rem, 4.4vw, 3.5rem);
     line-height: 1.03;
   }
 
@@ -168,26 +175,20 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
   }
 
   .article-context-panel {
+    position: sticky;
+    top: 104px;
     background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
-  }
-
-  .article-context-head {
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
   }
 
   .article-context-head h2 {
     margin: 0;
-    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
   }
 
   .article-context-grid {
     display: grid;
     gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .article-context-item {
@@ -212,27 +213,28 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
 
   .article-detail-actions {
     display: flex;
+    flex-direction: column;
     gap: 12px;
-    flex-wrap: wrap;
   }
 
   @media (max-width: 900px) {
-    .article-header-panel {
+    .article-header-panel,
+    .article-content-layout {
       grid-template-columns: 1fr;
     }
 
     .article-header-image {
       min-height: 220px;
     }
+
+    .article-context-panel {
+      position: static;
+    }
   }
 
   @media (max-width: 640px) {
-    .article-context-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .article-context-head {
-      align-items: flex-start;
+    .article-detail-actions {
+      align-items: stretch;
     }
   }
 </style>

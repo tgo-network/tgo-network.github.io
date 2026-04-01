@@ -28,10 +28,16 @@ export interface OfficialFaqItem {
   link?: OfficialLink;
 }
 
-const officialAssetBase = "https://static001.geekbang.org/tgo/img";
+const aboutAssetBase = "/official/about";
+const faqAssetBase = "/official/faq";
 
-const officialImage = (file: string, alt: string): OfficialImage => ({
-  src: `${officialAssetBase}/${file}`,
+const officialAboutImage = (file: string, alt: string): OfficialImage => ({
+  src: `${aboutAssetBase}/${file}`,
+  alt
+});
+
+const officialFaqImage = (file: string, alt: string): OfficialImage => ({
+  src: `${faqAssetBase}/${file}`,
   alt
 });
 
@@ -52,7 +58,7 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "在人工智能、大数据、区块链技术飞速发展的大背景下，如何有效应对未来将出现的机遇与挑战，需要领导者兼具敏锐的商业洞察力和掌握最前沿的技术变革。美国硅谷、以色列、日本是人工智能与大数据、精密制造等领域高科技企业及行业领导者的聚集地，在这里可以探索未来科技发展的信号，与高科技公司技术团队进行思维的碰撞。",
       "ChinaTech Day 中国技术开放日借助于 TGO 鲲鹏会的全球学员网络，将更加紧密地链接全球顶尖企业和科技领导者，为个人成长、团队发展和企业壮大提供助力。"
     ],
-    images: [officialImage("1.3e98ca2b.png", "全球经验对话")],
+    images: [officialAboutImage("1.3e98ca2b.png", "全球经验对话")],
     link: {
       label: "访问 ChinaTech Day",
       href: "http://www.chinatechday.com"
@@ -64,7 +70,7 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "小组是 TGO 鲲鹏会最核心的产品，也是各城市最核心的组成单元。所有学员都会进入不同的小组，在长期稳定的关系中持续交流。",
       "在健康运营的情况下，小组会议讨论的内容往往是在一般社交场合不会涉及、也不愿涉及的话题。只有在安全的小组氛围内，成员才会分享那些能够展现脆弱性、带来信任与连接的“5% 话题”。"
     ],
-    images: [officialImage("2.cbe01482.png", "私密小组活动")]
+    images: [officialAboutImage("2.cbe01482.png", "私密小组活动")]
   },
   {
     title: "年度团聚家宴",
@@ -72,8 +78,8 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "自 2015 年成立以来，年度团聚家宴一直是 TGO 鲲鹏会当地年度最重要的活动之一。它是学员专享的年度休闲社交活动，旨在加强学员之间的了解沟通，推动本地技术社区的分享和交流，让大家在一年一度的团聚中辞旧迎新。"
     ],
     images: [
-      officialImage("3.4467078e.png", "年度团聚家宴现场一"),
-      officialImage("4.8b10127e.jpeg", "年度团聚家宴现场二")
+      officialAboutImage("3.4467078e.png", "年度团聚家宴现场一"),
+      officialAboutImage("4.8b10127e.jpeg", "年度团聚家宴现场二")
     ]
   },
   {
@@ -83,8 +89,8 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "各个城市会围绕学员需求和前沿技术趋势制定年度学习规划，把公开分享、案例讨论、闭门交流与企业参访组织成稳定的学习节奏。"
     ],
     images: [
-      officialImage("y1.f7698006.png", "月度公开学习活动现场一"),
-      officialImage("y2.c99b8704.png", "月度公开学习活动现场二")
+      officialAboutImage("y1.f7698006.png", "月度公开学习活动现场一"),
+      officialAboutImage("y2.c99b8704.png", "月度公开学习活动现场二")
     ],
     link: {
       label: "浏览活动列表",
@@ -97,8 +103,8 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "TGO 鲲鹏会小组提供了锻炼领导力的绝佳场景。一个优秀的小组组长，需要同时承担 CEO 与 COO 的角色：既要确定小组的使命与愿景，也要组织每月小组会议。通过新学员培训和组长领导力培训，TGO 鲲鹏会为学员提供领导力提升的方法、指南与练习场景。"
     ],
     images: [
-      officialImage("6.d8b6e0f1.jpeg", "技术高管培训现场一"),
-      officialImage("7.483beabe.png", "技术高管培训现场二")
+      officialAboutImage("6.d8b6e0f1.jpeg", "技术高管培训现场一"),
+      officialAboutImage("7.483beabe.png", "技术高管培训现场二")
     ]
   },
   {
@@ -108,9 +114,9 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "TGO 鲲鹏会会不定期邀请导师分享成熟经验。我们希望科技领导者们聚在一起，散发出更多能量，为科技圈带来源源不断的创意和推动力，一起创造并改变未来。"
     ],
     images: [
-      officialImage("8.9cf5e268.jpg", "荣誉导师辅导现场一"),
-      officialImage("9.7b221f4f.jpg", "荣誉导师辅导现场二"),
-      officialImage("10.475316e1.jpg", "荣誉导师辅导现场三")
+      officialAboutImage("8.9cf5e268.jpg", "荣誉导师辅导现场一"),
+      officialAboutImage("9.7b221f4f.jpg", "荣誉导师辅导现场二"),
+      officialAboutImage("10.475316e1.jpg", "荣誉导师辅导现场三")
     ]
   },
   {
@@ -119,7 +125,7 @@ export const officialAboutSections: OfficialAboutSection[] = [
       "Global Tech Leadership Conference，简称 GTLC，中文名称为全球技术领导力峰会，是 TGO 鲲鹏会主办的高端科技领导者盛会。峰会主要面向 CTO、技术 VP、技术团队 Leader、技术项目负责人等对领导力感兴趣的技术管理者。",
       "在 GTLC 峰会现场，你将与大量 CTO 及优秀技术管理者同行，获得科技圈顶尖领袖带来的实战经验和视野启发。"
     ],
-    images: [officialImage("11.a131a302.jpg", "全球技术领导力峰会 GTLC")],
+    images: [officialAboutImage("11.a131a302.jpg", "全球技术领导力峰会 GTLC")],
     link: {
       label: "访问 GTLC",
       href: "https://gtlc.infoq.cn/2020/beijing"
@@ -137,11 +143,11 @@ export const officialFaqItems: OfficialFaqItem[] = [
   },
   {
     question: "TGO 鲲鹏会的加入标准是什么？",
-    image: officialImage("t1.c3bebe87.png", "TGO 鲲鹏会加入标准")
+    image: officialFaqImage("t1.c3bebe87.png", "TGO 鲲鹏会加入标准")
   },
   {
     question: "TGO 鲲鹏会的加入流程是什么？",
-    image: officialImage("t2.aa02107f.png", "TGO 鲲鹏会加入流程")
+    image: officialFaqImage("t2.aa02107f.png", "TGO 鲲鹏会加入流程")
   },
   {
     question: "TGO 鲲鹏会的学费金额是多少？",
@@ -247,6 +253,6 @@ export const officialFaqItems: OfficialFaqItem[] = [
   },
   {
     question: "TGO 鲲鹏会和其他组织的区别是什么？有什么不一样？",
-    image: officialImage("t3.5d3aa3c5.jpg", "TGO 鲲鹏会与其他组织的区别")
+    image: officialFaqImage("t3.5d3aa3c5.jpg", "TGO 鲲鹏会与其他组织的区别")
   }
 ];

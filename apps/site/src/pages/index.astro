@@ -129,8 +129,8 @@ const joinSteps = [
 
         <aside class="hero-home-aside">
           <div class="hero-home-note">
-            <strong>围绕真实管理问题，建立长期连接</strong>
-            <p>线下活动、闭门讨论与经验沉淀并行展开，而不是停留在一次性的公开曝光。</p>
+            <strong>围绕真实问题，建立长期交流</strong>
+            <p>通过线下活动、闭门讨论与内容沉淀，形成持续发生的同侪连接。</p>
           </div>
 
           <dl class="hero-detail-list">
@@ -572,6 +572,18 @@ const joinSteps = [
       padding: 20px;
     }
 
+    .hero-detail-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .hero-detail-item {
+      padding: 12px 14px;
+      border: 1px solid rgba(215, 179, 117, 0.14);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
     .join-panel-head {
       flex-direction: column;
       align-items: flex-start;
@@ -589,6 +601,10 @@ const joinSteps = [
 
     .hero-home-card h1 {
       width: min(100%, 7.6em);
+    }
+
+    .hero-detail-list {
+      grid-template-columns: 1fr;
     }
   }
 </style>

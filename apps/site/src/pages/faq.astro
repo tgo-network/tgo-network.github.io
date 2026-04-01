@@ -5,12 +5,12 @@ import { officialFaqItems } from "../lib/official-content";
 
 <BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
   <main class="page-shell page-stack">
-    <section class="page-intro faq-page-intro">
-      <div class="page-intro-copy">
+    <section class="section">
+      <article class="panel faq-intro-card">
         <div class="card-label">FAQ</div>
         <h1>常见问题</h1>
-        <p>集中查看加入标准、会费规则、活动参与方式、董事会职责与发票说明等常见问题。</p>
-      </div>
+        <p>集中查看加入标准、活动参与方式、董事会职责、会费与开票等常见问题。</p>
+      </article>
     </section>
 
     <section class="section faq-section">
@@ -40,7 +40,7 @@ import { officialFaqItems } from "../lib/official-content";
                     </div>
                   ) : null}
 
-                  {item.image ? <img class="faq-image" src={item.image.src} alt={item.image.alt} loading="lazy" /> : null}
+                  {item.image ? <img class="faq-image" src={item.image.src} alt={item.image.alt} loading="eager" /> : null}
 
                   {item.link ? (
                     <a class="text-link" href={item.link.href} target={externalLink ? "_blank" : undefined} rel={externalLink ? "noreferrer" : undefined}>
@@ -58,15 +58,31 @@ import { officialFaqItems } from "../lib/official-content";
 </BaseLayout>
 
 <style>
-  .faq-page-intro,
+  .faq-intro-card,
   .faq-section,
   .faq-list {
     display: grid;
     gap: 22px;
   }
 
-  .faq-page-intro {
-    padding-bottom: 0;
+  .faq-intro-card {
+    padding: clamp(24px, 3vw, 34px);
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
+      linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
+    border-color: rgba(157, 111, 49, 0.14);
+  }
+
+  .faq-intro-card h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+
+  .faq-intro-card p {
+    margin: 0;
+    max-width: 56rem;
+    color: var(--muted);
+    line-height: 1.82;
   }
 
   .faq-item {
@@ -74,9 +90,16 @@ import { officialFaqItems } from "../lib/official-content";
     overflow: hidden;
   }
 
+  .faq-item[open] {
+    border-color: rgba(157, 111, 49, 0.14);
+    box-shadow:
+      0 28px 60px rgba(40, 28, 18, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  }
+
   .faq-item summary {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     gap: 14px;
     align-items: center;
     padding: 22px 24px;
@@ -88,6 +111,18 @@ import { officialFaqItems } from "../lib/official-content";
 
   .faq-item summary::-webkit-details-marker {
     display: none;
+  }
+
+  .faq-item summary::after {
+    content: "+";
+    color: var(--accent-strong);
+    font-size: 1.35rem;
+    line-height: 1;
+    transition: transform 180ms ease;
+  }
+
+  .faq-item[open] summary::after {
+    content: "−";
   }
 
   .faq-index {
@@ -107,6 +142,10 @@ import { officialFaqItems } from "../lib/official-content";
     display: grid;
     gap: 14px;
     padding: 0 24px 24px;
+  }
+
+  .faq-answer .text-link {
+    width: fit-content;
   }
 
   .faq-answer p {
@@ -154,7 +193,7 @@ import { officialFaqItems } from "../lib/official-content";
     }
 
     .faq-item summary {
-      grid-template-columns: 1fr;
+      grid-template-columns: auto 1fr auto;
       align-items: start;
     }
   }

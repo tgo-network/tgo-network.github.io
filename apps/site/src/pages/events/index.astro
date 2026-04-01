@@ -24,16 +24,15 @@ const initialMeta = {
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack">
-    <section class="page-intro event-page-intro">
-      <div class="page-intro-copy">
-        <div class="card-label">活动</div>
-        <h1>各地分会活动</h1>
-      </div>
-    </section>
-
     <section class="section event-list-section">
-      <div class="panel panel-soft event-toolbar-panel">
-        <div class="card-label">城市筛选</div>
+      <div class="panel event-toolbar-panel">
+        <div class="event-toolbar-head">
+          <div>
+            <div class="card-label">活动</div>
+            <h1>各地分会活动</h1>
+          </div>
+        </div>
+
         <div class="filter-bar" data-event-filters>
           <button class="filter-chip is-active" type="button" data-city-filter="all">全部</button>
           {
@@ -309,10 +308,6 @@ const initialMeta = {
 </BaseLayout>
 
 <style>
-  .event-page-intro {
-    padding-bottom: 0;
-  }
-
   .event-list-section,
   .event-toolbar-panel {
     display: grid;
@@ -320,7 +315,15 @@ const initialMeta = {
   }
 
   .event-toolbar-panel {
-    background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+    padding: clamp(24px, 3vw, 30px);
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
+  .event-toolbar-head h1 {
+    margin: 6px 0 0;
+    font-size: clamp(2rem, 4vw, 3rem);
   }
 
   .filter-bar {
@@ -455,7 +458,7 @@ const initialMeta = {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
   }
 
   :global(.event-card-meta) {

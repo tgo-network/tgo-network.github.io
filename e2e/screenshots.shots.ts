@@ -47,7 +47,9 @@ test("capture public site screenshots", async ({ page }) => {
     { path: "/articles/what-a-city-hub-needs", heading: "一座城市主页在真正活起来之前需要什么", name: "article-detail" },
     { path: "/join", heading: "面向技术领导者的高质量同侪网络", name: "join" },
     { path: "/about", heading: "关于 TGO 鲲鹏会", name: "about" },
-    { path: "/faq", heading: "常见问题", name: "faq" }
+    { path: "/faq", heading: "常见问题", name: "faq" },
+    { path: "/privacy", heading: "隐私说明", name: "privacy" },
+    { path: "/terms", heading: "使用条款", name: "terms" }
   ] as const;
   const viewports = [
     { label: "desktop", width: 1440, height: 1024 },

@@ -41,6 +41,14 @@ const keyRoutes = [
   {
     path: "/faq",
     heading: "常见问题"
+  },
+  {
+    path: "/privacy",
+    heading: "隐私说明"
+  },
+  {
+    path: "/terms",
+    heading: "使用条款"
   }
 ] as const;
 const detailRoutes = [

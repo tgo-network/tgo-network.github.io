@@ -34,12 +34,7 @@ const reviewFocus = [
   "如果希望加入特定分会，建议在申请信息里写清目标城市与参与诉求。",
   "资料越完整，后续联系与审核判断会越高效。"
 ];
-
-const currentRules = [
-  "非成员可以直接提交加入申请。",
-  "成员与工作人员是两套独立身份体系。",
-  "站点内容与活动信息可直接浏览。"
-];
+const joinFaqPreview = page.faq.slice(0, 3);
 
 const decisionCards = [
   {
@@ -97,7 +92,7 @@ const postSubmitSteps = [
           <div>
             <div class="card-label card-label-on-dark">如何开始</div>
             <h2>三步完成加入申请</h2>
-            <p class="join-hero-note">先确认加入条件，再提交完整资料，之后由工作人员继续审核与联系。</p>
+            <p class="join-hero-note">确认加入条件后提交资料，再由工作人员继续审核与联系。</p>
           </div>
 
           <ol class="join-step-list">
@@ -164,7 +159,7 @@ const postSubmitSteps = [
       <div class="section-head section-head-stack">
         <div>
           <div class="card-label">加入之后</div>
-          <h2>成员会如何持续参与</h2>
+          <h2>加入后会如何参与</h2>
         </div>
       </div>
 
@@ -183,12 +178,11 @@ const postSubmitSteps = [
         <aside class="panel panel-soft join-guidance-panel">
           <div>
             <div class="card-label">常见问题</div>
-            <p class="card-copy join-guidance-copy">把最常见的加入疑问集中在这里，帮助你更快判断是否适合当前阶段申请。</p>
           </div>
 
           <div class="faq-list faq-list-compact">
             {
-              page.faq.map((item) => (
+              joinFaqPreview.map((item) => (
                 <div class="faq-item">
                   <h3>{item.question}</h3>
                   <p>{item.answer}</p>
@@ -196,6 +190,8 @@ const postSubmitSteps = [
               ))
             }
           </div>
+
+          <a class="text-link" href="/faq">查看完整 FAQ</a>
         </aside>
       </div>
     </section>
@@ -276,18 +272,13 @@ const postSubmitSteps = [
         </div>
 
         <div>
-          <div class="card-label">当前规则</div>
-          <ul class="join-rule-list">
-            {currentRules.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-
-        <div>
           <div class="card-label">联系安排</div>
           <p class="card-copy">
             如进入后续沟通阶段，工作人员会根据分会安排与你联系，并确认后续参与方式。
           </p>
         </div>
+
+        <a class="button secondary" href="/faq">查看常见问题</a>
       </aside>
     </section>
   </main>
@@ -485,10 +476,6 @@ const postSubmitSteps = [
 
   .join-guidance-panel {
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
-  }
-
-  .join-guidance-copy {
-    margin-top: 10px;
   }
 
   .join-rule-list {
