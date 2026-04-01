@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { formatDate } from "../../lib/format";
 import { listMembers } from "../../lib/public-api";
 
 const members = (await listMembers()).slice().sort((left, right) => {
@@ -22,7 +21,7 @@ const members = (await listMembers()).slice().sort((left, right) => {
   return rightTime - leftTime || left.name.localeCompare(right.name, "zh-CN");
 });
 
-const pageSize = 18;
+const pageSize = 16;
 const cityOptions = Array.from(new Set(members.map((member) => member.branch?.cityName || "未标注分会"))).sort((left, right) =>
   left.localeCompare(right, "zh-CN")
 );
@@ -31,26 +30,18 @@ const initialMembers = members.slice(0, pageSize);
 
 <BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员资料。">
   <main class="page-shell page-stack">
-    <section class="page-intro">
+    <section class="page-intro member-page-intro">
       <div class="page-intro-copy">
         <div class="card-label">成员列表</div>
         <h1>TGO 鲲鹏会成员</h1>
-        <p>展示成员的姓名、公司、职务与加入时间，支持按城市分会筛选与分页浏览。</p>
       </div>
-      <p class="page-intro-meta">{members.length} 位成员 · {cityOptions.length} 个城市</p>
     </section>
 
     <section class="section member-directory-section">
-      <div class="panel panel-soft member-toolbar member-toolbar-panel">
-        <div class="member-toolbar-copy">
-          <div class="card-label">城市筛选</div>
-          <p class="results-summary" data-member-summary>
-            第 1 / {Math.max(1, Math.ceil(members.length / pageSize))} 页 · 当前 {initialMembers.length} 位 / 共 {members.length} 位
-          </p>
-        </div>
-
+      <div class="panel panel-soft member-toolbar-panel">
+        <div class="card-label">城市分会</div>
         <div class="filter-bar" data-member-filters>
-          <button class="filter-chip is-active" type="button" data-member-city="all">全部成员</button>
+          <button class="filter-chip is-active" type="button" data-member-city="all">全部</button>
           {
             cityOptions.map((city) => (
               <button class="filter-chip" type="button" data-member-city={city}>
@@ -77,33 +68,26 @@ const initialMembers = members.slice(0, pageSize);
                 }
 
                 <div>
-                  <div class="card-label">{member.branch?.cityName ?? "未标注分会"}</div>
                   <h2>{member.name}</h2>
                   <p class="member-directory-company">{member.company}</p>
                 </div>
               </div>
 
               <p class="member-directory-title">{member.title}</p>
-
-              <ul class="meta-list member-directory-meta">
-                <li>{member.branch?.name ?? "成员"}</li>
-                <li>{formatDate(member.joinedAt)}</li>
-              </ul>
             </a>
           ))
         }
       </div>
 
       <div class="panel panel-soft empty-state" data-member-empty hidden={initialMembers.length > 0}>
-        <div class="card-label">暂无结果</div>
-        <p class="card-copy">当前筛选条件下没有可显示的成员，请切换其他城市继续查看。</p>
+        <div class="card-label">暂无成员</div>
+        <p class="card-copy">当前分会下暂无可展示的成员。</p>
       </div>
 
-      <div class="pagination-bar">
+      <div class="pagination-bar member-pagination-bar">
         <button class="button secondary pagination-button" type="button" data-member-prev disabled>
           上一页
         </button>
-        <span class="pagination-indicator" data-member-page>第 1 / {Math.max(1, Math.ceil(members.length / pageSize))} 页</span>
         <button
           class="button secondary pagination-button"
           type="button"
@@ -120,8 +104,6 @@ const initialMembers = members.slice(0, pageSize);
     const members = Array.isArray(initialMembers) ? initialMembers : [];
     const memberGrid = document.querySelector("[data-member-grid]");
     const memberEmpty = document.querySelector("[data-member-empty]");
-    const memberSummary = document.querySelector("[data-member-summary]");
-    const memberPage = document.querySelector("[data-member-page]");
     const prevButton = document.querySelector("[data-member-prev]");
     const nextButton = document.querySelector("[data-member-next]");
     const filterRoot = document.querySelector("[data-member-filters]");
@@ -138,21 +120,7 @@ const initialMembers = members.slice(0, pageSize);
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
 
-    const formatDate = (value) => {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return "时间待补充";
-      }
-
-      return new Intl.DateTimeFormat("zh-CN", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric"
-      }).format(date);
-    };
-
     const getMemberCity = (member) => member.branch?.cityName || "未标注分会";
-    const getMemberBranch = (member) => member.branch?.name || "成员";
 
     const renderCard = (member) => {
       const avatar = member.avatar
@@ -164,16 +132,11 @@ const initialMembers = members.slice(0, pageSize);
           <div class="member-directory-head">
             ${avatar}
             <div>
-              <div class="card-label">${escapeHtml(getMemberCity(member))}</div>
               <h2>${escapeHtml(member.name)}</h2>
               <p class="member-directory-company">${escapeHtml(member.company)}</p>
             </div>
           </div>
           <p class="member-directory-title">${escapeHtml(member.title)}</p>
-          <ul class="meta-list member-directory-meta">
-            <li>${escapeHtml(getMemberBranch(member))}</li>
-            <li>${escapeHtml(formatDate(member.joinedAt))}</li>
-          </ul>
         </a>
       `;
     };
@@ -205,14 +168,6 @@ const initialMembers = members.slice(0, pageSize);
 
       memberGrid.innerHTML = pageItems.map((member) => renderCard(member)).join("");
       memberEmpty.hidden = pageItems.length > 0;
-
-      if (memberSummary instanceof HTMLElement) {
-        memberSummary.textContent = `第 ${currentPage} / ${pageCount} 页 · 当前 ${pageItems.length} 位 / 共 ${filteredMembers.length} 位`;
-      }
-
-      if (memberPage instanceof HTMLElement) {
-        memberPage.textContent = `第 ${currentPage} / ${pageCount} 页`;
-      }
 
       if (prevButton instanceof HTMLButtonElement) {
         prevButton.disabled = currentPage <= 1;
@@ -252,23 +207,18 @@ const initialMembers = members.slice(0, pageSize);
 </BaseLayout>
 
 <style>
-  .member-directory-section {
+  .member-page-intro {
+    padding-bottom: 0;
+  }
+
+  .member-directory-section,
+  .member-toolbar-panel {
     display: grid;
     gap: 18px;
   }
 
-  .member-toolbar {
-    display: grid;
-    gap: 14px;
-  }
-
   .member-toolbar-panel {
     background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
-  }
-
-  .member-toolbar-copy {
-    display: grid;
-    gap: 8px;
   }
 
   .filter-bar {
@@ -299,40 +249,34 @@ const initialMembers = members.slice(0, pageSize);
     color: #fff7ef;
   }
 
-  .results-summary {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .member-directory-grid {
+  :global(.member-directory-grid) {
     display: grid;
     gap: 18px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .member-directory-card {
+  :global(.member-directory-card) {
     display: grid;
-    gap: 16px;
+    gap: 14px;
     padding: 20px;
     min-height: 100%;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
-  .member-directory-card:hover {
+  :global(.member-directory-card:hover) {
     transform: translateY(-3px);
     border-color: rgba(157, 111, 49, 0.24);
     box-shadow: 0 24px 42px rgba(40, 28, 18, 0.12);
   }
 
-  .member-directory-head {
+  :global(.member-directory-head) {
     display: grid;
     gap: 14px;
     grid-template-columns: 68px minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
   }
 
-  .member-directory-avatar {
+  :global(.member-directory-avatar) {
     width: 68px;
     height: 68px;
     border-radius: 22px;
@@ -340,7 +284,7 @@ const initialMembers = members.slice(0, pageSize);
     box-shadow: 0 14px 28px rgba(40, 28, 18, 0.12);
   }
 
-  .member-directory-avatar-fallback {
+  :global(.member-directory-avatar-fallback) {
     display: grid;
     place-items: center;
     background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
@@ -349,26 +293,28 @@ const initialMembers = members.slice(0, pageSize);
     font-size: 1.5rem;
   }
 
-  .member-directory-head h2 {
-    margin: 8px 0 4px;
-    font-size: 1.18rem;
+  :global(.member-directory-head h2) {
+    margin: 0;
+    font-size: 1.12rem;
+    line-height: 1.4;
   }
 
-  .member-directory-company,
-  .member-directory-title {
+  :global(.member-directory-company),
+  :global(.member-directory-title) {
     margin: 0;
     color: var(--muted);
     line-height: 1.7;
   }
 
-  .member-directory-company {
+  :global(.member-directory-company) {
+    margin-top: 8px;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
 
-  .member-directory-title {
+  :global(.member-directory-title) {
     min-height: 3.2em;
     display: -webkit-box;
     overflow: hidden;
@@ -376,17 +322,20 @@ const initialMembers = members.slice(0, pageSize);
     -webkit-line-clamp: 2;
   }
 
-  .member-directory-meta {
-    margin-top: 0;
+  .member-pagination-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
   }
 
-  .member-directory-meta li {
-    padding: 6px 10px;
-    font-size: 0.86rem;
+  @media (max-width: 1180px) {
+    :global(.member-directory-grid) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
-  @media (max-width: 1000px) {
-    .member-directory-grid {
+  @media (max-width: 860px) {
+    :global(.member-directory-grid) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -407,13 +356,16 @@ const initialMembers = members.slice(0, pageSize);
       flex: 0 0 auto;
     }
 
-    .member-directory-grid {
+    :global(.member-directory-grid) {
       grid-template-columns: 1fr;
     }
 
-    .member-directory-card {
+    :global(.member-directory-card) {
       padding: 18px;
-      gap: 14px;
+    }
+
+    .member-pagination-bar {
+      justify-content: space-between;
     }
   }
 </style>

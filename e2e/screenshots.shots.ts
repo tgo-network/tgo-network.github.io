@@ -46,7 +46,8 @@ test("capture public site screenshots", async ({ page }) => {
     { path: "/articles", heading: "技术管理与组织实践文章", name: "articles" },
     { path: "/articles/what-a-city-hub-needs", heading: "一座城市主页在真正活起来之前需要什么", name: "article-detail" },
     { path: "/join", heading: "面向技术领导者的高质量同侪网络", name: "join" },
-    { path: "/about", heading: "构建全球化的有技术背景的优秀人才同侪学习成长平台", name: "about" }
+    { path: "/about", heading: "关于 TGO 鲲鹏会", name: "about" },
+    { path: "/faq", heading: "常见问题", name: "faq" }
   ] as const;
   const viewports = [
     { label: "desktop", width: 1440, height: 1024 },

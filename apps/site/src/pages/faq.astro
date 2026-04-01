@@ -1,0 +1,161 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { officialFaqItems } from "../lib/official-content";
+---
+
+<BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
+  <main class="page-shell page-stack">
+    <section class="page-intro faq-page-intro">
+      <div class="page-intro-copy">
+        <div class="card-label">FAQ</div>
+        <h1>常见问题</h1>
+        <p>集中查看加入标准、会费规则、活动参与方式、董事会职责与发票说明等常见问题。</p>
+      </div>
+    </section>
+
+    <section class="section faq-section">
+      <div class="faq-list">
+        {
+          officialFaqItems.map((item, index) => {
+            const externalLink = item.link?.href.startsWith("http");
+
+            return (
+              <details class="panel faq-item" open={index === 0}>
+                <summary>
+                  <span class="faq-index">{String(index + 1).padStart(2, "0")}</span>
+                  <span>{item.question}</span>
+                </summary>
+
+                <div class="faq-answer">
+                  {item.paragraphs?.map((paragraph) => <p>{paragraph}</p>)}
+
+                  {item.keyValues?.length ? (
+                    <div class="faq-key-value-list">
+                      {item.keyValues.map((entry) => (
+                        <div class="faq-key-value-item">
+                          <strong>{entry.label}</strong>
+                          <span>{entry.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {item.image ? <img class="faq-image" src={item.image.src} alt={item.image.alt} loading="lazy" /> : null}
+
+                  {item.link ? (
+                    <a class="text-link" href={item.link.href} target={externalLink ? "_blank" : undefined} rel={externalLink ? "noreferrer" : undefined}>
+                      {item.link.label}
+                    </a>
+                  ) : null}
+                </div>
+              </details>
+            );
+          })
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .faq-page-intro,
+  .faq-section,
+  .faq-list {
+    display: grid;
+    gap: 22px;
+  }
+
+  .faq-page-intro {
+    padding-bottom: 0;
+  }
+
+  .faq-item {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .faq-item summary {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 22px 24px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    font-size: 1.02rem;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-index {
+    display: inline-grid;
+    place-items: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(200, 161, 93, 0.12);
+    color: var(--accent-strong);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+  }
+
+  .faq-answer {
+    display: grid;
+    gap: 14px;
+    padding: 0 24px 24px;
+  }
+
+  .faq-answer p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.82;
+  }
+
+  .faq-key-value-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .faq-key-value-item {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.68);
+  }
+
+  .faq-key-value-item strong {
+    color: var(--ink);
+  }
+
+  .faq-key-value-item span {
+    color: var(--muted);
+    line-height: 1.72;
+  }
+
+  .faq-image {
+    display: block;
+    width: 100%;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 20px 44px rgba(40, 28, 18, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    .faq-item summary,
+    .faq-answer {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .faq-item summary {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+  }
+</style>

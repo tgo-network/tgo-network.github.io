@@ -15,25 +15,31 @@ const [leadArticle, ...otherArticles] = articles;
       <div class="page-intro-copy">
         <div class="card-label">文章</div>
         <h1>技术管理与组织实践文章</h1>
-        <p>沉淀社区活动观察、组织实践与技术管理经验，形成可持续复用的内容资产。</p>
       </div>
-      <p class="page-intro-meta">{articles.length} 篇已发布文章</p>
     </section>
 
     {
       leadArticle && (
         <section class="section">
-          <a class="panel article-lead-card" href={`/articles/${leadArticle.slug}`}>
+          <a class:list={["panel article-lead-card", !leadArticle.coverImage && "article-lead-card-single"]} href={`/articles/${leadArticle.slug}`}>
             <div class="article-lead-copy">
               <div class="card-label">最新发布</div>
               <h2>{leadArticle.title}</h2>
               <p class="card-copy">{leadArticle.excerpt}</p>
+              <ul class="meta-list article-lead-meta">
+                <li>{formatDate(leadArticle.publishedAt)}</li>
+                <li>{leadArticle.authorName}</li>
+                {leadArticle.branch?.name && <li>{leadArticle.branch.name}</li>}
+              </ul>
             </div>
-            <ul class="meta-list article-lead-meta">
-              <li>{formatDate(leadArticle.publishedAt)}</li>
-              <li>{leadArticle.authorName}</li>
-              {leadArticle.branch?.name && <li>{leadArticle.branch.name}</li>}
-            </ul>
+
+            {
+              leadArticle.coverImage && (
+                <figure class="article-lead-figure">
+                  <img class="article-lead-image" src={leadArticle.coverImage.url} alt={leadArticle.coverImage.alt} loading="lazy" />
+                </figure>
+              )
+            }
           </a>
         </section>
       )
@@ -43,7 +49,7 @@ const [leadArticle, ...otherArticles] = articles;
         <div class="section-head section-head-stack">
           <div>
             <div class="card-label">全部文章</div>
-            <h2>持续更新的社区内容</h2>
+            <h2>文章列表</h2>
           </div>
         </div>
 
@@ -53,6 +59,13 @@ const [leadArticle, ...otherArticles] = articles;
             {
               otherArticles.map((article) => (
                 <a class="panel article-list-card" href={`/articles/${article.slug}`}>
+                  {
+                    article.coverImage && (
+                      <div class="article-list-media-wrap">
+                        <img class="article-list-media" src={article.coverImage.url} alt={article.coverImage.alt} loading="lazy" />
+                      </div>
+                    )
+                  }
                   <div class="card-label">{formatDate(article.publishedAt)}</div>
                   <h3>{article.title}</h3>
                   <p class="card-copy">{article.excerpt}</p>
@@ -80,13 +93,17 @@ const [leadArticle, ...otherArticles] = articles;
     display: grid;
     gap: 20px;
     grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-    align-items: end;
+    align-items: center;
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 239, 229, 0.96));
+  }
+
+  .article-lead-card-single {
+    grid-template-columns: 1fr;
   }
 
   .article-lead-copy {
     display: grid;
-    gap: 10px;
+    gap: 12px;
   }
 
   .article-lead-card h2 {
@@ -101,8 +118,21 @@ const [leadArticle, ...otherArticles] = articles;
   }
 
   .article-lead-meta {
-    margin-top: 0;
-    justify-content: flex-end;
+    margin-top: 6px;
+  }
+
+  .article-lead-figure {
+    margin: 0;
+    height: 100%;
+  }
+
+  .article-lead-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    border-radius: 24px;
+    object-fit: cover;
   }
 
   .article-list-section {
@@ -120,6 +150,8 @@ const [leadArticle, ...otherArticles] = articles;
     display: grid;
     gap: 12px;
     min-height: 100%;
+    padding: 0;
+    overflow: hidden;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
@@ -127,6 +159,32 @@ const [leadArticle, ...otherArticles] = articles;
     transform: translateY(-3px);
     border-color: rgba(157, 111, 49, 0.24);
     box-shadow: 0 24px 42px rgba(40, 28, 18, 0.12);
+  }
+
+  .article-list-media-wrap {
+    min-height: 180px;
+    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 239, 229, 0.94));
+  }
+
+  .article-list-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+    object-fit: cover;
+  }
+
+  .article-list-card .card-label,
+  .article-list-card h3,
+  .article-list-card .card-copy,
+  .article-list-card .article-list-meta {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .article-list-card .card-label {
+    padding-top: 20px;
   }
 
   .article-list-card h3 {
@@ -140,10 +198,12 @@ const [leadArticle, ...otherArticles] = articles;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+    margin: 0;
   }
 
   .article-list-meta {
     margin-top: auto;
+    padding-bottom: 20px;
   }
 
   @media (max-width: 900px) {
@@ -152,8 +212,8 @@ const [leadArticle, ...otherArticles] = articles;
       grid-template-columns: 1fr;
     }
 
-    .article-lead-meta {
-      justify-content: flex-start;
+    .article-lead-image {
+      min-height: 220px;
     }
   }
 </style>

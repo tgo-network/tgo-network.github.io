@@ -13,37 +13,11 @@ const {
   description = "TGO 鲲鹏会，展示组织介绍、分会、成员、活动与内容。"
 } = Astro.props;
 const config = await getSiteConfig();
-const footerGroups = [
-  {
-    title: "站点导航",
-    links: [
-      { label: "首页", href: "/" },
-      { label: "分会董事会", href: "/branches" },
-      { label: "成员列表", href: "/members" }
-    ]
-  },
-  {
-    title: "内容与活动",
-    links: [
-      { label: "活动", href: "/events" },
-      { label: "文章", href: "/articles" },
-      { label: "关于我们", href: "/about" }
-    ]
-  },
-  {
-    title: "参与方式",
-    links: [
-      { label: "加入申请", href: "/join" },
-      { label: "隐私说明", href: "/privacy" },
-      { label: "使用条款", href: "/terms" }
-    ]
-  }
-] as const;
-const footerHighlights = [
-  { label: "分会交流", href: "/branches" },
-  { label: "活动报名", href: "/events" },
-  { label: "成员展示", href: "/members" },
-  { label: "加入申请", href: "/join" }
+const currentYear = new Date().getFullYear();
+const legalLinks = [
+  { label: "FAQ", href: "/faq" },
+  { label: "隐私说明", href: "/privacy" },
+  { label: "使用条款", href: "/terms" }
 ] as const;
 ---
 
@@ -62,51 +36,20 @@ const footerHighlights = [
     <footer class="site-footer">
       <div class="page-shell site-footer-shell">
         <div class="site-footer-top">
-          <div class="site-footer-brand">
-            <a class="site-brand site-footer-brand-link" href="/">
-              <span class="site-brand-mark">TGO</span>
-              <span class="site-brand-text">
-                <strong>{config.platformName}</strong>
-                <small>科技领导者社区</small>
-              </span>
-            </a>
-            <p>{config.footerTagline}</p>
-            <div class="site-footer-highlight-row">
-              {footerHighlights.map((item) => <a class="site-footer-highlight" href={item.href}>{item.label}</a>)}
-            </div>
-            {
-              config.supportEmail && (
-                <div class="site-footer-contact">
-                  <span>联系邮箱</span>
-                  <a class="site-footer-email" href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>
-                </div>
-              )
-            }
-          </div>
+          <a class="site-brand site-footer-brand-link" href="/">
+            <span class="site-brand-mark">TGO</span>
+            <span class="site-brand-text">
+              <strong>{config.platformName}</strong>
+              <small>科技领导者社区</small>
+            </span>
+          </a>
 
-          <div class="site-footer-grid">
-            {
-              footerGroups.map((group) => (
-                <div class="site-footer-group">
-                  <h2>{group.title}</h2>
-                  <div class="site-footer-links">
-                    {group.links.map((link) => <a href={link.href}>{link.label}</a>)}
-                  </div>
-                </div>
-              ))
-            }
+          <div class="site-footer-legal-links" aria-label="页脚导航">
+            {legalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
           </div>
         </div>
 
-        <div class="site-footer-bottom">
-          <p class="site-footer-legal">版权所有 © 2026 {config.platformName}</p>
-          <div class="site-footer-legal-links">
-            <a href="/about">关于 TGO 鲲鹏会</a>
-            <a href="/join">加入申请</a>
-            <a href="/terms">使用条款</a>
-            <a href="/privacy">隐私说明</a>
-          </div>
-        </div>
+        <p class="site-footer-copy">版权所有 © {currentYear} {config.platformName}</p>
       </div>
     </footer>
   </body>

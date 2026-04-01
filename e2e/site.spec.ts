@@ -36,7 +36,11 @@ const keyRoutes = [
   },
   {
     path: "/about",
-    heading: "构建全球化的有技术背景的优秀人才同侪学习成长平台"
+    heading: "关于 TGO 鲲鹏会"
+  },
+  {
+    path: "/faq",
+    heading: "常见问题"
   }
 ] as const;
 const detailRoutes = [
@@ -166,6 +170,62 @@ test("public detail pages keep desktop and mobile layouts within the viewport", 
       });
     }
   }
+});
+
+test("public events listing keeps stacked cards on desktop and mobile", async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 1024, label: "desktop", expectedGridColumns: 3 },
+    { width: 390, height: 844, label: "mobile", expectedGridColumns: 1 }
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto(`${siteUrl}/events`, { waitUntil: "networkidle" });
+
+    const layout = await page.evaluate(() => {
+      const grid = document.querySelector("[data-event-grid]");
+      const firstCardLink = document.querySelector(".event-card-link");
+      const firstMedia = document.querySelector(".event-card-media-shell");
+
+      return {
+        gridColumns: grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length : 0,
+        cardColumns: firstCardLink ? getComputedStyle(firstCardLink).gridTemplateColumns.trim().split(/\s+/).length : 0,
+        cardRows: firstCardLink ? getComputedStyle(firstCardLink).gridTemplateRows.trim().split(/\s+/).length : 0,
+        mediaBorderBottom: firstMedia ? getComputedStyle(firstMedia).borderBottomWidth : "0px"
+      };
+    });
+
+    expect(layout.gridColumns, `${viewport.label} 活动列表列数异常`).toBe(viewport.expectedGridColumns);
+    expect(layout.cardColumns, `${viewport.label} 活动卡片不应再是左右分栏`).toBe(1);
+    expect(layout.cardRows, `${viewport.label} 活动卡片应保持图片在上、内容在下`).toBeGreaterThanOrEqual(2);
+    expect(layout.mediaBorderBottom, `${viewport.label} 活动卡片图片与内容之间应保留分隔线`).toBe("1px");
+    await expectNoHorizontalOverflow(page, `${viewport.label}:events-listing-stacked`);
+  }
+});
+
+test("public members listing keeps styled card layout after client render", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1024 });
+  await page.goto(`${siteUrl}/members`, { waitUntil: "networkidle" });
+
+  const layout = await page.evaluate(() => {
+    const grid = document.querySelector("[data-member-grid]");
+    const firstCard = document.querySelector(".member-directory-card");
+    const firstHead = document.querySelector(".member-directory-head");
+    const firstAvatar = document.querySelector(".member-directory-avatar, .member-directory-avatar-fallback");
+
+    return {
+      gridColumns: grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length : 0,
+      cardDisplay: firstCard ? getComputedStyle(firstCard).display : "",
+      headColumns: firstHead ? getComputedStyle(firstHead).gridTemplateColumns.trim().split(/\s+/).length : 0,
+      avatarWidth: firstAvatar ? getComputedStyle(firstAvatar).width : "0px",
+      avatarBackgroundImage: firstAvatar ? getComputedStyle(firstAvatar).backgroundImage : "none"
+    };
+  });
+
+  expect(layout.gridColumns, "成员列表桌面端应保持四列网格").toBe(4);
+  expect(layout.cardDisplay, "成员卡片应保持网格布局").toBe("grid");
+  expect(layout.headColumns, "成员卡片头部应保持头像与文字两列布局").toBe(2);
+  expect(layout.avatarWidth, "成员头像尺寸异常，可能样式未命中").toBe("68px");
+  expect(layout.avatarBackgroundImage, "成员头像回退样式未命中").not.toBe("none");
+  await expectNoHorizontalOverflow(page, "desktop:members-directory-cards");
 });
 
 test("public content drill-down routes expose the expected detail content", async ({ page }) => {

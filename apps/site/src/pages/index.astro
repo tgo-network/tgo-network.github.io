@@ -47,42 +47,22 @@ const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slic
 
 const heroContent = {
   titleLines: ["面向科技领导者的", "高质量学习社区"],
-  summary: "TGO 鲲鹏会聚焦有技术背景的科技领导者，通过闭门讨论、公开学习与跨城交流，建立长期稳定的同行网络。",
-  supportingCopy: "围绕技术决策、组织管理与业务协同等真实议题，形成可持续的学习、交流与经验连接。"
+  summary:
+    "TGO 鲲鹏会是面向科技领导者的学习与交流社区，通过分会活动、闭门讨论和内容沉淀，连接 CTO、技术 VP、研发负责人和技术创业者。"
 };
 
-const heroAudienceRoles = ["CTO", "技术 VP", "研发负责人", "技术创业者"];
-
-const heroSupportCards = [
+const heroDetailItems = [
   {
-    label: "适合谁加入",
-    title: "科技领导者与技术创业者",
-    summary: "面向 CTO、技术 VP、研发负责人，以及具备技术背景的创业者。"
+    label: "适合加入",
+    value: "CTO、技术 VP、研发负责人、技术创业者"
   },
   {
-    label: "组织形式",
-    title: "小组活动与闭门交流",
-    summary: "围绕真实议题进行小范围讨论，沉淀更有判断力的经验与反馈。"
+    label: "组织方式",
+    value: "分会活动、闭门交流、标杆走访"
   },
   {
-    label: "公开学习",
-    title: "跨城活动连接行业经验",
-    summary: "通过专题分享、月度活动与城市联动扩展组织视野。"
-  }
-];
-
-const heroContextItems = [
-  {
-    label: "闭门交流",
-    summary: "围绕真实议题进行更深入的讨论与反馈。"
-  },
-  {
-    label: "跨城活动",
-    summary: "持续连接不同城市与行业的一线经验。"
-  },
-  {
-    label: "长期同行",
-    summary: "建立稳定、可信、可复用的同侪关系。"
+    label: "加入方式",
+    value: "前台提交申请，由工作人员审核与跟进"
   }
 ];
 
@@ -91,12 +71,17 @@ const testimonialFallbacks: Record<string, string> = {
   "lin-wen": "相比一次性的大会曝光，我更看重能持续讨论真实问题、彼此长期反馈的同侪关系。",
   "shen-lan": "无论是工程效率、团队协作还是业务落地，社区交流都能让经验回到更大的视角中重新理解。"
 };
+const testimonialFallbackRotation = [
+  "能长期和一线技术管理者交流，很多组织与平台建设问题都更快找到参照系。",
+  "相比一次性的大会曝光，我更看重能持续讨论真实问题、彼此长期反馈的同侪关系。",
+  "社区活动最有价值的部分，是把日常难题放回更大的技术管理视角中重新理解。"
+];
 
-const featuredTestimonials = featuredMembers.map((member) => ({
+const featuredTestimonials = featuredMembers.map((member, index) => ({
   ...member,
   quote:
     testimonialFallbacks[member.slug] ??
-    "可以和真正处在一线的技术管理者持续交流，获得长期稳定的同行反馈。"
+    testimonialFallbackRotation[index % testimonialFallbackRotation.length]
 }));
 
 const joinSteps = [
@@ -127,10 +112,7 @@ const joinSteps = [
           <h1 aria-label={heroContent.titleLines.join("")}>
             {heroContent.titleLines.map((line) => <span class="hero-title-line">{line}</span>)}
           </h1>
-          <div class="hero-copy-block">
-            <p class="hero-summary">{heroContent.summary}</p>
-            <p class="hero-supporting-copy">{heroContent.supportingCopy}</p>
-          </div>
+          <p class="hero-summary">{heroContent.summary}</p>
 
           <div class="hero-actions">
             {
@@ -141,34 +123,21 @@ const joinSteps = [
               ))
             }
           </div>
-
-          <div class="hero-context-grid" aria-label="社区特点">
-            {
-              heroContextItems.map((item) => (
-                <article class="hero-context-card">
-                  <div class="hero-context-label">{item.label}</div>
-                  <p>{item.summary}</p>
-                </article>
-              ))
-            }
-          </div>
         </div>
 
         <aside class="hero-home-aside">
-          {
-            heroSupportCards.map((item, index) => (
-              <article class:list={["hero-support-card", index === 0 && "hero-support-card-accent"]}>
-                <div class="card-label card-label-on-dark">{item.label}</div>
-                <h3 class="hero-support-title">{item.title}</h3>
-                {index === 0 ? (
-                  <div class="hero-role-grid" aria-label="适合加入的角色">
-                    {heroAudienceRoles.map((role) => <span class="hero-role-chip">{role}</span>)}
-                  </div>
-                ) : null}
-                <p class="hero-aside-copy">{item.summary}</p>
-              </article>
-            ))
-          }
+          <div class="card-label card-label-on-dark">社区概览</div>
+
+          <dl class="hero-detail-list">
+            {
+              heroDetailItems.map((item) => (
+                <div class="hero-detail-item">
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
         </aside>
       </div>
     </section>
@@ -298,8 +267,8 @@ const joinSteps = [
 <style>
   .hero-home-card {
     display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1.34fr) minmax(280px, 0.66fr);
+    gap: 24px;
+    grid-template-columns: minmax(0, 1.48fr) minmax(280px, 0.52fr);
     padding: clamp(28px, 4vw, 42px);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.2), transparent 26%),
@@ -323,10 +292,10 @@ const joinSteps = [
   }
 
   .hero-home-card h1 {
-    width: min(100%, 9.4em);
+    width: min(100%, 8.8em);
     max-width: none;
-    margin: 18px 0 14px;
-    font-size: clamp(2.45rem, 5.2vw, 4.3rem);
+    margin: 18px 0 16px;
+    font-size: clamp(2.4rem, 5vw, 4.15rem);
     line-height: 0.98;
   }
 
@@ -340,32 +309,53 @@ const joinSteps = [
 
   .hero-summary {
     margin: 0;
-    max-width: 28em;
+    max-width: 30em;
     color: rgba(247, 239, 227, 0.82);
-    font-size: 1rem;
-    line-height: 1.78;
-  }
-
-  .hero-copy-block {
-    display: grid;
-    gap: 10px;
-  }
-
-  .hero-supporting-copy {
-    margin: 0;
-    max-width: 32em;
-    color: rgba(247, 239, 227, 0.68);
-    line-height: 1.72;
+    font-size: 1.02rem;
+    line-height: 1.82;
   }
 
   .hero-home-aside {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     align-self: start;
-    padding: 20px;
+    padding: 22px;
     border-radius: 24px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
     border: 1px solid rgba(215, 179, 117, 0.16);
+  }
+
+  .hero-detail-list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .hero-detail-item {
+    display: grid;
+    gap: 6px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(215, 179, 117, 0.14);
+  }
+
+  .hero-detail-item:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .hero-detail-item dt {
+    color: #f1d5a0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero-detail-item dd {
+    margin: 0;
+    color: rgba(247, 239, 227, 0.82);
+    font-size: 1rem;
+    line-height: 1.7;
   }
 
   .join-step-card {
@@ -373,85 +363,10 @@ const joinSteps = [
     gap: 10px;
   }
 
-  .hero-support-card {
-    display: grid;
-    gap: 10px;
-    padding: 18px 18px 16px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(215, 179, 117, 0.1);
-  }
-
-  .hero-support-card-accent {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-    border-color: rgba(215, 179, 117, 0.16);
-  }
-
-  .hero-support-title {
-    margin: 6px 0 0;
-    font-size: clamp(1.35rem, 2vw, 1.72rem);
-    color: #fff7ee;
-    line-height: 1.35;
-  }
-
   .join-step-grid,
   .testimonial-grid {
     display: grid;
     gap: 14px;
-  }
-
-  .hero-context-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 22px;
-  }
-
-  .hero-context-card {
-    display: grid;
-    gap: 8px;
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(215, 179, 117, 0.1);
-  }
-
-  .hero-context-label {
-    color: #f1d5a0;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .hero-context-card p {
-    margin: 0;
-    color: rgba(247, 239, 227, 0.74);
-    line-height: 1.68;
-    font-size: 0.94rem;
-  }
-
-  .hero-role-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .hero-role-chip {
-    display: inline-flex;
-    padding: 9px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(215, 179, 117, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(247, 239, 227, 0.86);
-    font-size: 0.92rem;
-    line-height: 1;
-  }
-
-  .hero-aside-copy {
-    margin: 0;
-    color: rgba(247, 239, 227, 0.76);
-    line-height: 1.72;
   }
 
   .join-step-index {
@@ -608,16 +523,16 @@ const joinSteps = [
     .testimonial-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .hero-context-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
   }
 
   @media (max-width: 900px) {
     .hero-home-card,
     .testimonial-grid {
       grid-template-columns: 1fr;
+    }
+
+    .hero-home-aside {
+      padding: 20px;
     }
 
     .join-panel-head {
@@ -635,21 +550,8 @@ const joinSteps = [
       grid-template-columns: 1fr;
     }
 
-    .hero-context-grid {
-      grid-template-columns: 1fr;
-    }
-
     .hero-home-card h1 {
-      width: min(100%, 8.2em);
-    }
-
-    .hero-support-card {
-      padding: 16px;
-    }
-
-    .hero-role-chip {
-      padding-inline: 11px;
-      font-size: 0.88rem;
+      width: min(100%, 7.6em);
     }
   }
 </style>

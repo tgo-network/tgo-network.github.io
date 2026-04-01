@@ -57,6 +57,7 @@ const hasExplicitPublicApiBaseUrl = () =>
   Boolean((import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ?? process.env.PUBLIC_API_BASE_URL);
 
 const defaultEventPageSize = 24;
+const seedDemoEventSlugs = new Set(["beijing-strategy-forum", "hangzhou-engineering-workshop", "shanghai-ai-leadership-salon"]);
 
 const fetchPublic = async <T>(path: string): Promise<T | null> => {
   const result = await fetchPublicEnvelope<T>(path);
@@ -334,13 +335,21 @@ export const listEventPage = async (query: PublicEventListQuery = {}): Promise<P
   };
 };
 
-export const listEvents = async (): Promise<PublicEventSummaryV2[]> =>
-  (
-    await listEventPage({
-      page: 1,
-      pageSize: Math.max(publicEventSummariesV2.length, 2000)
-    })
-  ).items;
+export const listEvents = async (): Promise<PublicEventSummaryV2[]> => {
+  const apiResult = await listEventPage({
+    page: 1,
+    pageSize: Math.max(publicEventSummariesV2.length, 2000)
+  });
+  const importedEvents = sortEventSummaries((await getImportedEventSummariesFallback()) ?? publicEventSummariesV2);
+  const demoEventCount = apiResult.items.filter((event) => seedDemoEventSlugs.has(event.slug)).length;
+
+  // Demo events remain accessible by detail route for local testing, but they should not occupy the public list.
+  if (demoEventCount > 0 && apiResult.items.length === importedEvents.length + demoEventCount) {
+    return importedEvents;
+  }
+
+  return demoEventCount > 0 ? apiResult.items.filter((event) => !seedDemoEventSlugs.has(event.slug)) : apiResult.items;
+};
 
 export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null> =>
   (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ??

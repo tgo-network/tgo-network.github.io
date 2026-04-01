@@ -21,12 +21,6 @@ if (!article) {
 }
 
 const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length / 220));
-const contextSummary = article.branch
-  ? `${article.author.name} 从 ${article.branch.name} 的活动观察与组织实践中整理出本文。`
-  : `${article.author.name} 围绕社区活动观察与组织实践经验整理出本文。`;
-const contextFollowup = article.branch
-  ? "如果你希望继续了解相关背景，可以继续查看对应分会与公开活动。"
-  : "如果你希望继续了解社区背景，可以继续浏览活动、分会与更多文章内容。";
 ---
 
 <BaseLayout title={`${article.title} | 文章 | TGO 鲲鹏会`} description={article.excerpt}>
@@ -61,11 +55,16 @@ const contextFollowup = article.branch
       </article>
 
       <section class="panel panel-soft article-context-panel">
-        <div class="article-context-copy">
-          <div class="card-label">阅读信息</div>
-          <h2>作者与内容背景</h2>
-          <p class="card-copy">{contextSummary}</p>
-          <p class="card-copy">{contextFollowup}</p>
+        <div class="article-context-head">
+          <div>
+            <div class="card-label">文章信息</div>
+            <h2>作者与发布信息</h2>
+          </div>
+
+          <div class="article-detail-actions">
+            <a class="button secondary" href="/articles">返回文章列表</a>
+            {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
+          </div>
         </div>
 
         <div class="article-context-grid">
@@ -88,11 +87,6 @@ const contextFollowup = article.branch
               <small>对应公开分会内容</small>
             </article>
           )}
-        </div>
-
-        <div class="article-detail-actions">
-          <a class="button secondary" href="/articles">返回文章列表</a>
-          {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
         </div>
       </section>
     </section>
@@ -177,13 +171,17 @@ const contextFollowup = article.branch
     background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
   }
 
-  .article-context-copy h2 {
-    margin: 0;
-    font-size: clamp(1.5rem, 3vw, 2rem);
+  .article-context-head {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
 
-  .article-context-copy .card-copy {
+  .article-context-head h2 {
     margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
   }
 
   .article-context-grid {
@@ -231,6 +229,10 @@ const contextFollowup = article.branch
   @media (max-width: 640px) {
     .article-context-grid {
       grid-template-columns: 1fr;
+    }
+
+    .article-context-head {
+      align-items: flex-start;
     }
   }
 </style>

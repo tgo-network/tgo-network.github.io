@@ -384,9 +384,7 @@ const registrationSteps = [
       <div class="panel registration-panel">
         <div class="card-label">活动报名</div>
         <h2>{registrationTitle}</h2>
-        <p class="registration-copy">
-          当前活动采用开放报名。提交后会进入工作人员后台审核，工作人员会结合活动定位、报名信息与现场容量确认是否通过、拒绝或转为候补。
-        </p>
+        <p class="registration-copy">活动对外开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。</p>
 
         <div class="registration-process-grid">
           {
@@ -467,9 +465,7 @@ const registrationSteps = [
 
         <div>
           <div class="card-label">建议填写内容</div>
-          <p class="card-copy">
-            如果你能补充当前职责、所在团队规模、关注议题或参会目的，工作人员会更容易判断这场活动是否适合你。
-          </p>
+          <p class="card-copy">建议补充公司、职称与参会诉求，便于工作人员更快完成审核与联系。</p>
         </div>
 
         <div class="event-next-links">
@@ -532,8 +528,8 @@ const registrationSteps = [
 <style>
   .event-detail-hero {
     display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    gap: 28px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 420px);
     background:
       radial-gradient(circle at top right, rgba(215, 179, 117, 0.16), transparent 24%),
       linear-gradient(135deg, #171717 0%, #211d18 100%);
@@ -558,14 +554,17 @@ const registrationSteps = [
   }
 
   .event-detail-main h1 {
-    max-width: 11ch;
-    line-height: 1.01;
+    margin: 0;
+    max-width: 16ch;
+    font-size: clamp(2.9rem, 5.6vw, 4.9rem);
+    line-height: 1.02;
+    text-wrap: balance;
   }
 
   .event-detail-lead {
-    max-width: 58ch;
-    font-size: 1.04rem;
-    line-height: 1.84;
+    max-width: 62ch;
+    font-size: 1.02rem;
+    line-height: 1.8;
   }
 
   .event-detail-main,
@@ -586,7 +585,7 @@ const registrationSteps = [
   }
 
   .detail-side-block {
-    padding: 22px;
+    padding: 20px 22px;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(215, 179, 117, 0.14);
@@ -630,7 +629,7 @@ const registrationSteps = [
   .event-detail-image {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
     border-radius: 24px;
     box-shadow: var(--shadow-strong);
