@@ -17,6 +17,9 @@ import { officialFaqItems } from "../lib/official-content";
         {
           officialFaqItems.map((item, index) => {
             const externalLink = item.link?.href.startsWith("http");
+            const cardsVisual = item.visual?.type === "cards" ? item.visual : null;
+            const stepsVisual = item.visual?.type === "steps" ? item.visual : null;
+            const tableVisual = item.visual?.type === "table" ? item.visual : null;
 
             return (
               <details class="panel faq-item">
@@ -39,11 +42,11 @@ import { officialFaqItems } from "../lib/official-content";
                     </div>
                   ) : null}
 
-                  {item.visual?.type === "cards" ? (
+                  {cardsVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{item.visual.caption}</p>
+                      <p class="faq-visual-caption">{cardsVisual.caption}</p>
                       <div class="faq-card-grid">
-                        {item.visual.items.map((entry) => (
+                        {cardsVisual.items.map((entry) => (
                           <article class="faq-card-item">
                             <strong>{entry.title}</strong>
                             <p>{entry.body}</p>
@@ -53,11 +56,11 @@ import { officialFaqItems } from "../lib/official-content";
                     </div>
                   ) : null}
 
-                  {item.visual?.type === "steps" ? (
+                  {stepsVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{item.visual.caption}</p>
+                      <p class="faq-visual-caption">{stepsVisual.caption}</p>
                       <ol class="faq-step-list">
-                        {item.visual.items.map((step, stepIndex) => (
+                        {stepsVisual.items.map((step, stepIndex) => (
                           <li class="faq-step-item">
                             <span class="faq-step-index">{stepIndex + 1}</span>
                             <div>
@@ -70,21 +73,21 @@ import { officialFaqItems } from "../lib/official-content";
                     </div>
                   ) : null}
 
-                  {item.visual?.type === "table" ? (
+                  {tableVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{item.visual.caption}</p>
+                      <p class="faq-visual-caption">{tableVisual.caption}</p>
                       <div class="faq-table-wrap">
                         <table class="faq-comparison-table">
                           <thead>
                             <tr>
                               <th scope="col">项目</th>
-                              {item.visual.columns.map((column) => (
+                              {tableVisual.columns.map((column) => (
                                 <th scope="col">{column}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
-                            {item.visual.rows.map((row) => (
+                            {tableVisual.rows.map((row) => (
                               <tr>
                                 <th scope="row">{row.label}</th>
                                 {row.values.map((value) => (
@@ -94,6 +97,22 @@ import { officialFaqItems } from "../lib/official-content";
                             ))}
                           </tbody>
                         </table>
+                      </div>
+
+                      <div class="faq-comparison-cards">
+                        {tableVisual.columns.map((column, columnIndex) => (
+                          <article class="faq-comparison-card">
+                            <h3>{column}</h3>
+                            <dl>
+                              {tableVisual.rows.map((row) => (
+                                <div class="faq-comparison-card-row">
+                                  <dt>{row.label}</dt>
+                                  <dd>{row.values[columnIndex]}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </article>
+                        ))}
                       </div>
                     </div>
                   ) : null}
@@ -317,6 +336,10 @@ import { officialFaqItems } from "../lib/official-content";
     overflow-x: auto;
   }
 
+  .faq-comparison-cards {
+    display: none;
+  }
+
   .faq-comparison-table {
     width: 100%;
     min-width: 760px;
@@ -351,6 +374,62 @@ import { officialFaqItems } from "../lib/official-content";
     color: var(--muted);
     font-size: 0.84rem;
     font-weight: 600;
+  }
+
+  .faq-comparison-card {
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(31, 26, 23, 0.08);
+    background: rgba(255, 255, 255, 0.68);
+  }
+
+  .faq-comparison-card h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .faq-comparison-card dl {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .faq-comparison-card-row {
+    display: grid;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(31, 26, 23, 0.08);
+  }
+
+  .faq-comparison-card-row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .faq-comparison-card dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .faq-comparison-card dd {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.68;
+  }
+
+  @media (max-width: 720px) {
+    .faq-table-wrap {
+      display: none;
+    }
+
+    .faq-comparison-cards {
+      display: grid;
+      gap: 12px;
+    }
   }
 
   @media (max-width: 640px) {
