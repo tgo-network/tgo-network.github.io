@@ -2,32 +2,159 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { officialAboutIntro, officialAboutSections } from "../lib/official-content";
 
-const getVisibleImages = (images: typeof officialAboutSections[number]["images"]) => images.slice(0, Math.min(images.length, 2));
+type AboutVisual =
+  | {
+      type: "table";
+      caption: string;
+      rows: Array<{ label: string; value: string }>;
+      footer?: string;
+    }
+  | {
+      type: "flow";
+      caption: string;
+      items: Array<{ title: string; body: string }>;
+    }
+  | {
+      type: "grid";
+      caption: string;
+      items: Array<{ title: string; body: string }>;
+      footer?: string;
+    }
+  | {
+      type: "topics";
+      caption: string;
+      topics: string[];
+      notes: string[];
+    }
+  | {
+      type: "roles";
+      caption: string;
+      roles: Array<{ title: string; body: string }>;
+      support: string[];
+    };
+
 const aboutIntroSummary =
   "TGO 鲲鹏会是一个有边界的技术社群组织，通过城市分会、长期活动与同侪连接，让技术领导者持续学习、交流与共建。";
+
+const aboutOverview = [
+  {
+    title: "组织形式",
+    body: "以城市分会为长期组织单元，由成员与工作人员共同推动运营、学习与连接。"
+  },
+  {
+    title: "参与方式",
+    body: "围绕小组交流、公开学习、导师辅导、培训与峰会等机制持续参与。"
+  },
+  {
+    title: "核心价值",
+    body: "强调长期关系、真实交流、技术领导力成长，以及成员之间的深度协作。"
+  }
+] as const;
+
+const sectionVisuals: Record<string, AboutVisual> = {
+  全球经验对话: {
+    type: "table",
+    caption: "重点方向",
+    rows: [
+      { label: "重点区域", value: "硅谷 / 以色列 / 日本" },
+      { label: "关注议题", value: "人工智能、大数据、区块链、精密制造" },
+      { label: "连接方式", value: "ChinaTech Day、企业交流、团队对话" }
+    ],
+    footer: "帮助成员在全球技术信号与本地实践之间建立连接。"
+  },
+  私密小组活动: {
+    type: "flow",
+    caption: "小组机制",
+    items: [
+      { title: "固定成员", body: "加入后进入长期稳定的小组，形成持续关系。" },
+      { title: "长期交流", body: "围绕真实工作议题、关键决策与组织挑战展开讨论。" },
+      { title: "高信任话题", body: "在安全氛围内展开一般社交场景不会轻易提起的“5% 话题”。" }
+    ]
+  },
+  年度团聚家宴: {
+    type: "grid",
+    caption: "年度团聚的意义",
+    items: [
+      { title: "年度相聚", body: "以一年一次的集中团聚强化跨团队、跨小组的连接。" },
+      { title: "休闲社交", body: "让成员在更轻松的情境中加深理解与信任。" },
+      { title: "辞旧迎新", body: "围绕年度回顾与新阶段计划形成社区节奏。" }
+    ]
+  },
+  月度公开学习活动: {
+    type: "topics",
+    caption: "公开学习主题",
+    topics: ["创业", "管理", "团队", "架构", "商业", "运营", "产品", "资本"],
+    notes: ["多个城市长期举办", "公开报名后继续审核", "围绕成员需求制定年度学习规划"]
+  },
+  技术高管培训: {
+    type: "roles",
+    caption: "组长成长路径",
+    roles: [
+      { title: "CEO 角色", body: "确定小组使命、愿景与长期方向。" },
+      { title: "COO 角色", body: "组织会议、推进协作、保持活动节奏。" }
+    ],
+    support: ["新学员培训", "组长领导力培训", "方法指南", "真实练习场景"]
+  },
+  荣誉导师辅导: {
+    type: "grid",
+    caption: "导师参与方式",
+    items: [
+      { title: "传道", body: "带来经过长期实践沉淀的判断与方法。" },
+      { title: "授业", body: "围绕技术领导力、行业趋势与组织经验展开分享。" },
+      { title: "解惑", body: "为成员提供关键问题上的启发与经验支持。" }
+    ],
+    footer: "希望让科技领导者们聚在一起，散发出更多能量与推动力。"
+  },
+  "全球技术领导力峰会（GTLC）": {
+    type: "table",
+    caption: "峰会定位",
+    rows: [
+      { label: "峰会名称", value: "Global Tech Leadership Conference" },
+      { label: "面向人群", value: "CTO、技术 VP、技术团队 Leader、技术项目负责人" },
+      { label: "现场收获", value: "顶尖领袖实战经验、领导力视野、技术战略启发" }
+    ],
+    footer: "GTLC 是 TGO 鲲鹏会主办的高端科技领导者盛会。"
+  }
+};
+
+const aboutSections = officialAboutSections.map((section) => ({
+  ...section,
+  visual: sectionVisuals[section.title]
+}));
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
   <main class="page-shell page-stack">
     <section class="section">
       <article class="panel about-intro-card">
-        <h1>{officialAboutIntro.title}</h1>
-        <p class="about-intro-summary">{aboutIntroSummary}</p>
+        <div class="about-intro-copy">
+          <h1>{officialAboutIntro.title}</h1>
+          <p class="about-intro-summary">{aboutIntroSummary}</p>
+        </div>
+
+        <div class="about-overview-grid">
+          {aboutOverview.map((item) => (
+            <article class="about-overview-item">
+              <h2>{item.title}</h2>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <div class="about-lead-block">
+          <h2>{officialAboutIntro.leadTitle}</h2>
+          <p>{officialAboutIntro.leadBody}</p>
+        </div>
       </article>
     </section>
 
     <section class="section about-section-list">
       {
-        officialAboutSections.map((section, index) => {
+        aboutSections.map((section, index) => {
           const externalLink = section.link?.href.startsWith("http");
-          const visibleImages = getVisibleImages(section.images);
 
           return (
             <article class:list={["panel about-section-card", index % 2 === 1 && "is-reversed"]}>
-              <div class:list={["about-section-media", visibleImages.length > 1 && "has-gallery"]}>
-                {visibleImages.map((image) => <img src={image.src} alt={image.alt} loading="eager" />)}
-              </div>
-
               <div class="about-section-copy">
                 <h2>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
@@ -37,6 +164,95 @@ const aboutIntroSummary =
                   </a>
                 )}
               </div>
+
+              {section.visual && (
+                <div class="about-section-visual" aria-label={`${section.title}补充信息`}>
+                  <p class="about-visual-caption">{section.visual.caption}</p>
+
+                  {section.visual.type === "table" && (
+                    <>
+                      <table class="about-data-table">
+                        <tbody>
+                          {section.visual.rows.map((row) => (
+                            <tr>
+                              <th scope="row">{row.label}</th>
+                              <td>{row.value}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {section.visual.footer && <p class="about-visual-footer">{section.visual.footer}</p>}
+                    </>
+                  )}
+
+                  {section.visual.type === "flow" && (
+                    <ol class="about-flow-list">
+                      {section.visual.items.map((item, itemIndex) => (
+                        <li>
+                          <span class="about-flow-index">{itemIndex + 1}</span>
+                          <div>
+                            <strong>{item.title}</strong>
+                            <p>{item.body}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {section.visual.type === "grid" && (
+                    <>
+                      <div class="about-visual-grid">
+                        {section.visual.items.map((item) => (
+                          <article class="about-mini-card">
+                            <strong>{item.title}</strong>
+                            <p>{item.body}</p>
+                          </article>
+                        ))}
+                      </div>
+
+                      {section.visual.footer && <p class="about-visual-footer">{section.visual.footer}</p>}
+                    </>
+                  )}
+
+                  {section.visual.type === "topics" && (
+                    <>
+                      <div class="about-topic-cloud">
+                        {section.visual.topics.map((topic) => (
+                          <span class="about-topic-chip">{topic}</span>
+                        ))}
+                      </div>
+
+                      <div class="about-note-list">
+                        {section.visual.notes.map((note) => (
+                          <article class="about-note-card">
+                            <p>{note}</p>
+                          </article>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {section.visual.type === "roles" && (
+                    <>
+                      <div class="about-role-grid">
+                        {section.visual.roles.map((role) => (
+                          <article class="about-mini-card">
+                            <strong>{role.title}</strong>
+                            <p>{role.body}</p>
+                          </article>
+                        ))}
+                      </div>
+
+                      <div class="about-support-list">
+                        {section.visual.support.map((item) => (
+                          <span class="about-support-chip">{item}</span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </article>
           );
         })
@@ -67,7 +283,7 @@ const aboutIntroSummary =
 
   .about-intro-card {
     display: grid;
-    gap: 14px;
+    gap: 22px;
     padding: clamp(24px, 3vw, 34px);
     background:
       radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
@@ -75,8 +291,20 @@ const aboutIntroSummary =
     border-color: rgba(157, 111, 49, 0.14);
   }
 
-  .about-intro-card h1 {
+  .about-intro-copy {
+    display: grid;
+    gap: 14px;
+  }
+
+  .about-intro-copy h1,
+  .about-section-copy h2,
+  .about-lead-block h2,
+  .about-overview-item h2,
+  .about-cta-card h2 {
     margin: 0;
+  }
+
+  .about-intro-copy h1 {
     font-size: clamp(2rem, 4vw, 3rem);
   }
 
@@ -87,14 +315,44 @@ const aboutIntroSummary =
     line-height: 1.8;
   }
 
-  .about-section-copy h2,
-  .about-cta-card h2 {
-    margin: 0;
+  .about-overview-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .about-overview-item,
+  .about-lead-block,
+  .about-section-visual,
+  .about-mini-card,
+  .about-note-card {
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  }
+
+  .about-overview-item {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .about-overview-item p,
+  .about-lead-block p,
   .about-section-copy p,
+  .about-mini-card p,
+  .about-note-card p,
   .about-cta-card p {
-    margin-bottom: 0;
+    margin: 0;
+    line-height: 1.78;
+  }
+
+  .about-lead-block {
+    display: grid;
+    gap: 12px;
+    padding: 20px 22px;
+    border-radius: 22px;
   }
 
   .about-section-card,
@@ -105,39 +363,20 @@ const aboutIntroSummary =
   }
 
   .about-section-card {
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
     padding: clamp(20px, 3vw, 28px);
   }
 
   .about-section-card.is-reversed {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  }
-
-  .about-section-card.is-reversed .about-section-media {
-    order: 2;
+    grid-template-columns: minmax(320px, 0.98fr) minmax(0, 1.02fr);
   }
 
   .about-section-card.is-reversed .about-section-copy {
+    order: 2;
+  }
+
+  .about-section-card.is-reversed .about-section-visual {
     order: 1;
-  }
-
-  .about-section-media {
-    display: grid;
-    gap: 14px;
-  }
-
-  .about-section-media img {
-    display: block;
-    width: 100%;
-    min-height: 220px;
-    border-radius: 22px;
-    object-fit: cover;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 20px 44px rgba(40, 28, 18, 0.12);
-  }
-
-  .about-section-media.has-gallery {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .about-section-copy {
@@ -146,9 +385,140 @@ const aboutIntroSummary =
     align-content: start;
   }
 
-  .about-section-copy p {
+  .about-section-visual {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.12), transparent 30%),
+      linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
+  .about-visual-caption {
     margin: 0;
-    line-height: 1.82;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(93, 82, 72, 0.72);
+  }
+
+  .about-data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .about-data-table th,
+  .about-data-table td {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.65;
+  }
+
+  .about-data-table tr:last-child th,
+  .about-data-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .about-data-table th {
+    width: 88px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding-right: 18px;
+  }
+
+  .about-data-table td {
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .about-visual-footer {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .about-flow-list {
+    list-style: none;
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .about-flow-list li {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+  }
+
+  .about-flow-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .about-flow-index {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(200, 161, 93, 0.16);
+    color: var(--accent-strong);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .about-flow-list strong,
+  .about-mini-card strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .about-visual-grid,
+  .about-role-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-mini-card,
+  .about-note-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .about-topic-cloud,
+  .about-support-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .about-topic-chip,
+  .about-support-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    font-size: 0.9rem;
+  }
+
+  .about-note-list {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .about-cta-card {
@@ -165,6 +535,13 @@ const aboutIntroSummary =
     justify-content: flex-end;
   }
 
+  @media (max-width: 1080px) {
+    .about-overview-grid,
+    .about-note-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 980px) {
     .about-section-card,
     .about-section-card.is-reversed,
@@ -172,8 +549,8 @@ const aboutIntroSummary =
       grid-template-columns: 1fr;
     }
 
-    .about-section-card.is-reversed .about-section-media,
-    .about-section-card.is-reversed .about-section-copy {
+    .about-section-card.is-reversed .about-section-copy,
+    .about-section-card.is-reversed .about-section-visual {
       order: initial;
     }
 
@@ -182,17 +559,21 @@ const aboutIntroSummary =
     }
   }
 
-  @media (max-width: 640px) {
-    .about-section-media.has-gallery {
+  @media (max-width: 720px) {
+    .about-overview-grid,
+    .about-visual-grid,
+    .about-role-grid {
       grid-template-columns: 1fr;
     }
 
-    .about-section-media.has-gallery img:nth-child(n + 2) {
-      display: none;
+    .about-section-visual {
+      padding: 18px;
+      border-radius: 22px;
     }
 
-    .about-section-media img {
-      min-height: 180px;
+    .about-flow-list li {
+      gap: 12px;
+      grid-template-columns: 1fr;
     }
   }
 </style>
