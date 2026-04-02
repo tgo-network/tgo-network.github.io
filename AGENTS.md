@@ -157,3 +157,10 @@ Do not introduce these without explicit discussion:
 - Preserve existing architecture decisions unless the user asks to revisit them
 - When a decision conflicts with this file, ask whether the architecture should change first
 - Keep docs and implementation synchronized
+
+## Commit Rules
+
+- Use the `Conventional Commits 1.0.0` specification for every commit message
+- Default format: `type(scope): description`
+- Choose scopes that match the changed area when possible, such as `site`, `admin`, `api`, `db`, `shared`, or `docs`
+- Keep the description short, imperative, and lowercase unless a proper noun requires capitalization
