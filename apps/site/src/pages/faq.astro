@@ -137,7 +137,12 @@ import { officialFaqItems } from "../lib/official-content";
   .faq-section,
   .faq-list {
     display: grid;
-    gap: 22px;
+    gap: 18px;
+  }
+
+  .faq-section {
+    width: min(1040px, 100%);
+    margin: 0 auto;
   }
 
   .faq-intro-card {
@@ -176,13 +181,13 @@ import { officialFaqItems } from "../lib/official-content";
   .faq-item summary {
     display: grid;
     grid-template-columns: auto 1fr auto;
-    gap: 14px;
+    gap: 12px;
     align-items: center;
-    padding: 18px 22px;
+    padding: 16px 20px;
     cursor: pointer;
     list-style: none;
     font-weight: 700;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     transition: background 180ms ease;
   }
 
@@ -213,13 +218,13 @@ import { officialFaqItems } from "../lib/official-content";
   .faq-index {
     display: inline-grid;
     place-items: center;
-    min-width: 42px;
-    height: 42px;
-    padding: 0 10px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 9px;
     border-radius: 999px;
     background: rgba(200, 161, 93, 0.12);
     color: var(--accent-strong);
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     letter-spacing: 0.04em;
   }
 
@@ -484,6 +489,12 @@ import { officialFaqItems } from "../lib/official-content";
   }
 
   @media (max-width: 640px) {
+    .faq-intro-card,
+    .faq-section,
+    .faq-list {
+      gap: 16px;
+    }
+
     .faq-item summary,
     .faq-answer {
       padding-left: 18px;
@@ -493,9 +504,16 @@ import { officialFaqItems } from "../lib/official-content";
     .faq-item summary {
       grid-template-columns: auto 1fr auto;
       align-items: start;
-      padding-top: 16px;
-      padding-bottom: 16px;
-      font-size: 0.94rem;
+      gap: 10px;
+      padding-top: 15px;
+      padding-bottom: 15px;
+      font-size: 0.91rem;
+    }
+
+    .faq-index {
+      min-width: 34px;
+      height: 34px;
+      font-size: 0.78rem;
     }
 
     .faq-card-grid {
