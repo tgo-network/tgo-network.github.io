@@ -291,6 +291,7 @@ import { officialFaqItems } from "../lib/official-content";
   .faq-card-item strong,
   .faq-step-item strong {
     color: var(--ink);
+    font-size: 1.02rem;
   }
 
   .faq-card-item p,
@@ -330,6 +331,47 @@ import { officialFaqItems } from "../lib/official-content";
     color: var(--accent-strong);
     font-size: 0.84rem;
     font-weight: 700;
+  }
+
+  @media (min-width: 1120px) {
+    .faq-card-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .faq-card-item {
+      align-content: start;
+      min-height: 188px;
+    }
+
+    .faq-step-list {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .faq-step-item {
+      position: relative;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      min-height: 188px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(31, 26, 23, 0.08);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+
+    .faq-step-item::after {
+      content: "→";
+      position: absolute;
+      top: 20px;
+      right: -12px;
+      color: rgba(200, 161, 93, 0.82);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .faq-step-item:last-child::after {
+      content: none;
+    }
   }
 
   .faq-table-wrap {
@@ -451,6 +493,7 @@ import { officialFaqItems } from "../lib/official-content";
     .faq-step-item {
       gap: 12px;
       grid-template-columns: 1fr;
+      min-height: 0;
     }
   }
 </style>
