@@ -32,20 +32,15 @@ const legalLinks = [
     <SiteHeader config={config} />
     <slot />
 
-    <footer class="site-footer">
+    <footer class="site-footer" role="contentinfo">
       <div class="page-shell site-footer-shell">
-        <div class="site-footer-top">
-          <a class="site-footer-brand-link" href="/">
-            <span class="site-brand-mark">TGO</span>
-            <span class="site-footer-brand-name">{config.platformName}</span>
-          </a>
+        <div class="site-footer-meta">
+          <p class="site-footer-copy">版权所有 © {currentYear} {config.platformName}</p>
 
-          <div class="site-footer-legal-links" aria-label="页脚导航">
+          <nav class="site-footer-legal-links" aria-label="页脚导航">
             {legalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
-          </div>
+          </nav>
         </div>
-
-        <p class="site-footer-copy">版权所有 © {currentYear} {config.platformName}</p>
       </div>
     </footer>
   </body>
