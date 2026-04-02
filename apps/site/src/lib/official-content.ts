@@ -25,21 +25,49 @@ export interface OfficialFaqItem {
   paragraphs?: string[];
   keyValues?: OfficialFaqKeyValue[];
   image?: OfficialImage;
+  visual?: OfficialFaqVisual;
   link?: OfficialLink;
 }
 
 const aboutAssetBase = "/official/about";
-const faqAssetBase = "/official/faq";
 
 const officialAboutImage = (file: string, alt: string): OfficialImage => ({
   src: `${aboutAssetBase}/${file}`,
   alt
 });
 
-const officialFaqImage = (file: string, alt: string): OfficialImage => ({
-  src: `${faqAssetBase}/${file}`,
-  alt
-});
+export interface OfficialFaqVisualCard {
+  title: string;
+  body: string;
+}
+
+export interface OfficialFaqVisualStep {
+  title: string;
+  body?: string;
+}
+
+export interface OfficialFaqVisualTableRow {
+  label: string;
+  values: string[];
+}
+
+export type OfficialFaqVisual =
+  | {
+      type: "cards";
+      caption: string;
+      items: OfficialFaqVisualCard[];
+    }
+  | {
+      type: "steps";
+      caption: string;
+      items: OfficialFaqVisualStep[];
+    }
+  | {
+      type: "table";
+      caption: string;
+      columns: string[];
+      rows: OfficialFaqVisualTableRow[];
+    };
 
 export const officialAboutIntro = {
   label: "关于我们",
@@ -143,11 +171,57 @@ export const officialFaqItems: OfficialFaqItem[] = [
   },
   {
     question: "TGO 鲲鹏会的加入标准是什么？",
-    image: officialFaqImage("t1.c3bebe87.png", "TGO 鲲鹏会加入标准")
+    visual: {
+      type: "cards",
+      caption: "加入标准",
+      items: [
+        {
+          title: "推荐",
+          body: "每位申请人需要被至少一位 TGO 学员或者 CTO、技术高管、或一家技术媒体推荐。"
+        },
+        {
+          title: "资格",
+          body: "申请人需具备至少 5 年技术工作经验、两年以上管理经验，并带领 30 人以上技术团队。"
+        },
+        {
+          title: "审核",
+          body: "通过提交资料初审及严格的面试筛选，综合考察个人资质，最终确认是否符合加入标准。"
+        },
+        {
+          title: "费用",
+          body: "新学员加入费用为 2048-9216 元/年，具体以当地分会会费标准为准。"
+        }
+      ]
+    }
   },
   {
     question: "TGO 鲲鹏会的加入流程是什么？",
-    image: officialFaqImage("t2.aa02107f.png", "TGO 鲲鹏会加入流程")
+    visual: {
+      type: "steps",
+      caption: "加入流程",
+      items: [
+        {
+          title: "在线申请",
+          body: "先在线提交加入申请与基础信息。"
+        },
+        {
+          title: "大咖推荐",
+          body: "由社区成员、CTO、技术高管或技术媒体完成推荐。"
+        },
+        {
+          title: "资格审核",
+          body: "工作人员与董事会结合资料与面试结果进行审核。"
+        },
+        {
+          title: "支付费用",
+          body: "审核通过后按照当地分会标准完成会费支付。"
+        },
+        {
+          title: "正式加入",
+          body: "完成支付后进入相应分会与长期社区活动。"
+        }
+      ]
+    }
   },
   {
     question: "TGO 鲲鹏会的学费金额是多少？",
@@ -253,6 +327,48 @@ export const officialFaqItems: OfficialFaqItem[] = [
   },
   {
     question: "TGO 鲲鹏会和其他组织的区别是什么？有什么不一样？",
-    image: officialFaqImage("t3.5d3aa3c5.jpg", "TGO 鲲鹏会与其他组织的区别")
+    visual: {
+      type: "table",
+      caption: "与其他组织的区别",
+      columns: ["TGO 鲲鹏会", "某训练营", "某 MBA / 某 EMBA"],
+      rows: [
+        {
+          label: "运营性质",
+          values: ["会费非营利", "营利", "营利"]
+        },
+        {
+          label: "运营模式",
+          values: ["同侪学习", "专家授课", "专家授课"]
+        },
+        {
+          label: "目标群体",
+          values: ["CTO 为主的科技领导者", "要成长为 CTO 的技术人", "创始人、企业家"]
+        },
+        {
+          label: "现有会员属性",
+          values: ["约 70% 为 CTO、技术 VP 等", "约 50% 为总监等", "创始人、企业家"]
+        },
+        {
+          label: "按年连续付费",
+          values: ["是", "否", "否"]
+        },
+        {
+          label: "年度续费率",
+          values: ["约 80%", "—", "—"]
+        },
+        {
+          label: "全球化",
+          values: ["全球 12 个城市，均有全职工作人员", "固定城市上课 + 地区游学", "固定城市上课"]
+        },
+        {
+          label: "跨城市接待",
+          values: ["有", "无", "无"]
+        },
+        {
+          label: "付费会员组成的理事会",
+          values: ["有", "无", "无"]
+        }
+      ]
+    }
   }
 ];
