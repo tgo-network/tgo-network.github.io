@@ -11,13 +11,6 @@ const [leadArticle, ...otherArticles] = articles;
 
 <BaseLayout title="文章 | TGO 鲲鹏会" description="查看由后台发布的文章内容。">
   <main class="page-shell page-stack">
-    <section class="section">
-      <article class="panel article-index-intro">
-        <div class="card-label">文章</div>
-        <h1>技术管理与组织实践文章</h1>
-      </article>
-    </section>
-
     {
       leadArticle && (
         <section class="section">
@@ -46,12 +39,6 @@ const [leadArticle, ...otherArticles] = articles;
     }
 
     <section class="section article-list-section">
-        <div class="section-head section-head-stack">
-          <div>
-            <h2>更多文章</h2>
-          </div>
-        </div>
-
       {
         otherArticles.length > 0 ? (
           <div class="article-list-grid">
@@ -88,20 +75,6 @@ const [leadArticle, ...otherArticles] = articles;
 </BaseLayout>
 
 <style>
-  .article-index-intro {
-    display: grid;
-    gap: 10px;
-    padding: clamp(24px, 3vw, 30px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
-  }
-
-  .article-index-intro h1 {
-    margin: 0;
-    font-size: clamp(2.2rem, 4.2vw, 3.6rem);
-  }
-
   .article-lead-card {
     display: grid;
     gap: 20px;

@@ -7,48 +7,57 @@ const leadArticleSlug = "what-a-city-hub-needs";
 const leadArticleTitle = "一座城市主页在真正活起来之前需要什么";
 const leadMemberSlug = "member-2";
 const leadMemberName = "郭理靖";
+const expectedBranchOrder = ["北京", "上海", "深圳", "广州", "杭州", "成都", "硅谷", "南京", "厦门", "苏州", "武汉", "新加坡"];
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+const expectMainHeading = (heading: string) => async (page: Page) => {
+  await expect(page.locator("main h1").filter({ hasText: heading })).toBeVisible();
+};
+
+const expectArticlesIndexReady = async (page: Page) => {
+  await expect(page.locator(".article-lead-card, .article-list-grid, .empty-article-state").first()).toBeVisible();
+};
+
 const keyRoutes = [
   {
     path: "/",
-    heading: "面向科技领导者的高质量学习社区"
+    assertReady: expectMainHeading("面向科技领导者的高质量学习社区")
   },
   {
     path: "/branches",
-    heading: "分会与董事会成员"
+    assertReady: expectMainHeading("分会董事会")
   },
   {
     path: "/members",
-    heading: "TGO 鲲鹏会成员"
+    assertReady: expectMainHeading("TGO 鲲鹏会成员")
   },
   {
     path: "/events",
-    heading: "各地分会活动"
+    assertReady: expectMainHeading("各地分会活动")
   },
   {
     path: "/articles",
-    heading: "技术管理与组织实践文章"
+    assertReady: expectArticlesIndexReady
   },
   {
     path: "/join",
-    heading: "面向技术领导者的高质量同侪网络"
+    assertReady: expectMainHeading("面向技术领导者的高质量同侪网络")
   },
   {
     path: "/about",
-    heading: "关于 TGO 鲲鹏会"
+    assertReady: expectMainHeading("关于 TGO 鲲鹏会")
   },
   {
     path: "/faq",
-    heading: "常见问题"
+    assertReady: expectMainHeading("常见问题")
   },
   {
     path: "/privacy",
-    heading: "隐私说明"
+    assertReady: expectMainHeading("隐私说明")
   },
   {
     path: "/terms",
-    heading: "使用条款"
+    assertReady: expectMainHeading("使用条款")
   }
 ] as const;
 const detailRoutes = [
@@ -107,6 +116,7 @@ test("public homepage exposes the main content collections", async ({ page }) =>
   await expect(primaryNav.getByRole("link", { name: "活动", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "文章", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "加入申请", exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "FAQ", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "成员推荐" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "近期活动" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "文章" })).toBeVisible();
@@ -155,7 +165,7 @@ test("public key pages keep desktop and mobile layouts within the viewport", asy
     for (const route of keyRoutes) {
       await test.step(`${viewport.label} ${route.path}`, async () => {
         await page.goto(`${siteUrl}${route.path}`, { waitUntil: "networkidle" });
-        await expect(page.locator("main h1").filter({ hasText: route.heading })).toBeVisible();
+        await route.assertReady(page);
         await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
         await expectNoHorizontalOverflow(page, `${viewport.label}:${route.path}`);
       });
@@ -272,4 +282,24 @@ test("branches page shows imported board member records", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "杨韶伟" })).toBeVisible();
   await expect(page.getByText("广州威而比科技有限公司", { exact: true }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page, "branches-board-list");
+});
+
+test("branch order stays aligned across branches, members and events pages", async ({ page }) => {
+  await page.goto(`${siteUrl}/branches`, { waitUntil: "networkidle" });
+  const branchHeadings = await page.locator(".branch-record-title").evaluateAll((items) =>
+    items.map((item) => item.textContent?.trim() ?? "").filter(Boolean)
+  );
+  expect(branchHeadings.slice(0, expectedBranchOrder.length)).toEqual(expectedBranchOrder.map((city) => `${city}分会`));
+
+  await page.goto(`${siteUrl}/members`, { waitUntil: "networkidle" });
+  const memberFilterTexts = await page.locator("[data-member-filters] [data-member-city]").evaluateAll((items) =>
+    items.map((item) => item.textContent?.trim() ?? "").filter(Boolean)
+  );
+  expect(memberFilterTexts.slice(1, expectedBranchOrder.length + 1)).toEqual(expectedBranchOrder);
+
+  await page.goto(`${siteUrl}/events`, { waitUntil: "networkidle" });
+  const eventFilterTexts = await page.locator("[data-event-filters] [data-city-filter]").evaluateAll((items) =>
+    items.map((item) => item.textContent?.trim() ?? "").filter(Boolean)
+  );
+  expect(eventFilterTexts.slice(1, expectedBranchOrder.length + 1)).toEqual(expectedBranchOrder);
 });

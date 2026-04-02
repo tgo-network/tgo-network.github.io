@@ -1,122 +1,40 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const termsSections = [
-  {
-    title: "站点服务范围",
-    points: [
-      "本网站用于展示 TGO 鲲鹏会的组织介绍、分会董事会、成员信息、活动与文章内容，并提供加入申请与活动报名入口。",
-      "工作人员后台与前台展示站点是两套独立系统，前台公开页面中的申请与报名信息会进入后台流程继续处理。"
-    ]
-  },
-  {
-    title: "内容与信息使用",
-    points: [
-      "站点中的文章、活动、成员与分会信息仅用于社区展示、公开传播与业务运营，不应被用于误导性转载或冒用。",
-      "部分公开信息来自官方资料整理或后台发布，若后续内容更新，以站点当前展示与工作人员说明为准。"
-    ]
-  },
-  {
-    title: "申请与报名要求",
-    points: [
-      "提交加入申请或活动报名时，请确保姓名、联系方式及补充资料真实、完整、可联系。",
-      "加入申请、活动报名与成员身份并不等同，是否通过由工作人员结合活动定位、资料完整度与实际安排继续审核。"
-    ]
-  },
-  {
-    title: "禁止行为",
-    points: [
-      "不得利用本网站提交虚假资料、批量灌入垃圾信息、伪造身份或干扰工作人员审核流程。",
-      "不得通过自动化方式恶意抓取、攻击、破坏站点，或实施影响站点稳定与安全的行为。"
-    ]
-  },
-  {
-    title: "规则更新",
-    points: [
-      "站点内容、活动安排、审核方式与相关规则会根据实际运营持续调整。",
-      "当条款发生更新时，以当前页面展示内容为准；继续访问或使用相关功能，视为理解并接受更新后的说明。"
-    ]
-  }
-] as const;
 ---
 
 <BaseLayout title="使用条款 | TGO 鲲鹏会" description="TGO 鲲鹏会站点访问、内容使用、申请与报名相关规则。">
   <main class="page-shell page-stack">
     <section class="section">
-      <article class="panel legal-intro-card">
-        <div class="card-label">法律信息</div>
+      <article class="panel legal-text-page">
         <h1>使用条款</h1>
         <p>本条款适用于 TGO 鲲鹏会站点的访问、内容使用、加入申请与活动报名流程，用于说明当前站点的基本使用规则。</p>
+        <p>本网站用于展示 TGO 鲲鹏会的组织介绍、分会董事会、成员信息、活动与文章内容，并提供加入申请与活动报名入口。工作人员后台与前台展示站点是两套独立系统，前台公开页面中的申请与报名信息会进入后台流程继续处理。</p>
+        <p>站点中的文章、活动、成员与分会信息仅用于社区展示、公开传播与业务运营，不应被用于误导性转载或冒用。部分公开信息来自官方资料整理或后台发布，若后续内容更新，以站点当前展示与工作人员说明为准。</p>
+        <p>提交加入申请或活动报名时，请确保姓名、联系方式及补充资料真实、完整、可联系。加入申请、活动报名与成员身份并不等同，是否通过由工作人员结合活动定位、资料完整度与实际安排继续审核。</p>
+        <p>不得利用本网站提交虚假资料、批量灌入垃圾信息、伪造身份或干扰工作人员审核流程；不得通过自动化方式恶意抓取、攻击、破坏站点，或实施影响站点稳定与安全的行为。站点内容、活动安排、审核方式与相关规则会根据实际运营持续调整；当条款发生更新时，以当前页面展示内容为准，继续访问或使用相关功能，视为理解并接受更新后的说明。</p>
       </article>
-    </section>
-
-    <section class="section legal-section-list">
-      {
-        termsSections.map((section) => (
-          <article class="panel legal-section-card">
-            <div class="card-label">使用条款</div>
-            <h2>{section.title}</h2>
-            <ul class="legal-point-list">
-              {section.points.map((item) => <li>{item}</li>)}
-            </ul>
-          </article>
-        ))
-      }
     </section>
   </main>
 </BaseLayout>
 
 <style>
-  .legal-section-list {
+  .legal-text-page {
     display: grid;
-    gap: 18px;
-  }
-
-  .legal-intro-card {
-    display: grid;
-    gap: 10px;
-    padding: clamp(24px, 3vw, 30px);
+    gap: 16px;
+    padding: clamp(24px, 3vw, 32px);
     background:
       radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
       linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
   }
 
-  .legal-intro-card h1,
-  .legal-section-card h2 {
+  .legal-text-page h1 {
     margin: 0;
-  }
-
-  .legal-intro-card h1 {
     font-size: clamp(2rem, 4vw, 3rem);
   }
 
-  .legal-intro-card p {
+  .legal-text-page p {
     margin: 0;
-    max-width: 56rem;
     color: var(--muted);
-    line-height: 1.82;
-  }
-
-  .legal-section-card {
-    display: grid;
-    gap: 14px;
-    padding: clamp(22px, 3vw, 28px);
-    background: rgba(255, 255, 255, 0.88);
-  }
-
-  .legal-section-card h2 {
-    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
-  }
-
-  .legal-point-list {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    padding-left: 20px;
-  }
-
-  .legal-point-list li {
-    color: var(--muted);
-    line-height: 1.8;
+    line-height: 1.9;
   }
 </style>

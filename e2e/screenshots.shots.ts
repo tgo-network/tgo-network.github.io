@@ -19,6 +19,14 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const expectMainHeading = (heading: string) => async (page: Page) => {
+  await expect(page.locator("main h1").filter({ hasText: heading })).toBeVisible();
+};
+
+const expectArticlesIndexReady = async (page: Page) => {
+  await expect(page.locator(".article-lead-card, .article-list-grid, .empty-article-state").first()).toBeVisible();
+};
+
 const saveScreenshot = async (page: Page, group: string, name: string) => {
   const filePath = join(outputRoot, group, `${slugify(name)}.png`);
   mkdirSync(dirname(filePath), { recursive: true });
@@ -37,19 +45,19 @@ test.describe.configure({ mode: "serial" });
 
 test("capture public site screenshots", async ({ page }) => {
   const siteRoutes = [
-    { path: "/", heading: "面向科技领导者的高质量学习社区", name: "home" },
-    { path: "/branches", heading: "分会与董事会成员", name: "branches" },
-    { path: "/members", heading: "TGO 鲲鹏会成员", name: "members" },
-    { path: "/members/member-2", heading: "郭理靖", name: "member-detail" },
-    { path: "/events", heading: "各地分会活动", name: "events" },
-    { path: "/events/event-1816", heading: "第一届龙虾AI大会：ClawCon", name: "event-detail" },
-    { path: "/articles", heading: "技术管理与组织实践文章", name: "articles" },
-    { path: "/articles/what-a-city-hub-needs", heading: "一座城市主页在真正活起来之前需要什么", name: "article-detail" },
-    { path: "/join", heading: "面向技术领导者的高质量同侪网络", name: "join" },
-    { path: "/about", heading: "关于 TGO 鲲鹏会", name: "about" },
-    { path: "/faq", heading: "常见问题", name: "faq" },
-    { path: "/privacy", heading: "隐私说明", name: "privacy" },
-    { path: "/terms", heading: "使用条款", name: "terms" }
+    { path: "/", name: "home", assertReady: expectMainHeading("面向科技领导者的高质量学习社区") },
+    { path: "/branches", name: "branches", assertReady: expectMainHeading("分会董事会") },
+    { path: "/members", name: "members", assertReady: expectMainHeading("TGO 鲲鹏会成员") },
+    { path: "/members/member-2", name: "member-detail", assertReady: expectMainHeading("郭理靖") },
+    { path: "/events", name: "events", assertReady: expectMainHeading("各地分会活动") },
+    { path: "/events/event-1816", name: "event-detail", assertReady: expectMainHeading("第一届龙虾AI大会：ClawCon") },
+    { path: "/articles", name: "articles", assertReady: expectArticlesIndexReady },
+    { path: "/articles/what-a-city-hub-needs", name: "article-detail", assertReady: expectMainHeading("一座城市主页在真正活起来之前需要什么") },
+    { path: "/join", name: "join", assertReady: expectMainHeading("面向技术领导者的高质量同侪网络") },
+    { path: "/about", name: "about", assertReady: expectMainHeading("关于 TGO 鲲鹏会") },
+    { path: "/faq", name: "faq", assertReady: expectMainHeading("常见问题") },
+    { path: "/privacy", name: "privacy", assertReady: expectMainHeading("隐私说明") },
+    { path: "/terms", name: "terms", assertReady: expectMainHeading("使用条款") }
   ] as const;
   const viewports = [
     { label: "desktop", width: 1440, height: 1024 },
@@ -61,7 +69,7 @@ test("capture public site screenshots", async ({ page }) => {
 
     for (const route of siteRoutes) {
       await page.goto(`${siteUrl}${route.path}`, { waitUntil: "networkidle" });
-      await expect(page.locator("main h1").filter({ hasText: route.heading })).toBeVisible();
+      await route.assertReady(page);
       await saveScreenshot(page, `site/${viewport.label}`, route.name);
     }
   }

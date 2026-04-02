@@ -1,125 +1,40 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const privacySections = [
-  {
-    title: "适用范围",
-    points: [
-      "本说明适用于 TGO 鲲鹏会站点的公开浏览、加入申请、活动报名以及与这些流程直接相关的页面交互。",
-      "当你通过站点提交加入申请或活动报名时，相关资料会进入工作人员后台，由工作人员继续审核、联系与处理。"
-    ]
-  },
-  {
-    title: "我们会收集哪些信息",
-    points: [
-      "加入申请场景中，可能包括姓名、手机号、微信号、邮箱、个人介绍与申请信息。",
-      "活动报名场景中，可能包括姓名、手机号、邮箱、公司、职称与补充说明。",
-      "在站点运行过程中，也会产生必要的访问日志、异常日志与基础设备信息，用于保障系统稳定与安全。"
-    ]
-  },
-  {
-    title: "信息如何被使用",
-    points: [
-      "用于审核加入申请、处理活动报名、联系申请人或报名人，并安排后续沟通。",
-      "用于维护公开站点与后台系统的正常运行，定位异常问题，并改进站点体验。",
-      "除非法律法规另有要求，或为完成前述服务确有必要，我们不会将你的资料用于与 TGO 鲲鹏会无关的目的。"
-    ]
-  },
-  {
-    title: "信息保存与管理",
-    points: [
-      "结构化业务数据保存在系统数据库中，上传的文件与图片资源保存在对象存储中，并仅保存必要的元数据引用。",
-      "我们会结合业务需要、审核流程和合理的运营周期保存资料，并在不再需要时进行清理或归档。",
-      "工作人员后台的敏感操作会记录审计日志，用于追踪重要修改与降低误操作风险。"
-    ]
-  },
-  {
-    title: "你的权利与联系",
-    points: [
-      "如你希望更新、补充或删除通过站点提交的资料，可通过后续沟通渠道联系工作人员处理。",
-      "如果本说明发生实质性变化，我们会在站点中更新版本内容，并以当前页面展示为准。"
-    ]
-  }
-] as const;
 ---
 
 <BaseLayout title="隐私说明 | TGO 鲲鹏会" description="TGO 鲲鹏会站点的隐私说明与信息处理规则。">
   <main class="page-shell page-stack">
     <section class="section">
-      <article class="panel legal-intro-card">
-        <div class="card-label">法律信息</div>
+      <article class="panel legal-text-page">
         <h1>隐私说明</h1>
         <p>本说明适用于 TGO 鲲鹏会站点当前提供的公开浏览、加入申请与活动报名流程，说明相关信息如何被收集、使用与管理。</p>
+        <p>当你通过站点提交加入申请或活动报名时，相关资料会进入工作人员后台，由工作人员继续审核、联系与处理。加入申请场景中，可能包括姓名、手机号、微信号、邮箱、个人介绍与申请信息；活动报名场景中，可能包括姓名、手机号、邮箱、公司、职称与补充说明。</p>
+        <p>在站点运行过程中，也会产生必要的访问日志、异常日志与基础设备信息，用于保障系统稳定与安全。相关资料会用于审核加入申请、处理活动报名、联系申请人或报名人，并支持站点与后台系统的正常运行、异常定位与体验改进。</p>
+        <p>结构化业务数据保存在系统数据库中，上传的文件与图片资源保存在对象存储中，并仅保存必要的元数据引用。我们会结合业务需要、审核流程和合理的运营周期保存资料，并在不再需要时进行清理或归档。工作人员后台的敏感操作会记录审计日志，用于追踪重要修改与降低误操作风险。</p>
+        <p>如你希望更新、补充或删除通过站点提交的资料，可通过后续沟通渠道联系工作人员处理。如果本说明发生实质性变化，我们会在站点中更新版本内容，并以当前页面展示为准。</p>
       </article>
-    </section>
-
-    <section class="section legal-section-list">
-      {
-        privacySections.map((section) => (
-          <article class="panel legal-section-card">
-            <div class="card-label">隐私说明</div>
-            <h2>{section.title}</h2>
-            <ul class="legal-point-list">
-              {section.points.map((item) => <li>{item}</li>)}
-            </ul>
-          </article>
-        ))
-      }
     </section>
   </main>
 </BaseLayout>
 
 <style>
-  .legal-section-list {
+  .legal-text-page {
     display: grid;
-    gap: 18px;
-  }
-
-  .legal-intro-card {
-    display: grid;
-    gap: 10px;
-    padding: clamp(24px, 3vw, 30px);
+    gap: 16px;
+    padding: clamp(24px, 3vw, 32px);
     background:
       radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
       linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
   }
 
-  .legal-intro-card h1,
-  .legal-section-card h2 {
+  .legal-text-page h1 {
     margin: 0;
-  }
-
-  .legal-intro-card h1 {
     font-size: clamp(2rem, 4vw, 3rem);
   }
 
-  .legal-intro-card p {
+  .legal-text-page p {
     margin: 0;
-    max-width: 56rem;
     color: var(--muted);
-    line-height: 1.82;
-  }
-
-  .legal-section-card {
-    display: grid;
-    gap: 14px;
-    padding: clamp(22px, 3vw, 28px);
-    background: rgba(255, 255, 255, 0.88);
-  }
-
-  .legal-section-card h2 {
-    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
-  }
-
-  .legal-point-list {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    padding-left: 20px;
-  }
-
-  .legal-point-list li {
-    color: var(--muted);
-    line-height: 1.8;
+    line-height: 1.9;
   }
 </style>

@@ -29,6 +29,10 @@ export const publicNav = [
   {
     label: "关于我们",
     href: "/about"
+  },
+  {
+    label: "FAQ",
+    href: "/faq"
   }
 ] as const;
 

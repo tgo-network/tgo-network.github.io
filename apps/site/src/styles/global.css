@@ -179,6 +179,19 @@ summary:focus-visible {
   color: var(--accent-ink);
 }
 
+.site-nav-link-secondary {
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 0.88rem;
+  color: rgba(94, 79, 68, 0.9);
+}
+
+.site-nav-link-secondary.active {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+}
+
 .hero {
   padding: 38px 0 20px;
 }

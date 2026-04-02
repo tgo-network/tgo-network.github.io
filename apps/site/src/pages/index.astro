@@ -47,11 +47,8 @@ const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slic
 
 const heroContent = {
   titleLines: ["面向科技领导者的", "高质量学习社区"],
-  summary:
-    "TGO 鲲鹏会连接 CTO、技术 VP、研发负责人和技术创业者，以分会活动、闭门交流与内容沉淀，形成长期的同侪学习网络。"
+  summary: "连接 CTO、技术 VP、研发负责人和技术创业者，围绕分会活动与长期交流建立真实的同侪网络。"
 };
-
-const heroHighlights = ["分会活动", "闭门交流", "内容沉淀"];
 
 const heroDetailItems = [
   {
@@ -111,10 +108,6 @@ const joinSteps = [
             {heroContent.titleLines.map((line) => <span class="hero-title-line">{line}</span>)}
           </h1>
           <p class="hero-summary">{heroContent.summary}</p>
-
-          <ul class="hero-highlight-row" aria-label="社区组织方式">
-            {heroHighlights.map((item) => <li>{item}</li>)}
-          </ul>
 
           <div class="hero-actions">
             {
@@ -315,24 +308,6 @@ const joinSteps = [
     color: rgba(247, 239, 227, 0.82);
     font-size: 1.02rem;
     line-height: 1.82;
-  }
-
-  .hero-highlight-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 18px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .hero-highlight-row li {
-    padding: 9px 13px;
-    border-radius: 999px;
-    border: 1px solid rgba(215, 179, 117, 0.16);
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(247, 239, 227, 0.82);
-    font-size: 0.92rem;
   }
 
   .hero-home-aside {
@@ -562,10 +537,6 @@ const joinSteps = [
     .hero-home-card,
     .testimonial-grid {
       grid-template-columns: 1fr;
-    }
-
-    .hero-highlight-row {
-      margin-top: 16px;
     }
 
     .hero-home-aside {

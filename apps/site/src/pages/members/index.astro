@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { orderBranchCities } from "../../lib/branch-order";
 import { listMembers } from "../../lib/public-api";
 
 const members = (await listMembers()).slice().sort((left, right) => {
@@ -22,9 +23,7 @@ const members = (await listMembers()).slice().sort((left, right) => {
 });
 
 const pageSize = 16;
-const cityOptions = Array.from(new Set(members.map((member) => member.branch?.cityName || "未标注分会"))).sort((left, right) =>
-  left.localeCompare(right, "zh-CN")
-);
+const cityOptions = orderBranchCities(Array.from(new Set(members.map((member) => member.branch?.cityName || "未标注分会"))));
 const initialMembers = members.slice(0, pageSize);
 ---
 
@@ -34,7 +33,6 @@ const initialMembers = members.slice(0, pageSize);
       <div class="panel member-toolbar-panel">
         <div class="member-toolbar-head">
           <div>
-            <div class="card-label">成员列表</div>
             <h1>TGO 鲲鹏会成员</h1>
           </div>
         </div>

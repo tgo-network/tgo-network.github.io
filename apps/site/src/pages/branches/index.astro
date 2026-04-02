@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { sortByBranchOrder } from "../../lib/branch-order";
 import { listBranches } from "../../lib/public-api";
 
-const branches = await listBranches();
+const branches = sortByBranchOrder(await listBranches(), (branch) => branch);
 const getBranchDisplayName = (branch: (typeof branches)[number]) => {
   const cityName = branch.cityName.trim();
   const normalizedName = branch.name.replace(/\s+/g, " ").trim();
@@ -29,8 +30,7 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
   <main class="page-shell page-stack">
     <section class="section">
       <article class="panel branch-directory-intro">
-        <div class="card-label">分会董事会</div>
-        <h1>分会与董事会成员</h1>
+        <h1>分会董事会</h1>
       </article>
     </section>
 
