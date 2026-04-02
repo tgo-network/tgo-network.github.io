@@ -178,15 +178,20 @@ import { officialFaqItems } from "../lib/official-content";
     grid-template-columns: auto 1fr auto;
     gap: 14px;
     align-items: center;
-    padding: 22px 24px;
+    padding: 18px 22px;
     cursor: pointer;
     list-style: none;
     font-weight: 700;
-    font-size: 1.02rem;
+    font-size: 0.98rem;
+    transition: background 180ms ease;
   }
 
   .faq-item summary::-webkit-details-marker {
     display: none;
+  }
+
+  .faq-item summary:hover {
+    background: rgba(255, 255, 255, 0.28);
   }
 
   .faq-item summary::after {
@@ -199,6 +204,10 @@ import { officialFaqItems } from "../lib/official-content";
 
   .faq-item[open] summary::after {
     content: "−";
+  }
+
+  .faq-item[open] summary {
+    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
   }
 
   .faq-index {
@@ -216,8 +225,8 @@ import { officialFaqItems } from "../lib/official-content";
 
   .faq-answer {
     display: grid;
-    gap: 14px;
-    padding: 0 24px 24px;
+    gap: 16px;
+    padding: 18px 22px 22px;
   }
 
   .faq-answer .text-link {
@@ -484,6 +493,9 @@ import { officialFaqItems } from "../lib/official-content";
     .faq-item summary {
       grid-template-columns: auto 1fr auto;
       align-items: start;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      font-size: 0.94rem;
     }
 
     .faq-card-grid {
