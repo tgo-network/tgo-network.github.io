@@ -129,7 +129,7 @@ const aboutIntroSummary =
   .about-section-media img {
     display: block;
     width: 100%;
-    min-height: 220px;
+    height: clamp(240px, 24vw, 320px);
     border-radius: 22px;
     object-fit: cover;
     background: rgba(255, 255, 255, 0.72);
@@ -138,6 +138,10 @@ const aboutIntroSummary =
 
   .about-section-media.has-gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-section-media.has-gallery img {
+    height: clamp(170px, 16vw, 220px);
   }
 
   .about-section-copy {
@@ -192,7 +196,7 @@ const aboutIntroSummary =
     }
 
     .about-section-media img {
-      min-height: 180px;
+      height: 200px;
     }
   }
 </style>
