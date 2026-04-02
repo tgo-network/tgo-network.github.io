@@ -3,22 +3,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { officialAboutIntro, officialAboutSections } from "../lib/official-content";
 
 const getVisibleImages = (images: typeof officialAboutSections[number]["images"]) => images.slice(0, Math.min(images.length, 2));
+const aboutIntroSummary =
+  "TGO 鲲鹏会是一个有边界的技术社群组织，通过城市分会、长期活动与同侪连接，让技术领导者持续学习、交流与共建。";
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
   <main class="page-shell page-stack">
     <section class="section">
       <article class="panel about-intro-card">
-        <div class="about-intro-copy">
-          <h1>{officialAboutIntro.title}</h1>
-          <p>{officialAboutIntro.summary}</p>
-        </div>
-
-        <div class="about-intro-lead">
-          <div class="card-label">组织概览</div>
-          <h2>{officialAboutIntro.leadTitle}</h2>
-          <p>{officialAboutIntro.leadBody}</p>
-        </div>
+        <h1>{officialAboutIntro.title}</h1>
+        <p class="about-intro-summary">{aboutIntroSummary}</p>
       </article>
     </section>
 
@@ -52,14 +46,13 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     <section class="section">
       <article class="panel about-cta-card">
         <div>
-          <div class="card-label">加入 TGO</div>
-          <h2>即刻申请加入 TGO 鲲鹏会</h2>
-          <p class="card-copy">如果你希望进入一个长期、真实、面向科技领导者的学习社区，可以先查看加入说明，再提交申请信息。</p>
+          <h2>了解加入方式</h2>
+          <p class="card-copy">查看加入条件后提交申请，后续由工作人员继续审核与联系。</p>
         </div>
 
         <div class="about-cta-actions">
-          <a class="button primary" href="/join">查看加入申请</a>
-          <a class="button secondary" href="/branches">浏览分会董事会</a>
+          <a class="button primary" href="/join">加入申请</a>
+          <a class="text-link" href="/branches">分会董事会</a>
         </div>
       </article>
     </section>
@@ -74,8 +67,7 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
 
   .about-intro-card {
     display: grid;
-    gap: 24px;
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 14px;
     padding: clamp(24px, 3vw, 34px);
     background:
       radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
@@ -83,32 +75,18 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     border-color: rgba(157, 111, 49, 0.14);
   }
 
-  .about-intro-copy,
-  .about-intro-lead {
-    display: grid;
-    gap: 12px;
-    align-content: start;
-  }
-
-  .about-intro-copy h1 {
+  .about-intro-card h1 {
     margin: 0;
     font-size: clamp(2rem, 4vw, 3rem);
   }
 
-  .about-intro-copy p,
-  .about-intro-lead p {
+  .about-intro-summary {
     margin: 0;
-    line-height: 1.82;
+    max-width: 52rem;
+    color: var(--muted);
+    line-height: 1.8;
   }
 
-  .about-intro-lead {
-    padding: clamp(20px, 3vw, 28px);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.54);
-    border: 1px solid rgba(157, 111, 49, 0.12);
-  }
-
-  .about-intro-lead h2,
   .about-section-copy h2,
   .about-cta-card h2 {
     margin: 0;
@@ -183,11 +161,11 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
   }
 
   @media (max-width: 980px) {
-    .about-intro-card,
     .about-section-card,
     .about-section-card.is-reversed,
     .about-cta-card {
@@ -207,6 +185,10 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
   @media (max-width: 640px) {
     .about-section-media.has-gallery {
       grid-template-columns: 1fr;
+    }
+
+    .about-section-media.has-gallery img:nth-child(n + 2) {
+      display: none;
     }
 
     .about-section-media img {

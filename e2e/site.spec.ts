@@ -29,7 +29,7 @@ const keyRoutes = [
   },
   {
     path: "/members",
-    assertReady: expectMainHeading("TGO 鲲鹏会成员")
+    assertReady: expectMainHeading("成员列表")
   },
   {
     path: "/events",
@@ -254,7 +254,7 @@ test("public content drill-down routes expose the expected detail content", asyn
   await firstMemberCard.click();
   await expect(page).toHaveURL(new RegExp(`${firstMemberHref ?? "/members/.+"}$`));
   await expect(page.locator("main h1").filter({ hasText: firstMemberName })).toBeVisible();
-  await expect(page.locator(".member-profile-side .card-label").filter({ hasText: "成员档案" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "返回成员列表" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "member-detail");
 
   await page.goto(`${siteUrl}/articles`, { waitUntil: "networkidle" });
@@ -266,12 +266,12 @@ test("public content drill-down routes expose the expected detail content", asyn
 
   await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: openEventTitle })).toBeVisible();
-  await expect(page.locator(".registration-panel .card-label").filter({ hasText: "活动报名" })).toBeVisible();
+  await expect(page.locator(".registration-panel h2").filter({ hasText: "活动报名" })).toBeVisible();
   await expect(page.getByRole("button", { name: "提交报名" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "event-detail");
 
   await page.goto(`${siteUrl}/about`, { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "查看加入申请" }).click();
+  await page.locator(".about-cta-card").getByRole("link", { name: "加入申请" }).click();
   await expect(page).toHaveURL(/\/join$/);
   await expect(page.locator("main h1").filter({ hasText: "面向技术领导者的高质量同侪网络" })).toBeVisible();
 });

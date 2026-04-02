@@ -36,7 +36,6 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   <main class="page-shell page-stack">
     <section class="section member-profile-layout">
       <article class="panel member-profile-main">
-        <div class="card-label">成员详情</div>
         <div class="member-profile-head">
           {
             member.avatar ? (
@@ -53,44 +52,27 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
             <p class="member-profile-role">{member.company} · {member.title}</p>
             <ul class="meta-list member-profile-meta">
               <li>{member.branch?.name ?? "成员"}</li>
-              <li>{member.branch?.cityName ?? "城市待补充"}</li>
               <li>{formatDate(member.joinedAt)}</li>
             </ul>
           </div>
         </div>
 
         <div class="member-profile-body member-profile-bio">
-          <div class="card-label">个人简介</div>
           <p>{member.bio}</p>
         </div>
       </article>
 
       <aside class="panel panel-soft member-profile-side">
-        <div>
-          <div class="card-label">成员档案</div>
-          <ul class="member-profile-list">
-            <li>
-              <span>姓名</span>
-              <strong>{member.name}</strong>
-            </li>
-            <li>
-              <span>公司</span>
-              <strong>{member.company}</strong>
-            </li>
-            <li>
-              <span>职务</span>
-              <strong>{member.title}</strong>
-            </li>
-            <li>
-              <span>所属分会</span>
-              <strong>{member.branch?.name ?? "待补充"}</strong>
-            </li>
-            <li>
-              <span>加入时间</span>
-              <strong>{formatDate(member.joinedAt)}</strong>
-            </li>
-          </ul>
-        </div>
+        <ul class="member-profile-list">
+          <li>
+            <span>所属分会</span>
+            <strong>{member.branch?.name ?? "待补充"}</strong>
+          </li>
+          <li>
+            <span>加入时间</span>
+            <strong>{formatDate(member.joinedAt)}</strong>
+          </li>
+        </ul>
 
         <div class="member-profile-actions">
           {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
@@ -103,7 +85,6 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
       <section class="section">
         <div class="panel member-context-panel">
           <article class="member-context-branch">
-            <div class="card-label">所属分会</div>
             <h2>{branch.name}</h2>
 
             {
@@ -118,17 +99,13 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
             {showBranchBodyExcerpt && <p>{branchBodyExcerpt}</p>}
 
             <div class="member-branch-footer">
-              <span class="member-branch-chip">{branch.cityName}</span>
               <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
             </div>
           </article>
 
           <aside class="member-context-board">
             <div class="member-context-board-head">
-              <div>
-              <div class="card-label">分会董事会</div>
-                <h2>董事会成员</h2>
-              </div>
+              <h2>董事会成员</h2>
               <a class="text-link" href={`/branches#${branch.slug}`}>查看完整列表</a>
             </div>
 
@@ -249,7 +226,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
 
   .member-profile-body {
     display: grid;
-    gap: 12px;
+    gap: 0;
   }
 
   .member-profile-body p:first-of-type {
@@ -274,7 +251,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   .member-profile-list li {
     display: grid;
     gap: 6px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     border-radius: 18px;
     border: 1px solid rgba(31, 26, 23, 0.08);
     background: rgba(255, 255, 255, 0.6);
@@ -339,20 +316,8 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     display: flex;
     gap: 14px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     flex-wrap: wrap;
-  }
-
-  .member-branch-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 36px;
-    padding: 0 14px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.76);
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    color: var(--accent-ink);
-    font-weight: 600;
   }
 
   .member-board-list {
@@ -429,6 +394,16 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   @media (max-width: 640px) {
     .member-profile-head {
       grid-template-columns: 1fr;
+    }
+
+    .member-profile-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .member-context-board-head {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .member-profile-avatar,

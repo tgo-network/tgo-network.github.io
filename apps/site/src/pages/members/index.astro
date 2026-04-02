@@ -30,10 +30,10 @@ const initialMembers = members.slice(0, pageSize);
 <BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员资料。">
   <main class="page-shell page-stack">
     <section class="section member-directory-section">
-      <div class="panel member-toolbar-panel">
+      <div class="panel member-toolbar-panel toolbar-panel">
         <div class="member-toolbar-head">
           <div>
-            <h1>TGO 鲲鹏会成员</h1>
+            <h1>成员列表</h1>
           </div>
         </div>
 
@@ -217,46 +217,6 @@ const initialMembers = members.slice(0, pageSize);
     gap: 18px;
   }
 
-  .member-toolbar-panel {
-    padding: clamp(24px, 3vw, 30px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
-  }
-
-  .member-toolbar-head h1 {
-    margin: 6px 0 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-  }
-
-  .filter-bar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .filter-chip {
-    padding: 10px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(31, 26, 23, 0.1);
-    background: rgba(255, 255, 255, 0.84);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-  }
-
-  .filter-chip:hover {
-    transform: translateY(-1px);
-    border-color: rgba(157, 111, 49, 0.32);
-  }
-
-  .filter-chip.is-active {
-    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.92));
-    border-color: transparent;
-    color: #fff7ef;
-  }
-
   :global(.member-directory-grid) {
     display: grid;
     gap: 18px;
@@ -265,8 +225,8 @@ const initialMembers = members.slice(0, pageSize);
 
   :global(.member-directory-card) {
     display: grid;
-    gap: 14px;
-    padding: 20px;
+    gap: 16px;
+    padding: 22px 20px 20px;
     min-height: 100%;
     align-content: start;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -280,9 +240,15 @@ const initialMembers = members.slice(0, pageSize);
 
   :global(.member-directory-head) {
     display: grid;
-    gap: 14px;
+    gap: 16px;
     grid-template-columns: 68px minmax(0, 1fr);
-    align-items: center;
+    align-items: start;
+  }
+
+  :global(.member-directory-head > div) {
+    display: grid;
+    gap: 8px;
+    align-content: start;
   }
 
   :global(.member-directory-avatar) {
@@ -316,7 +282,7 @@ const initialMembers = members.slice(0, pageSize);
   }
 
   :global(.member-directory-company) {
-    margin-top: 8px;
+    min-height: 2.9em;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -324,15 +290,20 @@ const initialMembers = members.slice(0, pageSize);
   }
 
   :global(.member-directory-title) {
-    min-height: 3.2em;
+    min-height: 1.7em;
+    padding-top: 12px;
+    border-top: 1px solid rgba(31, 26, 23, 0.08);
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    color: var(--ink);
+    font-weight: 600;
   }
 
   :global(.member-directory-meta) {
     margin-top: auto;
+    padding-top: 4px;
   }
 
   :global(.member-directory-branch) {
@@ -348,12 +319,6 @@ const initialMembers = members.slice(0, pageSize);
     font-weight: 600;
   }
 
-  .member-pagination-bar {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-  }
-
   @media (max-width: 1180px) {
     :global(.member-directory-grid) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -367,21 +332,6 @@ const initialMembers = members.slice(0, pageSize);
   }
 
   @media (max-width: 720px) {
-    .member-toolbar-panel {
-      padding: 18px;
-    }
-
-    .filter-bar {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: thin;
-    }
-
-    .filter-chip {
-      flex: 0 0 auto;
-    }
-
     :global(.member-directory-grid) {
       grid-template-columns: 1fr;
     }
@@ -390,8 +340,5 @@ const initialMembers = members.slice(0, pageSize);
       padding: 18px;
     }
 
-    .member-pagination-bar {
-      justify-content: space-between;
-    }
   }
 </style>

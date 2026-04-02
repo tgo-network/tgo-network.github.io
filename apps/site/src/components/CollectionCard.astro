@@ -5,21 +5,28 @@ interface Props {
   title: string;
   summary: string;
   meta?: string[];
+  reserveMediaSpace?: boolean;
   image?: {
     url: string;
     alt: string;
   } | null;
 }
 
-const { href, label, title, summary, meta = [], image = null } = Astro.props;
+const { href, label, title, summary, meta = [], reserveMediaSpace = false, image = null } = Astro.props;
 ---
 
 <a class="card-link" href={href}>
   <article class="panel card-panel">
     {
-      image && (
+      (image || reserveMediaSpace) && (
         <div class="card-media-wrap">
-          <img class="card-media" src={image.url} alt={image.alt} loading="lazy" />
+          {
+            image ? (
+              <img class="card-media" src={image.url} alt={image.alt} loading="lazy" />
+            ) : (
+              <div class="card-media card-media-placeholder" aria-hidden="true"></div>
+            )
+          }
         </div>
       )
     }
@@ -36,3 +43,40 @@ const { href, label, title, summary, meta = [], image = null } = Astro.props;
     }
   </article>
 </a>
+
+<style>
+  .card-panel h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-height: 2.9em;
+  }
+
+  .card-panel .card-copy {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .card-media-placeholder {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.16), transparent 28%),
+      repeating-linear-gradient(135deg, rgba(157, 111, 49, 0.04) 0 1px, transparent 1px 28px),
+      linear-gradient(180deg, rgba(250, 244, 235, 0.96), rgba(244, 236, 224, 0.92));
+  }
+
+  .card-media-placeholder::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(157, 111, 49, 0.32), rgba(157, 111, 49, 0));
+  }
+</style>

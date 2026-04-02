@@ -47,17 +47,17 @@ const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slic
 
 const heroContent = {
   titleLines: ["面向科技领导者的", "高质量学习社区"],
-  summary: "连接 CTO、技术 VP、研发负责人和技术创业者，围绕分会活动与长期交流建立真实的同侪网络。"
+  summary: "连接 CTO、技术 VP、研发负责人和技术创业者，在各地分会中持续开展真实交流。"
 };
 
 const heroDetailItems = [
   {
     label: "适合加入",
-    value: "CTO、技术 VP、研发负责人、技术创业者"
+    value: "CTO / 技术 VP / 研发负责人 / 技术创业者"
   },
   {
-    label: "加入方式",
-    value: "前台提交申请，由工作人员审核与进一步联系"
+    label: "参与方式",
+    value: "浏览公开内容、报名活动、提交加入申请"
   }
 ];
 
@@ -81,21 +81,23 @@ const featuredTestimonials = featuredMembers.map((member, index) => ({
 
 const joinSteps = [
   {
-    step: "01",
-    title: "了解组织定位与加入条件",
-    summary: "阅读加入条件、参与方式与审核流程。"
+    title: "查看条件",
+    summary: "先了解加入条件与审核方式。"
   },
   {
-    step: "02",
-    title: "在线提交申请信息",
-    summary: "填写姓名、电话、微信、邮箱和个人介绍。"
+    title: "提交申请",
+    summary: "填写姓名、电话、微信、邮箱与个人介绍。"
   },
   {
-    step: "03",
-    title: "等待审核与进一步联系",
-    summary: "提交后由工作人员审核，并在需要时进一步联系。"
+    title: "等待联系",
+    summary: "提交后由工作人员继续审核与联系。"
   }
 ];
+
+const homeJoinCallout = {
+  title: "加入 TGO 鲲鹏会",
+  summary: "认同这种长期、真实的交流方式后，可先查看加入条件，再提交申请。"
+};
 ---
 
 <BaseLayout title="TGO 鲲鹏会 | 首页" description="TGO 鲲鹏会面向技术领导者，展示组织介绍、成员推荐、学习活动与加入路径。">
@@ -103,7 +105,6 @@ const joinSteps = [
     <section class="hero hero-home">
       <div class="hero-card hero-home-card">
         <div class="hero-home-main">
-          <span class="eyebrow">{home.hero.eyebrow}</span>
           <h1 aria-label={heroContent.titleLines.join("")}>
             {heroContent.titleLines.map((line) => <span class="hero-title-line">{line}</span>)}
           </h1>
@@ -122,8 +123,8 @@ const joinSteps = [
 
         <aside class="hero-home-aside">
           <div class="hero-home-note">
-            <strong>围绕真实问题，建立长期交流</strong>
-            <p>通过线下活动、闭门讨论与内容沉淀，形成持续发生的同侪连接。</p>
+            <strong>长期、真实、同侪交流</strong>
+            <p>线下活动、闭门讨论与内容沉淀持续发生。</p>
           </div>
 
           <dl class="hero-detail-list">
@@ -224,6 +225,7 @@ const joinSteps = [
                 title={article.title}
                 summary={article.excerpt}
                 image={article.coverImage}
+                reserveMediaSpace={true}
                 meta={[article.authorName, "社区文章"]}
               />
             ))
@@ -236,9 +238,8 @@ const joinSteps = [
       <div class="panel join-panel">
         <div class="join-panel-head">
           <div>
-            <div class="card-label">加入方式</div>
-            <h2>{home.joinCallout.title}</h2>
-            <p class="card-copy">{home.joinCallout.summary}</p>
+            <h2>{homeJoinCallout.title}</h2>
+            <p class="card-copy">{homeJoinCallout.summary}</p>
           </div>
           <a class="button primary" href={home.joinCallout.href}>开始申请</a>
         </div>
@@ -247,7 +248,6 @@ const joinSteps = [
           {
             joinSteps.map((item) => (
               <article class="join-step-card">
-                <div class="join-step-index">{item.step}</div>
                 <h3>{item.title}</h3>
                 <p>{item.summary}</p>
               </article>
@@ -280,16 +280,10 @@ const joinSteps = [
     color: #f8f1e8;
   }
 
-  .hero-home-card .eyebrow {
-    color: #f1d5a0;
-    border-color: rgba(215, 179, 117, 0.28);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
   .hero-home-card h1 {
     width: min(100%, 8.8em);
     max-width: none;
-    margin: 18px 0 16px;
+    margin: 0 0 16px;
     font-size: clamp(2.4rem, 5vw, 4.15rem);
     line-height: 0.98;
   }
@@ -377,13 +371,6 @@ const joinSteps = [
     gap: 14px;
   }
 
-  .join-step-index {
-    color: rgba(215, 179, 117, 0.9);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
   .join-step-card p {
     margin: 0;
     color: rgba(247, 239, 227, 0.72);
@@ -405,7 +392,7 @@ const joinSteps = [
 
   .testimonial-card {
     display: grid;
-    gap: 22px;
+    gap: 20px;
     min-height: 100%;
     background: linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(246, 238, 227, 0.94));
   }
@@ -460,8 +447,8 @@ const joinSteps = [
 
   .collection-showcase {
     display: grid;
-    gap: 18px;
-    padding: 28px;
+    gap: 16px;
+    padding: 26px;
     border-radius: 30px;
   }
 
@@ -491,7 +478,7 @@ const joinSteps = [
 
   .join-panel {
     display: grid;
-    gap: 20px;
+    gap: 18px;
     background: linear-gradient(180deg, rgba(255, 249, 239, 0.96), rgba(245, 237, 226, 0.94));
   }
 
@@ -506,12 +493,17 @@ const joinSteps = [
     font-size: clamp(1.6rem, 3vw, 2.2rem);
   }
 
+  .join-panel-head .card-copy {
+    margin-top: 8px;
+    max-width: 36rem;
+  }
+
   .join-step-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .join-step-card {
-    padding: 18px;
+    padding: 16px 18px;
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid rgba(31, 26, 23, 0.08);
@@ -561,7 +553,7 @@ const joinSteps = [
     }
 
     .collection-showcase {
-      padding: 24px;
+      padding: 22px;
     }
   }
 
@@ -576,6 +568,10 @@ const joinSteps = [
 
     .hero-detail-list {
       grid-template-columns: 1fr;
+    }
+
+    .testimonial-quote {
+      font-size: 1.22rem;
     }
   }
 </style>

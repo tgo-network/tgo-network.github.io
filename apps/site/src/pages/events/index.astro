@@ -24,7 +24,7 @@ const initialMeta = {
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack">
     <section class="section event-list-section">
-      <div class="panel event-toolbar-panel">
+      <div class="panel event-toolbar-panel toolbar-panel">
         <div class="event-toolbar-head">
           <div>
             <h1>各地分会活动</h1>
@@ -312,46 +312,6 @@ const initialMeta = {
     gap: 18px;
   }
 
-  .event-toolbar-panel {
-    padding: clamp(24px, 3vw, 30px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
-  }
-
-  .event-toolbar-head h1 {
-    margin: 6px 0 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-  }
-
-  .filter-bar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .filter-chip {
-    padding: 10px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(31, 26, 23, 0.1);
-    background: rgba(255, 255, 255, 0.84);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-  }
-
-  .filter-chip:hover {
-    transform: translateY(-1px);
-    border-color: rgba(157, 111, 49, 0.32);
-  }
-
-  .filter-chip.is-active {
-    background: linear-gradient(135deg, rgba(157, 111, 49, 0.95), rgba(200, 161, 93, 0.92));
-    border-color: transparent;
-    color: #fff7ef;
-  }
-
   :global(.event-grid) {
     display: grid;
     gap: 18px;
@@ -423,8 +383,8 @@ const initialMeta = {
 
   :global(.event-card-body) {
     display: grid;
-    gap: 14px;
-    padding: 22px;
+    gap: 12px;
+    padding: 20px 20px 22px;
     align-content: start;
     grid-template-rows: auto auto 1fr auto auto;
   }
@@ -432,7 +392,7 @@ const initialMeta = {
   :global(.event-card-head) {
     display: flex;
     gap: 12px;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
   }
 
@@ -440,6 +400,7 @@ const initialMeta = {
     margin: 0;
     font-size: 1.14rem;
     line-height: 1.5;
+    min-height: 3em;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -458,11 +419,13 @@ const initialMeta = {
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    min-height: 3.45em;
   }
 
   :global(.event-card-meta) {
     display: grid;
     gap: 6px;
+    padding-top: 2px;
   }
 
   :global(.event-state) {
@@ -496,12 +459,6 @@ const initialMeta = {
     font-weight: 600;
   }
 
-  .event-pagination-bar {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-  }
-
   @media (max-width: 1200px) {
     :global(.event-grid) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -509,21 +466,6 @@ const initialMeta = {
   }
 
   @media (max-width: 720px) {
-    .event-toolbar-panel {
-      padding: 18px;
-    }
-
-    .filter-bar {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: thin;
-    }
-
-    .filter-chip {
-      flex: 0 0 auto;
-    }
-
     :global(.event-grid) {
       grid-template-columns: 1fr;
     }
@@ -534,10 +476,6 @@ const initialMeta = {
 
     :global(.event-card-media) {
       max-height: 220px;
-    }
-
-    .event-pagination-bar {
-      justify-content: space-between;
     }
   }
 </style>

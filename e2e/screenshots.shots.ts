@@ -47,7 +47,7 @@ test("capture public site screenshots", async ({ page }) => {
   const siteRoutes = [
     { path: "/", name: "home", assertReady: expectMainHeading("面向科技领导者的高质量学习社区") },
     { path: "/branches", name: "branches", assertReady: expectMainHeading("分会董事会") },
-    { path: "/members", name: "members", assertReady: expectMainHeading("TGO 鲲鹏会成员") },
+    { path: "/members", name: "members", assertReady: expectMainHeading("成员列表") },
     { path: "/members/member-2", name: "member-detail", assertReady: expectMainHeading("郭理靖") },
     { path: "/events", name: "events", assertReady: expectMainHeading("各地分会活动") },
     { path: "/events/event-1816", name: "event-detail", assertReady: expectMainHeading("第一届龙虾AI大会：ClawCon") },

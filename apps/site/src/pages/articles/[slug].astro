@@ -28,15 +28,12 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
     <section class="section article-detail-stack">
       <article class:list={["panel article-header-panel", !article.coverImage && "article-header-panel-single"]}>
         <div class="article-header-copy">
-          <div class="card-label">文章</div>
           <h1>{article.title}</h1>
           <p class="article-detail-excerpt">{article.excerpt}</p>
           <ul class="meta-list article-header-meta">
             <li>{formatDate(article.publishedAt)}</li>
             <li>{article.author.name}</li>
-            <li>{article.author.role}</li>
             <li>{estimatedReadMinutes} 分钟</li>
-            {article.branch?.name && <li>{article.branch.name}</li>}
           </ul>
         </div>
 
@@ -51,37 +48,30 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
 
       <div class="article-content-layout">
         <article class="panel prose-panel article-body-panel">
-          <div class="card-label">文章正文</div>
           {article.body.map((paragraph) => <p>{paragraph}</p>)}
         </article>
 
         <aside class="panel panel-soft article-context-panel">
-          <div class="article-context-head">
-            <div class="card-label">发布信息</div>
-            <h2>作者与发布时间</h2>
-          </div>
-
-          <div class="article-context-grid">
-            <article class="article-context-item">
+          <ul class="article-context-list">
+            <li>
               <span>作者</span>
               <strong>{article.author.name}</strong>
               <small>{article.author.role}</small>
-            </article>
-
-            <article class="article-context-item">
+            </li>
+            <li>
               <span>发布时间</span>
               <strong>{formatDate(article.publishedAt)}</strong>
               <small>预计阅读 {estimatedReadMinutes} 分钟</small>
-            </article>
-
-            {article.branch?.name && (
-              <article class="article-context-item">
-                <span>相关分会</span>
-                <strong>{article.branch.name}</strong>
-                <small>对应公开分会内容</small>
-              </article>
-            )}
-          </div>
+            </li>
+            {
+              article.branch?.name && (
+                <li>
+                  <span>相关分会</span>
+                  <strong>{article.branch.name}</strong>
+                </li>
+              )
+            }
+          </ul>
 
           <div class="article-detail-actions">
             <a class="button secondary" href="/articles">返回文章列表</a>
@@ -180,18 +170,15 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
     background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
   }
 
-  .article-context-head h2 {
-    margin: 0;
-    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
-  }
-
-  .article-context-grid {
+  .article-context-list {
     display: grid;
     gap: 14px;
-    grid-template-columns: 1fr;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .article-context-item {
+  .article-context-list li {
     display: grid;
     gap: 6px;
     padding: 16px 18px;
@@ -200,13 +187,13 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
     background: rgba(255, 255, 255, 0.62);
   }
 
-  .article-context-item span {
+  .article-context-list span {
     color: var(--muted);
     font-size: 0.84rem;
     letter-spacing: 0.04em;
   }
 
-  .article-context-item small {
+  .article-context-list small {
     color: var(--muted);
     line-height: 1.6;
   }
