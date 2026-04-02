@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TGO 前台风格 Demo</title>
+    <meta name="description" content="三套 TGO 前台视觉方向的静态 demo 对比。" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe8;
+        --ink: #1c1713;
+        --muted: #64584e;
+        --line: rgba(28, 23, 19, 0.1);
+        --surface: rgba(255, 255, 255, 0.88);
+        --shadow: 0 24px 60px rgba(36, 26, 16, 0.12);
+        --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+        --font-display: "Songti SC", "STSong", "Noto Serif SC", serif;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-body);
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(194, 158, 111, 0.15), transparent 24%),
+          linear-gradient(180deg, #f8f3ec 0%, var(--bg) 100%);
+      }
+
+      a { color: inherit; text-decoration: none; }
+
+      .shell {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 72px 0 28px;
+      }
+
+      .hero h1,
+      .card h2 {
+        margin: 0;
+        font-family: var(--font-display);
+      }
+
+      .hero h1 {
+        font-size: clamp(2.6rem, 5.6vw, 4.8rem);
+        line-height: 0.96;
+      }
+
+      .hero p,
+      .card p,
+      .bullet-list li {
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 0.74fr);
+        align-items: start;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero-note,
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-note,
+      .card {
+        padding: 24px;
+      }
+
+      .hero-meta {
+        display: inline-flex;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(28, 23, 19, 0.1);
+        color: #7a5630;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding-bottom: 60px;
+      }
+
+      .card {
+        display: grid;
+        gap: 16px;
+      }
+
+      .card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .pill {
+        display: inline-flex;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(122, 86, 48, 0.08);
+        color: #7a5630;
+        font-size: 0.84rem;
+      }
+
+      .preview {
+        position: relative;
+        min-height: 220px;
+        border-radius: 22px;
+        overflow: hidden;
+      }
+
+      .preview::before,
+      .preview::after {
+        content: "";
+        position: absolute;
+        border-radius: 22px;
+      }
+
+      .preview.atlas {
+        background:
+          radial-gradient(circle at top right, rgba(185, 144, 84, 0.18), transparent 26%),
+          linear-gradient(180deg, #fffaf2 0%, #f2e7d6 100%);
+      }
+
+      .preview.atlas::before {
+        inset: 18px 18px auto 18px;
+        height: 94px;
+        background: linear-gradient(180deg, rgba(109, 75, 29, 0.08), rgba(255, 255, 255, 0.64));
+      }
+
+      .preview.atlas::after {
+        left: 18px;
+        right: 94px;
+        bottom: 18px;
+        height: 72px;
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .preview.summit {
+        background:
+          radial-gradient(circle at top left, rgba(17, 210, 196, 0.18), transparent 24%),
+          linear-gradient(180deg, #08111a 0%, #091c2a 100%);
+      }
+
+      .preview.summit::before {
+        inset: 18px 18px auto 18px;
+        height: 110px;
+        background: linear-gradient(135deg, rgba(125, 252, 243, 0.18), rgba(9, 28, 42, 0.82));
+        clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+      }
+
+      .preview.summit::after {
+        left: 18px;
+        right: 110px;
+        bottom: 18px;
+        height: 64px;
+        background: rgba(125, 252, 243, 0.1);
+        clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+      }
+
+      .preview.house {
+        background:
+          radial-gradient(circle at top left, rgba(155, 104, 69, 0.16), transparent 22%),
+          linear-gradient(180deg, #fbf7f1 0%, #e8ddcf 100%);
+      }
+
+      .preview.house::before {
+        inset: 18px 18px auto 18px;
+        height: 118px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .preview.house::after {
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        height: 50px;
+        background: rgba(155, 104, 69, 0.1);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(28, 23, 19, 0.1);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .button:hover { transform: translateY(-1px); }
+      .button.primary {
+        background: linear-gradient(135deg, #7a5630, #b89259);
+        color: #fffaf2;
+        box-shadow: 0 16px 30px rgba(122, 86, 48, 0.18);
+      }
+
+      .bullet-list {
+        margin: 0;
+        padding-left: 1.1rem;
+      }
+
+      @media (max-width: 920px) {
+        .hero-grid,
+        .grid { grid-template-columns: 1fr; }
+        .hero { padding-top: 48px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="hero-meta">TGO 前台视觉对比</span>
+            <h1>三套风格 demo 已拆到独立目录，可直接并排对比整体气质</h1>
+            <p>
+              三套 demo 都复用了当前前台的同一份内容骨架：首页主叙事、组织介绍、分会董事会、成员推荐、活动、文章与加入申请。
+              这样可以更清楚地比较真正变化的是视觉语言，而不是信息内容。
+            </p>
+            <div class="actions">
+              <a class="button primary" href="./atlas-ink/">打开方案 A</a>
+              <a class="button" href="./summit-signal/">打开方案 B</a>
+              <a class="button" href="./member-house/">打开方案 C</a>
+            </div>
+          </div>
+
+          <aside class="hero-note">
+            <h2>建议怎么看</h2>
+            <ul class="bullet-list">
+              <li>先看 hero 与整体背景，判断第一眼的品牌气质是否对。</li>
+              <li>再看董事会、活动、文章这些列表区，确认信息密度是否舒服。</li>
+              <li>最后看加入申请区域，判断正式网站里表单与内容是否能自然共存。</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <div class="card-top">
+            <span class="pill">优先推荐</span>
+            <a href="./atlas-ink/">进入 demo</a>
+          </div>
+          <div class="preview atlas"></div>
+          <h2>方案 A · 东方克制型</h2>
+          <p>更适合正式主站。整体像高端中文刊物与私董会网站的结合，节奏克制，信息有分量，适合长期使用。</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top">
+            <span class="pill">舞台感最强</span>
+            <a href="./summit-signal/">进入 demo</a>
+          </div>
+          <div class="preview summit"></div>
+          <h2>方案 B · 全球科技峰会型</h2>
+          <p>更强调前沿技术与大会势能，视觉冲击力更强，适合突出活动与议题，但日常运营的克制感相对弱一些。</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top">
+            <span class="pill">会籍感最强</span>
+            <a href="./member-house/">进入 demo</a>
+          </div>
+          <div class="preview house"></div>
+          <h2>方案 C · 现代会所会员型</h2>
+          <p>更像高端会员社区或俱乐部网站，强调邀请制、归属感与身份感，适合放大“长期社群”的一面。</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

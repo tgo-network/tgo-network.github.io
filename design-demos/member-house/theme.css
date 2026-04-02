@@ -1,0 +1,185 @@
+:root {
+  --page-bg:
+    radial-gradient(circle at top left, rgba(193, 145, 106, 0.16), transparent 22%),
+    linear-gradient(180deg, #ebe3d8 0%, #e1d7cb 100%);
+  --page-ink: #1e1a18;
+  --page-muted: #62554b;
+  --page-line: rgba(30, 26, 24, 0.12);
+  --surface: rgba(250, 246, 240, 0.9);
+  --surface-strong: rgba(255, 251, 246, 0.96);
+  --surface-alt: rgba(245, 238, 231, 0.86);
+  --shadow-soft: 0 24px 54px rgba(65, 43, 25, 0.12);
+  --shadow-strong: 0 30px 78px rgba(58, 37, 20, 0.18);
+  --accent: #9b6845;
+  --accent-strong: #6d3d20;
+  --accent-soft: rgba(155, 104, 69, 0.12);
+  --button-ink: #fffbf6;
+  --font-body: "Avenir Next", "PingFang SC", "Noto Sans SC", sans-serif;
+  --font-display: "Baskerville", "Songti SC", "STSong", serif;
+  --font-alt: "Optima", "Avenir Next", "PingFang SC", sans-serif;
+  --radius-sm: 28px;
+  --radius-md: 36px;
+  --radius-lg: 48px;
+}
+
+body {
+  background: var(--page-bg);
+}
+
+.page-wrap::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 100% 0, rgba(255, 255, 255, 0.26), transparent 28%);
+}
+
+.demo-modebar,
+.demo-header {
+  background: rgba(243, 236, 229, 0.8);
+}
+
+.brand-mark,
+.initial-badge {
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(155, 104, 69, 0.14), rgba(255, 255, 255, 0.94));
+}
+
+.hero-frame,
+.surface-card,
+.surface-subcard {
+  background:
+    radial-gradient(circle at top right, rgba(155, 104, 69, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(255, 251, 246, 0.96), rgba(247, 240, 232, 0.92));
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.hero-frame {
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+}
+
+.hero-summary {
+  font-size: 1.1rem;
+  max-width: 38rem;
+}
+
+.hero-quote {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  color: var(--accent-strong);
+}
+
+.hero-visual {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+}
+
+.hero-image,
+.experience-card img,
+.collection-image,
+.avatar {
+  border-radius: 26px;
+}
+
+.hero-image-primary {
+  min-height: 300px;
+  transform: none;
+}
+
+.hero-note {
+  background: rgba(255, 252, 248, 0.92);
+}
+
+.nav a,
+.button,
+.tag-pill,
+.board-branch {
+  border-radius: 999px;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #7b4c2b, #b57b55);
+}
+
+.button-secondary {
+  background: rgba(255, 251, 246, 0.92);
+}
+
+.section-head {
+  margin-bottom: 20px;
+}
+
+.intro-grid {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  align-items: start;
+}
+
+.experience-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.experience-card,
+.collection-card {
+  border-radius: 30px;
+}
+
+.board-card,
+.testimonial-card,
+.article-card {
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(245, 236, 227, 0.92));
+}
+
+.board-card-top,
+.testimonial-meta {
+  align-items: flex-start;
+}
+
+.board-role,
+.board-company,
+.meta-row,
+.section-kicker,
+.eyebrow,
+.tag-pill {
+  font-family: var(--font-alt);
+}
+
+.collection-card,
+.article-card {
+  box-shadow: 0 18px 40px rgba(70, 48, 29, 0.1);
+}
+
+.article-card h3,
+.collection-copy h3 {
+  max-width: 18ch;
+}
+
+.join-layout {
+  grid-template-columns: minmax(0, 0.96fr) minmax(360px, 1.04fr);
+}
+
+.join-form,
+.mini-card {
+  background: rgba(255, 252, 248, 0.94);
+}
+
+.field input,
+.field textarea {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.footer-inner {
+  border-top-color: rgba(30, 26, 24, 0.14);
+}
+
+@media (max-width: 1120px) {
+  .intro-grid {
+    grid-template-columns: 1fr;
+  }
+}
