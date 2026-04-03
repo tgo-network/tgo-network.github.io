@@ -403,6 +403,181 @@ summary:focus-visible {
   white-space: nowrap;
 }
 
+.directory-header {
+  display: grid;
+  gap: 10px;
+  padding: 10px 0 4px;
+}
+
+.directory-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.02;
+}
+
+.directory-toolbar {
+  display: grid;
+  gap: 16px;
+}
+
+.detail-page-shell {
+  padding-top: 10px;
+  padding-bottom: 48px;
+}
+
+.detail-hero-card,
+.detail-content-grid,
+.detail-side-stack,
+.detail-action-stack,
+.detail-info-list {
+  display: grid;
+  gap: 18px;
+}
+
+.detail-hero-card {
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
+  align-items: start;
+  padding: clamp(26px, 3vw, 34px);
+  background:
+    radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+}
+
+.detail-hero-card-single {
+  grid-template-columns: 1fr;
+}
+
+.detail-hero-copy {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.detail-hero-copy h1 {
+  margin: 0;
+  font-size: clamp(2.15rem, 4.4vw, 3.85rem);
+  line-height: 1.04;
+}
+
+.detail-summary {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.84;
+}
+
+.detail-meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-meta-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 23, 19, 0.08);
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--muted);
+  font-size: 0.84rem;
+  letter-spacing: 0.03em;
+}
+
+.detail-hero-figure {
+  margin: 0;
+}
+
+.detail-hero-image {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  border-radius: 20px;
+  object-fit: cover;
+  background: rgba(27, 23, 19, 0.06);
+}
+
+.detail-content-grid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  align-items: start;
+}
+
+.detail-body-panel {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.detail-body-panel p {
+  max-width: 72ch;
+  line-height: 1.92;
+}
+
+.detail-sticky {
+  position: sticky;
+  top: 104px;
+}
+
+.detail-side-card {
+  display: grid;
+  gap: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 106, 67, 0.07), transparent 30%),
+    linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+}
+
+.detail-side-card h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.detail-info-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-info-list li {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 23, 19, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.detail-info-list span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
+.detail-info-list strong {
+  line-height: 1.7;
+}
+
+.detail-info-list small {
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+.detail-action-stack {
+  gap: 12px;
+}
+
+.detail-section-card {
+  display: grid;
+  gap: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 106, 67, 0.07), transparent 30%),
+    linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+}
+
+.detail-section-card h2 {
+  margin: 0;
+  font-size: clamp(1.34rem, 2vw, 1.82rem);
+}
+
 .section-head {
   margin-bottom: 16px;
 }
@@ -943,6 +1118,15 @@ textarea {
     white-space: normal;
   }
 
+  .detail-hero-card,
+  .detail-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-sticky {
+    position: static;
+  }
+
 }
 
 @media (max-width: 720px) {
@@ -967,6 +1151,14 @@ textarea {
 
   .site-footer {
     margin-top: 8px;
+  }
+
+  .detail-page-shell {
+    padding-top: 4px;
+  }
+
+  .detail-hero-image {
+    min-height: 220px;
   }
 
   .site-footer-meta {

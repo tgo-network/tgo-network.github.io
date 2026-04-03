@@ -30,13 +30,18 @@ const branchBodyExcerpt = branch
       .join("")
   : "";
 const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !== branch?.summary);
+const memberMetaItems = [
+  `所属分会 · ${member.branch?.name ?? "待补充"}`,
+  `加入时间 · ${formatDate(member.joinedAt)}`,
+  "公开身份 · TGO 鲲鹏会成员"
+];
 ---
 
 <BaseLayout title={`${member.name} | 成员 | TGO 鲲鹏会`} description={`${member.company} · ${member.title}`}>
-  <main class="page-shell page-stack member-detail-shell">
-    <section class="section member-detail-section">
-      <div class="member-detail-layout">
-        <article class="panel member-profile-card">
+  <main class="page-shell page-stack detail-page-shell member-detail-shell">
+    <section class="section">
+      <article class="panel detail-hero-card detail-hero-card-single member-detail-hero-card">
+        <div class="detail-hero-copy">
           <div class="member-profile-head">
             {
               member.avatar ? (
@@ -52,41 +57,27 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
               <p class="page-eyebrow member-profile-eyebrow">{member.branch?.name ?? "TGO 鲲鹏会成员"}</p>
               <h1>{member.name}</h1>
               <p class="member-profile-role">{member.company} · {member.title}</p>
-              <div class="member-profile-bio">
-                <p>{member.bio}</p>
-              </div>
             </div>
           </div>
-        </article>
 
-        <aside class="panel panel-soft member-profile-side">
-          <ul class="member-profile-list">
-            <li>
-              <span>所属分会</span>
-              <strong>{member.branch?.name ?? "待补充"}</strong>
-            </li>
-            <li>
-              <span>加入时间</span>
-              <strong>{formatDate(member.joinedAt)}</strong>
-            </li>
-            <li>
-              <span>公开身份</span>
-              <strong>TGO 鲲鹏会成员</strong>
-            </li>
-          </ul>
+          <p class="detail-summary member-profile-summary">{member.bio}</p>
 
-          <div class="member-profile-actions">
+          <div class="detail-meta-row">
+            {memberMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
+          </div>
+
+          <div class="hero-actions member-profile-actions">
             {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
             <a class="button secondary" href="/members">返回成员列表</a>
           </div>
-        </aside>
-      </div>
+        </div>
+      </article>
     </section>
 
     {branch && (
       <section class="section member-context-section">
         <div class="member-context-grid">
-          <article class="panel member-context-branch">
+          <article class="panel detail-section-card member-context-branch">
             <h2>{branch.name}</h2>
 
             {
@@ -103,7 +94,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
             <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
           </article>
 
-          <article class="panel member-context-board">
+          <article class="panel detail-section-card member-context-board">
             <div class="member-context-board-head">
               <h2>董事会成员</h2>
               <a class="text-link" href={`/branches#${branch.slug}`}>查看完整列表</a>
@@ -142,29 +133,11 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
 </BaseLayout>
 
 <style>
-  .member-detail-shell {
-    padding-top: 10px;
-    padding-bottom: 48px;
-  }
-
-  .member-detail-layout,
   .member-context-grid {
     display: grid;
     gap: 18px;
-  }
-
-  .member-detail-layout {
-    grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.94fr);
     align-items: start;
-  }
-
-  .member-profile-card,
-  .member-profile-side,
-  .member-context-branch,
-  .member-context-board {
-    display: grid;
-    gap: 18px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .member-profile-head {
@@ -172,6 +145,12 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     gap: 20px;
     grid-template-columns: 132px minmax(0, 1fr);
     align-items: start;
+  }
+
+  .member-profile-copy h1,
+  .member-context-branch h2,
+  .member-context-board h2 {
+    margin: 0;
   }
 
   .member-profile-avatar {
@@ -201,23 +180,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     gap: 10px;
   }
 
-  .member-profile-eyebrow {
-    margin-bottom: 0;
-  }
-
-  .member-profile-copy h1,
-  .member-context-branch h2,
-  .member-context-board h2 {
-    margin: 0;
-  }
-
-  .member-profile-copy h1 {
-    font-size: clamp(1.9rem, 3vw, 2.7rem);
-    line-height: 1.08;
-  }
-
   .member-profile-role,
-  .member-profile-bio p,
   .member-context-branch p,
   .member-board-copy span,
   .member-board-copy small {
@@ -231,47 +194,12 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     font-weight: 600;
   }
 
-  .member-profile-bio {
-    padding-top: 6px;
-  }
-
-  .member-profile-list {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .member-profile-list li {
-    display: grid;
-    gap: 6px;
-    padding: 16px 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(27, 23, 19, 0.08);
-    background: rgba(255, 255, 255, 0.72);
-  }
-
-  .member-profile-list span {
-    color: var(--muted);
-    font-size: 0.84rem;
-    letter-spacing: 0.04em;
-  }
-
-  .member-profile-side {
-    position: sticky;
-    top: 104px;
-    align-content: start;
+  .member-profile-summary {
+    max-width: 72ch;
   }
 
   .member-profile-actions {
-    display: grid;
-    gap: 12px;
-  }
-
-  .member-context-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.94fr);
-    align-items: start;
+    margin-top: 2px;
   }
 
   .member-branch-figure {
@@ -329,21 +257,12 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   }
 
   @media (max-width: 980px) {
-    .member-detail-layout,
     .member-context-grid {
       grid-template-columns: 1fr;
-    }
-
-    .member-profile-side {
-      position: static;
     }
   }
 
   @media (max-width: 720px) {
-    .member-detail-shell {
-      padding-top: 4px;
-    }
-
     .member-profile-head {
       grid-template-columns: 1fr;
     }

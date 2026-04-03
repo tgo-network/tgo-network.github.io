@@ -245,16 +245,16 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 ---
 
 <BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={event.summary}>
-  <main class="page-shell page-stack event-detail-shell">
-    <section class="section event-detail-head-section">
-      <article class:list={["panel event-detail-head-card", !event.coverImage && "event-detail-head-card-single"]}>
-        <div class="event-detail-head-copy">
+  <main class="page-shell page-stack detail-page-shell event-detail-shell">
+    <section class="section">
+      <article class:list={["panel detail-hero-card event-detail-head-card", !event.coverImage && "detail-hero-card-single"]}>
+        <div class="detail-hero-copy">
           <p class="page-eyebrow">活动</p>
           <h1>{event.title}</h1>
-          <p class="event-detail-excerpt">{event.summary}</p>
+          <p class="detail-summary">{event.summary}</p>
 
-          <div class="event-detail-meta">
-            {heroMetaItems.map((item) => <span>{item}</span>)}
+          <div class="detail-meta-row event-detail-meta">
+            {heroMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
           </div>
 
           <div class="hero-actions event-detail-actions">
@@ -265,17 +265,17 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 
         {
           event.coverImage && (
-            <figure class="event-detail-figure">
-              <img class="event-detail-image" src={event.coverImage.url} alt={event.coverImage.alt} />
+            <figure class="detail-hero-figure">
+              <img class="detail-hero-image event-detail-image" src={event.coverImage.url} alt={event.coverImage.alt} />
             </figure>
           )
         }
       </article>
     </section>
 
-    <section class="section event-detail-content-section">
-      <div class="event-detail-layout">
-        <article class="panel prose-panel event-body-panel">
+    <section class="section">
+      <div class="detail-content-grid event-detail-layout">
+        <article class="panel prose-panel detail-body-panel event-body-panel">
           <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
           {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
 
@@ -310,10 +310,10 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
           }
         </article>
 
-        <div class="event-side-stack">
-          <article class="panel panel-soft event-info-panel">
+        <div class="detail-side-stack event-side-stack">
+          <article class="panel detail-side-card event-info-panel">
             <h2>活动信息</h2>
-            <ul class="event-info-list">
+            <ul class="detail-info-list event-info-list">
               <li>
                 <span>时间</span>
                 <strong>{formatDateRange(event.startsAt, event.endsAt)}</strong>
@@ -333,7 +333,7 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
             </ul>
           </article>
 
-          <article class="panel panel-soft audience-panel">
+          <article class="panel detail-side-card audience-panel">
             <h2>适合参与</h2>
             <div class="audience-card-grid">
               {
@@ -349,7 +349,7 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 
           {
             event.agenda.length > 0 && (
-              <article class="panel panel-soft agenda-panel">
+              <article class="panel detail-side-card agenda-panel">
                 <h2>议程安排</h2>
                 <ul class="agenda-list">
                   {
@@ -371,7 +371,7 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     </section>
 
     <section class="section registration-shell" id="event-registration">
-      <div class="panel registration-panel">
+      <div class="panel detail-section-card registration-panel">
         <div class="registration-head">
           <h2>{registrationTitle}</h2>
           <p class="registration-copy">开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。</p>
@@ -434,7 +434,7 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
         }
       </div>
 
-      <aside class="panel panel-soft registration-side">
+      <aside class="panel detail-side-card detail-sticky registration-side">
         <div>
           <h2>{registrationNoticeLabel}</h2>
           <ul class="registration-note-list">
@@ -499,49 +499,26 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 </BaseLayout>
 
 <style>
-  .event-detail-shell {
-    padding-top: 10px;
-    padding-bottom: 48px;
-  }
-
-  .event-detail-layout,
   .registration-shell,
-  .event-side-stack,
   .audience-card-grid,
   .event-section-stack {
     display: grid;
     gap: 18px;
   }
 
-  .event-detail-layout,
   .registration-shell {
     grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
     align-items: start;
   }
 
-  .event-detail-head-card {
-    display: grid;
-    gap: 22px;
-    grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
-    align-items: start;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
-  }
-
-  .event-detail-head-card-single {
-    grid-template-columns: 1fr;
-  }
-
-  .event-detail-head-copy,
   .event-info-panel,
   .audience-panel,
   .agenda-panel,
   .registration-panel,
   .registration-side {
-    display: grid;
     gap: 16px;
   }
 
-  .event-detail-head-copy h1,
   .event-info-panel h2,
   .audience-panel h2,
   .agenda-panel h2,
@@ -550,12 +527,6 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     margin: 0;
   }
 
-  .event-detail-head-copy h1 {
-    font-size: clamp(2.2rem, 4.6vw, 3.9rem);
-    line-height: 1.05;
-  }
-
-  .event-detail-excerpt,
   .event-info-list span,
   .event-rich-list li,
   .audience-card p,
@@ -566,54 +537,9 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     line-height: 1.82;
   }
 
-  .event-detail-excerpt,
   .registration-copy,
   .registration-note p {
     margin: 0;
-  }
-
-  .event-detail-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .event-detail-meta span {
-    display: inline-flex;
-    align-items: center;
-    min-height: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(27, 23, 19, 0.08);
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--muted);
-    font-size: 0.84rem;
-  }
-
-  .event-detail-figure {
-    margin: 0;
-  }
-
-  .event-detail-image {
-    display: block;
-    width: 100%;
-    min-height: 280px;
-    border-radius: 18px;
-    object-fit: cover;
-  }
-
-  .event-body-panel,
-  .event-info-panel,
-  .audience-panel,
-  .agenda-panel,
-  .registration-panel,
-  .registration-side {
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
-  }
-
-  .event-body-panel p {
-    max-width: 72ch;
-    line-height: 1.9;
   }
 
   .event-body-panel p:first-of-type {
@@ -640,14 +566,9 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
   }
 
   .event-info-list {
-    display: grid;
     gap: 12px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
   }
 
-  .event-info-list li,
   .audience-card {
     display: grid;
     gap: 6px;
@@ -685,11 +606,6 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     flex-wrap: wrap;
   }
 
-  .registration-side {
-    position: sticky;
-    top: 104px;
-  }
-
   .registration-note-list {
     display: grid;
     gap: 10px;
@@ -703,8 +619,6 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
   }
 
   @media (max-width: 1100px) {
-    .event-detail-head-card,
-    .event-detail-layout,
     .registration-shell {
       grid-template-columns: 1fr;
     }
@@ -712,17 +626,9 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     .registration-form-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .registration-side {
-      position: static;
-    }
   }
 
   @media (max-width: 720px) {
-    .event-detail-shell {
-      padding-top: 4px;
-    }
-
     .event-detail-image {
       min-height: 220px;
     }

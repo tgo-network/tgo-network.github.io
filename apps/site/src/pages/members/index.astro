@@ -29,15 +29,12 @@ const initialMembers = members.slice(0, pageSize);
 
 <BaseLayout title="成员列表 | TGO 鲲鹏会" description="查看 TGO 鲲鹏会成员资料。">
   <main class="page-shell page-stack member-directory-shell">
-    <section class="section">
-      <article class="panel page-lead-card member-directory-intro">
+    <section class="section member-directory-section">
+      <div class="directory-header member-directory-head">
         <p class="page-eyebrow">成员列表</p>
         <h1>成员列表</h1>
-        <p>公开展示部分成员信息，可按城市分会筛选并继续查看成员详情。</p>
-      </article>
-    </section>
+      </div>
 
-    <section class="section member-directory-section">
       <div class="member-directory-toolbar">
         <div class="filter-bar" data-member-filters>
           <button class="filter-chip is-active" type="button" data-member-city="all">全部</button>
@@ -218,8 +215,8 @@ const initialMembers = members.slice(0, pageSize);
     gap: 18px;
   }
 
-  .member-directory-intro {
-    gap: 10px;
+  .member-directory-head {
+    padding-top: 6px;
   }
 
   :global(.member-directory-grid) {
