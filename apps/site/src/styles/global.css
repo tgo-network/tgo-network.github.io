@@ -86,8 +86,8 @@ summary:focus-visible {
   top: 0;
   z-index: 10;
   backdrop-filter: blur(18px);
-  background: rgba(248, 243, 234, 0.8);
-  border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+  background: rgba(245, 242, 236, 0.9);
+  border-bottom: 1px solid rgba(27, 23, 19, 0.1);
 }
 
 .site-header-inner,
@@ -104,7 +104,7 @@ summary:focus-visible {
 }
 
 .site-header-inner {
-  min-height: 74px;
+  min-height: 80px;
 }
 
 .site-brand {
@@ -120,9 +120,9 @@ summary:focus-visible {
   width: 42px;
   height: 42px;
   border-radius: 15px;
-  color: white;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  box-shadow: var(--shadow-strong);
+  color: var(--accent-strong);
+  background: linear-gradient(180deg, rgba(255, 254, 252, 0.96), rgba(239, 231, 220, 0.92));
+  border: 1px solid rgba(27, 23, 19, 0.08);
   font-size: 0.92rem;
 }
 
@@ -154,7 +154,7 @@ summary:focus-visible {
 }
 
 .site-nav-link {
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 999px;
   border: 1px solid transparent;
   font-size: 0.95rem;
@@ -163,8 +163,8 @@ summary:focus-visible {
 
 .site-nav-link.active {
   color: var(--ink);
-  border-color: var(--line);
-  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(27, 23, 19, 0.08);
+  background: rgba(255, 255, 255, 0.68);
 }
 
 .site-nav-link:hover {
@@ -174,8 +174,8 @@ summary:focus-visible {
 }
 
 .site-nav-link-cta {
-  border-color: rgba(200, 161, 93, 0.28);
-  background: rgba(255, 249, 239, 0.9);
+  border-color: rgba(200, 161, 93, 0.22);
+  background: rgba(255, 250, 242, 0.92);
   color: var(--accent-ink);
 }
 
@@ -782,12 +782,12 @@ textarea {
   margin-top: 10px;
   padding: 0;
   font-size: 0.86rem;
-  background: #efeae1;
-  border-top: 1px solid rgba(27, 23, 19, 0.09);
+  background: #f3eee6;
+  border-top: 1px solid rgba(27, 23, 19, 0.1);
 }
 
 .site-footer-shell {
-  width: min(980px, calc(100% - 32px));
+  width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
   padding: 0;
 }
@@ -797,8 +797,8 @@ textarea {
   gap: 24px;
   justify-content: space-between;
   align-items: center;
-  min-height: 44px;
-  padding: 12px 2px;
+  min-height: 52px;
+  padding: 14px 0;
 }
 
 .site-footer-copy {
@@ -806,7 +806,7 @@ textarea {
   color: rgba(93, 82, 72, 0.72);
   line-height: 1.5;
   text-align: left;
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   letter-spacing: 0;
   white-space: nowrap;
   flex: 0 0 auto;
@@ -825,7 +825,7 @@ textarea {
   position: relative;
   color: rgba(93, 82, 72, 0.8);
   font-weight: 500;
-  font-size: 0.77rem;
+  font-size: 0.76rem;
   padding: 0 0 3px;
   white-space: nowrap;
   transition:
@@ -873,6 +873,23 @@ textarea {
   .form-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .site-header-inner {
+    min-height: auto;
+    padding: 12px 0;
+  }
+
+  .site-nav {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .site-nav-link {
+    flex: 0 0 auto;
   }
 
   .hero-card,
