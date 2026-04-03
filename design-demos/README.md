@@ -2,8 +2,10 @@
 
 这个目录用于放置不影响当前 `apps/site` 的前台风格探索 demo。
 
-当前包含三套静态方案：
+当前包含四套静态方案：
 
+- `official-network/`
+  - 正式候选版，机构型科技社区官网方向
 - `atlas-ink/`
   - 方案 A，东方克制型
 - `summit-signal/`
@@ -26,6 +28,7 @@ npm run dev:demos
 然后访问：
 
 - `http://127.0.0.1:4311/design-demos/`
+- `http://127.0.0.1:4311/design-demos/official-network/`
 - `http://127.0.0.1:4311/design-demos/atlas-ink/`
 - `http://127.0.0.1:4311/design-demos/summit-signal/`
 - `http://127.0.0.1:4311/design-demos/member-house/`
