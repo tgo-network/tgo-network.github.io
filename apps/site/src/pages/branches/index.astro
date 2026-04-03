@@ -27,18 +27,20 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 ---
 
 <BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会董事会成员信息。">
-  <main class="page-shell page-stack">
+  <main class="page-shell page-stack branch-directory-shell">
     <section class="section">
-      <article class="panel branch-directory-intro">
+      <article class="panel page-lead-card branch-directory-intro">
+        <p class="page-eyebrow">分会董事会</p>
         <h1>分会董事会</h1>
+        <p>公开展示各地分会与董事会成员信息，帮助访客快速了解社区的城市网络与组织结构。</p>
       </article>
     </section>
 
-    <section class="section branches-directory">
+    <section class="section branch-directory-section">
       <div class="branch-record-list">
         {
           branches.map((branch) => (
-            <article id={branch.slug} class="panel branch-record">
+            <article id={branch.slug} class="panel branch-record-card">
               <div class="branch-record-head">
                 <h2 class="branch-record-title">{getBranchDisplayName(branch)}</h2>
               </div>
@@ -47,7 +49,7 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
                 {
                   branch.boardMembers.map((member) => (
                     <article class="branch-board-card">
-                      <div class="branch-board-media">
+                      <div class="branch-board-profile">
                         {
                           member.avatar ? (
                             <img class="branch-board-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
@@ -57,12 +59,12 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
                             </div>
                           )
                         }
-                      </div>
 
-                      <div class="branch-board-copy">
-                        <div class="card-label">{member.title}</div>
-                        <h3>{member.displayName}</h3>
-                        <p>{member.company}</p>
+                        <div class="branch-board-copy">
+                          <p class="branch-board-role">{member.title}</p>
+                          <h3>{member.displayName}</h3>
+                          <p class="branch-board-company">{member.company}</p>
+                        </div>
                       </div>
                     </article>
                   ))
@@ -77,135 +79,111 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 </BaseLayout>
 
 <style>
+  .branch-directory-shell {
+    padding-top: 10px;
+    padding-bottom: 48px;
+  }
+
   .branch-directory-intro {
-    display: grid;
     gap: 10px;
-    padding: clamp(24px, 3vw, 30px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
   }
 
-  .branch-directory-intro h1 {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3.1rem);
-  }
-
-  .branches-directory,
+  .branch-directory-section,
   .branch-record-list {
-    display: grid;
-    gap: 24px;
-  }
-
-  .branch-record-list {
-    gap: 26px;
-  }
-
-  .branch-record {
     display: grid;
     gap: 20px;
-    padding: clamp(22px, 3vw, 30px);
   }
 
-  .branch-record-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+  .branch-record-card {
+    display: grid;
+    gap: 18px;
+    padding: clamp(22px, 2.8vw, 30px);
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
-  .branch-record-title {
+  .branch-record-head h2,
+  .branch-board-copy h3 {
     margin: 0;
-    font-size: clamp(1.7rem, 3vw, 2.35rem);
+  }
+
+  .branch-record-head h2 {
+    font-size: clamp(1.56rem, 2.4vw, 2.16rem);
+    line-height: 1.12;
   }
 
   .branch-board-grid {
     display: grid;
-    gap: 18px;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 220px));
-    justify-content: flex-start;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
   }
 
   .branch-board-card {
-    display: grid;
-    gap: 14px;
     min-height: 100%;
-    padding: 16px;
-    border-radius: 22px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 240, 231, 0.96));
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
   .branch-board-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(157, 111, 49, 0.24);
-    box-shadow: 0 24px 42px rgba(40, 28, 18, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(138, 106, 67, 0.18);
+    box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
   }
 
-  .branch-board-media {
-    overflow: hidden;
-    border-radius: 18px;
-    background: rgba(31, 26, 23, 0.06);
-    aspect-ratio: 4 / 5;
+  .branch-board-profile {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    align-items: center;
   }
 
   .branch-board-avatar {
-    display: block;
-    width: 100%;
-    height: 100%;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
     object-fit: cover;
+    background: rgba(27, 23, 19, 0.06);
   }
 
   .branch-board-avatar-fallback {
     display: grid;
     place-items: center;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
-    color: #fff7ef;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: linear-gradient(180deg, rgba(255, 254, 252, 0.96), rgba(239, 231, 220, 0.92));
+    color: var(--accent-strong);
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 1.46rem;
   }
 
   .branch-board-copy {
     display: grid;
     gap: 6px;
+    align-content: start;
   }
 
-  .branch-board-copy h3 {
-    margin: 2px 0 0;
-    font-size: 1.05rem;
+  .branch-board-role {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
-  .branch-board-copy p {
+  .branch-board-company {
     margin: 0;
     color: var(--muted);
-    line-height: 1.72;
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    line-height: 1.7;
   }
 
-  @media (max-width: 640px) {
-    .branch-board-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      justify-content: stretch;
+  @media (max-width: 720px) {
+    .branch-directory-shell {
+      padding-top: 4px;
     }
-  }
 
-  @media (max-width: 520px) {
     .branch-board-grid {
       grid-template-columns: 1fr;
-    }
-
-    .branch-board-card {
-      grid-template-columns: 72px minmax(0, 1fr);
-      align-items: center;
-    }
-
-    .branch-board-media {
-      aspect-ratio: 1 / 1;
     }
   }
 </style>

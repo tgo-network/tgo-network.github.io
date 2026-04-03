@@ -4,9 +4,10 @@ import { officialFaqItems } from "../lib/official-content";
 ---
 
 <BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
-  <main class="page-shell page-stack">
+  <main class="page-shell page-stack faq-page-shell">
     <section class="section">
-      <article class="panel faq-intro-card">
+      <article class="panel page-lead-card faq-page-intro">
+        <p class="page-eyebrow">FAQ</p>
         <h1>常见问题</h1>
         <p>集中查看加入标准、活动参与方式、董事会职责与会费相关问题。</p>
       </article>
@@ -15,7 +16,7 @@ import { officialFaqItems } from "../lib/official-content";
     <section class="section faq-section">
       <div class="faq-list">
         {
-          officialFaqItems.map((item, index) => {
+          officialFaqItems.map((item) => {
             const externalLink = item.link?.href.startsWith("http");
             const cardsVisual = item.visual?.type === "cards" ? item.visual : null;
             const stepsVisual = item.visual?.type === "steps" ? item.visual : null;
@@ -24,7 +25,6 @@ import { officialFaqItems } from "../lib/official-content";
             return (
               <details class="panel faq-item">
                 <summary>
-                  <span class="faq-index">{String(index + 1).padStart(2, "0")}</span>
                   <span>{item.question}</span>
                 </summary>
 
@@ -44,7 +44,6 @@ import { officialFaqItems } from "../lib/official-content";
 
                   {cardsVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{cardsVisual.caption}</p>
                       <div class="faq-card-grid">
                         {cardsVisual.items.map((entry) => (
                           <article class="faq-card-item">
@@ -58,7 +57,6 @@ import { officialFaqItems } from "../lib/official-content";
 
                   {stepsVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{stepsVisual.caption}</p>
                       <ol class="faq-step-list">
                         {stepsVisual.items.map((step, stepIndex) => (
                           <li class="faq-step-item">
@@ -75,7 +73,6 @@ import { officialFaqItems } from "../lib/official-content";
 
                   {tableVisual ? (
                     <div class="faq-visual-panel">
-                      <p class="faq-visual-caption">{tableVisual.caption}</p>
                       <div class="faq-table-wrap">
                         <table class="faq-comparison-table">
                           <thead>
@@ -133,7 +130,12 @@ import { officialFaqItems } from "../lib/official-content";
 </BaseLayout>
 
 <style>
-  .faq-intro-card,
+  .faq-page-shell {
+    padding-top: 10px;
+    padding-bottom: 48px;
+  }
+
+  .faq-page-intro,
   .faq-section,
   .faq-list {
     display: grid;
@@ -141,62 +143,40 @@ import { officialFaqItems } from "../lib/official-content";
   }
 
   .faq-section {
-    width: min(1040px, 100%);
+    width: min(980px, 100%);
     margin: 0 auto;
   }
 
-  .faq-intro-card {
-    gap: 12px;
-    padding: clamp(22px, 3vw, 28px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 28%),
-      linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 238, 226, 0.96));
-    border-color: rgba(157, 111, 49, 0.14);
-  }
-
-  .faq-intro-card h1 {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-  }
-
-  .faq-intro-card p {
-    margin: 0;
-    max-width: 48rem;
-    color: var(--muted);
-    line-height: 1.78;
+  .faq-page-intro {
+    gap: 10px;
   }
 
   .faq-item {
     padding: 0;
     overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .faq-item[open] {
-    border-color: rgba(157, 111, 49, 0.14);
-    box-shadow:
-      0 28px 60px rgba(40, 28, 18, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    border-color: rgba(138, 106, 67, 0.16);
+    box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
   }
 
   .faq-item summary {
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 12px;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
     align-items: center;
-    padding: 16px 20px;
+    padding: 18px 22px;
     cursor: pointer;
     list-style: none;
     font-weight: 700;
-    font-size: 0.95rem;
-    transition: background 180ms ease;
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   .faq-item summary::-webkit-details-marker {
     display: none;
-  }
-
-  .faq-item summary:hover {
-    background: rgba(255, 255, 255, 0.28);
   }
 
   .faq-item summary::after {
@@ -204,7 +184,6 @@ import { officialFaqItems } from "../lib/official-content";
     color: var(--accent-strong);
     font-size: 1.35rem;
     line-height: 1;
-    transition: transform 180ms ease;
   }
 
   .faq-item[open] summary::after {
@@ -212,212 +191,110 @@ import { officialFaqItems } from "../lib/official-content";
   }
 
   .faq-item[open] summary {
-    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
-  }
-
-  .faq-index {
-    display: inline-grid;
-    place-items: center;
-    min-width: 38px;
-    height: 38px;
-    padding: 0 9px;
-    border-radius: 999px;
-    background: rgba(200, 161, 93, 0.12);
-    color: var(--accent-strong);
-    font-size: 0.84rem;
-    letter-spacing: 0.04em;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .faq-answer {
     display: grid;
     gap: 16px;
-    padding: 18px 22px 22px;
+    padding: 20px 22px 24px;
+  }
+
+  .faq-answer p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.84;
   }
 
   .faq-answer .text-link {
     width: fit-content;
   }
 
-  .faq-answer p {
-    margin: 0;
-    color: var(--muted);
-    line-height: 1.82;
-  }
-
-  .faq-key-value-list {
+  .faq-key-value-list,
+  .faq-card-grid,
+  .faq-comparison-cards {
     display: grid;
     gap: 12px;
   }
 
-  .faq-key-value-item {
-    display: grid;
-    gap: 6px;
+  .faq-key-value-item,
+  .faq-card-item,
+  .faq-comparison-card {
     padding: 16px 18px;
     border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
-  .faq-key-value-item strong {
-    color: var(--ink);
-  }
-
-  .faq-key-value-item span {
-    color: var(--muted);
-    line-height: 1.72;
-  }
-
-  .faq-visual-panel {
-    display: grid;
-    gap: 14px;
-    padding: 18px;
-    border-radius: 22px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.12), transparent 28%),
-      rgba(255, 255, 255, 0.72);
-  }
-
-  .faq-visual-caption {
-    margin: 0;
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(93, 82, 72, 0.72);
-  }
-
-  .faq-card-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+  .faq-key-value-item,
   .faq-card-item {
     display: grid;
-    gap: 8px;
-    padding: 16px 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.68);
-  }
-
-  .faq-card-item strong,
-  .faq-step-item strong {
-    color: var(--ink);
-    font-size: 1.02rem;
-  }
-
-  .faq-card-item p,
-  .faq-step-item p {
-    margin: 0;
+    gap: 6px;
   }
 
   .faq-step-list {
-    list-style: none;
     display: grid;
     gap: 12px;
     margin: 0;
     padding: 0;
+    list-style: none;
   }
 
   .faq-step-item {
     display: grid;
-    gap: 14px;
     grid-template-columns: auto 1fr;
+    gap: 14px;
     align-items: start;
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
-  }
-
-  .faq-step-item:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .faq-step-index {
     display: inline-grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 999px;
-    background: rgba(200, 161, 93, 0.16);
+    background: rgba(138, 106, 67, 0.1);
     color: var(--accent-strong);
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     font-weight: 700;
   }
 
-  @media (min-width: 1120px) {
-    .faq-card-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
+  .faq-step-item strong,
+  .faq-card-item strong,
+  .faq-key-value-item strong,
+  .faq-comparison-card h3 {
+    margin: 0;
+  }
 
-    .faq-card-item {
-      align-content: start;
-      min-height: 188px;
-    }
-
-    .faq-step-list {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .faq-step-item {
-      position: relative;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      min-height: 188px;
-      padding: 18px 18px 16px;
-      border: 1px solid rgba(31, 26, 23, 0.08);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.68);
-    }
-
-    .faq-step-item::after {
-      content: "→";
-      position: absolute;
-      top: 20px;
-      right: -12px;
-      color: rgba(200, 161, 93, 0.82);
-      font-size: 1rem;
-      line-height: 1;
-    }
-
-    .faq-step-item:last-child::after {
-      content: none;
-    }
+  .faq-step-item p,
+  .faq-card-item p {
+    margin-top: 6px;
   }
 
   .faq-table-wrap {
     overflow-x: auto;
-  }
-
-  .faq-comparison-cards {
-    display: none;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .faq-comparison-table {
     width: 100%;
-    min-width: 760px;
     border-collapse: collapse;
+    min-width: 640px;
   }
 
-  .faq-comparison-table thead th {
-    padding: 14px 12px;
-    border-bottom: 1px solid rgba(31, 26, 23, 0.12);
+  .faq-comparison-table th,
+  .faq-comparison-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     text-align: left;
-    font-size: 0.88rem;
-    color: var(--ink);
-    white-space: nowrap;
-  }
-
-  .faq-comparison-table tbody th,
-  .faq-comparison-table tbody td {
-    padding: 14px 12px;
-    border-bottom: 1px solid rgba(31, 26, 23, 0.08);
-    text-align: left;
+    line-height: 1.7;
     vertical-align: top;
-    line-height: 1.72;
   }
 
   .faq-comparison-table tbody tr:last-child th,
@@ -425,25 +302,17 @@ import { officialFaqItems } from "../lib/official-content";
     border-bottom: 0;
   }
 
-  .faq-comparison-table tbody th {
-    width: 170px;
+  .faq-comparison-table th {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .faq-comparison-table td {
     color: var(--muted);
-    font-size: 0.84rem;
-    font-weight: 600;
   }
 
-  .faq-comparison-card {
-    display: grid;
-    gap: 14px;
-    padding: 16px 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.68);
-  }
-
-  .faq-comparison-card h3 {
-    margin: 0;
-    font-size: 1rem;
+  .faq-comparison-cards {
+    display: none;
   }
 
   .faq-comparison-card dl {
@@ -454,76 +323,40 @@ import { officialFaqItems } from "../lib/official-content";
 
   .faq-comparison-card-row {
     display: grid;
-    gap: 6px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(31, 26, 23, 0.08);
+    gap: 4px;
   }
 
-  .faq-comparison-card-row:first-child {
-    padding-top: 0;
-    border-top: 0;
-  }
-
-  .faq-comparison-card dt {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.82rem;
+  .faq-comparison-card-row dt {
+    color: var(--ink);
     font-weight: 600;
   }
 
-  .faq-comparison-card dd {
+  .faq-comparison-card-row dd {
     margin: 0;
-    color: var(--ink);
-    line-height: 1.68;
+    color: var(--muted);
+    line-height: 1.76;
   }
 
   @media (max-width: 720px) {
+    .faq-page-shell {
+      padding-top: 4px;
+    }
+
+    .faq-item summary {
+      padding: 16px 18px;
+      font-size: 0.96rem;
+    }
+
+    .faq-answer {
+      padding: 18px 18px 22px;
+    }
+
     .faq-table-wrap {
       display: none;
     }
 
     .faq-comparison-cards {
       display: grid;
-      gap: 12px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .faq-intro-card,
-    .faq-section,
-    .faq-list {
-      gap: 16px;
-    }
-
-    .faq-item summary,
-    .faq-answer {
-      padding-left: 18px;
-      padding-right: 18px;
-    }
-
-    .faq-item summary {
-      grid-template-columns: auto 1fr auto;
-      align-items: start;
-      gap: 10px;
-      padding-top: 15px;
-      padding-bottom: 15px;
-      font-size: 0.91rem;
-    }
-
-    .faq-index {
-      min-width: 34px;
-      height: 34px;
-      font-size: 0.78rem;
-    }
-
-    .faq-card-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .faq-step-item {
-      gap: 12px;
-      grid-template-columns: 1fr;
-      min-height: 0;
     }
   }
 </style>

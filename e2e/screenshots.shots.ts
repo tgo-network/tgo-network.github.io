@@ -45,15 +45,15 @@ test.describe.configure({ mode: "serial" });
 
 test("capture public site screenshots", async ({ page }) => {
   const siteRoutes = [
-    { path: "/", name: "home", assertReady: expectMainHeading("面向科技领导者的高质量学习社区") },
+    { path: "/", name: "home", assertReady: expectMainHeading("科技领导者的长期学习与交流社区") },
     { path: "/branches", name: "branches", assertReady: expectMainHeading("分会董事会") },
     { path: "/members", name: "members", assertReady: expectMainHeading("成员列表") },
     { path: "/members/member-2", name: "member-detail", assertReady: expectMainHeading("郭理靖") },
-    { path: "/events", name: "events", assertReady: expectMainHeading("各地分会活动") },
+    { path: "/events", name: "events", assertReady: expectMainHeading("活动") },
     { path: "/events/event-1816", name: "event-detail", assertReady: expectMainHeading("第一届龙虾AI大会：ClawCon") },
     { path: "/articles", name: "articles", assertReady: expectArticlesIndexReady },
     { path: "/articles/what-a-city-hub-needs", name: "article-detail", assertReady: expectMainHeading("一座城市主页在真正活起来之前需要什么") },
-    { path: "/join", name: "join", assertReady: expectMainHeading("面向技术领导者的高质量同侪网络") },
+    { path: "/join", name: "join", assertReady: expectMainHeading("加入申请") },
     { path: "/about", name: "about", assertReady: expectMainHeading("关于 TGO 鲲鹏会") },
     { path: "/faq", name: "faq", assertReady: expectMainHeading("常见问题") },
     { path: "/privacy", name: "privacy", assertReady: expectMainHeading("隐私说明") },

@@ -21,7 +21,7 @@ const expectArticlesIndexReady = async (page: Page) => {
 const keyRoutes = [
   {
     path: "/",
-    assertReady: expectMainHeading("面向科技领导者的高质量学习社区")
+    assertReady: expectMainHeading("科技领导者的长期学习与交流社区")
   },
   {
     path: "/branches",
@@ -33,7 +33,7 @@ const keyRoutes = [
   },
   {
     path: "/events",
-    assertReady: expectMainHeading("各地分会活动")
+    assertReady: expectMainHeading("活动")
   },
   {
     path: "/articles",
@@ -41,7 +41,7 @@ const keyRoutes = [
   },
   {
     path: "/join",
-    assertReady: expectMainHeading("面向技术领导者的高质量同侪网络")
+    assertReady: expectMainHeading("加入申请")
   },
   {
     path: "/about",
@@ -110,7 +110,7 @@ test("public homepage exposes the main content collections", async ({ page }) =>
   await page.goto(siteUrl);
   const primaryNav = page.getByRole("navigation", { name: "主导航" });
 
-  await expect(page.getByRole("heading", { name: "面向科技领导者的高质量学习社区" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "科技领导者的长期学习与交流社区" })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "分会董事会", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "成员列表", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "活动", exact: true })).toBeVisible();
@@ -118,8 +118,8 @@ test("public homepage exposes the main content collections", async ({ page }) =>
   await expect(primaryNav.getByRole("link", { name: "加入申请", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "FAQ", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "成员推荐" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "近期活动" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "文章" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期公开活动" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "技术管理与组织实践沉淀" })).toBeVisible();
 });
 
 test("public application form submits successfully", async ({ page }) => {
@@ -234,15 +234,15 @@ test("public members listing keeps styled card layout after client render", asyn
       cardDisplay: firstCard ? getComputedStyle(firstCard).display : "",
       headColumns: firstHead ? getComputedStyle(firstHead).gridTemplateColumns.trim().split(/\s+/).length : 0,
       avatarWidth: firstAvatar ? getComputedStyle(firstAvatar).width : "0px",
-      avatarBackgroundImage: firstAvatar ? getComputedStyle(firstAvatar).backgroundImage : "none"
+      avatarHeight: firstAvatar ? getComputedStyle(firstAvatar).height : "0px"
     };
   });
 
   expect(layout.gridColumns, "成员列表桌面端应保持四列网格").toBe(4);
   expect(layout.cardDisplay, "成员卡片应保持网格布局").toBe("grid");
   expect(layout.headColumns, "成员卡片头部应保持头像与文字两列布局").toBe(2);
-  expect(layout.avatarWidth, "成员头像尺寸异常，可能样式未命中").toBe("68px");
-  expect(layout.avatarBackgroundImage, "成员头像回退样式未命中").not.toBe("none");
+  expect(layout.avatarWidth, "成员头像尺寸异常，可能样式未命中").toBe("72px");
+  expect(layout.avatarHeight, "成员头像高度异常，可能样式未命中").toBe("72px");
   await expectNoHorizontalOverflow(page, "desktop:members-directory-cards");
 });
 
@@ -273,7 +273,7 @@ test("public content drill-down routes expose the expected detail content", asyn
   await page.goto(`${siteUrl}/about`, { waitUntil: "networkidle" });
   await page.locator(".about-cta-card").getByRole("link", { name: "加入申请" }).click();
   await expect(page).toHaveURL(/\/join$/);
-  await expect(page.locator("main h1").filter({ hasText: "面向技术领导者的高质量同侪网络" })).toBeVisible();
+  await expect(page.locator("main h1").filter({ hasText: "加入申请" })).toBeVisible();
 });
 
 test("branches page shows imported board member records", async ({ page }) => {

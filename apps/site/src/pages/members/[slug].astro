@@ -33,58 +33,60 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
 ---
 
 <BaseLayout title={`${member.name} | 成员 | TGO 鲲鹏会`} description={`${member.company} · ${member.title}`}>
-  <main class="page-shell page-stack">
-    <section class="section member-profile-layout">
-      <article class="panel member-profile-main">
-        <div class="member-profile-head">
-          {
-            member.avatar ? (
-              <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
-            ) : (
-              <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
-                {member.name.slice(0, 1)}
+  <main class="page-shell page-stack member-detail-shell">
+    <section class="section member-detail-section">
+      <div class="member-detail-layout">
+        <article class="panel member-profile-card">
+          <div class="member-profile-head">
+            {
+              member.avatar ? (
+                <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
+              ) : (
+                <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
+                  {member.name.slice(0, 1)}
+                </div>
+              )
+            }
+
+            <div class="member-profile-copy">
+              <p class="page-eyebrow member-profile-eyebrow">{member.branch?.name ?? "TGO 鲲鹏会成员"}</p>
+              <h1>{member.name}</h1>
+              <p class="member-profile-role">{member.company} · {member.title}</p>
+              <div class="member-profile-bio">
+                <p>{member.bio}</p>
               </div>
-            )
-          }
-
-          <div class="member-profile-copy">
-            <h1>{member.name}</h1>
-            <p class="member-profile-role">{member.company} · {member.title}</p>
-            <ul class="meta-list member-profile-meta">
-              <li>{member.branch?.name ?? "成员"}</li>
-              <li>{formatDate(member.joinedAt)}</li>
-            </ul>
+            </div>
           </div>
-        </div>
+        </article>
 
-        <div class="member-profile-body member-profile-bio">
-          <p>{member.bio}</p>
-        </div>
-      </article>
+        <aside class="panel panel-soft member-profile-side">
+          <ul class="member-profile-list">
+            <li>
+              <span>所属分会</span>
+              <strong>{member.branch?.name ?? "待补充"}</strong>
+            </li>
+            <li>
+              <span>加入时间</span>
+              <strong>{formatDate(member.joinedAt)}</strong>
+            </li>
+            <li>
+              <span>公开身份</span>
+              <strong>TGO 鲲鹏会成员</strong>
+            </li>
+          </ul>
 
-      <aside class="panel panel-soft member-profile-side">
-        <ul class="member-profile-list">
-          <li>
-            <span>所属分会</span>
-            <strong>{member.branch?.name ?? "待补充"}</strong>
-          </li>
-          <li>
-            <span>加入时间</span>
-            <strong>{formatDate(member.joinedAt)}</strong>
-          </li>
-        </ul>
-
-        <div class="member-profile-actions">
-          {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
-          <a class="button secondary" href="/members">返回成员列表</a>
-        </div>
-      </aside>
+          <div class="member-profile-actions">
+            {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
+            <a class="button secondary" href="/members">返回成员列表</a>
+          </div>
+        </aside>
+      </div>
     </section>
 
     {branch && (
-      <section class="section">
-        <div class="panel member-context-panel">
-          <article class="member-context-branch">
+      <section class="section member-context-section">
+        <div class="member-context-grid">
+          <article class="panel member-context-branch">
             <h2>{branch.name}</h2>
 
             {
@@ -98,12 +100,10 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
             <p>{branch.summary}</p>
             {showBranchBodyExcerpt && <p>{branchBodyExcerpt}</p>}
 
-            <div class="member-branch-footer">
-              <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
-            </div>
+            <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
           </article>
 
-          <aside class="member-context-board">
+          <article class="panel member-context-board">
             <div class="member-context-board-head">
               <h2>董事会成员</h2>
               <a class="text-link" href={`/branches#${branch.slug}`}>查看完整列表</a>
@@ -116,12 +116,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
                     <div class="member-board-head">
                       {
                         boardMember.avatar ? (
-                          <img
-                            class="member-board-avatar"
-                            src={boardMember.avatar.url}
-                            alt={boardMember.avatar.alt}
-                            loading="lazy"
-                          />
+                          <img class="member-board-avatar" src={boardMember.avatar.url} alt={boardMember.avatar.alt} loading="lazy" />
                         ) : (
                           <div class="member-board-avatar member-board-avatar-fallback" aria-hidden="true">
                             {boardMember.displayName.slice(0, 1)}
@@ -139,7 +134,7 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
                 ))
               }
             </div>
-          </aside>
+          </article>
         </div>
       </section>
     )}
@@ -147,33 +142,29 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
 </BaseLayout>
 
 <style>
-  .member-profile-layout {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-    align-items: stretch;
+  .member-detail-shell {
+    padding-top: 10px;
+    padding-bottom: 48px;
   }
 
-  .member-profile-main,
+  .member-detail-layout,
+  .member-context-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .member-detail-layout {
+    grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+    align-items: start;
+  }
+
+  .member-profile-card,
   .member-profile-side,
-  .member-context-panel,
   .member-context-branch,
   .member-context-board {
     display: grid;
-    gap: 20px;
-  }
-
-  .member-profile-main {
-    min-height: 100%;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 240, 231, 0.94));
-  }
-
-  .member-profile-side {
-    position: sticky;
-    top: 104px;
-    min-height: 100%;
-    align-content: start;
-    background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(246, 239, 229, 0.94));
+    gap: 18px;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .member-profile-head {
@@ -186,58 +177,62 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   .member-profile-avatar {
     width: 132px;
     height: 132px;
-    border-radius: 32px;
+    border-radius: 24px;
     object-fit: cover;
-    box-shadow: 0 18px 36px rgba(40, 28, 18, 0.14);
+    background: rgba(27, 23, 19, 0.06);
+  }
+
+  .member-profile-avatar-fallback,
+  .member-board-avatar-fallback {
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: linear-gradient(180deg, rgba(255, 254, 252, 0.96), rgba(239, 231, 220, 0.92));
+    color: var(--accent-strong);
+    font-family: var(--font-display);
   }
 
   .member-profile-avatar-fallback {
+    font-size: 2.3rem;
+  }
+
+  .member-profile-copy {
     display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
-    color: #fff7ef;
-    font-family: var(--font-display);
-    font-size: 2.4rem;
+    gap: 10px;
+  }
+
+  .member-profile-eyebrow {
+    margin-bottom: 0;
+  }
+
+  .member-profile-copy h1,
+  .member-context-branch h2,
+  .member-context-board h2 {
+    margin: 0;
   }
 
   .member-profile-copy h1 {
-    margin: 0 0 8px;
-    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-size: clamp(1.9rem, 3vw, 2.7rem);
+    line-height: 1.08;
+  }
+
+  .member-profile-role,
+  .member-profile-bio p,
+  .member-context-branch p,
+  .member-board-copy span,
+  .member-board-copy small {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.8;
   }
 
   .member-profile-role {
-    font-size: 1.02rem;
-  }
-
-  .member-profile-copy p,
-  .member-profile-body p {
-    margin: 0;
-    color: var(--muted);
-    line-height: 1.85;
-  }
-
-  .member-profile-copy p {
-    max-width: 34rem;
-  }
-
-  .member-profile-meta {
-    margin-top: 14px;
-  }
-
-  .member-profile-body {
-    display: grid;
-    gap: 0;
-  }
-
-  .member-profile-body p:first-of-type {
     color: var(--ink);
+    font-weight: 600;
   }
 
   .member-profile-bio {
-    padding: 18px 20px;
-    border-radius: 22px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.66);
+    padding-top: 6px;
   }
 
   .member-profile-list {
@@ -253,50 +248,30 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     gap: 6px;
     padding: 16px 18px;
     border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .member-profile-list span {
     color: var(--muted);
-    font-size: 0.86rem;
+    font-size: 0.84rem;
+    letter-spacing: 0.04em;
+  }
+
+  .member-profile-side {
+    position: sticky;
+    top: 104px;
+    align-content: start;
   }
 
   .member-profile-actions {
-    display: flex;
+    display: grid;
     gap: 12px;
-    flex-wrap: wrap;
-    margin-top: auto;
   }
 
-  .member-context-panel {
-    grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+  .member-context-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.94fr);
     align-items: start;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(247, 239, 229, 0.94));
-  }
-
-  .member-context-branch,
-  .member-context-board {
-    min-height: 100%;
-  }
-
-  .member-context-branch h2,
-  .member-context-board h2 {
-    margin: 0;
-    font-size: clamp(1.45rem, 2.4vw, 2rem);
-  }
-
-  .member-context-board-head {
-    display: flex;
-    gap: 14px;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-
-  .member-context-branch p {
-    margin: 0;
-    line-height: 1.82;
   }
 
   .member-branch-figure {
@@ -306,55 +281,45 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
   .member-branch-image {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 24px;
+    border-radius: 18px;
     object-fit: cover;
-    box-shadow: 0 18px 36px rgba(40, 28, 18, 0.12);
   }
 
-  .member-branch-footer {
+  .member-context-board-head {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .member-board-list {
     display: grid;
     gap: 12px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .member-board-card {
-    display: block;
-    padding: 14px 16px;
+    padding: 16px 18px;
     border-radius: 18px;
-    border: 1px solid rgba(31, 26, 23, 0.08);
-    background: rgba(255, 255, 255, 0.66);
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .member-board-head {
     display: grid;
     gap: 12px;
-    grid-template-columns: 52px minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: 60px minmax(0, 1fr);
+    align-items: center;
   }
 
   .member-board-avatar {
-    width: 52px;
-    height: 52px;
+    width: 60px;
+    height: 60px;
     border-radius: 16px;
     object-fit: cover;
-    background: rgba(31, 26, 23, 0.08);
+    background: rgba(27, 23, 19, 0.06);
   }
 
   .member-board-avatar-fallback {
-    display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, rgba(200, 161, 93, 0.94), rgba(157, 111, 49, 0.94));
-    color: #fff7ef;
-    font-family: var(--font-display);
     font-size: 1.2rem;
   }
 
@@ -363,54 +328,29 @@ const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !==
     gap: 4px;
   }
 
-  .member-board-card span,
-  .member-board-card small {
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  .member-board-card small {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  @media (max-width: 900px) {
-    .member-profile-layout,
-    .member-context-panel {
+  @media (max-width: 980px) {
+    .member-detail-layout,
+    .member-context-grid {
       grid-template-columns: 1fr;
     }
 
     .member-profile-side {
       position: static;
     }
-
-    .member-board-list {
-      grid-template-columns: 1fr;
-    }
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 720px) {
+    .member-detail-shell {
+      padding-top: 4px;
+    }
+
     .member-profile-head {
       grid-template-columns: 1fr;
     }
 
-    .member-profile-actions {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .member-context-board-head {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .member-profile-avatar,
-    .member-profile-avatar-fallback {
-      width: 112px;
-      height: 112px;
-      border-radius: 28px;
+    .member-profile-avatar {
+      width: 96px;
+      height: 96px;
     }
   }
 </style>
