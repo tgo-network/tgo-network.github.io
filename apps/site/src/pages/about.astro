@@ -7,16 +7,19 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
   <main class="page-shell page-stack about-page-shell">
-    <section class="section about-page-intro-section">
-      <article class="panel page-lead-card about-page-intro-card">
-        <p class="page-eyebrow">关于我们</p>
-        <h1>{officialAboutIntro.title}</h1>
-        <p>{officialAboutIntro.summary}</p>
-      </article>
+    <section class="section">
+      <article class="panel about-page-overview-card">
+        <div class="about-page-overview-copy">
+          <p class="page-eyebrow">关于我们</p>
+          <h1>{officialAboutIntro.title}</h1>
+          <p>{officialAboutIntro.summary}</p>
+        </div>
 
-      <article class="panel about-page-lead-panel">
-        <h2>{officialAboutIntro.leadTitle}</h2>
-        <p>{officialAboutIntro.leadBody}</p>
+        <div class="about-page-overview-side">
+          <p class="about-page-overview-label">长期参与方式</p>
+          <h2>{officialAboutIntro.leadTitle}</h2>
+          <p>{officialAboutIntro.leadBody}</p>
+        </div>
       </article>
     </section>
 
@@ -69,35 +72,61 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     padding-bottom: 48px;
   }
 
-  .about-page-intro-section,
   .about-section-list {
     display: grid;
     gap: 18px;
   }
 
-  .about-page-intro-card {
-    gap: 10px;
-  }
-
-  .about-page-lead-panel {
+  .about-page-overview-card {
     display: grid;
-    gap: 14px;
-    padding: clamp(22px, 2.8vw, 28px);
+    gap: 24px;
+    grid-template-columns: minmax(0, 1.04fr) minmax(300px, 0.96fr);
+    align-items: start;
+    padding: clamp(24px, 3vw, 32px);
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
-  .about-page-lead-panel h2,
+  .about-page-overview-copy,
+  .about-page-overview-side {
+    display: grid;
+    gap: 12px;
+  }
+
+  .about-page-overview-copy h1,
+  .about-page-overview-side h2,
   .about-section-copy h2,
   .about-cta-card h2 {
     margin: 0;
   }
 
-  .about-page-lead-panel p,
+  .about-page-overview-copy h1 {
+    font-size: clamp(2.1rem, 4vw, 3.3rem);
+    line-height: 1.04;
+  }
+
+  .about-page-overview-copy p,
+  .about-page-overview-side p,
   .about-section-copy p,
   .about-cta-card p {
     margin: 0;
     color: var(--muted);
     line-height: 1.84;
+  }
+
+  .about-page-overview-copy p:last-child {
+    max-width: 42rem;
+  }
+
+  .about-page-overview-side {
+    padding: 2px 0 0 22px;
+    border-left: 1px solid rgba(27, 23, 19, 0.08);
+  }
+
+  .about-page-overview-label {
+    color: var(--accent-strong);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .about-section-card,
@@ -153,6 +182,10 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     align-content: start;
   }
 
+  .about-section-copy p {
+    max-width: 42rem;
+  }
+
   .about-cta-card {
     grid-template-columns: minmax(0, 1fr) auto;
     padding: clamp(22px, 2.8vw, 30px);
@@ -168,10 +201,18 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
   }
 
   @media (max-width: 980px) {
+    .about-page-overview-card,
     .about-section-card,
     .about-section-card.is-reversed,
     .about-cta-card {
       grid-template-columns: 1fr;
+    }
+
+    .about-page-overview-side {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid rgba(27, 23, 19, 0.08);
+      padding-top: 18px;
     }
 
     .about-section-card.is-reversed .about-section-media,
