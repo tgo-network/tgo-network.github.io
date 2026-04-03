@@ -11,6 +11,7 @@
     "dev:site": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/site dev",
     "dev:admin": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/admin dev",
     "dev:api": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/api dev",
+    "dev:demos": "node scripts/serve-design-demos.mjs",
     "infra:up": "docker compose up -d",
     "infra:up:storage": "docker compose --profile storage up -d minio minio-create-bucket",
     "infra:down": "docker compose down",

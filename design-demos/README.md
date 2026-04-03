@@ -17,15 +17,20 @@
 - 所有 demo 都是独立静态页面，不会改动当前 Astro 站点路由
 - demo 页面使用 `apps/site/public/` 下的已有图片资源，因此建议从仓库根目录启动静态服务器进行预览
 
-本地预览示例：
+本地预览推荐直接使用仓库内置脚本：
 
 ```bash
-python3 -m http.server 4310
+npm run dev:demos
 ```
 
 然后访问：
 
-- `http://127.0.0.1:4310/design-demos/`
-- `http://127.0.0.1:4310/design-demos/atlas-ink/`
-- `http://127.0.0.1:4310/design-demos/summit-signal/`
-- `http://127.0.0.1:4310/design-demos/member-house/`
+- `http://127.0.0.1:4311/design-demos/`
+- `http://127.0.0.1:4311/design-demos/atlas-ink/`
+- `http://127.0.0.1:4311/design-demos/summit-signal/`
+- `http://127.0.0.1:4311/design-demos/member-house/`
+
+注意：
+
+- 不要直接双击 `html` 文件用 `file://` 打开，否则模块脚本和图片路径不会正常工作
+- 这个预览脚本会从仓库根目录提供静态文件，确保 `design-demos/` 与 `apps/site/public/` 下的图片资源都能正常访问
