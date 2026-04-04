@@ -23,21 +23,13 @@ const articles = await listArticles();
                   ]}
                   href={`/articles/${article.slug}`}
                 >
-                  <div
-                    class:list={[
-                      "article-list-media-wrap",
-                      !article.coverImage && "article-list-media-wrap-placeholder",
-                      index === 0 && "article-list-media-wrap-featured"
-                    ]}
-                  >
-                    {
-                      article.coverImage ? (
+                  {
+                    article.coverImage && (
+                      <div class:list={["article-list-media-wrap", index === 0 && "article-list-media-wrap-featured"]}>
                         <img class="article-list-media" src={article.coverImage.url} alt={article.coverImage.alt} loading="lazy" />
-                      ) : (
-                        <div class="article-list-media article-list-media-placeholder" aria-hidden="true"></div>
-                      )
-                    }
-                  </div>
+                      </div>
+                    )
+                  }
 
                   <div class="article-list-body">
                     <div class="article-list-meta">
@@ -46,7 +38,11 @@ const articles = await listArticles();
                     </div>
                     <h2>{article.title}</h2>
                     <p class="card-copy">{article.excerpt}</p>
-                    {article.branch?.cityName && <p class="article-list-branch">{article.branch.cityName}</p>}
+
+                    <div class="article-list-footer">
+                      {article.branch?.cityName ? <p class="article-list-branch">{article.branch.cityName}</p> : <span />}
+                      <span class="text-link">阅读全文</span>
+                    </div>
                   </div>
                 </a>
               ))
@@ -121,20 +117,6 @@ const articles = await listArticles();
     border-bottom: 0;
   }
 
-  .article-list-media-wrap-placeholder {
-    background:
-      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 28%),
-      linear-gradient(180deg, rgba(250, 244, 235, 0.96), rgba(244, 236, 224, 0.92));
-  }
-
-  .article-list-card-no-cover .article-list-media-wrap {
-    min-height: 118px;
-  }
-
-  .article-list-card-no-cover .article-list-media-wrap-featured {
-    min-height: 100%;
-  }
-
   .article-list-media {
     display: block;
     width: 100%;
@@ -143,42 +125,37 @@ const articles = await listArticles();
     object-fit: cover;
   }
 
-  .article-list-media-placeholder {
-    position: relative;
-    display: block;
-    width: 100%;
-    min-height: 210px;
-  }
-
-  .article-list-card-no-cover .article-list-media-placeholder {
-    min-height: 118px;
-  }
-
-  .article-list-media-placeholder::before,
-  .article-list-media-placeholder::after {
-    content: "";
-    position: absolute;
-    left: 22px;
-    right: 22px;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(138, 106, 67, 0.3), rgba(138, 106, 67, 0));
-  }
-
-  .article-list-media-placeholder::before {
-    bottom: 34px;
-  }
-
-  .article-list-media-placeholder::after {
-    bottom: 22px;
-    right: 80px;
-  }
-
   .article-list-body {
     display: grid;
     gap: 10px;
     align-content: start;
     padding: 22px;
+  }
+
+  .article-list-card-no-cover .article-list-body {
+    position: relative;
+    gap: 12px;
+    padding-top: 30px;
+  }
+
+  .article-list-card-no-cover .article-list-body::before,
+  .article-list-card-no-cover .article-list-body::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(138, 106, 67, 0.34), rgba(138, 106, 67, 0));
+  }
+
+  .article-list-card-no-cover .article-list-body::before {
+    top: 18px;
+    width: 96px;
+  }
+
+  .article-list-card-no-cover .article-list-body::after {
+    top: 26px;
+    width: 136px;
   }
 
   .article-list-card-featured .article-list-body {
@@ -222,8 +199,23 @@ const articles = await listArticles();
     -webkit-line-clamp: 4;
   }
 
+  .article-list-footer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
   .article-list-branch {
-    margin: auto 0 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    margin: 0;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(138, 106, 67, 0.14);
+    background: rgba(255, 248, 238, 0.76);
     color: var(--accent-strong);
     font-size: 0.82rem;
     letter-spacing: 0.05em;
