@@ -4,16 +4,14 @@ import { officialFaqItems } from "../lib/official-content";
 ---
 
 <BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
-  <main class="page-shell page-stack faq-page-shell">
-    <section class="section">
-      <article class="panel page-lead-card faq-page-intro">
+  <main class="page-shell page-stack detail-page-shell faq-page-shell">
+    <section class="section faq-section">
+      <div class="directory-header faq-page-intro">
         <p class="page-eyebrow">FAQ</p>
         <h1>常见问题</h1>
         <p>集中查看加入标准、活动参与方式、董事会职责与会费相关问题。</p>
-      </article>
-    </section>
+      </div>
 
-    <section class="section faq-section">
       <div class="faq-list">
         {
           officialFaqItems.map((item) => {
@@ -130,11 +128,6 @@ import { officialFaqItems } from "../lib/official-content";
 </BaseLayout>
 
 <style>
-  .faq-page-shell {
-    padding-top: 10px;
-    padding-bottom: 48px;
-  }
-
   .faq-page-intro,
   .faq-section,
   .faq-list {
@@ -148,7 +141,14 @@ import { officialFaqItems } from "../lib/official-content";
   }
 
   .faq-page-intro {
-    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .faq-page-intro p:last-child {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--muted);
+    line-height: 1.82;
   }
 
   .faq-item {
@@ -338,7 +338,7 @@ import { officialFaqItems } from "../lib/official-content";
   }
 
   @media (max-width: 720px) {
-    .faq-page-shell {
+    .faq-page-intro {
       padding-top: 4px;
     }
 

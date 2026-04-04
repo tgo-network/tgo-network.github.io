@@ -13,13 +13,13 @@ const processPreview = page.process.slice(0, 3);
 ---
 
 <BaseLayout title="加入申请 | TGO 鲲鹏会" description={page.hero.summary}>
-  <main class="page-shell page-stack join-page-shell">
+  <main class="page-shell page-stack detail-page-shell join-page-shell">
     <section class="section join-page-intro-section">
-      <article class="panel join-page-intro-card">
-        <div class="join-page-intro-copy">
+      <article class="panel detail-hero-card join-page-intro-card">
+        <div class="detail-hero-copy join-page-intro-copy">
           <p class="page-eyebrow">加入申请</p>
           <h1>加入申请</h1>
-          <p>{page.hero.summary}</p>
+          <p class="detail-summary">{page.hero.summary}</p>
 
           <div class="hero-actions">
             <a class="button primary" href="#application-form">填写申请表</a>
@@ -27,7 +27,7 @@ const processPreview = page.process.slice(0, 3);
           </div>
         </div>
 
-        <div class="join-page-intro-side">
+        <div class="detail-side-card join-page-intro-side">
           <p class="join-page-intro-label">申请流程</p>
           <ol class="join-intro-process-list">
             {processPreview.map((item) => <li>{item}</li>)}
@@ -38,14 +38,14 @@ const processPreview = page.process.slice(0, 3);
 
     <section id="join-overview" class="section join-overview-section">
       <div class="join-overview-grid">
-        <article class="panel join-overview-card">
+        <article class="panel detail-section-card join-overview-card">
           <h2>加入条件</h2>
           <ul class="join-overview-list">
             {page.conditions.map((item) => <li>{item}</li>)}
           </ul>
         </article>
 
-        <article class="panel join-overview-card">
+        <article class="panel detail-section-card join-overview-card">
           <h2>成员权益</h2>
           <ul class="join-overview-list">
             {page.benefits.map((item) => <li>{item}</li>)}
@@ -55,7 +55,7 @@ const processPreview = page.process.slice(0, 3);
     </section>
 
     <section id="application-form" class="section join-application-section">
-      <div class="panel join-form-panel">
+      <div class="panel detail-section-card join-form-panel">
         <div class="join-form-head">
           <h2>填写申请表</h2>
           <p class="card-copy">请填写姓名、电话、微信号、邮箱、个人介绍与申请信息。提交后由工作人员继续审核与联系。</p>
@@ -101,7 +101,7 @@ const processPreview = page.process.slice(0, 3);
         </form>
       </div>
 
-      <aside class="panel panel-soft join-form-side">
+      <aside class="panel detail-side-card detail-sticky join-form-side">
         <div>
           <h2>填写建议</h2>
           <ul class="join-overview-list join-side-list">
@@ -166,18 +166,8 @@ const processPreview = page.process.slice(0, 3);
 </BaseLayout>
 
 <style>
-  .join-page-shell {
-    padding-top: 10px;
-    padding-bottom: 48px;
-  }
-
   .join-page-intro-card {
-    display: grid;
     gap: 24px;
-    grid-template-columns: minmax(0, 1.06fr) minmax(300px, 0.94fr);
-    align-items: start;
-    padding: clamp(24px, 3vw, 32px);
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .join-overview-grid,
@@ -188,12 +178,6 @@ const processPreview = page.process.slice(0, 3);
 
   .join-overview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .join-overview-card,
-  .join-form-panel,
-  .join-form-side {
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .join-page-intro-copy,
@@ -212,12 +196,6 @@ const processPreview = page.process.slice(0, 3);
     margin: 0;
   }
 
-  .join-page-intro-copy h1 {
-    font-size: clamp(2rem, 4vw, 3.1rem);
-    line-height: 1.04;
-  }
-
-  .join-page-intro-copy > p:last-of-type,
   .join-page-intro-side li,
   .join-overview-list {
     color: var(--muted);
@@ -225,11 +203,12 @@ const processPreview = page.process.slice(0, 3);
   }
 
   .join-page-intro-side {
-    padding-left: 22px;
-    border-left: 1px solid rgba(27, 23, 19, 0.08);
+    padding: 22px;
+    border-radius: 20px;
   }
 
   .join-page-intro-label {
+    margin: 0;
     color: var(--accent-strong);
     font-size: 0.8rem;
     letter-spacing: 0.05em;
@@ -259,12 +238,6 @@ const processPreview = page.process.slice(0, 3);
     gap: 10px;
   }
 
-  .join-form-side {
-    position: sticky;
-    top: 104px;
-    align-content: start;
-  }
-
   .join-faq-preview {
     display: grid;
     gap: 10px;
@@ -279,30 +252,12 @@ const processPreview = page.process.slice(0, 3);
   }
 
   @media (max-width: 1100px) {
-    .join-page-intro-card,
     .join-overview-grid {
       grid-template-columns: 1fr;
     }
 
     .join-application-section {
       grid-template-columns: 1fr;
-    }
-
-    .join-page-intro-side {
-      padding-left: 0;
-      padding-top: 18px;
-      border-left: 0;
-      border-top: 1px solid rgba(27, 23, 19, 0.08);
-    }
-
-    .join-form-side {
-      position: static;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .join-page-shell {
-      padding-top: 4px;
     }
   }
 </style>
