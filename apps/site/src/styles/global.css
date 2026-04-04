@@ -420,6 +420,29 @@ summary:focus-visible {
   gap: 16px;
 }
 
+.directory-lead {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+}
+
+.directory-lead .directory-header {
+  gap: 8px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+}
+
+.directory-lead .directory-header h1 {
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
+}
+
+.directory-lead .filter-bar {
+  gap: 12px;
+}
+
 .detail-page-shell {
   padding-top: 10px;
   padding-bottom: 48px;
@@ -1130,6 +1153,10 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  .directory-lead {
+    padding: 18px;
+  }
+
   .toolbar-panel {
     padding: 18px;
   }

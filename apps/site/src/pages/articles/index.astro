@@ -9,23 +9,28 @@ const articles = await listArticles();
 <BaseLayout title="文章 | TGO 鲲鹏会" description="查看由后台发布的文章内容。">
   <main class="page-shell page-stack article-directory-shell">
     <section class="section article-list-section">
-      <h1 class="sr-only">文章</h1>
+      <div class="panel directory-lead article-directory-lead">
+        <div class="directory-header article-directory-head">
+          <p class="page-eyebrow">文章</p>
+          <h1>文章</h1>
+        </div>
+      </div>
+
       {
         articles.length > 0 ? (
           <div class="article-list-grid">
             {
-              articles.map((article, index) => (
+              articles.map((article) => (
                 <a
                   class:list={[
                     "panel article-list-card",
-                    index === 0 && "article-list-card-featured",
                     !article.coverImage && "article-list-card-no-cover"
                   ]}
                   href={`/articles/${article.slug}`}
                 >
                   {
                     article.coverImage && (
-                      <div class:list={["article-list-media-wrap", index === 0 && "article-list-media-wrap-featured"]}>
+                      <div class="article-list-media-wrap">
                         <img class="article-list-media" src={article.coverImage.url} alt={article.coverImage.alt} loading="lazy" />
                       </div>
                     )
@@ -74,13 +79,12 @@ const articles = await listArticles();
     display: grid;
     gap: 20px;
     align-items: start;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .article-list-card {
     display: grid;
     gap: 0;
-    min-height: 100%;
     padding: 0;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
@@ -93,12 +97,6 @@ const articles = await listArticles();
     box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
   }
 
-  .article-list-card-featured {
-    grid-column: 1 / -1;
-    grid-template-columns: minmax(340px, 0.94fr) minmax(0, 1.06fr);
-    align-items: stretch;
-  }
-
   .article-list-card-no-cover {
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 24%),
@@ -106,22 +104,16 @@ const articles = await listArticles();
   }
 
   .article-list-media-wrap {
-    min-height: 210px;
+    min-height: 200px;
     border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
-  }
-
-  .article-list-media-wrap-featured {
-    min-height: 100%;
-    border-right: 1px solid rgba(27, 23, 19, 0.08);
-    border-bottom: 0;
   }
 
   .article-list-media {
     display: block;
     width: 100%;
     height: 100%;
-    min-height: 210px;
+    min-height: 200px;
     object-fit: cover;
   }
 
@@ -158,11 +150,6 @@ const articles = await listArticles();
     width: 136px;
   }
 
-  .article-list-card-featured .article-list-body {
-    gap: 12px;
-    padding: 26px;
-  }
-
   .article-list-meta {
     display: flex;
     flex-wrap: wrap;
@@ -178,13 +165,8 @@ const articles = await listArticles();
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-    font-size: 1.24rem;
-    line-height: 1.45;
-  }
-
-  .article-list-card-featured .article-list-body h2 {
-    font-size: clamp(1.52rem, 2.4vw, 2rem);
-    line-height: 1.28;
+    font-size: 1.16rem;
+    line-height: 1.46;
   }
 
   .article-list-body .card-copy {
@@ -193,10 +175,6 @@ const articles = await listArticles();
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     margin: 0;
-  }
-
-  .article-list-card-featured .card-copy {
-    -webkit-line-clamp: 4;
   }
 
   .article-list-footer {
@@ -224,16 +202,7 @@ const articles = await listArticles();
 
   @media (max-width: 980px) {
     .article-list-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .article-list-card-featured {
-      grid-template-columns: 1fr;
-    }
-
-    .article-list-media-wrap-featured {
-      border-right: 0;
-      border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 

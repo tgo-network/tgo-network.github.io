@@ -24,7 +24,7 @@ const initialMeta = {
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack event-directory-shell">
     <section class="section event-list-section">
-      <div class="directory-toolbar event-directory-toolbar">
+      <div class="panel directory-lead event-directory-toolbar">
         <div class="directory-header event-directory-head">
           <p class="page-eyebrow">活动</p>
           <h1>活动</h1>
@@ -312,7 +312,7 @@ const initialMeta = {
   }
 
   .event-directory-head {
-    padding-top: 6px;
+    padding-top: 0;
   }
 
   .event-directory-head h1,
@@ -327,7 +327,7 @@ const initialMeta = {
 
   :global(.event-card) {
     padding: 0;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(244, 238, 230, 0.94));
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
@@ -354,7 +354,7 @@ const initialMeta = {
     display: grid;
     place-items: center;
     min-height: 208px;
-    padding: 14px;
+    padding: 16px;
     border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 26%),
@@ -374,7 +374,7 @@ const initialMeta = {
     display: grid;
     gap: 14px;
     align-content: start;
-    padding: 20px;
+    padding: 22px 20px 20px;
   }
 
   :global(.event-card-no-cover .event-card-body) {
@@ -456,8 +456,8 @@ const initialMeta = {
   :global(.event-card-title) {
     font-weight: 600;
     letter-spacing: 0.01em;
-    font-size: 1.16rem;
-    line-height: 1.46;
+    font-size: 1.12rem;
+    line-height: 1.5;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
