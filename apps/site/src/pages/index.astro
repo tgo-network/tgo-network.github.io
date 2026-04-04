@@ -195,8 +195,11 @@ const heroImage = {
       <div class="home-official-event-grid">
         {
           home.featuredEvents.map((event, index) => (
-            <a class="home-official-card-link" href={`/events/${event.slug}`}>
-              <article class="panel home-official-event-card">
+            <a
+              class:list={["home-official-card-link", "home-official-event-link", index === 0 && "is-featured"]}
+              href={`/events/${event.slug}`}
+            >
+              <article class:list={["panel home-official-event-card", index === 0 && "is-featured"]}>
                 {
                   <img
                     class="home-official-event-image"
@@ -515,8 +518,18 @@ const heroImage = {
     display: block;
   }
 
+  .home-official-event-link {
+    display: grid;
+    min-width: 0;
+    grid-column: span 4;
+  }
+
+  .home-official-event-link.is-featured {
+    grid-column: span 6;
+  }
+
   .home-official-event-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
   .home-official-event-card {
@@ -540,6 +553,10 @@ const heroImage = {
     background: rgba(255, 255, 255, 0.72);
   }
 
+  .home-official-event-card.is-featured .home-official-event-image {
+    aspect-ratio: 16 / 9;
+  }
+
   .home-official-event-image-placeholder {
     background:
       linear-gradient(rgba(27, 23, 19, 0.04) 1px, transparent 1px),
@@ -554,6 +571,11 @@ const heroImage = {
     padding: 20px;
   }
 
+  .home-official-event-card.is-featured .home-official-event-copy {
+    gap: 14px;
+    padding: 24px;
+  }
+
   .home-official-event-meta,
   .home-official-article-meta {
     display: flex;
@@ -563,6 +585,18 @@ const heroImage = {
     margin: 0;
     color: var(--muted);
     letter-spacing: 0.04em;
+  }
+
+  .home-official-event-card.is-featured .home-official-event-copy h3 {
+    font-size: 1.42rem;
+    line-height: 1.32;
+  }
+
+  .home-official-event-card.is-featured .home-official-event-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .home-official-article-list {
@@ -631,6 +665,11 @@ const heroImage = {
     .home-official-signal-grid,
     .home-official-event-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-official-event-link,
+    .home-official-event-link.is-featured {
+      grid-column: auto;
     }
 
     .home-official-testimonial-grid {

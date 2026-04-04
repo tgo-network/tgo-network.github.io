@@ -221,15 +221,17 @@ const initialMembers = members.slice(0, pageSize);
 
   :global(.member-directory-grid) {
     display: grid;
-    gap: 18px;
+    gap: 20px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   :global(.member-directory-card) {
     display: grid;
     min-height: 100%;
-    padding: 20px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
+    padding: 22px;
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 28%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
@@ -241,23 +243,30 @@ const initialMembers = members.slice(0, pageSize);
 
   :global(.member-directory-head) {
     display: grid;
-    gap: 14px;
+    gap: 16px;
     grid-template-columns: 72px minmax(0, 1fr);
     align-items: center;
   }
 
   :global(.member-directory-copy) {
     display: grid;
-    gap: 6px;
+    gap: 8px;
     align-content: start;
   }
 
   :global(.member-directory-branch) {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
     margin: 0;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(138, 106, 67, 0.16);
+    background: rgba(255, 248, 238, 0.72);
     color: var(--accent-strong);
-    font-size: 0.82rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
   }
 
   :global(.member-directory-avatar) {
@@ -288,12 +297,16 @@ const initialMembers = members.slice(0, pageSize);
   :global(.member-directory-title) {
     margin: 0;
     color: var(--muted);
-    line-height: 1.72;
+    line-height: 1.68;
   }
 
   :global(.member-directory-company) {
     color: var(--ink);
     font-weight: 600;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   :global(.member-directory-title) {
@@ -318,6 +331,10 @@ const initialMembers = members.slice(0, pageSize);
   @media (max-width: 720px) {
     .member-directory-shell {
       padding-top: 4px;
+    }
+
+    :global(.member-directory-card) {
+      padding: 18px;
     }
 
     :global(.member-directory-grid) {
