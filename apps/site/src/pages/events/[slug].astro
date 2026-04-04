@@ -242,6 +242,24 @@ const registrationSideNotes =
 const registrationNoticeLabel = registrationNoticeItems.length > 0 ? "报名须知" : "审核说明";
 const visibleRegistrationSideNotes = registrationSideNotes.slice(0, 3);
 const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName, event.venueName, formatRegistrationState(event.registrationState)];
+const eventFactItems = [
+  {
+    label: "时间",
+    value: formatDateRange(event.startsAt, event.endsAt)
+  },
+  {
+    label: "地点",
+    value: eventLocation
+  },
+  {
+    label: "所属分会",
+    value: branchName
+  },
+  {
+    label: "报名状态",
+    value: formatRegistrationState(event.registrationState)
+  }
+];
 ---
 
 <BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={event.summary}>
@@ -275,81 +293,45 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 
     <section class="section">
       <div class="detail-content-grid event-detail-layout">
-        <article class="panel prose-panel detail-body-panel event-body-panel">
-          <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
-          {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
+        <div class="event-main-stack">
+          <article class="panel prose-panel detail-body-panel event-body-panel">
+            <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
+            {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
 
-          {
-            introContent.bullets.length > 0 && (
-              <ul class="event-rich-list">
-                {introContent.bullets.map((item) => <li>{item}</li>)}
-              </ul>
-            )
-          }
+            {
+              introContent.bullets.length > 0 && (
+                <ul class="event-rich-list">
+                  {introContent.bullets.map((item) => <li>{item}</li>)}
+                </ul>
+              )
+            }
 
-          {
-            additionalNarrativeSections.length > 0 && (
-              <div class="event-section-stack">
-                {
-                  additionalNarrativeSections.map((section) => (
-                    <section class="event-section-block">
-                      <h3>{section.title}</h3>
-                      {section.content.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-                      {
-                        section.content.bullets.length > 0 && (
-                          <ul class="event-rich-list event-rich-list-compact">
-                            {section.content.bullets.map((item) => <li>{item}</li>)}
-                          </ul>
-                        )
-                      }
-                    </section>
-                  ))
-                }
-              </div>
-            )
-          }
-        </article>
-
-        <div class="detail-side-stack event-side-stack">
-          <article class="panel detail-side-card event-info-panel">
-            <h2>活动信息</h2>
-            <ul class="detail-info-list event-info-list">
-              <li>
-                <span>时间</span>
-                <strong>{formatDateRange(event.startsAt, event.endsAt)}</strong>
-              </li>
-              <li>
-                <span>地点</span>
-                <strong>{eventLocation}</strong>
-              </li>
-              <li>
-                <span>所属分会</span>
-                <strong>{branchName}</strong>
-              </li>
-              <li>
-                <span>报名状态</span>
-                <strong>{formatRegistrationState(event.registrationState)}</strong>
-              </li>
-            </ul>
-          </article>
-
-          <article class="panel detail-side-card audience-panel">
-            <h2>适合参与</h2>
-            <div class="audience-card-grid">
-              {
-                displayedAudienceCards.map((item) => (
-                  <article class="audience-card">
-                    <h3>{item.title}</h3>
-                    <p>{item.summary}</p>
-                  </article>
-                ))
-              }
-            </div>
+            {
+              additionalNarrativeSections.length > 0 && (
+                <div class="event-section-stack">
+                  {
+                    additionalNarrativeSections.map((section) => (
+                      <section class="event-section-block">
+                        <h3>{section.title}</h3>
+                        {section.content.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+                        {
+                          section.content.bullets.length > 0 && (
+                            <ul class="event-rich-list event-rich-list-compact">
+                              {section.content.bullets.map((item) => <li>{item}</li>)}
+                            </ul>
+                          )
+                        }
+                      </section>
+                    ))
+                  }
+                </div>
+              )
+            }
           </article>
 
           {
             event.agenda.length > 0 && (
-              <article class="panel detail-side-card agenda-panel">
+              <article class="panel detail-section-card event-agenda-panel">
                 <h2>议程安排</h2>
                 <ul class="agenda-list">
                   {
@@ -367,13 +349,65 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
             )
           }
         </div>
+
+        <div class="detail-side-stack event-side-stack">
+          <article class="panel detail-side-card event-registration-prompt">
+            <div class="event-registration-prompt-head">
+              <h2>{registrationEnabled ? registrationTitle : "报名状态"}</h2>
+              <p class="event-registration-prompt-copy">
+                {registrationEnabled
+                  ? "活动开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。"
+                  : event.registrationState === "closed"
+                    ? "这场活动的报名已经关闭。"
+                    : "报名暂未开放，请稍后再来查看。"}
+              </p>
+            </div>
+
+            <div class="event-registration-prompt-actions">
+              <a class="button primary" href="#event-registration">{registrationEnabled ? registrationTitle : "查看报名说明"}</a>
+              {registrationUrl && <a class="button secondary" href={registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
+            </div>
+          </article>
+
+          <article class="panel detail-side-card event-info-panel">
+            <h2>活动信息</h2>
+            <div class="event-fact-grid">
+              {
+                eventFactItems.map((item) => (
+                  <article class="event-fact-card">
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </article>
+                ))
+              }
+            </div>
+          </article>
+
+          <article class="panel detail-side-card audience-panel">
+            <h2>适合参与</h2>
+            <div class="audience-card-grid">
+              {
+                displayedAudienceCards.map((item) => (
+                  <article class="audience-card">
+                    <h3>{item.title}</h3>
+                    <p>{item.summary}</p>
+                  </article>
+                ))
+              }
+            </div>
+          </article>
+
+        </div>
       </div>
     </section>
 
     <section class="section registration-shell" id="event-registration">
       <div class="panel detail-section-card registration-panel">
         <div class="registration-head">
-          <h2>{registrationTitle}</h2>
+          <div class="registration-head-top">
+            <h2>{registrationTitle}</h2>
+            <span class="detail-meta-item registration-state-chip">{formatRegistrationState(event.registrationState)}</span>
+          </div>
           <p class="registration-copy">开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。</p>
         </div>
 
@@ -437,9 +471,9 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
       <aside class="panel detail-side-card detail-sticky registration-side">
         <div>
           <h2>{registrationNoticeLabel}</h2>
-          <ul class="registration-note-list">
-            {visibleRegistrationSideNotes.map((item) => <li>{item}</li>)}
-          </ul>
+          <div class="registration-note-cards">
+            {visibleRegistrationSideNotes.map((item) => <article class="registration-note-card">{item}</article>)}
+          </div>
         </div>
 
         <div class="event-next-links">
@@ -499,6 +533,7 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
 </BaseLayout>
 
 <style>
+  .event-main-stack,
   .registration-shell,
   .audience-card-grid,
   .event-section-stack {
@@ -506,37 +541,45 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     gap: 18px;
   }
 
+  .event-main-stack {
+    align-content: start;
+  }
+
   .registration-shell {
     grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
     align-items: start;
   }
 
+  .event-registration-prompt,
   .event-info-panel,
   .audience-panel,
-  .agenda-panel,
+  .event-agenda-panel,
   .registration-panel,
   .registration-side {
     gap: 16px;
   }
 
+  .event-registration-prompt h2,
   .event-info-panel h2,
   .audience-panel h2,
-  .agenda-panel h2,
+  .event-agenda-panel h2,
   .registration-head h2,
   .registration-side h2 {
     margin: 0;
   }
 
-  .event-info-list span,
+  .event-fact-card span,
   .event-rich-list li,
   .audience-card p,
+  .event-registration-prompt-copy,
   .registration-copy,
-  .registration-note-list li,
+  .registration-note-card,
   .registration-note p {
     color: var(--muted);
     line-height: 1.82;
   }
 
+  .event-registration-prompt-copy,
   .registration-copy,
   .registration-note p {
     margin: 0;
@@ -565,10 +608,12 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     padding-left: 18px;
   }
 
-  .event-info-list {
+  .event-fact-grid {
+    display: grid;
     gap: 12px;
   }
 
+  .event-fact-card,
   .audience-card {
     display: grid;
     gap: 6px;
@@ -578,18 +623,37 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     background: rgba(255, 255, 255, 0.72);
   }
 
-  .event-info-list span {
+  .event-fact-card span {
     font-size: 0.84rem;
     letter-spacing: 0.04em;
   }
 
-  .event-info-list strong {
+  .event-fact-card strong {
     line-height: 1.7;
   }
 
+  .event-registration-prompt-head,
   .registration-head {
     display: grid;
     gap: 10px;
+  }
+
+  .event-registration-prompt-actions,
+  .registration-head-top {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .event-agenda-panel .agenda-list li {
+    gap: 8px;
+    padding: 18px;
+  }
+
+  .registration-state-chip {
+    white-space: nowrap;
   }
 
   .registration-form-grid {
@@ -606,11 +670,16 @@ const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName
     flex-wrap: wrap;
   }
 
-  .registration-note-list {
+  .registration-note-cards {
     display: grid;
-    gap: 10px;
-    margin: 0;
-    padding-left: 18px;
+    gap: 12px;
+  }
+
+  .registration-note-card {
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .event-next-links {

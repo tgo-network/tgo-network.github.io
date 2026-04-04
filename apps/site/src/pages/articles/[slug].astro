@@ -21,6 +21,8 @@ if (!article) {
 }
 
 const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length / 220));
+const [leadParagraph, ...remainingParagraphs] = article.body;
+const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : article.body;
 ---
 
 <BaseLayout title={`${article.title} | 文章 | TGO 鲲鹏会`} description={article.excerpt}>
@@ -35,6 +37,11 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
             <span class="detail-meta-item">{formatDate(article.publishedAt)}</span>
             <span class="detail-meta-item">{article.author.name}</span>
             <span class="detail-meta-item">{estimatedReadMinutes} 分钟阅读</span>
+          </div>
+
+          <div class="hero-actions article-hero-actions">
+            <a class="button secondary" href="/articles">返回文章列表</a>
+            {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
           </div>
         </div>
 
@@ -51,23 +58,29 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
     <section class="section">
       <div class="detail-content-grid article-detail-layout">
         <article class="panel prose-panel detail-body-panel article-body-panel">
-          {article.body.map((paragraph) => <p>{paragraph}</p>)}
+          <div class="article-body-intro">
+            <p class="article-body-lead">{leadParagraph ?? article.excerpt}</p>
+          </div>
+
+          <div class="article-body-content">
+            {bodyParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
         </article>
 
-        <aside class="detail-side-stack detail-sticky">
+        <aside class="detail-side-stack detail-sticky article-side-stack">
           <article class="panel detail-side-card article-context-panel">
             <h2>文章信息</h2>
 
             <ul class="detail-info-list article-context-list">
               <li>
-              <span>作者</span>
-              <strong>{article.author.name}</strong>
-              <small>{article.author.role}</small>
+                <span>作者</span>
+                <strong>{article.author.name}</strong>
+                <small>{article.author.role}</small>
               </li>
               <li>
-              <span>发布时间</span>
-              <strong>{formatDate(article.publishedAt)}</strong>
-              <small>预计阅读 {estimatedReadMinutes} 分钟</small>
+                <span>发布时间</span>
+                <strong>{formatDate(article.publishedAt)}</strong>
+                <small>预计阅读 {estimatedReadMinutes} 分钟</small>
               </li>
               {
                 article.branch?.name && (
@@ -78,12 +91,19 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
                 )
               }
             </ul>
-
-            <div class="detail-action-stack article-detail-actions">
-              <a class="button secondary" href="/articles">返回文章列表</a>
-              {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
-            </div>
           </article>
+
+          {
+            article.branch && (
+              <article class="panel detail-side-card article-branch-panel">
+                <h2>相关分会</h2>
+                <div class="article-branch-card">
+                  <strong>{article.branch.name}</strong>
+                  <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>
+                </div>
+              </article>
+            )
+          }
         </aside>
       </div>
     </section>
@@ -91,9 +111,52 @@ const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length
 </BaseLayout>
 
 <style>
+  .article-hero-actions {
+    margin-top: 2px;
+  }
+
+  .article-body-panel {
+    display: grid;
+    gap: 22px;
+  }
+
+  .article-body-intro {
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+  }
+
+  .article-body-content {
+    display: grid;
+    gap: 4px;
+  }
+
+  .article-body-lead,
   .article-body-panel p:first-of-type {
     color: var(--ink);
     font-size: 1.06rem;
+  }
+
+  .article-body-lead {
+    margin: 0;
+    max-width: 62ch;
+    line-height: 1.9;
+  }
+
+  .article-side-stack {
+    gap: 18px;
+  }
+
+  .article-branch-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .article-branch-card strong {
+    line-height: 1.6;
   }
 
   @media (max-width: 980px) {
