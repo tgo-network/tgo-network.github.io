@@ -165,8 +165,8 @@ const heroImage = {
 
       <div class="home-official-testimonial-grid">
         {
-          featuredTestimonials.map((member) => (
-            <article class="panel home-official-testimonial-card">
+          featuredTestimonials.map((member, index) => (
+            <article class:list={["panel home-official-testimonial-card", index === 0 && "is-featured"]}>
               <p class="home-official-testimonial-quote">“{member.quote}”</p>
 
               <div class="home-official-testimonial-meta">
@@ -477,17 +477,28 @@ const heroImage = {
   }
 
   .home-official-testimonial-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
   .home-official-testimonial-card {
     display: grid;
     gap: 18px;
     padding: 24px;
+    grid-column: span 4;
   }
 
   .home-official-testimonial-quote {
     font-size: 1.02rem;
+  }
+
+  .home-official-testimonial-card.is-featured {
+    grid-column: span 6;
+    padding: 28px;
+  }
+
+  .home-official-testimonial-card.is-featured .home-official-testimonial-quote {
+    font-size: 1.14rem;
+    line-height: 1.88;
   }
 
   .home-official-testimonial-meta {
@@ -618,9 +629,17 @@ const heroImage = {
     }
 
     .home-official-signal-grid,
-    .home-official-testimonial-grid,
     .home-official-event-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-official-testimonial-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-official-testimonial-card,
+    .home-official-testimonial-card.is-featured {
+      grid-column: auto;
     }
   }
 

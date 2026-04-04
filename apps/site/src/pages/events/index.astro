@@ -23,14 +23,12 @@ const initialMeta = {
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack event-directory-shell">
-    <section class="section">
-      <article class="panel event-directory-head-card">
-        <div class="event-directory-intro">
+    <section class="section event-list-section">
+      <div class="directory-toolbar event-directory-toolbar">
+        <div class="directory-header event-directory-head">
           <p class="page-eyebrow">活动</p>
           <h1>活动</h1>
-          <p>按城市查看公开活动与报名信息。</p>
         </div>
-
         <div class="filter-bar" data-event-filters>
           <button class="filter-chip is-active" type="button" data-city-filter="all">全部</button>
           {
@@ -41,10 +39,8 @@ const initialMeta = {
             ))
           }
         </div>
-      </article>
-    </section>
+      </div>
 
-    <section class="section event-list-section">
       <div class="event-grid" data-event-grid>
         {
           initialEvents.map((event) => (
@@ -315,37 +311,28 @@ const initialMeta = {
     padding-bottom: 48px;
   }
 
-  .event-directory-head-card,
   .event-list-section,
   .event-grid {
     display: grid;
     gap: 18px;
   }
 
-  .event-directory-head-card {
+  .event-directory-toolbar {
     gap: 16px;
-    padding: clamp(22px, 2.8vw, 30px);
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
-  .event-directory-intro h1,
+  .event-directory-head {
+    padding-top: 6px;
+  }
+
+  .event-directory-head h1,
   .event-card-title {
     margin: 0;
   }
 
-  .event-directory-intro h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.04;
-  }
-
-  .event-directory-intro p:last-child {
-    margin: 10px 0 0;
-    color: var(--muted);
-    line-height: 1.76;
-  }
-
   :global(.event-grid) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
   }
 
   :global(.event-card) {
@@ -370,8 +357,8 @@ const initialMeta = {
   :global(.event-card-media-shell) {
     display: grid;
     place-items: center;
-    min-height: 196px;
-    padding: 12px;
+    min-height: 208px;
+    padding: 14px;
     border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 26%),
@@ -382,7 +369,7 @@ const initialMeta = {
     display: block;
     width: 100%;
     height: 100%;
-    max-height: 200px;
+    max-height: 212px;
     object-fit: contain;
     background: rgba(255, 255, 255, 0.72);
   }
@@ -409,9 +396,9 @@ const initialMeta = {
 
   :global(.event-card-body) {
     display: grid;
-    gap: 12px;
+    gap: 14px;
     align-content: start;
-    padding: 18px;
+    padding: 20px;
   }
 
   :global(.event-card-head),
@@ -423,8 +410,9 @@ const initialMeta = {
   }
 
   :global(.event-card-meta) {
-    display: grid;
-    gap: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
     color: var(--muted);
     font-size: 0.8rem;
     letter-spacing: 0.03em;
@@ -464,8 +452,10 @@ const initialMeta = {
   }
 
   :global(.event-card-title) {
-    font-size: 1.18rem;
-    line-height: 1.42;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-size: 1.16rem;
+    line-height: 1.46;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -483,7 +473,7 @@ const initialMeta = {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
   }
 
   :global(.event-card-footer) {

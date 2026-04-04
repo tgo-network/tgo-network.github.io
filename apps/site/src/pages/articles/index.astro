@@ -14,9 +14,22 @@ const articles = await listArticles();
         articles.length > 0 ? (
           <div class="article-list-grid">
             {
-              articles.map((article) => (
-                <a class="panel article-list-card" href={`/articles/${article.slug}`}>
-                  <div class:list={["article-list-media-wrap", !article.coverImage && "article-list-media-wrap-placeholder"]}>
+              articles.map((article, index) => (
+                <a
+                  class:list={[
+                    "panel article-list-card",
+                    index === 0 && "article-list-card-featured",
+                    !article.coverImage && "article-list-card-no-cover"
+                  ]}
+                  href={`/articles/${article.slug}`}
+                >
+                  <div
+                    class:list={[
+                      "article-list-media-wrap",
+                      !article.coverImage && "article-list-media-wrap-placeholder",
+                      index === 0 && "article-list-media-wrap-featured"
+                    ]}
+                  >
                     {
                       article.coverImage ? (
                         <img class="article-list-media" src={article.coverImage.url} alt={article.coverImage.alt} loading="lazy" />
@@ -84,16 +97,42 @@ const articles = await listArticles();
     box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
   }
 
+  .article-list-card-featured {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(340px, 0.94fr) minmax(0, 1.06fr);
+    align-items: stretch;
+  }
+
+  .article-list-card-no-cover {
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 24%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.94));
+  }
+
   .article-list-media-wrap {
     min-height: 210px;
     border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     background: linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
   }
 
+  .article-list-media-wrap-featured {
+    min-height: 100%;
+    border-right: 1px solid rgba(27, 23, 19, 0.08);
+    border-bottom: 0;
+  }
+
   .article-list-media-wrap-placeholder {
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 28%),
       linear-gradient(180deg, rgba(250, 244, 235, 0.96), rgba(244, 236, 224, 0.92));
+  }
+
+  .article-list-card-no-cover .article-list-media-wrap {
+    min-height: 118px;
+  }
+
+  .article-list-card-no-cover .article-list-media-wrap-featured {
+    min-height: 100%;
   }
 
   .article-list-media {
@@ -109,6 +148,10 @@ const articles = await listArticles();
     display: block;
     width: 100%;
     min-height: 210px;
+  }
+
+  .article-list-card-no-cover .article-list-media-placeholder {
+    min-height: 118px;
   }
 
   .article-list-media-placeholder::before,
@@ -138,6 +181,11 @@ const articles = await listArticles();
     padding: 22px;
   }
 
+  .article-list-card-featured .article-list-body {
+    gap: 12px;
+    padding: 26px;
+  }
+
   .article-list-meta {
     display: flex;
     flex-wrap: wrap;
@@ -157,12 +205,21 @@ const articles = await listArticles();
     line-height: 1.45;
   }
 
+  .article-list-card-featured .article-list-body h2 {
+    font-size: clamp(1.52rem, 2.4vw, 2rem);
+    line-height: 1.28;
+  }
+
   .article-list-body .card-copy {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     margin: 0;
+  }
+
+  .article-list-card-featured .card-copy {
+    -webkit-line-clamp: 4;
   }
 
   .article-list-branch {
@@ -176,6 +233,15 @@ const articles = await listArticles();
   @media (max-width: 980px) {
     .article-list-grid {
       grid-template-columns: 1fr;
+    }
+
+    .article-list-card-featured {
+      grid-template-columns: 1fr;
+    }
+
+    .article-list-media-wrap-featured {
+      border-right: 0;
+      border-bottom: 1px solid rgba(27, 23, 19, 0.08);
     }
   }
 
