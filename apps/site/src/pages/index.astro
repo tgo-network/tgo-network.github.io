@@ -107,55 +107,51 @@ const heroImage = {
 <BaseLayout title="TGO 鲲鹏会 | 首页" description="TGO 鲲鹏会面向技术领导者，展示组织介绍、成员推荐、学习活动与加入路径。">
   <main class="page-shell page-stack home-official-shell">
     <section class="home-official-hero">
-      <div class="home-official-hero-grid">
-        <div class="home-official-hero-copy">
-          <p class="home-official-kicker">TGO 鲲鹏会</p>
-          <h1>科技领导者的长期学习与交流社区</h1>
-          <p class="home-official-summary">{home.hero.summary}</p>
-          <p class="home-official-support">
-            以城市分会、公开活动、成员网络与内容沉淀，构建一个持续运转、值得长期参与的技术领导者社区。
-          </p>
+      <article class="panel home-official-hero-stage">
+        <div class="home-official-hero-grid">
+          <div class="home-official-hero-copy">
+            <p class="home-official-kicker">TGO 鲲鹏会</p>
+            <h1>科技领导者的长期学习与交流社区</h1>
+            <p class="home-official-summary">{home.hero.summary}</p>
 
-          <div class="hero-actions">
+            <div class="hero-actions">
+              {
+                home.hero.actions.map((action, index) => (
+                  <a class:list={["button", index === 0 ? "primary" : "secondary"]} href={action.href}>
+                    {action.label}
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="home-official-hero-visual">
+            <figure class="home-official-hero-image">
+              <img src={heroImage.src} alt={heroImage.alt} loading="eager" />
+              <figcaption>GTLC 峰会现场</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="home-official-context-grid">
+          <article class="home-official-intro-copy">
+            <p class="home-official-intro-label">组织介绍</p>
+            <p class="home-official-intro-lead">{home.intro.summary}</p>
+            <p>由各地分会、董事会成员与工作人员共同维护公开活动、成员连接与长期社区节奏。</p>
+          </article>
+
+          <div class="home-official-signal-grid">
             {
-              home.hero.actions.map((action, index) => (
-                <a class:list={["button", index === 0 ? "primary" : "secondary"]} href={action.href}>
-                  {action.label}
-                </a>
+              introSignals.map((item) => (
+                <article class="home-official-signal-card">
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </article>
               ))
             }
           </div>
         </div>
-
-        <div class="home-official-hero-visual panel">
-          <figure class="home-official-hero-image">
-            <img src={heroImage.src} alt={heroImage.alt} loading="eager" />
-          </figure>
-
-          <div class="home-official-hero-note">
-            <p>强调长期关系、真实经验与同侪反馈，而不是一次性的活动集合页。</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="home-official-context-grid">
-        <article class="panel home-official-intro-copy">
-          <p class="home-official-intro-label">组织介绍</p>
-          <p class="home-official-intro-lead">{home.intro.summary}</p>
-          <p>由各地分会、董事会成员与工作人员共同维护公开活动、成员连接与长期社区节奏。</p>
-        </article>
-
-        <div class="home-official-signal-grid">
-          {
-            introSignals.map((item) => (
-              <article class="panel home-official-signal-card">
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))
-          }
-        </div>
-      </div>
+      </article>
     </section>
 
     <section class="section">
@@ -298,9 +294,16 @@ const heroImage = {
   }
 
   .home-official-hero {
+    padding: 18px 0 10px;
+  }
+
+  .home-official-hero-stage {
     display: grid;
-    gap: 18px;
-    padding: 20px 0 12px;
+    gap: 26px;
+    padding: clamp(26px, 3vw, 34px);
+    background:
+      radial-gradient(circle at top right, rgba(200, 161, 93, 0.12), transparent 22%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
   }
 
   .home-official-hero-grid,
@@ -311,8 +314,8 @@ const heroImage = {
   }
 
   .home-official-hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.94fr);
-    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.92fr);
+    align-items: center;
   }
 
   .home-official-kicker,
@@ -352,7 +355,6 @@ const heroImage = {
   }
 
   .home-official-summary,
-  .home-official-support,
   .home-official-intro-copy p,
   .home-official-intro-lead,
   .home-official-signal-card p,
@@ -367,50 +369,51 @@ const heroImage = {
   }
 
   .home-official-summary {
-    max-width: 39rem;
+    max-width: 37rem;
     font-size: 1.08rem;
   }
 
-  .home-official-support {
-    max-width: 36rem;
-    margin-top: 12px;
-  }
-
   .home-official-hero-visual {
-    overflow: hidden;
-    padding: 0;
-    border-radius: 28px;
-    background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(245, 238, 227, 0.92));
+    min-width: 0;
   }
 
   .home-official-hero-image {
     margin: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    box-shadow: 0 24px 50px rgba(35, 28, 21, 0.14);
   }
 
   .home-official-hero-image img {
+    display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
   }
 
-  .home-official-hero-note {
-    padding: 18px 20px;
-    border-top: 1px solid rgba(27, 23, 19, 0.12);
-  }
-
-  .home-official-hero-note p {
+  .home-official-hero-image figcaption {
+    position: absolute;
+    left: 18px;
+    bottom: 18px;
     margin: 0;
-    color: var(--muted);
-    line-height: 1.8;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: rgba(255, 252, 246, 0.88);
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    color: var(--accent-strong);
+    font-size: 0.76rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .home-official-context-grid {
-    grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     align-items: start;
+    padding-top: 22px;
+    border-top: 1px solid rgba(27, 23, 19, 0.08);
   }
 
-  .home-official-intro-copy,
-  .home-official-signal-card,
   .home-official-testimonial-card,
   .home-official-event-card,
   .home-official-article-item,
@@ -422,7 +425,7 @@ const heroImage = {
   .home-official-intro-copy {
     display: grid;
     gap: 14px;
-    padding: 26px;
+    padding: 0 10px 0 0;
   }
 
   .home-official-intro-label {
@@ -454,7 +457,12 @@ const heroImage = {
 
   .home-official-signal-card {
     min-height: 100%;
-    padding: 22px;
+    display: grid;
+    gap: 10px;
+    padding: 20px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.56);
   }
 
   .home-official-signal-card h3,
@@ -599,10 +607,14 @@ const heroImage = {
   }
 
   @media (max-width: 1100px) {
-    .home-official-hero-grid,
     .home-official-context-grid,
     .home-official-article-item {
       grid-template-columns: 1fr;
+    }
+
+    .home-official-hero-grid {
+      grid-template-columns: 1fr;
+      align-items: start;
     }
 
     .home-official-signal-grid,
@@ -638,6 +650,10 @@ const heroImage = {
     .home-official-event-grid,
     .home-official-join-grid {
       grid-template-columns: 1fr;
+    }
+
+    .home-official-intro-copy {
+      padding-right: 0;
     }
 
     .home-official-join-card {
