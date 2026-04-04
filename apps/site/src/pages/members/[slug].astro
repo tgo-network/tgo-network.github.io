@@ -30,10 +30,19 @@ const branchBodyExcerpt = branch
       .join("")
   : "";
 const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !== branch?.summary);
-const memberMetaItems = [
-  `所属分会 · ${member.branch?.name ?? "待补充"}`,
-  `加入时间 · ${formatDate(member.joinedAt)}`,
-  "公开身份 · TGO 鲲鹏会成员"
+const memberFactItems = [
+  {
+    label: "所属分会",
+    value: member.branch?.name ?? "待补充"
+  },
+  {
+    label: "加入时间",
+    value: formatDate(member.joinedAt)
+  },
+  {
+    label: "公开身份",
+    value: "TGO 鲲鹏会成员"
+  }
 ];
 ---
 
@@ -60,15 +69,22 @@ const memberMetaItems = [
                 <p class="member-profile-role">{member.company} · {member.title}</p>
               </div>
             </div>
-
-            <div class="detail-meta-row member-profile-meta">
-              {memberMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
-            </div>
           </div>
 
           <div class="member-profile-overview">
             <p class="member-profile-overline">成员简介</p>
             <p class="detail-summary member-profile-summary">{member.bio}</p>
+
+            <div class="member-profile-fact-grid">
+              {
+                memberFactItems.map((item) => (
+                  <article class="member-profile-fact">
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </article>
+                ))
+              }
+            </div>
 
             <div class="hero-actions member-profile-actions">
               {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
@@ -139,14 +155,15 @@ const memberMetaItems = [
 
 <style>
   .member-profile-layout,
-  .member-context-grid {
+  .member-context-grid,
+  .member-profile-fact-grid {
     display: grid;
     gap: 18px;
   }
 
   .member-profile-layout {
-    grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1.2fr);
+    align-items: center;
   }
 
   .member-context-grid {
@@ -158,7 +175,13 @@ const memberMetaItems = [
     display: grid;
     gap: 20px;
     grid-template-columns: 132px minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
+  }
+
+  .member-profile-lead {
+    display: grid;
+    gap: 18px;
+    align-content: center;
   }
 
   .member-profile-copy h1,
@@ -214,7 +237,8 @@ const memberMetaItems = [
 
   .member-profile-role,
   .member-context-branch p,
-  .member-board-copy small {
+  .member-board-copy small,
+  .member-profile-fact span {
     margin: 0;
     color: var(--muted);
     line-height: 1.8;
@@ -229,11 +253,29 @@ const memberMetaItems = [
     max-width: 58ch;
   }
 
-  .member-profile-actions {
-    margin-top: 4px;
+  .member-profile-fact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .member-profile-meta {
+  .member-profile-fact {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .member-profile-fact span {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .member-profile-fact strong {
+    line-height: 1.7;
+  }
+
+  .member-profile-actions {
     margin-top: 4px;
   }
 
@@ -317,6 +359,10 @@ const memberMetaItems = [
   @media (max-width: 980px) {
     .member-profile-layout,
     .member-context-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .member-profile-fact-grid {
       grid-template-columns: 1fr;
     }
   }

@@ -56,7 +56,7 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     </section>
 
     <section class="section">
-      <div class="detail-content-grid article-detail-layout">
+      <div class="article-detail-stack">
         <article class="panel prose-panel detail-body-panel article-body-panel">
           <div class="article-body-intro">
             <p class="article-body-lead">{leadParagraph ?? article.excerpt}</p>
@@ -67,44 +67,29 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
           </div>
         </article>
 
-        <aside class="detail-side-stack detail-sticky article-side-stack">
-          <article class="panel detail-side-card article-context-panel">
-            <h2>文章信息</h2>
+        <div class="article-context-grid">
+          <article class="panel detail-section-card article-context-card">
+            <h2>作者</h2>
+            <strong>{article.author.name}</strong>
+            <p>{article.author.role}</p>
+          </article>
 
-            <ul class="detail-info-list article-context-list">
-              <li>
-                <span>作者</span>
-                <strong>{article.author.name}</strong>
-                <small>{article.author.role}</small>
-              </li>
-              <li>
-                <span>发布时间</span>
-                <strong>{formatDate(article.publishedAt)}</strong>
-                <small>预计阅读 {estimatedReadMinutes} 分钟</small>
-              </li>
-              {
-                article.branch?.name && (
-                  <li>
-                    <span>相关分会</span>
-                    <strong>{article.branch.name}</strong>
-                  </li>
-                )
-              }
-            </ul>
+          <article class="panel detail-section-card article-context-card">
+            <h2>发布时间</h2>
+            <strong>{formatDate(article.publishedAt)}</strong>
+            <p>预计阅读 {estimatedReadMinutes} 分钟</p>
           </article>
 
           {
             article.branch && (
-              <article class="panel detail-side-card article-branch-panel">
+              <article class="panel detail-section-card article-context-card article-branch-panel">
                 <h2>相关分会</h2>
-                <div class="article-branch-card">
-                  <strong>{article.branch.name}</strong>
-                  <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>
-                </div>
+                <strong>{article.branch.name}</strong>
+                <a class="text-link" href={`/branches#${article.branch.slug}`}>查看相关分会</a>
               </article>
             )
           }
-        </aside>
+        </div>
       </div>
     </section>
   </main>
@@ -113,6 +98,12 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
 <style>
   .article-hero-actions {
     margin-top: 2px;
+  }
+
+  .article-detail-stack,
+  .article-context-grid {
+    display: grid;
+    gap: 18px;
   }
 
   .article-body-panel {
@@ -142,24 +133,35 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     line-height: 1.9;
   }
 
-  .article-side-stack {
-    gap: 18px;
+  .article-context-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .article-branch-card {
+  .article-context-card {
     display: grid;
-    gap: 14px;
+    gap: 10px;
     padding: 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(27, 23, 19, 0.08);
-    background: rgba(255, 255, 255, 0.72);
   }
 
-  .article-branch-card strong {
-    line-height: 1.6;
+  .article-context-card strong {
+    line-height: 1.7;
+  }
+
+  .article-context-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .article-branch-panel .text-link {
+    width: fit-content;
   }
 
   @media (max-width: 980px) {
+    .article-context-grid {
+      grid-template-columns: 1fr;
+    }
+
     .article-detail-image {
       min-height: 260px;
     }
