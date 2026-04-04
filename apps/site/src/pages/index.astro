@@ -284,7 +284,9 @@ const heroImage = {
   }
 
   .home-official-section-head {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .home-official-hero-copy h1,
@@ -311,7 +313,7 @@ const heroImage = {
   .home-official-section-head h2,
   .home-official-join-head h2 {
     max-width: 18ch;
-    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-size: clamp(1.6rem, 2.6vw, 2.3rem);
     line-height: 1.08;
   }
 
@@ -402,16 +404,33 @@ const heroImage = {
   }
 
   .home-official-text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 500;
+    font-size: 0.92rem;
+  }
+
+  .home-official-text-link::after {
+    content: "→";
   }
 
   .home-official-testimonial-card {
+    position: relative;
     display: grid;
     gap: 18px;
-    padding: 24px;
+    min-height: 100%;
+    padding: 26px 24px 24px;
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 28%),
       linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
+  }
+
+  .home-official-testimonial-card::before {
+    content: "";
+    width: 48px;
+    height: 2px;
+    background: rgba(138, 106, 67, 0.28);
   }
 
   .home-official-testimonial-quote {
@@ -443,6 +462,7 @@ const heroImage = {
     overflow: hidden;
     height: 100%;
     border-radius: 26px;
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(244, 238, 230, 0.94));
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
 
@@ -457,6 +477,7 @@ const heroImage = {
     width: 100%;
     aspect-ratio: 16 / 10;
     object-fit: cover;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.06);
     background: rgba(255, 255, 255, 0.72);
   }
 
@@ -471,7 +492,7 @@ const heroImage = {
   .home-official-event-copy {
     display: grid;
     gap: 12px;
-    padding: 20px;
+    padding: 18px 20px 20px;
   }
 
   .home-official-event-meta,
@@ -482,6 +503,7 @@ const heroImage = {
     gap: 12px;
     margin: 0;
     color: var(--muted);
+    font-size: 0.74rem;
     letter-spacing: 0.04em;
   }
 
@@ -506,7 +528,8 @@ const heroImage = {
     display: grid;
     gap: 14px;
     height: 100%;
-    padding: 22px 24px;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(244, 238, 230, 0.94));
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
 
@@ -527,6 +550,7 @@ const heroImage = {
     align-items: center;
     justify-content: space-between;
     margin-top: auto;
+    padding-top: 4px;
     color: var(--muted);
     font-size: 0.84rem;
   }
@@ -544,16 +568,29 @@ const heroImage = {
   }
 
   .home-official-join-card {
+    display: grid;
+    gap: 22px;
     padding: 28px;
+    background:
+      radial-gradient(circle at top left, rgba(138, 106, 67, 0.08), transparent 26%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
   }
 
   .home-official-join-head {
-    margin-bottom: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 0;
   }
 
   .home-official-join-head .card-copy {
     margin-top: 12px;
     max-width: 42rem;
+  }
+
+  .home-official-join-head > .button {
+    justify-self: start;
   }
 
   .home-official-join-grid {
@@ -564,6 +601,7 @@ const heroImage = {
     padding: 22px;
     border-radius: 22px;
     border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.56);
   }
 
   .home-official-join-panel ul,
@@ -615,6 +653,10 @@ const heroImage = {
     .home-official-event-grid,
     .home-official-article-grid,
     .home-official-join-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .home-official-join-head {
       grid-template-columns: 1fr;
     }
 
