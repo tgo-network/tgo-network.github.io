@@ -6,33 +6,16 @@ const faqEntries = officialFaqItems.map((item, index) => ({
   ...item,
   id: `faq-item-${index + 1}`
 }));
-
-const faqActions = [
-  { label: "加入申请", href: "/join", variant: "primary" },
-  { label: "关于我们", href: "/about", variant: "secondary" }
-] as const;
 ---
 
 <BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
   <main class="page-shell page-stack detail-page-shell faq-page-shell">
     <section class="section faq-shell">
-      <aside class="panel detail-side-card detail-sticky faq-intro-card">
-        <div class="faq-intro-copy">
-          <p class="page-eyebrow">FAQ</p>
-          <h1>常见问题</h1>
-          <p>集中查看加入标准、活动参与方式、董事会职责与会费相关问题。</p>
-        </div>
-
-        <div class="faq-intro-actions">
-          {
-            faqActions.map((action) => (
-              <a class:list={["button", action.variant]} href={action.href}>
-                {action.label}
-              </a>
-            ))
-          }
-        </div>
-      </aside>
+      <header class="faq-page-header">
+        <p class="page-eyebrow">FAQ</p>
+        <h1>常见问题</h1>
+        <p>集中查看加入标准、活动参与方式、董事会职责与会费相关问题。</p>
+      </header>
 
       <div class="faq-list">
         {
@@ -151,41 +134,35 @@ const faqActions = [
 
 <style>
   .faq-shell,
-  .faq-intro-copy,
+  .faq-page-header,
   .faq-list {
     display: grid;
     gap: 18px;
   }
 
+  .faq-page-shell {
+    width: min(980px, calc(100% - 40px));
+  }
+
   .faq-shell {
-    grid-template-columns: minmax(280px, 0.38fr) minmax(0, 0.62fr);
-    align-items: start;
+    gap: 22px;
   }
 
-  .faq-intro-card {
-    gap: 20px;
-    align-content: start;
-    background:
-      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 30%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+  .faq-page-header {
+    gap: 10px;
   }
 
-  .faq-intro-copy h1 {
+  .faq-page-header h1 {
     margin: 0;
     font-size: clamp(2.1rem, 4vw, 3.1rem);
     line-height: 1.02;
   }
 
-  .faq-intro-copy p:last-child {
+  .faq-page-header p:last-child {
     margin: 0;
     color: var(--muted);
     line-height: 1.82;
-  }
-
-  .faq-intro-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    max-width: 46rem;
   }
 
   .faq-item {
@@ -374,19 +351,13 @@ const faqActions = [
     line-height: 1.76;
   }
 
-  @media (max-width: 980px) {
-    .faq-shell {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 720px) {
-    .faq-intro-copy h1 {
-      font-size: clamp(1.9rem, 10vw, 2.8rem);
+    .faq-page-shell {
+      width: min(100%, calc(100% - 32px));
     }
 
-    .faq-intro-card {
-      padding-top: 4px;
+    .faq-page-header h1 {
+      font-size: clamp(1.9rem, 10vw, 2.8rem);
     }
 
     .faq-item summary {

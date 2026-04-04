@@ -44,22 +44,9 @@ const pickFeaturedMembers = () => {
 const featuredMembers = pickFeaturedMembers();
 const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slice(0, 3);
 
-const heroFacts = [
-  {
-    label: "组织形式",
-    value: "城市分会、董事会、成员共建"
-  },
-  {
-    label: "覆盖人群",
-    value: "CTO、技术 VP、研发负责人等技术领导者"
-  },
-  {
-    label: "活动方式",
-    value: "闭门交流、企业参访、专题研讨、峰会学习"
-  }
-];
-const heroSummary = "面向 CTO、技术 VP、研发负责人和关键技术管理者，通过分会网络、活动学习与成员交流建立长期同侪社区。";
-const heroNote = "以城市分会和董事会为长期组织单元，连接成员交流、活动学习与组织经验沉淀。";
+const heroSummary =
+  "面向 CTO、技术 VP、研发负责人和关键技术管理者，TGO 鲲鹏会通过城市分会、董事会与成员共建的方式，连接长期交流、活动学习与组织经验沉淀。";
+const heroNote = "社区覆盖技术管理者、架构负责人和技术创业者，持续开展闭门交流、企业参访、专题研讨与峰会学习。";
 
 const testimonialFallbacks: Record<string, string> = {
   "zhou-yang": "真正有价值的，不是一场活动结束时的热闹，而是之后还能继续讨论那些没有标准答案的管理问题。",
@@ -116,16 +103,7 @@ const heroImage = {
             <p class="home-official-kicker">TGO 鲲鹏会</p>
             <h1>科技领导者的长期学习与交流社区</h1>
             <p class="home-official-summary">{heroSummary}</p>
-
-            <div class="hero-actions">
-              {
-                home.hero.actions.map((action, index) => (
-                  <a class:list={["button", index === 0 ? "primary" : "secondary"]} href={action.href}>
-                    {action.label}
-                  </a>
-                ))
-              }
-            </div>
+            <p class="home-official-context-note">{heroNote}</p>
           </div>
 
           <div class="home-official-hero-visual">
@@ -136,20 +114,6 @@ const heroImage = {
           </div>
         </div>
 
-        <div class="home-official-context-grid">
-          <p class="home-official-context-note">{heroNote}</p>
-
-          <div class="home-official-fact-list">
-            {
-              heroFacts.map((item) => (
-                <article class="home-official-fact-item">
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </article>
-              ))
-            }
-          </div>
-        </div>
       </article>
     </section>
 
@@ -299,7 +263,6 @@ const heroImage = {
   }
 
   .home-official-hero-grid,
-  .home-official-context-grid,
   .home-official-join-grid {
     display: grid;
     gap: 24px;
@@ -339,6 +302,12 @@ const heroImage = {
     line-height: 0.98;
   }
 
+  .home-official-hero-copy {
+    display: grid;
+    gap: 16px;
+    align-content: center;
+  }
+
   .home-official-section-head h2,
   .home-official-join-head h2 {
     max-width: 18ch;
@@ -359,7 +328,7 @@ const heroImage = {
   }
 
   .home-official-summary {
-    max-width: 37rem;
+    max-width: 39rem;
     font-size: 1.08rem;
   }
 
@@ -397,14 +366,6 @@ const heroImage = {
     text-transform: uppercase;
   }
 
-  .home-official-context-grid {
-    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
-    align-items: center;
-    gap: 18px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(27, 23, 19, 0.08);
-  }
-
   .home-official-testimonial-card,
   .home-official-event-card,
   .home-official-article-item,
@@ -417,9 +378,9 @@ const heroImage = {
     color: var(--ink);
     font-size: 1.02rem;
     line-height: 1.82;
+    max-width: 38rem;
   }
 
-  .home-official-fact-list,
   .home-official-testimonial-grid,
   .home-official-event-grid,
   .home-official-article-grid,
@@ -428,32 +389,10 @@ const heroImage = {
     gap: 18px;
   }
 
-  .home-official-fact-list,
   .home-official-testimonial-grid,
   .home-official-event-grid,
   .home-official-article-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .home-official-fact-item {
-    display: grid;
-    gap: 6px;
-    padding: 16px 18px;
-    border-radius: 20px;
-    border: 1px solid rgba(27, 23, 19, 0.08);
-    background: rgba(255, 255, 255, 0.56);
-  }
-
-  .home-official-fact-item span {
-    color: var(--accent-strong);
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .home-official-fact-item strong {
-    font-size: 0.98rem;
-    line-height: 1.7;
   }
 
   .home-official-event-copy h3,
@@ -643,8 +582,6 @@ const heroImage = {
       align-items: start;
     }
 
-    .home-official-context-grid,
-    .home-official-fact-list,
     .home-official-testimonial-grid,
     .home-official-event-grid,
     .home-official-article-grid {
@@ -674,25 +611,11 @@ const heroImage = {
       max-width: none;
     }
 
-    .home-official-context-grid,
-    .home-official-fact-list,
     .home-official-testimonial-grid,
     .home-official-event-grid,
     .home-official-article-grid,
     .home-official-join-grid {
       grid-template-columns: 1fr;
-    }
-
-    .home-official-context-grid {
-      align-items: start;
-    }
-
-    .home-official-fact-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .home-official-fact-item:last-child {
-      grid-column: 1 / -1;
     }
 
     .home-official-join-card {
