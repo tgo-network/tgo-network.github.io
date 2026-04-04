@@ -3,6 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { officialAboutIntro, officialAboutSections } from "../lib/official-content";
 
 const getVisibleImages = (images: typeof officialAboutSections[number]["images"]) => images.slice(0, Math.min(images.length, 2));
+const aboutActions = [
+  { label: "加入申请", href: "/join", variant: "primary" },
+  { label: "查看 FAQ", href: "/faq", variant: "secondary" }
+] as const;
 ---
 
 <BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
@@ -13,6 +17,16 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
           <p class="page-eyebrow">关于我们</p>
           <h1>{officialAboutIntro.title}</h1>
           <p class="detail-summary">{officialAboutIntro.summary}</p>
+
+          <div class="hero-actions about-page-actions">
+            {
+              aboutActions.map((action) => (
+                <a class:list={["button", action.variant]} href={action.href}>
+                  {action.label}
+                </a>
+              ))
+            }
+          </div>
         </div>
 
         <div class="detail-side-card about-page-overview-side">
@@ -103,6 +117,7 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
     border-radius: 20px;
     align-content: start;
     min-height: 100%;
+    background: rgba(255, 255, 255, 0.64);
   }
 
   .about-page-overview-label {
