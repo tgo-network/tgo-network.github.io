@@ -44,20 +44,22 @@ const pickFeaturedMembers = () => {
 const featuredMembers = pickFeaturedMembers();
 const featuredArticles = listPublicEditorialArticles(home.featuredArticles).slice(0, 3);
 
-const introSignals = [
+const heroFacts = [
   {
-    title: "组织形式",
-    body: "采用学员共建、分会运营的方式，由各地董事会成员与工作人员共同维护长期社区节奏。"
+    label: "组织形式",
+    value: "城市分会、董事会、成员共建"
   },
   {
-    title: "覆盖人群",
-    body: "主要面向 CTO、技术 VP、研发负责人、架构负责人和技术创业者等科技领导者。"
+    label: "覆盖人群",
+    value: "CTO、技术 VP、研发负责人等技术领导者"
   },
   {
-    title: "活动方式",
-    body: "围绕私密小组、公开学习、企业参访、专题研讨与峰会交流等形式持续发生。"
+    label: "活动方式",
+    value: "闭门交流、企业参访、专题研讨、峰会学习"
   }
 ];
+const heroSummary = "面向 CTO、技术 VP、研发负责人和关键技术管理者，通过分会网络、活动学习与成员交流建立长期同侪社区。";
+const heroNote = "以城市分会和董事会为长期组织单元，连接成员交流、活动学习与组织经验沉淀。";
 
 const testimonialFallbacks: Record<string, string> = {
   "zhou-yang": "真正有价值的，不是一场活动结束时的热闹，而是之后还能继续讨论那些没有标准答案的管理问题。",
@@ -76,9 +78,7 @@ const featuredTestimonials = featuredMembers.map((member, index) => ({
     testimonialFallbacks[member.slug] ??
     testimonialFallbackRotation[index % testimonialFallbackRotation.length]
 }));
-const [featuredTestimonial, ...secondaryTestimonials] = featuredTestimonials;
-const [featuredEvent, ...secondaryEvents] = home.featuredEvents;
-const [featuredArticle, ...secondaryArticles] = featuredArticles;
+const featuredEvents = home.featuredEvents.slice(0, 3);
 
 const joinPanels = [
   {
@@ -115,7 +115,7 @@ const heroImage = {
           <div class="home-official-hero-copy">
             <p class="home-official-kicker">TGO 鲲鹏会</p>
             <h1>科技领导者的长期学习与交流社区</h1>
-            <p class="home-official-summary">{home.hero.summary}</p>
+            <p class="home-official-summary">{heroSummary}</p>
 
             <div class="hero-actions">
               {
@@ -137,18 +137,14 @@ const heroImage = {
         </div>
 
         <div class="home-official-context-grid">
-          <article class="home-official-intro-copy">
-            <p class="home-official-intro-label">组织介绍</p>
-            <p class="home-official-intro-lead">{home.intro.summary}</p>
-            <p>由各地分会、董事会成员与工作人员共同维护公开活动、成员连接与长期社区节奏。</p>
-          </article>
+          <p class="home-official-context-note">{heroNote}</p>
 
-          <div class="home-official-signal-grid">
+          <div class="home-official-fact-list">
             {
-              introSignals.map((item) => (
-                <article class="home-official-signal-card">
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
+              heroFacts.map((item) => (
+                <article class="home-official-fact-item">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
                 </article>
               ))
             }
@@ -159,166 +155,91 @@ const heroImage = {
 
     <section class="section">
       <div class="section-head section-head-stack home-official-section-head">
-        <div>
-          <p class="home-official-kicker">成员推荐</p>
-          <h2>成员的真实反馈，是社区最好的介绍</h2>
-        </div>
+        <h2>成员推荐</h2>
         <a class="text-link home-official-text-link" href="/members">查看成员列表</a>
       </div>
 
-      <div class="home-official-showcase-grid home-official-testimonial-grid">
+      <div class="home-official-testimonial-grid">
         {
-          featuredTestimonial && (
-            <article class="panel home-official-testimonial-card is-featured">
-              <p class="home-official-testimonial-quote">“{featuredTestimonial.quote}”</p>
+          featuredTestimonials.map((member) => (
+            <article class="panel home-official-testimonial-card">
+              <p class="home-official-testimonial-quote">“{member.quote}”</p>
 
               <div class="home-official-testimonial-meta">
-                <strong>{featuredTestimonial.name}</strong>
+                <strong>{member.name}</strong>
                 <span>
-                  {featuredTestimonial.company}
-                  {featuredTestimonial.title ? ` · ${featuredTestimonial.title}` : ""}
+                  {member.company}
+                  {member.title ? ` · ${member.title}` : ""}
                 </span>
-                <small>{featuredTestimonial.branch?.name ?? "TGO 鲲鹏会成员"}</small>
+                <small>{member.branch?.name ?? "TGO 鲲鹏会成员"}</small>
               </div>
             </article>
-          )
-        }
-
-        {
-          secondaryTestimonials.length > 0 && (
-            <div class="home-official-side-stack">
-              {secondaryTestimonials.map((member) => (
-                <article class="panel home-official-testimonial-card">
-                  <p class="home-official-testimonial-quote">“{member.quote}”</p>
-
-                  <div class="home-official-testimonial-meta">
-                    <strong>{member.name}</strong>
-                    <span>
-                      {member.company}
-                      {member.title ? ` · ${member.title}` : ""}
-                    </span>
-                    <small>{member.branch?.name ?? "TGO 鲲鹏会成员"}</small>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )
+          ))
         }
       </div>
     </section>
 
     <section class="section">
       <div class="section-head section-head-stack home-official-section-head">
-        <div>
-          <p class="home-official-kicker">活动</p>
-          <h2>近期公开活动</h2>
-        </div>
+        <h2>近期活动</h2>
         <a class="text-link home-official-text-link" href="/events">浏览活动</a>
       </div>
 
-      <div class="home-official-showcase-grid home-official-event-grid">
+      <div class="home-official-event-grid">
         {
-          featuredEvent && (
-            <a class="home-official-card-link home-official-event-link is-featured" href={`/events/${featuredEvent.slug}`}>
-              <article class="panel home-official-event-card is-featured">
+          featuredEvents.map((event, index) => (
+            <a class:list={["home-official-card-link", "home-official-event-link"]} href={`/events/${event.slug}`}>
+              <article class="panel home-official-event-card">
                 <img
                   class="home-official-event-image"
-                  src={featuredEvent.coverImage?.url ?? eventFallbackImages[0]}
-                  alt={featuredEvent.coverImage?.alt ?? featuredEvent.title}
+                  src={event.coverImage?.url ?? eventFallbackImages[index % eventFallbackImages.length]}
+                  alt={event.coverImage?.alt ?? event.title}
                   loading="eager"
                 />
 
                 <div class="home-official-event-copy">
                   <div class="home-official-event-meta">
-                    <span>{featuredEvent.cityName}</span>
-                    <span>{formatDateRange(featuredEvent.startsAt, featuredEvent.endsAt)}</span>
+                    <span>{event.cityName}</span>
+                    <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
                   </div>
-                  <h3>{featuredEvent.title}</h3>
-                  <p>{featuredEvent.summary}</p>
+                  <h3>{event.title}</h3>
+                  <p>{event.summary}</p>
                 </div>
               </article>
             </a>
-          )
-        }
-
-        {
-          secondaryEvents.length > 0 && (
-            <div class="home-official-side-stack home-official-event-stack">
-              {secondaryEvents.map((event, index) => (
-                <a class="home-official-card-link home-official-event-link" href={`/events/${event.slug}`}>
-                  <article class="panel home-official-event-card">
-                    <img
-                      class="home-official-event-image"
-                      src={event.coverImage?.url ?? eventFallbackImages[(index + 1) % eventFallbackImages.length]}
-                      alt={event.coverImage?.alt ?? event.title}
-                      loading="eager"
-                    />
-
-                    <div class="home-official-event-copy">
-                      <div class="home-official-event-meta">
-                        <span>{event.cityName}</span>
-                        <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
-                      </div>
-                      <h3>{event.title}</h3>
-                      <p>{event.summary}</p>
-                    </div>
-                  </article>
-                </a>
-              ))}
-            </div>
-          )
+          ))
         }
       </div>
     </section>
 
     <section class="section">
       <div class="section-head section-head-stack home-official-section-head">
-        <div>
-          <p class="home-official-kicker">文章</p>
-          <h2>技术管理与组织实践沉淀</h2>
-        </div>
+        <h2>近期文章</h2>
         <a class="text-link home-official-text-link" href="/articles">查看文章</a>
       </div>
 
-      <div class="home-official-showcase-grid home-official-article-layout">
+      <div class="home-official-article-grid">
         {
-          featuredArticle && (
-            <a class="home-official-card-link home-official-featured-article-link" href={`/articles/${featuredArticle.slug}`}>
-              <article class="panel home-official-featured-article">
+          featuredArticles.map((article) => (
+            <a class:list={["home-official-card-link", "home-official-article-link"]} href={`/articles/${article.slug}`}>
+              <article class="panel home-official-article-item">
                 <div class="home-official-article-meta">
-                  <span>{formatDate(featuredArticle.publishedAt)}</span>
-                  <span>{featuredArticle.authorName}</span>
+                  <span>{formatDate(article.publishedAt)}</span>
+                  <span>{article.authorName}</span>
                 </div>
 
-                <div class="home-official-featured-article-copy">
-                  <h3>{featuredArticle.title}</h3>
-                  <p>{featuredArticle.excerpt}</p>
+                <div class="home-official-article-copy">
+                  <h3>{article.title}</h3>
+                  <p>{article.excerpt}</p>
+                </div>
+
+                <div class="home-official-article-footer">
+                  <span>{article.branch?.name ?? "TGO 鲲鹏会"}</span>
+                  <span class="text-link">阅读全文</span>
                 </div>
               </article>
             </a>
-          )
-        }
-
-        {
-          secondaryArticles.length > 0 && (
-            <div class="home-official-side-stack home-official-article-list">
-              {secondaryArticles.map((article) => (
-                <a class="home-official-card-link" href={`/articles/${article.slug}`}>
-                  <article class="panel home-official-article-item is-compact">
-                    <div class="home-official-article-meta">
-                      <span>{formatDate(article.publishedAt)}</span>
-                      <span>{article.authorName}</span>
-                    </div>
-
-                    <div class="home-official-article-copy">
-                      <h3>{article.title}</h3>
-                      <p>{article.excerpt}</p>
-                    </div>
-                  </article>
-                </a>
-              ))}
-            </div>
-          )
+          ))
         }
       </div>
     </section>
@@ -327,9 +248,8 @@ const heroImage = {
       <div class="panel home-official-join-card">
         <div class="section-head section-head-stack home-official-section-head home-official-join-head">
           <div>
-            <p class="home-official-kicker">加入申请</p>
-            <h2>适合愿意长期参与社区交流的技术领导者</h2>
-            <p class="card-copy">{home.joinCallout.summary}</p>
+            <h2>申请加入 TGO 鲲鹏会</h2>
+            <p class="card-copy">符合申请条件后，可先阅读加入方式并提交申请，由工作人员继续联系。</p>
           </div>
           <a class="button primary" href={home.joinCallout.href}>查看加入方式</a>
         </div>
@@ -427,9 +347,7 @@ const heroImage = {
   }
 
   .home-official-summary,
-  .home-official-intro-copy p,
-  .home-official-intro-lead,
-  .home-official-signal-card p,
+  .home-official-context-note,
   .home-official-testimonial-quote,
   .home-official-event-copy p,
   .home-official-article-copy p,
@@ -480,74 +398,64 @@ const heroImage = {
   }
 
   .home-official-context-grid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    align-items: start;
-    padding-top: 22px;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    align-items: center;
+    gap: 18px;
+    padding-top: 20px;
     border-top: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .home-official-testimonial-card,
   .home-official-event-card,
-  .home-official-featured-article,
   .home-official-article-item,
   .home-official-join-card,
   .home-official-join-panel {
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
-  .home-official-intro-copy {
-    display: grid;
-    gap: 14px;
-    padding: 0 10px 0 0;
-  }
-
-  .home-official-intro-label {
-    margin: 0;
-    color: var(--accent-strong);
-    font-size: 0.82rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .home-official-intro-lead {
+  .home-official-context-note {
     color: var(--ink);
-    font-size: 1.14rem;
-    font-weight: 600;
-    line-height: 1.74;
+    font-size: 1.02rem;
+    line-height: 1.82;
   }
 
-  .home-official-signal-grid,
+  .home-official-fact-list,
+  .home-official-testimonial-grid,
+  .home-official-event-grid,
+  .home-official-article-grid,
   .home-official-join-grid {
-    display: grid;
-    gap: 16px;
-  }
-
-  .home-official-showcase-grid,
-  .home-official-side-stack {
     display: grid;
     gap: 18px;
   }
 
-  .home-official-showcase-grid {
-    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-    align-items: start;
-  }
-
-  .home-official-signal-grid {
+  .home-official-fact-list,
+  .home-official-testimonial-grid,
+  .home-official-event-grid,
+  .home-official-article-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .home-official-signal-card {
-    min-height: 100%;
+  .home-official-fact-item {
     display: grid;
-    gap: 10px;
-    padding: 20px 18px;
+    gap: 6px;
+    padding: 16px 18px;
     border-radius: 20px;
     border: 1px solid rgba(27, 23, 19, 0.08);
     background: rgba(255, 255, 255, 0.56);
   }
 
-  .home-official-signal-card h3,
+  .home-official-fact-item span {
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .home-official-fact-item strong {
+    font-size: 0.98rem;
+    line-height: 1.7;
+  }
+
   .home-official-event-copy h3,
   .home-official-article-copy h3,
   .home-official-join-panel h3 {
@@ -568,29 +476,8 @@ const heroImage = {
   }
 
   .home-official-testimonial-quote {
-    position: relative;
     font-size: 1.02rem;
-  }
-
-  .home-official-testimonial-card.is-featured {
-    padding: 28px;
-    gap: 22px;
-  }
-
-  .home-official-testimonial-card.is-featured .home-official-testimonial-quote {
-    font-size: 1.14rem;
     line-height: 1.88;
-  }
-
-  .home-official-testimonial-card.is-featured::before {
-    content: "“";
-    position: absolute;
-    top: 14px;
-    right: 24px;
-    color: rgba(138, 106, 67, 0.18);
-    font-family: var(--font-display);
-    font-size: 5.2rem;
-    line-height: 1;
   }
 
   .home-official-testimonial-meta {
@@ -609,22 +496,19 @@ const heroImage = {
 
   .home-official-event-link {
     min-width: 0;
-  }
-
-  .home-official-event-stack {
-    align-content: start;
+    height: 100%;
   }
 
   .home-official-event-card {
     display: grid;
     overflow: hidden;
+    height: 100%;
     border-radius: 26px;
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
 
   .home-official-card-link:hover .home-official-event-card,
-  .home-official-card-link:hover .home-official-article-item,
-  .home-official-card-link:hover .home-official-featured-article {
+  .home-official-card-link:hover .home-official-article-item {
     transform: translateY(-2px);
     border-color: rgba(157, 111, 49, 0.18);
     box-shadow: 0 22px 48px rgba(40, 28, 18, 0.12);
@@ -635,10 +519,6 @@ const heroImage = {
     aspect-ratio: 16 / 10;
     object-fit: cover;
     background: rgba(255, 255, 255, 0.72);
-  }
-
-  .home-official-event-card.is-featured .home-official-event-image {
-    aspect-ratio: 16 / 9;
   }
 
   .home-official-event-image-placeholder {
@@ -655,11 +535,6 @@ const heroImage = {
     padding: 20px;
   }
 
-  .home-official-event-card.is-featured .home-official-event-copy {
-    gap: 14px;
-    padding: 24px;
-  }
-
   .home-official-event-meta,
   .home-official-article-meta {
     display: flex;
@@ -671,14 +546,8 @@ const heroImage = {
     letter-spacing: 0.04em;
   }
 
-  .home-official-event-card.is-featured .home-official-event-copy h3 {
-    font-size: 1.42rem;
-    line-height: 1.32;
-  }
-
   .home-official-event-copy h3,
-  .home-official-article-copy h3,
-  .home-official-featured-article-copy h3 {
+  .home-official-article-copy h3 {
     line-height: 1.38;
   }
 
@@ -689,68 +558,50 @@ const heroImage = {
     -webkit-line-clamp: 2;
   }
 
-  .home-official-event-card.is-featured .home-official-event-copy p {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  .home-official-article-list {
-    align-content: start;
-  }
-
-  .home-official-featured-article-link {
+  .home-official-article-link {
     min-width: 0;
-  }
-
-  .home-official-featured-article {
-    display: grid;
-    gap: 18px;
-    padding: 28px;
-    background:
-      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 30%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-  }
-
-  .home-official-featured-article-copy {
-    display: grid;
-    gap: 14px;
-    align-content: start;
-  }
-
-  .home-official-featured-article-copy h3 {
-    margin: 0;
-    font-size: clamp(1.56rem, 2.4vw, 2.08rem);
-  }
-
-  .home-official-featured-article-copy p,
-  .home-official-article-item.is-compact .home-official-article-copy p {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    height: 100%;
   }
 
   .home-official-article-item {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: 18px;
+    gap: 14px;
+    height: 100%;
     padding: 22px 24px;
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
 
+  .home-official-article-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
   .home-official-article-meta {
-    flex-direction: column;
-    align-items: flex-start;
     justify-content: flex-start;
   }
 
-  .home-official-article-item.is-compact {
-    grid-template-columns: 1fr;
+  .home-official-article-footer {
+    display: flex;
     gap: 12px;
-    padding: 20px 22px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .home-official-article-footer span:first-child {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(138, 106, 67, 0.14);
+    background: rgba(255, 248, 238, 0.76);
+    color: var(--accent-strong);
+    letter-spacing: 0.03em;
   }
 
   .home-official-join-card {
@@ -787,32 +638,19 @@ const heroImage = {
   }
 
   @media (max-width: 1100px) {
-    .home-official-context-grid,
-    .home-official-article-item {
-      grid-template-columns: 1fr;
-    }
-
     .home-official-hero-grid {
       grid-template-columns: 1fr;
       align-items: start;
     }
 
-    .home-official-showcase-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .home-official-signal-grid {
+    .home-official-context-grid,
+    .home-official-fact-list,
+    .home-official-testimonial-grid,
+    .home-official-event-grid,
+    .home-official-article-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-official-side-stack {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .home-official-event-card.is-featured .home-official-event-copy h3,
-    .home-official-featured-article-copy h3 {
-      font-size: 1.42rem;
-    }
   }
 
   @media (max-width: 820px) {
@@ -827,7 +665,7 @@ const heroImage = {
     }
 
     .home-official-hero-copy h1 {
-      max-width: 12ch;
+      max-width: none;
       font-size: clamp(2.4rem, 10vw, 4rem);
     }
 
@@ -836,14 +674,25 @@ const heroImage = {
       max-width: none;
     }
 
-    .home-official-signal-grid,
-    .home-official-side-stack,
+    .home-official-context-grid,
+    .home-official-fact-list,
+    .home-official-testimonial-grid,
+    .home-official-event-grid,
+    .home-official-article-grid,
     .home-official-join-grid {
       grid-template-columns: 1fr;
     }
 
-    .home-official-intro-copy {
-      padding-right: 0;
+    .home-official-context-grid {
+      align-items: start;
+    }
+
+    .home-official-fact-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-official-fact-item:last-child {
+      grid-column: 1 / -1;
     }
 
     .home-official-join-card {

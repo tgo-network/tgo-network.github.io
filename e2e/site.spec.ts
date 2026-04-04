@@ -117,9 +117,9 @@ test("public homepage exposes the main content collections", async ({ page }) =>
   await expect(primaryNav.getByRole("link", { name: "文章", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "加入申请", exact: true })).toBeVisible();
   await expect(primaryNav.getByRole("link", { name: "FAQ", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "成员的真实反馈，是社区最好的介绍" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "近期公开活动" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "技术管理与组织实践沉淀" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "成员推荐" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期活动" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期文章" })).toBeVisible();
 });
 
 test("public application form submits successfully", async ({ page }) => {
