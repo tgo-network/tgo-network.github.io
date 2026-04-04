@@ -41,34 +41,39 @@ const memberMetaItems = [
   <main class="page-shell page-stack detail-page-shell member-detail-shell">
     <section class="section">
       <article class="panel detail-hero-card detail-hero-card-single member-detail-hero-card">
-        <div class="detail-hero-copy">
-          <div class="member-profile-head">
-            {
-              member.avatar ? (
-                <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
-              ) : (
-                <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
-                  {member.name.slice(0, 1)}
-                </div>
-              )
-            }
+        <div class="member-profile-layout">
+          <div class="detail-hero-copy member-profile-lead">
+            <div class="member-profile-head">
+              {
+                member.avatar ? (
+                  <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
+                ) : (
+                  <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
+                    {member.name.slice(0, 1)}
+                  </div>
+                )
+              }
 
-            <div class="member-profile-copy">
-              <p class="page-eyebrow member-profile-eyebrow">{member.branch?.name ?? "TGO 鲲鹏会成员"}</p>
-              <h1>{member.name}</h1>
-              <p class="member-profile-role">{member.company} · {member.title}</p>
+              <div class="member-profile-copy">
+                <p class="page-eyebrow member-profile-eyebrow">{member.branch?.name ?? "TGO 鲲鹏会成员"}</p>
+                <h1>{member.name}</h1>
+                <p class="member-profile-role">{member.company} · {member.title}</p>
+              </div>
+            </div>
+
+            <div class="detail-meta-row member-profile-meta">
+              {memberMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
             </div>
           </div>
 
-          <p class="detail-summary member-profile-summary">{member.bio}</p>
+          <div class="member-profile-overview">
+            <p class="member-profile-overline">成员简介</p>
+            <p class="detail-summary member-profile-summary">{member.bio}</p>
 
-          <div class="detail-meta-row">
-            {memberMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
-          </div>
-
-          <div class="hero-actions member-profile-actions">
-            {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
-            <a class="button secondary" href="/members">返回成员列表</a>
+            <div class="hero-actions member-profile-actions">
+              {member.branch && <a class="button primary" href={`/branches#${member.branch.slug}`}>查看所属分会</a>}
+              <a class="button secondary" href="/members">返回成员列表</a>
+            </div>
           </div>
         </div>
       </article>
@@ -133,9 +138,18 @@ const memberMetaItems = [
 </BaseLayout>
 
 <style>
+  .member-profile-layout,
   .member-context-grid {
     display: grid;
     gap: 18px;
+  }
+
+  .member-profile-layout {
+    grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+    align-items: start;
+  }
+
+  .member-context-grid {
     grid-template-columns: minmax(0, 1fr) minmax(320px, 0.94fr);
     align-items: start;
   }
@@ -180,9 +194,26 @@ const memberMetaItems = [
     gap: 10px;
   }
 
+  .member-profile-overview {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    padding: 24px;
+    border-radius: 22px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: rgba(255, 255, 255, 0.64);
+  }
+
+  .member-profile-overline {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
   .member-profile-role,
   .member-context-branch p,
-  .member-board-copy span,
   .member-board-copy small {
     margin: 0;
     color: var(--muted);
@@ -195,11 +226,15 @@ const memberMetaItems = [
   }
 
   .member-profile-summary {
-    max-width: 72ch;
+    max-width: 58ch;
   }
 
   .member-profile-actions {
-    margin-top: 2px;
+    margin-top: 4px;
+  }
+
+  .member-profile-meta {
+    margin-top: 4px;
   }
 
   .member-branch-figure {
@@ -256,13 +291,41 @@ const memberMetaItems = [
     gap: 4px;
   }
 
+  .member-board-copy span {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 26px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(138, 106, 67, 0.16);
+    background: rgba(255, 248, 238, 0.72);
+    color: var(--accent-strong);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .member-board-copy small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
   @media (max-width: 980px) {
+    .member-profile-layout,
     .member-context-grid {
       grid-template-columns: 1fr;
     }
   }
 
   @media (max-width: 720px) {
+    .member-profile-overview {
+      padding: 18px;
+    }
+
     .member-profile-head {
       grid-template-columns: 1fr;
     }

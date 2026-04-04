@@ -76,6 +76,9 @@ const featuredTestimonials = featuredMembers.map((member, index) => ({
     testimonialFallbacks[member.slug] ??
     testimonialFallbackRotation[index % testimonialFallbackRotation.length]
 }));
+const [featuredTestimonial, ...secondaryTestimonials] = featuredTestimonials;
+const [featuredEvent, ...secondaryEvents] = home.featuredEvents;
+const [featuredArticle, ...secondaryArticles] = featuredArticles;
 
 const joinPanels = [
   {
@@ -163,22 +166,43 @@ const heroImage = {
         <a class="text-link home-official-text-link" href="/members">查看成员列表</a>
       </div>
 
-      <div class="home-official-testimonial-grid">
+      <div class="home-official-showcase-grid home-official-testimonial-grid">
         {
-          featuredTestimonials.map((member, index) => (
-            <article class:list={["panel home-official-testimonial-card", index === 0 && "is-featured"]}>
-              <p class="home-official-testimonial-quote">“{member.quote}”</p>
+          featuredTestimonial && (
+            <article class="panel home-official-testimonial-card is-featured">
+              <p class="home-official-testimonial-quote">“{featuredTestimonial.quote}”</p>
 
               <div class="home-official-testimonial-meta">
-                <strong>{member.name}</strong>
+                <strong>{featuredTestimonial.name}</strong>
                 <span>
-                  {member.company}
-                  {member.title ? ` · ${member.title}` : ""}
+                  {featuredTestimonial.company}
+                  {featuredTestimonial.title ? ` · ${featuredTestimonial.title}` : ""}
                 </span>
-                <small>{member.branch?.name ?? "TGO 鲲鹏会成员"}</small>
+                <small>{featuredTestimonial.branch?.name ?? "TGO 鲲鹏会成员"}</small>
               </div>
             </article>
-          ))
+          )
+        }
+
+        {
+          secondaryTestimonials.length > 0 && (
+            <div class="home-official-side-stack">
+              {secondaryTestimonials.map((member) => (
+                <article class="panel home-official-testimonial-card">
+                  <p class="home-official-testimonial-quote">“{member.quote}”</p>
+
+                  <div class="home-official-testimonial-meta">
+                    <strong>{member.name}</strong>
+                    <span>
+                      {member.company}
+                      {member.title ? ` · ${member.title}` : ""}
+                    </span>
+                    <small>{member.branch?.name ?? "TGO 鲲鹏会成员"}</small>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )
         }
       </div>
     </section>
@@ -192,34 +216,57 @@ const heroImage = {
         <a class="text-link home-official-text-link" href="/events">浏览活动</a>
       </div>
 
-      <div class="home-official-event-grid">
+      <div class="home-official-showcase-grid home-official-event-grid">
         {
-          home.featuredEvents.map((event, index) => (
-            <a
-              class:list={["home-official-card-link", "home-official-event-link", index === 0 && "is-featured"]}
-              href={`/events/${event.slug}`}
-            >
-              <article class:list={["panel home-official-event-card", index === 0 && "is-featured"]}>
-                {
-                  <img
-                    class="home-official-event-image"
-                    src={event.coverImage?.url ?? eventFallbackImages[index % eventFallbackImages.length]}
-                    alt={event.coverImage?.alt ?? event.title}
-                    loading="eager"
-                  />
-                }
+          featuredEvent && (
+            <a class="home-official-card-link home-official-event-link is-featured" href={`/events/${featuredEvent.slug}`}>
+              <article class="panel home-official-event-card is-featured">
+                <img
+                  class="home-official-event-image"
+                  src={featuredEvent.coverImage?.url ?? eventFallbackImages[0]}
+                  alt={featuredEvent.coverImage?.alt ?? featuredEvent.title}
+                  loading="eager"
+                />
 
                 <div class="home-official-event-copy">
                   <div class="home-official-event-meta">
-                    <span>{event.cityName}</span>
-                    <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
+                    <span>{featuredEvent.cityName}</span>
+                    <span>{formatDateRange(featuredEvent.startsAt, featuredEvent.endsAt)}</span>
                   </div>
-                  <h3>{event.title}</h3>
-                  <p>{event.summary}</p>
+                  <h3>{featuredEvent.title}</h3>
+                  <p>{featuredEvent.summary}</p>
                 </div>
               </article>
             </a>
-          ))
+          )
+        }
+
+        {
+          secondaryEvents.length > 0 && (
+            <div class="home-official-side-stack home-official-event-stack">
+              {secondaryEvents.map((event, index) => (
+                <a class="home-official-card-link home-official-event-link" href={`/events/${event.slug}`}>
+                  <article class="panel home-official-event-card">
+                    <img
+                      class="home-official-event-image"
+                      src={event.coverImage?.url ?? eventFallbackImages[(index + 1) % eventFallbackImages.length]}
+                      alt={event.coverImage?.alt ?? event.title}
+                      loading="eager"
+                    />
+
+                    <div class="home-official-event-copy">
+                      <div class="home-official-event-meta">
+                        <span>{event.cityName}</span>
+                        <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
+                      </div>
+                      <h3>{event.title}</h3>
+                      <p>{event.summary}</p>
+                    </div>
+                  </article>
+                </a>
+              ))}
+            </div>
+          )
         }
       </div>
     </section>
@@ -233,23 +280,45 @@ const heroImage = {
         <a class="text-link home-official-text-link" href="/articles">查看文章</a>
       </div>
 
-      <div class="home-official-article-list">
+      <div class="home-official-showcase-grid home-official-article-layout">
         {
-          featuredArticles.map((article) => (
-            <a class="home-official-card-link" href={`/articles/${article.slug}`}>
-              <article class="panel home-official-article-item">
+          featuredArticle && (
+            <a class="home-official-card-link home-official-featured-article-link" href={`/articles/${featuredArticle.slug}`}>
+              <article class="panel home-official-featured-article">
                 <div class="home-official-article-meta">
-                  <span>{formatDate(article.publishedAt)}</span>
-                  <span>{article.authorName}</span>
+                  <span>{formatDate(featuredArticle.publishedAt)}</span>
+                  <span>{featuredArticle.authorName}</span>
                 </div>
 
-                <div class="home-official-article-copy">
-                  <h3>{article.title}</h3>
-                  <p>{article.excerpt}</p>
+                <div class="home-official-featured-article-copy">
+                  <h3>{featuredArticle.title}</h3>
+                  <p>{featuredArticle.excerpt}</p>
                 </div>
               </article>
             </a>
-          ))
+          )
+        }
+
+        {
+          secondaryArticles.length > 0 && (
+            <div class="home-official-side-stack home-official-article-list">
+              {secondaryArticles.map((article) => (
+                <a class="home-official-card-link" href={`/articles/${article.slug}`}>
+                  <article class="panel home-official-article-item is-compact">
+                    <div class="home-official-article-meta">
+                      <span>{formatDate(article.publishedAt)}</span>
+                      <span>{article.authorName}</span>
+                    </div>
+
+                    <div class="home-official-article-copy">
+                      <h3>{article.title}</h3>
+                      <p>{article.excerpt}</p>
+                    </div>
+                  </article>
+                </a>
+              ))}
+            </div>
+          )
         }
       </div>
     </section>
@@ -419,6 +488,7 @@ const heroImage = {
 
   .home-official-testimonial-card,
   .home-official-event-card,
+  .home-official-featured-article,
   .home-official-article-item,
   .home-official-join-card,
   .home-official-join-panel {
@@ -447,11 +517,20 @@ const heroImage = {
   }
 
   .home-official-signal-grid,
-  .home-official-testimonial-grid,
-  .home-official-event-grid,
   .home-official-join-grid {
     display: grid;
     gap: 16px;
+  }
+
+  .home-official-showcase-grid,
+  .home-official-side-stack {
+    display: grid;
+    gap: 18px;
+  }
+
+  .home-official-showcase-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    align-items: stretch;
   }
 
   .home-official-signal-grid {
@@ -479,29 +558,40 @@ const heroImage = {
     font-weight: 500;
   }
 
-  .home-official-testimonial-grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
   .home-official-testimonial-card {
     display: grid;
     gap: 18px;
+    min-height: 100%;
     padding: 24px;
-    grid-column: span 4;
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 28%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
   }
 
   .home-official-testimonial-quote {
+    position: relative;
     font-size: 1.02rem;
   }
 
   .home-official-testimonial-card.is-featured {
-    grid-column: span 6;
     padding: 28px;
+    gap: 22px;
   }
 
   .home-official-testimonial-card.is-featured .home-official-testimonial-quote {
     font-size: 1.14rem;
     line-height: 1.88;
+  }
+
+  .home-official-testimonial-card.is-featured::before {
+    content: "“";
+    position: absolute;
+    top: 14px;
+    right: 24px;
+    color: rgba(138, 106, 67, 0.18);
+    font-family: var(--font-display);
+    font-size: 5.2rem;
+    line-height: 1;
   }
 
   .home-official-testimonial-meta {
@@ -519,20 +609,15 @@ const heroImage = {
   }
 
   .home-official-event-link {
-    display: grid;
     min-width: 0;
-    grid-column: span 4;
   }
 
-  .home-official-event-link.is-featured {
-    grid-column: span 6;
-  }
-
-  .home-official-event-grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+  .home-official-event-stack {
+    align-content: start;
   }
 
   .home-official-event-card {
+    display: grid;
     overflow: hidden;
     min-height: 100%;
     border-radius: 26px;
@@ -540,7 +625,8 @@ const heroImage = {
   }
 
   .home-official-card-link:hover .home-official-event-card,
-  .home-official-card-link:hover .home-official-article-item {
+  .home-official-card-link:hover .home-official-article-item,
+  .home-official-card-link:hover .home-official-featured-article {
     transform: translateY(-2px);
     border-color: rgba(157, 111, 49, 0.18);
     box-shadow: 0 22px 48px rgba(40, 28, 18, 0.12);
@@ -592,6 +678,19 @@ const heroImage = {
     line-height: 1.32;
   }
 
+  .home-official-event-copy h3,
+  .home-official-article-copy h3,
+  .home-official-featured-article-copy h3 {
+    line-height: 1.38;
+  }
+
+  .home-official-event-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
   .home-official-event-card.is-featured .home-official-event-copy p {
     display: -webkit-box;
     overflow: hidden;
@@ -600,8 +699,41 @@ const heroImage = {
   }
 
   .home-official-article-list {
+    align-content: start;
+  }
+
+  .home-official-featured-article-link {
+    min-width: 0;
+  }
+
+  .home-official-featured-article {
+    display: grid;
+    gap: 18px;
+    min-height: 100%;
+    padding: 28px;
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 30%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .home-official-featured-article-copy {
     display: grid;
     gap: 14px;
+    align-content: start;
+  }
+
+  .home-official-featured-article-copy h3 {
+    margin: 0;
+    font-size: clamp(1.56rem, 2.4vw, 2.08rem);
+  }
+
+  .home-official-featured-article-copy p,
+  .home-official-article-item.is-compact .home-official-article-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .home-official-article-item {
@@ -616,6 +748,12 @@ const heroImage = {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
+  }
+
+  .home-official-article-item.is-compact {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px 22px;
   }
 
   .home-official-join-card {
@@ -662,23 +800,21 @@ const heroImage = {
       align-items: start;
     }
 
-    .home-official-signal-grid,
-    .home-official-event-grid {
+    .home-official-showcase-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .home-official-signal-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-official-event-link,
-    .home-official-event-link.is-featured {
-      grid-column: auto;
-    }
-
-    .home-official-testimonial-grid {
+    .home-official-side-stack {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-official-testimonial-card,
-    .home-official-testimonial-card.is-featured {
-      grid-column: auto;
+    .home-official-event-card.is-featured .home-official-event-copy h3,
+    .home-official-featured-article-copy h3 {
+      font-size: 1.42rem;
     }
   }
 
@@ -704,8 +840,7 @@ const heroImage = {
     }
 
     .home-official-signal-grid,
-    .home-official-testimonial-grid,
-    .home-official-event-grid,
+    .home-official-side-stack,
     .home-official-join-grid {
       grid-template-columns: 1fr;
     }
