@@ -14,6 +14,7 @@ coverage/
 .vite/
 playwright-report/
 test-results/
+artifacts/
 artifacts/screenshots/
 .artifacts/
 apps/site/public/imports/tgo-infoq/**
