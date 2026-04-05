@@ -54,6 +54,13 @@ const createDatabaseName = () =>
   `tgo_api_test_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
 
 const getJson = async (response: Response) => response.json() as Promise<Record<string, any>>;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const hasPostgresErrorCode = (error: unknown, code: string): error is { code: string } =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  (error as { code?: unknown }).code === code;
 
 const getCookieHeader = (response: Response) => {
   const setCookies =
@@ -202,7 +209,27 @@ after(async () => {
   }
 
   if (adminPool) {
-    await adminPool.query(`DROP DATABASE IF EXISTS "${testDatabaseName}" WITH (FORCE)`);
+    const dropStatement = `DROP DATABASE IF EXISTS "${testDatabaseName}"`;
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      try {
+        await adminPool.query(dropStatement);
+        break;
+      } catch (error) {
+        // PostgreSQL can briefly report the database as busy while pooled clients finish closing.
+        if (hasPostgresErrorCode(error, "55006") && attempt < 9) {
+          await sleep(100);
+          continue;
+        }
+
+        if (!hasPostgresErrorCode(error, "3D000")) {
+          throw error;
+        }
+
+        break;
+      }
+    }
+
     await adminPool.end();
   }
 });
