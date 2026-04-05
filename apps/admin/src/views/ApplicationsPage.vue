@@ -58,6 +58,40 @@ const summaryCards = computed(() => [
     summary: "已经完成审核并进入后续安排的申请。"
   }
 ]);
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部申请",
+    matches: () => filters.status === "all",
+    apply: () => {
+      filters.status = "all";
+    }
+  },
+  {
+    key: "submitted",
+    label: "待审核",
+    matches: () => filters.status === "submitted",
+    apply: () => {
+      filters.status = "submitted";
+    }
+  },
+  {
+    key: "in-review",
+    label: "审核中",
+    matches: () => filters.status === "in_review",
+    apply: () => {
+      filters.status = "in_review";
+    }
+  },
+  {
+    key: "approved",
+    label: "已通过",
+    matches: () => filters.status === "approved",
+    apply: () => {
+      filters.status = "approved";
+    }
+  }
+] as const;
 
 onMounted(async () => {
   loading.value = true;
@@ -112,6 +146,21 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -142,6 +191,15 @@ onMounted(async () => {
       </div>
 
       <div v-else class="panel table-panel">
+        <div class="table-card-head">
+          <div>
+            <h3>申请列表</h3>
+            <p class="table-card-copy">优先处理待审核申请，再跟进已联系或进入评估的记录。</p>
+          </div>
+
+          <span class="status-pill">当前结果 {{ filteredRows.length }} 条</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>

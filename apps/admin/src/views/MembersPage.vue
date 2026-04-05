@@ -58,6 +58,44 @@ const summaryCards = computed(() => [
     summary: "已经补全组织归属，便于前台形成分会结构。"
   }
 ]);
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部成员",
+    matches: () => filters.membershipStatus === "all" && filters.visibility === "all",
+    apply: () => {
+      filters.membershipStatus = "all";
+      filters.visibility = "all";
+    }
+  },
+  {
+    key: "active",
+    label: "有效成员",
+    matches: () => filters.membershipStatus === "active",
+    apply: () => {
+      filters.visibility = "all";
+      filters.membershipStatus = "active";
+    }
+  },
+  {
+    key: "public",
+    label: "公开资料",
+    matches: () => filters.visibility === "public",
+    apply: () => {
+      filters.membershipStatus = "all";
+      filters.visibility = "public";
+    }
+  },
+  {
+    key: "private",
+    label: "私有资料",
+    matches: () => filters.visibility === "private",
+    apply: () => {
+      filters.membershipStatus = "all";
+      filters.visibility = "private";
+    }
+  }
+] as const;
 
 onMounted(async () => {
   loading.value = true;
@@ -119,6 +157,21 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -162,6 +215,15 @@ onMounted(async () => {
       </div>
 
       <div v-else class="panel table-panel">
+        <div class="table-card-head">
+          <div>
+            <h3>成员列表</h3>
+            <p class="table-card-copy">维护成员公开资料、分会归属与展示状态，保证前台成员网络口径一致。</p>
+          </div>
+
+          <span class="status-pill">当前结果 {{ filteredRows.length }} 位</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>
@@ -189,8 +251,8 @@ onMounted(async () => {
                 </div>
               </td>
               <td>{{ row.branchName || "未分配" }}</td>
-              <td>{{ formatMembershipStatus(row.membershipStatus) }}</td>
-              <td>{{ formatMemberVisibility(row.visibility) }}</td>
+              <td><span class="status-pill">{{ formatMembershipStatus(row.membershipStatus) }}</span></td>
+              <td><span class="status-pill">{{ formatMemberVisibility(row.visibility) }}</span></td>
               <td>{{ formatDateTime(row.joinedAt) }}</td>
               <td class="table-actions-cell">
                 <div class="table-action-list">

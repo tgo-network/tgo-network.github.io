@@ -112,6 +112,44 @@ const resultSummary = computed(() => `${meta.value.total} / ${meta.value.stats.t
 const paginationSummary = computed(
   () => `第 ${meta.value.page} / ${meta.value.pageCount} 页，每页 ${meta.value.pageSize} 条，当前页 ${rows.value.length} 条`
 );
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部活动",
+    matches: () => filters.status === "all" && filters.registrationState === "all",
+    apply: () => {
+      filters.status = "all";
+      filters.registrationState = "all";
+    }
+  },
+  {
+    key: "open",
+    label: "开放报名",
+    matches: () => filters.registrationState === "open",
+    apply: () => {
+      filters.status = "all";
+      filters.registrationState = "open";
+    }
+  },
+  {
+    key: "waitlist",
+    label: "候补中",
+    matches: () => filters.registrationState === "waitlist",
+    apply: () => {
+      filters.status = "all";
+      filters.registrationState = "waitlist";
+    }
+  },
+  {
+    key: "published",
+    label: "已发布",
+    matches: () => filters.status === "published",
+    apply: () => {
+      filters.registrationState = "all";
+      filters.status = "published";
+    }
+  }
+] as const;
 
 const loadRows = async () => {
   const requestId = ++activeRequestId;
@@ -235,6 +273,21 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -288,6 +341,15 @@ onBeforeUnmount(() => {
 
       <template v-else-if="hasResults">
         <div class="panel table-panel">
+          <div class="table-card-head">
+            <div>
+              <h3>活动列表</h3>
+              <p class="table-card-copy">当前页展示 {{ rows.length }} 场活动，可继续进入编辑、报名审核或前台预览。</p>
+            </div>
+
+            <span class="status-pill">{{ paginationSummary }}</span>
+          </div>
+
           <table class="data-table">
             <thead>
               <tr>

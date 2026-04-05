@@ -12,7 +12,8 @@ const errorMessage = ref("");
 const filters = reactive({
   query: "",
   targetType: "all",
-  action: "all"
+  action: "all",
+  actionFamily: "all"
 });
 
 const segmentLabels: Record<string, string> = {
@@ -95,8 +96,9 @@ const filteredRows = computed(() => {
       ].some((value) => value.toLowerCase().includes(query));
     const matchesTargetType = filters.targetType === "all" || row.targetType === filters.targetType;
     const matchesAction = filters.action === "all" || row.action === filters.action;
+    const matchesActionFamily = filters.actionFamily === "all" || row.action.endsWith(".update");
 
-    return matchesQuery && matchesTargetType && matchesAction;
+    return matchesQuery && matchesTargetType && matchesAction && matchesActionFamily;
   });
 });
 const summaryCards = computed(() => [
@@ -121,6 +123,48 @@ const summaryCards = computed(() => [
     summary: "用于快速判断后台最近一次敏感变更发生在什么时候。"
   }
 ]);
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部记录",
+    matches: () => filters.targetType === "all" && filters.action === "all" && filters.actionFamily === "all",
+    apply: () => {
+      filters.targetType = "all";
+      filters.action = "all";
+      filters.actionFamily = "all";
+    }
+  },
+  {
+    key: "application",
+    label: "申请",
+    matches: () => filters.targetType === "application",
+    apply: () => {
+      filters.action = "all";
+      filters.targetType = "application";
+      filters.actionFamily = "all";
+    }
+  },
+  {
+    key: "event",
+    label: "活动",
+    matches: () => filters.targetType === "event",
+    apply: () => {
+      filters.action = "all";
+      filters.targetType = "event";
+      filters.actionFamily = "all";
+    }
+  },
+  {
+    key: "update",
+    label: "更新动作",
+    matches: () => filters.actionFamily === "update",
+    apply: () => {
+      filters.targetType = "all";
+      filters.action = "all";
+      filters.actionFamily = "update";
+    }
+  }
+] as const;
 
 onMounted(async () => {
   loading.value = true;
@@ -175,6 +219,21 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -210,6 +269,17 @@ onMounted(async () => {
       </div>
 
       <div v-else class="audit-log-list">
+        <div class="panel table-panel">
+          <div class="table-card-head">
+            <div>
+              <h3>审计记录</h3>
+              <p class="table-card-copy">保留操作人、对象、请求来源以及前后快照，便于回看敏感变更。</p>
+            </div>
+
+            <span class="status-pill">当前结果 {{ filteredRows.length }} 条</span>
+          </div>
+        </div>
+
         <article v-for="row in filteredRows" :key="row.id" class="panel audit-log-card stacked-gap">
           <div class="page-header-row audit-log-head">
             <div>

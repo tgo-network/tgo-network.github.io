@@ -861,6 +861,74 @@ code {
   background: linear-gradient(180deg, rgba(255, 252, 247, 0.95), rgba(248, 241, 231, 0.9));
 }
 
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.segmented-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.segmented-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(138, 108, 57, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.segmented-button:hover,
+.segmented-button:focus-visible {
+  border-color: rgba(138, 108, 57, 0.18);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.segmented-button.is-active {
+  border-color: rgba(154, 119, 66, 0.18);
+  background: linear-gradient(180deg, rgba(154, 119, 66, 0.12), rgba(205, 171, 111, 0.14));
+  color: var(--accent-deep);
+}
+
+.table-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.table-card-head h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.table-card-copy {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .dashboard-action-grid {
   display: grid;
   gap: 12px;
