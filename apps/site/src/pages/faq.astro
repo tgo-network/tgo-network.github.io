@@ -11,12 +11,6 @@ const faqEntries = officialFaqItems.map((item, index) => ({
 <BaseLayout title="常见问题 | TGO 鲲鹏会" description="查看加入、活动、董事会和会费相关的常见问题。">
   <main class="page-shell page-stack detail-page-shell faq-page-shell">
     <section class="section faq-shell">
-      <header class="faq-page-header">
-        <p class="page-eyebrow">FAQ</p>
-        <h1>常见问题</h1>
-        <p>集中查看加入标准、活动参与方式、董事会职责与会费相关问题。</p>
-      </header>
-
       <div class="faq-list">
         {
           faqEntries.map((item, index) => {
@@ -134,7 +128,6 @@ const faqEntries = officialFaqItems.map((item, index) => ({
 
 <style>
   .faq-shell,
-  .faq-page-header,
   .faq-list {
     display: grid;
     gap: 18px;
@@ -146,25 +139,6 @@ const faqEntries = officialFaqItems.map((item, index) => ({
 
   .faq-shell {
     gap: 22px;
-  }
-
-  .faq-page-header {
-    gap: 10px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
-  }
-
-  .faq-page-header h1 {
-    margin: 0;
-    font-size: clamp(2.1rem, 4vw, 3.1rem);
-    line-height: 1.02;
-  }
-
-  .faq-page-header p:last-child {
-    margin: 0;
-    color: var(--muted);
-    line-height: 1.82;
-    max-width: 46rem;
   }
 
   .faq-item {
