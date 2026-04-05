@@ -16,6 +16,7 @@ import {
 } from "@tgo/shared";
 
 import CoverAssetField from "../components/CoverAssetField.vue";
+import MarkdownEditorField from "../components/MarkdownEditorField.vue";
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import { formatContentStatus, formatDateTime, formatEventRegistrationState, slugify, toDateTimeInputValue } from "../lib/format";
 
@@ -176,6 +177,24 @@ const markdownGuideItems = [
   {
     label: "代码块",
     syntax: "```text"
+  }
+] as const;
+const markdownToolbarItems = [
+  {
+    label: "插入标题",
+    snippet: "## 活动简介"
+  },
+  {
+    label: "插入列表",
+    snippet: "- 活动亮点"
+  },
+  {
+    label: "插入引用",
+    snippet: "> 报名通过后将由工作人员继续联系"
+  },
+  {
+    label: "插入代码块",
+    snippet: "```text\n补充活动说明\n```"
   }
 ] as const;
 const eventChecklist = computed(() => [
@@ -605,30 +624,16 @@ onMounted(() => {
             <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
           </label>
 
-          <div class="field-grid field-grid-2 markdown-editor-grid">
-            <label class="field">
-              <span>Markdown 正文</span>
-              <textarea v-model="form.body" rows="18" placeholder="使用 Markdown 编写活动正文。" />
-              <small class="field-hint">建议用空行分段，并适度使用 `##`、列表、引用和表格组织活动介绍。</small>
-              <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
-            </label>
-
-            <div class="field">
-              <span>实时预览</span>
-              <div v-if="form.body.trim().length > 0" class="markdown-preview-panel markdown-preview-prose" v-html="eventBodyPreviewHtml"></div>
-              <div v-else class="markdown-preview-empty">
-                <strong>预览区域</strong>
-                <p>开始输入 Markdown 后，这里会显示前台活动详情页正文的大致排版效果。</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="selection-summary-list">
-            <article v-for="item in markdownGuideItems" :key="item.label" class="selection-summary-card">
-              <strong>{{ item.label }}</strong>
-              <code>{{ item.syntax }}</code>
-            </article>
-          </div>
+          <MarkdownEditorField
+            v-model="form.body"
+            placeholder="使用 Markdown 编写活动正文。"
+            help="建议用空行分段，并适度使用 `##`、列表、引用和表格组织活动介绍。"
+            :error="fieldIssues.body"
+            :preview-html="eventBodyPreviewHtml"
+            preview-empty-description="开始输入 Markdown 后，这里会显示前台活动详情页正文的大致排版效果。"
+            :guide-items="markdownGuideItems"
+            :toolbar-items="markdownToolbarItems"
+          />
         </section>
 
         <section class="editor-section stacked-gap">
@@ -813,141 +818,3 @@ onMounted(() => {
     </template>
   </section>
 </template>
-
-<style scoped>
-  .markdown-editor-grid {
-    align-items: start;
-  }
-
-  .markdown-preview-panel,
-  .markdown-preview-empty {
-    min-height: 100%;
-    padding: 18px;
-    border: 1px solid rgba(138, 108, 57, 0.12);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.82);
-  }
-
-  .markdown-preview-empty {
-    display: grid;
-    gap: 8px;
-  }
-
-  .markdown-preview-empty strong,
-  .markdown-preview-empty p {
-    margin: 0;
-  }
-
-  .markdown-preview-empty p {
-    color: var(--muted);
-    line-height: 1.7;
-  }
-
-  .selection-summary-card code {
-    font-family: "SFMono-Regular", Consolas, Monaco, monospace;
-    color: var(--accent-deep);
-  }
-
-  .markdown-preview-prose :deep(h2),
-  .markdown-preview-prose :deep(h3),
-  .markdown-preview-prose :deep(h4) {
-    margin: 0 0 12px;
-    color: var(--ink);
-    line-height: 1.35;
-  }
-
-  .markdown-preview-prose :deep(h2) {
-    font-size: 1.22rem;
-  }
-
-  .markdown-preview-prose :deep(h3) {
-    font-size: 1.08rem;
-  }
-
-  .markdown-preview-prose :deep(p),
-  .markdown-preview-prose :deep(li),
-  .markdown-preview-prose :deep(blockquote) {
-    color: var(--muted);
-    line-height: 1.75;
-  }
-
-  .markdown-preview-prose :deep(p),
-  .markdown-preview-prose :deep(ul),
-  .markdown-preview-prose :deep(ol),
-  .markdown-preview-prose :deep(pre),
-  .markdown-preview-prose :deep(blockquote),
-  .markdown-preview-prose :deep(table) {
-    margin: 0 0 14px;
-  }
-
-  .markdown-preview-prose :deep(ul),
-  .markdown-preview-prose :deep(ol) {
-    padding-left: 1.2rem;
-  }
-
-  .markdown-preview-prose :deep(blockquote) {
-    padding: 14px 16px;
-    border-left: 3px solid rgba(154, 119, 66, 0.8);
-    border-radius: 16px;
-    background: rgba(255, 252, 248, 0.92);
-  }
-
-  .markdown-preview-prose :deep(pre) {
-    padding: 16px 18px;
-    overflow-x: auto;
-    border-radius: 16px;
-    background: #1c1813;
-    color: #f7efe2;
-  }
-
-  .markdown-preview-prose :deep(code) {
-    font-family: "SFMono-Regular", Consolas, Monaco, monospace;
-    font-size: 0.9em;
-  }
-
-  .markdown-preview-prose :deep(:not(pre) > code) {
-    padding: 0.14rem 0.38rem;
-    border-radius: 999px;
-    background: rgba(154, 119, 66, 0.12);
-    color: var(--accent-deep);
-  }
-
-  .markdown-preview-prose :deep(pre code) {
-    color: inherit;
-  }
-
-  .markdown-preview-prose :deep(img) {
-    display: block;
-    width: 100%;
-    border-radius: 16px;
-    object-fit: cover;
-  }
-
-  .markdown-preview-prose :deep(a) {
-    color: var(--accent-deep);
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
-  }
-
-  .markdown-preview-prose :deep(table) {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-    border-radius: 16px;
-    background: rgba(255, 250, 244, 0.88);
-  }
-
-  .markdown-preview-prose :deep(th),
-  .markdown-preview-prose :deep(td) {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(138, 108, 57, 0.12);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .markdown-preview-prose :deep(th) {
-    color: var(--ink);
-    background: rgba(250, 242, 232, 0.9);
-  }
-</style>
