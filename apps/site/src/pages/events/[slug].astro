@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
-import { shouldShowExternalRegistrationLink } from "../../lib/event-registration";
+import { shouldShowExternalRegistrationLink, stripEventDisplayUrls } from "../../lib/event-registration";
 import { getEvent, getPublicApiBaseUrl, listEvents } from "../../lib/public-api";
 
 export const getStaticPaths = async () => {
@@ -42,6 +42,7 @@ const registrationTitle = event.registrationState === "waitlist" ? "加入候补
 const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入候补" : "提交报名";
 const branchName = event.branch?.name ?? `${event.cityName}活动`;
 const eventLocation = event.venueAddress || event.venueName;
+const sanitizedEventSummary = stripEventDisplayUrls(event.summary) || event.title;
 
 const eventBodyHeadingPatterns = [
   /^活动简介$/,
@@ -103,17 +104,18 @@ const createContentBlock = (items: string[]): EventContentBlock => {
 
   for (const item of items) {
     const trimmed = item.trim();
+    const cleaned = stripEventDisplayUrls(trimmed);
 
-    if (!trimmed || isPureUrl(trimmed)) {
+    if (!cleaned || isPureUrl(trimmed)) {
       continue;
     }
 
-    if (/^[•●▪■◆★⭐-]/.test(trimmed) || /^\d+[、.．)]/.test(trimmed)) {
-      bullets.push(stripListMarker(trimmed));
+    if (/^[•●▪■◆★⭐-]/.test(cleaned) || /^\d+[、.．)]/.test(cleaned)) {
+      bullets.push(stripListMarker(cleaned));
       continue;
     }
 
-    paragraphs.push(trimmed);
+    paragraphs.push(cleaned);
   }
 
   return {
@@ -136,7 +138,7 @@ const createAudienceCards = (items: string[]): AudienceCard[] => {
   };
 
   for (const item of items) {
-    const cleaned = item.trim();
+    const cleaned = stripEventDisplayUrls(item.trim());
 
     if (!cleaned || isPureUrl(cleaned)) {
       continue;
@@ -189,7 +191,7 @@ const narrativeSections = eventBodySections.filter(
 );
 const introSection = narrativeSections[0] ?? {
   title: "活动介绍",
-  items: [event.summary]
+  items: [sanitizedEventSummary]
 };
 const introContent = createContentBlock(introSection.items);
 const additionalNarrativeSections = narrativeSections.slice(1).map((section) => ({
@@ -226,7 +228,7 @@ const registrationNoticeItems = Array.from(
           /^非会员申请标准$/.test(section.title)
       )
       .flatMap((section) => section.items)
-      .map((item) => stripListMarker(item))
+      .map((item) => stripListMarker(stripEventDisplayUrls(item)))
       .filter((item) => item && !isPureUrl(item))
   )
 );
@@ -261,14 +263,14 @@ const eventFactItems = [
 ];
 ---
 
-<BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={event.summary}>
+<BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={sanitizedEventSummary}>
   <main class="page-shell page-stack detail-page-shell event-detail-shell">
     <section class="section">
       <article class:list={["panel detail-hero-card event-detail-head-card", !event.coverImage && "detail-hero-card-single"]}>
         <div class="detail-hero-copy">
           <p class="page-eyebrow">活动</p>
           <h1>{event.title}</h1>
-          <p class="detail-summary">{event.summary}</p>
+          <p class="detail-summary">{sanitizedEventSummary}</p>
 
           <div class="detail-meta-row event-detail-meta">
             {heroMetaItems.map((item) => <span class="detail-meta-item">{item}</span>)}
@@ -295,7 +297,7 @@ const eventFactItems = [
         <div class="event-main-stack">
           <article class="panel prose-panel detail-body-panel event-body-panel">
             <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
-            {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [event.summary]).map((paragraph) => <p>{paragraph}</p>)}
+            {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [sanitizedEventSummary]).map((paragraph) => <p>{paragraph}</p>)}
 
             {
               introContent.bullets.length > 0 && (
@@ -339,7 +341,7 @@ const eventFactItems = [
                         <strong>{item.time}</strong>
                         <span>{item.title}</span>
                         {item.speaker ? <em>{item.speaker}</em> : null}
-                        {item.summary ? <p>{item.summary}</p> : null}
+                        {stripEventDisplayUrls(item.summary) ? <p>{stripEventDisplayUrls(item.summary)}</p> : null}
                       </li>
                     ))
                   }

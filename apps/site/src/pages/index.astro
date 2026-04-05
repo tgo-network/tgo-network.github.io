@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { listPublicEditorialArticles } from "../lib/editorial-order";
+import { stripEventDisplayUrls } from "../lib/event-registration";
 import { formatDate, formatDateRange } from "../lib/format";
 import { getHomePayload, listMembers } from "../lib/public-api";
 
@@ -65,7 +66,10 @@ const featuredTestimonials = featuredMembers.map((member, index) => ({
     testimonialFallbacks[member.slug] ??
     testimonialFallbackRotation[index % testimonialFallbackRotation.length]
 }));
-const featuredEvents = home.featuredEvents.slice(0, 3);
+const featuredEvents = home.featuredEvents.slice(0, 3).map((event) => ({
+  ...event,
+  summary: stripEventDisplayUrls(event.summary) || "查看活动详情。"
+}));
 
 const joinPanels = [
   {
