@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import type { AdminDashboardPayloadV2, AdminMePayload } from "@tgo/shared";
-import { implementationMilestones } from "@tgo/shared";
 
 import { adminFetch } from "../lib/api";
 import { formatSystemHealth } from "../lib/format";
@@ -27,53 +26,115 @@ const emptyStats: AdminDashboardPayloadV2["stats"] = {
 
 const stats = computed(() => dashboard.value?.stats ?? emptyStats);
 const roleBadges = computed(() => me.value?.roles ?? []);
-const milestoneCards = computed(() => (me.value?.nextMilestones.length ? me.value.nextMilestones : implementationMilestones));
 const overviewCards = computed(() => [
   {
-    label: "内容池",
-    value: stats.value.articleCount + stats.value.eventCount,
-    summary: `${stats.value.articleCount} 篇文章 + ${stats.value.eventCount} 场活动，构成当前公开内容供给。`
+    label: "文章总数",
+    value: stats.value.articleCount,
+    summary: "当前后台已维护的全部文章记录。"
   },
   {
-    label: "待处理队列",
-    value: stats.value.pendingApplicationCount + stats.value.pendingRegistrationCount,
-    summary: `${stats.value.pendingApplicationCount} 条加入申请待审，${stats.value.pendingRegistrationCount} 条活动报名待审。`
+    label: "活动总数",
+    value: stats.value.eventCount,
+    summary: "当前后台维护中的全部活动记录。"
   },
   {
-    label: "组织网络",
-    value: stats.value.memberCount + stats.value.branchCount,
-    summary: `${stats.value.memberCount} 位成员分布在 ${stats.value.branchCount} 个分会节点。`
+    label: "申请数量",
+    value: stats.value.applicationCount,
+    summary: "来自前台加入申请表的累计申请记录。"
   },
   {
     label: "系统状态",
     value: formatSystemHealth(stats.value.systemHealth),
-    summary: `当前版本 ${stats.value.appVersion}，后台运行状态为 ${formatSystemHealth(stats.value.systemHealth)}。`
+    summary: `当前版本 ${stats.value.appVersion}`
   }
 ]);
-const focusActions = computed(() => [
+const reviewCards = computed(() => [
   {
-    title: "处理加入申请",
-    summary: stats.value.pendingApplicationCount > 0 ? `当前有 ${stats.value.pendingApplicationCount} 条申请等待审核。` : "当前没有待审核的加入申请。",
+    title: "待审核申请",
+    value: stats.value.pendingApplicationCount,
+    summary: stats.value.pendingApplicationCount > 0 ? "有新的加入申请等待工作人员处理。" : "当前没有待审核的加入申请。",
     to: "/applications",
-    actionLabel: "打开申请列表"
+    actionLabel: "进入申请审核"
   },
   {
-    title: "处理活动报名",
-    summary: stats.value.pendingRegistrationCount > 0 ? `当前有 ${stats.value.pendingRegistrationCount} 条活动报名等待审核。` : "当前没有待审核的活动报名。",
+    title: "待审核报名",
+    value: stats.value.pendingRegistrationCount,
+    summary: stats.value.pendingRegistrationCount > 0 ? "活动开放报名后，仍需工作人员在后台完成审核。" : "当前没有待审核的活动报名。",
     to: "/events",
     actionLabel: "查看活动与报名"
   },
   {
-    title: "维护首页表达",
-    summary: "首页承担组织认知和主路径分发，应持续围绕分会、成员、活动与加入进行优化。",
-    to: "/site/homepage",
-    actionLabel: "打开首页配置"
+    title: "成员 / 分会",
+    value: `${stats.value.memberCount} / ${stats.value.branchCount}`,
+    summary: "成员资料和分会结构共同决定公开站点的组织可信度。",
+    to: "/members",
+    actionLabel: "维护成员资料"
+  }
+]);
+const shortcutCards = computed(() => [
+  {
+    title: "文章",
+    summary: `${stats.value.articleCount} 篇内容，支持列表、新建与编辑。`,
+    to: "/articles",
+    actionLabel: "打开文章模块"
   },
   {
-    title: "补充分会结构",
-    summary: "分会、董事会成员与成员归属决定这个站点是否真正呈现出组织型社区结构。",
-    to: "/members/branches",
-    actionLabel: "前往分会维护"
+    title: "活动",
+    summary: `${stats.value.eventCount} 场活动，支持报名状态与审核队列联动。`,
+    to: "/events",
+    actionLabel: "打开活动模块"
+  },
+  {
+    title: "申请",
+    summary: `${stats.value.applicationCount} 条申请，集中处理加入审核。`,
+    to: "/applications",
+    actionLabel: "打开申请模块"
+  },
+  {
+    title: "成员",
+    summary: `${stats.value.memberCount} 位成员，维护公开资料与分会归属。`,
+    to: "/members",
+    actionLabel: "打开成员模块"
+  },
+  {
+    title: "工作人员",
+    summary: "创建工作人员账号，并分配角色与账户状态。",
+    to: "/staff",
+    actionLabel: "打开工作人员模块"
+  },
+  {
+    title: "角色",
+    summary: "维护工作人员角色与权限组合。",
+    to: "/roles",
+    actionLabel: "打开角色模块"
+  },
+  {
+    title: "审计日志",
+    summary: "查看敏感后台操作的完整留痕记录。",
+    to: "/audit-logs",
+    actionLabel: "打开审计日志"
+  }
+]);
+const accountCards = computed(() => [
+  {
+    label: "当前账号",
+    value: me.value?.user?.name ?? "未同步工作人员",
+    summary: me.value?.user?.email ?? "未读取到工作人员邮箱"
+  },
+  {
+    label: "角色",
+    value: roleBadges.value.length,
+    summary: roleBadges.value.join(" / ") || "未分配角色"
+  },
+  {
+    label: "权限",
+    value: me.value?.permissions.length ?? 0,
+    summary: "当前工作人员可访问的后台能力数。"
+  },
+  {
+    label: "版本",
+    value: stats.value.appVersion,
+    summary: `系统状态：${formatSystemHealth(stats.value.systemHealth)}`
   }
 ]);
 
@@ -102,12 +163,12 @@ onMounted(async () => {
     <header class="page-header page-header-row">
       <div>
         <h2>仪表盘</h2>
-        <p>围绕内容供给、审核队列、成员网络和系统状态，快速判断当前后台最该处理什么。</p>
+        <p>围绕文章、活动、申请与系统状态，快速判断当前后台最该处理的工作。</p>
       </div>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/site/homepage">首页配置</RouterLink>
-        <RouterLink class="button-link" to="/members/branches">分会维护</RouterLink>
+        <RouterLink class="button-link" to="/articles/new">新建文章</RouterLink>
+        <RouterLink class="button-link button-primary" to="/applications">进入审核</RouterLink>
       </div>
     </header>
 
@@ -131,78 +192,148 @@ onMounted(async () => {
       </div>
 
       <div class="panel-grid panel-grid-2">
-        <article class="panel stacked-gap">
-          <div class="brand-tag">当前工作人员</div>
-          <div>
-            <h3>{{ me?.user?.name ?? "未知用户" }}</h3>
-            <p>{{ me?.user?.email ?? "未提供邮箱" }}</p>
+        <article class="panel stacked-gap dashboard-section-panel">
+          <div class="dashboard-section-head">
+            <div class="brand-tag">审核队列</div>
+            <h3>当前待办</h3>
+            <p class="section-copy">优先处理加入申请、活动报名和成员资料维护。</p>
           </div>
-          <div class="pill-list" v-if="roleBadges.length > 0">
-            <span v-for="role in roleBadges" :key="role" class="soft-pill">{{ role }}</span>
-          </div>
-          <div class="info-row">
-            <span>权限数</span>
-            <strong>{{ me?.permissions.length ?? 0 }}</strong>
-          </div>
-          <div class="info-row">
-            <span>系统状态</span>
-            <strong>{{ formatSystemHealth(stats.systemHealth) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>版本</span>
-            <strong>{{ stats.appVersion }}</strong>
-          </div>
-        </article>
 
-        <article class="panel stacked-gap">
-          <div class="brand-tag">当前优先事项</div>
-          <div class="dashboard-action-grid">
-            <article v-for="item in focusActions" :key="item.title" class="dashboard-action-card">
-              <strong>{{ item.title }}</strong>
+          <div class="dashboard-priority-grid">
+            <article v-for="item in reviewCards" :key="item.title" class="dashboard-priority-card">
+              <div class="dashboard-priority-head">
+                <strong>{{ item.title }}</strong>
+                <span class="status-pill">{{ item.value }}</span>
+              </div>
               <p>{{ item.summary }}</p>
               <RouterLink class="table-link" :to="item.to">{{ item.actionLabel }}</RouterLink>
             </article>
           </div>
         </article>
-      </div>
 
-      <div class="panel-grid panel-grid-2">
-        <article class="panel stacked-gap">
-          <div class="brand-tag">运营基线</div>
-          <div class="panel-grid panel-grid-2">
-            <article class="info-card">
-              <span>文章</span>
-              <strong>{{ stats.articleCount }}</strong>
-              <p>公开内容沉淀与活动复盘的长期内容资产。</p>
-            </article>
-            <article class="info-card">
-              <span>活动</span>
-              <strong>{{ stats.eventCount }}</strong>
-              <p>当前阶段支持公开报名，再由工作人员在后台审核。</p>
-            </article>
-            <article class="info-card">
-              <span>成员</span>
-              <strong>{{ stats.memberCount }}</strong>
-              <p>成员用于前台展示，不等同于后台工作人员账号。</p>
-            </article>
-            <article class="info-card">
-              <span>分会</span>
-              <strong>{{ stats.branchCount }}</strong>
-              <p>分会是组织网络的长期节点，也是活动和成员归属的基础。</p>
-            </article>
+        <article class="panel stacked-gap dashboard-section-panel">
+          <div class="dashboard-section-head">
+            <div class="brand-tag">当前工作人员</div>
+            <h3>{{ me?.user?.name ?? "未同步工作人员" }}</h3>
+            <p class="section-copy">{{ me?.user?.email ?? "登录后可查看当前工作人员邮箱。" }}</p>
           </div>
-        </article>
 
-        <article class="panel stacked-gap">
-          <div class="brand-tag">实施里程碑</div>
-          <div class="dashboard-action-grid">
-            <article v-for="item in milestoneCards" :key="item.code" class="dashboard-action-card">
-              <strong>{{ item.code }} · {{ item.title }}</strong>
+          <div v-if="roleBadges.length > 0" class="pill-list">
+            <span v-for="role in roleBadges" :key="role" class="soft-pill">{{ role }}</span>
+          </div>
+
+          <div class="panel-grid panel-grid-2 dashboard-account-grid">
+            <article v-for="item in accountCards" :key="item.label" class="info-card dashboard-account-card">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
               <p>{{ item.summary }}</p>
             </article>
           </div>
         </article>
       </div>
+
+      <article class="panel stacked-gap dashboard-section-panel">
+        <div class="page-header-row compact-row">
+          <div class="dashboard-section-head">
+            <div class="brand-tag">快捷入口</div>
+            <h3>后台模块</h3>
+            <p class="section-copy">进入具体模块后，可继续处理列表、表单、审核与权限配置。</p>
+          </div>
+
+          <div class="status-pill">{{ formatSystemHealth(stats.systemHealth) }}</div>
+        </div>
+
+        <div class="dashboard-shortcut-grid">
+          <article v-for="item in shortcutCards" :key="item.title" class="dashboard-shortcut-card">
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.summary }}</p>
+            <RouterLink class="table-link" :to="item.to">{{ item.actionLabel }}</RouterLink>
+          </article>
+        </div>
+      </article>
     </template>
   </section>
 </template>
+
+<style>
+  .dashboard-section-panel {
+    gap: 18px;
+  }
+
+  .dashboard-section-head {
+    display: grid;
+    gap: 8px;
+  }
+
+  .dashboard-section-head h3 {
+    margin: 0;
+    font-size: 1.24rem;
+  }
+
+  .dashboard-priority-grid,
+  .dashboard-shortcut-grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .dashboard-priority-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-priority-card,
+  .dashboard-shortcut-card {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgba(32, 23, 15, 0.08);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(249, 243, 234, 0.76));
+  }
+
+  .dashboard-priority-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .dashboard-priority-card strong,
+  .dashboard-shortcut-card strong {
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .dashboard-priority-card p,
+  .dashboard-shortcut-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .dashboard-account-grid {
+    align-items: stretch;
+  }
+
+  .dashboard-account-card strong {
+    font-size: 1.12rem;
+    line-height: 1.4;
+  }
+
+  .dashboard-shortcut-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @media (max-width: 1100px) {
+    .dashboard-priority-grid,
+    .dashboard-shortcut-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .dashboard-priority-grid,
+    .dashboard-shortcut-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

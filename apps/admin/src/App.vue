@@ -21,34 +21,68 @@ const visibleModules = computed(() => {
   return getVisibleAdminModules(me.value, loadingMe.value);
 });
 
+const moduleGroupDefinitions = [
+  {
+    key: "operations",
+    label: "运营",
+    summary: "仪表盘、内容与审核",
+    routes: ["/dashboard", "/articles", "/events", "/applications"]
+  },
+  {
+    key: "organization",
+    label: "组织",
+    summary: "成员、工作人员与角色",
+    routes: ["/members", "/staff", "/roles"]
+  },
+  {
+    key: "system",
+    label: "系统",
+    summary: "审计与操作留痕",
+    routes: ["/audit-logs"]
+  }
+] as const;
+
+const groupedModules = computed(() =>
+  moduleGroupDefinitions
+    .map((group) => ({
+      ...group,
+      items: visibleModules.value.filter((item) => group.routes.some((routePath) => routePath === item.to))
+    }))
+    .filter((group) => group.items.length > 0)
+);
+
 const workspaceSummaryByRoute: Record<string, string> = {
-  dashboard: "先处理审核队列、内容供给与系统状态，再进入具体模块继续推进日常运营动作。",
-  articles: "围绕文章标题、作者、分会归属与发布状态，持续维护公开内容沉淀。",
-  events: "活动模块同时承接公开列表、详情页表达、报名状态和审核队列的上游配置。",
-  applications: "加入申请是非成员进入社区的主转化入口，应优先保证审核节奏与记录完整。",
-  members: "成员信息决定前台的组织可信度，需要和分会结构、公开展示内容保持一致。",
-  staff: "工作人员账号与权限边界需要持续可见，避免把成员身份与后台权限混淆。",
-  roles: "角色模块负责把权限组织成可维护的运营能力集合，而不是零散勾选。",
-  "audit-logs": "所有敏感后台操作都应留下可追踪记录，便于回看、排错与审计。",
-  branches: "分会是组织网络的长期节点，应与成员归属、董事会信息和活动入口协同维护。",
-  "site-homepage": "首页承担组织认知和主路径分发，应持续围绕分会、成员、活动与加入进行优化。",
-  "site-page-edit": "单页内容需要保持口径一致，确保关于我们与加入说明不会偏离公开主线。",
-  "article-create": "新建内容时先明确组织语境、分会归属与公开路径，再进入具体编辑。",
-  "article-edit": "编辑文章时优先确认标题、摘要、封面与发布状态是否仍服务组织主线。",
-  "event-create": "活动录入要同时考虑前台公开展示、议程表达和报名审核流程。",
-  "event-edit": "活动编辑完成后，需要确认时间、场地、分会归属与报名状态是否同步更新。",
-  "event-registrations": "报名审核列表用于收敛活动参与者，确保公开报名和后台审核串联顺畅。",
-  "registration-detail": "审核报名时先看活动语境，再判断当前报名人是否适合进入该场活动。",
-  "application-detail": "申请详情页需要把候选人信息、申请动机和审核动作放在同一上下文里。",
-  "member-create": "新增成员时先保证组织归属和公开展示信息完整，再补充扩展资料。",
-  "member-edit": "成员编辑应优先确认公开展示质量，避免前台出现身份、公司或分会信息错位。",
-  "branch-create": "新建分会时应同步考虑董事会结构、城市节点与首页展示节奏。",
-  "branch-edit": "分会维护不仅是资料修改，更是在维护整个公开站点的组织骨架。"
+  dashboard: "查看文章、活动、申请与系统状态的核心指标。",
+  articles: "维护文章标题、作者、分会归属与发布状态。",
+  events: "维护活动信息，并处理活动报名审核。",
+  applications: "审核非成员提交的加入申请与后续跟进。",
+  members: "维护成员资料、分会归属与公开展示。",
+  staff: "管理工作人员账号、状态与角色分配。",
+  roles: "集中维护角色与权限组合。",
+  "audit-logs": "查看后台敏感操作的审计记录。",
+  branches: "维护分会资料与董事会成员结构。",
+  "site-homepage": "调整首页展示内容与主路径分发。",
+  "site-page-edit": "维护加入说明与关于页面的固定内容。",
+  "article-create": "新建文章并补齐标题、摘要、封面与发布状态。",
+  "article-edit": "编辑文章内容，并确认公开展示信息完整。",
+  "event-create": "新建活动并同步报名状态与议程信息。",
+  "event-edit": "编辑活动详情、时间地点与报名配置。",
+  "event-registrations": "审核公开活动的报名记录。",
+  "registration-detail": "查看单条报名资料并完成审核动作。",
+  "application-detail": "查看申请详情并记录审核结论。",
+  "member-create": "新增成员资料并补齐公开展示字段。",
+  "member-edit": "编辑成员资料与分会归属。",
+  "branch-create": "新增分会资料与董事会结构。",
+  "branch-edit": "维护分会资料、封面与董事会成员。"
 };
 
 const activeModule = computed(() => {
   return visibleModules.value.find((item) => route.path === item.to || route.path.startsWith(`${item.to}/`)) ?? null;
 });
+
+const activeModuleGroup = computed(
+  () => groupedModules.value.find((group) => group.items.some((item) => item.to === activeModule.value?.to)) ?? null
+);
 
 const workspaceTitle = computed(() => activeModule.value?.label ?? "后台工作台");
 const workspaceSummary = computed(
@@ -56,6 +90,7 @@ const workspaceSummary = computed(
     workspaceSummaryByRoute[String(route.name ?? "")] ??
     "围绕公开站点与后台运营动作，持续维护内容、审核、成员与权限管理。"
 );
+const workspaceGroupLabel = computed(() => activeModuleGroup.value?.label ?? "控制台");
 const workspaceUserStatus = computed(() => {
   if (loadingMe.value) {
     return "正在同步工作人员身份与权限";
@@ -110,36 +145,63 @@ onMounted(() => {
     <aside class="sidebar">
       <div class="sidebar-inner">
         <div class="brand">
-          <span class="brand-tag">工作人员后台</span>
-          <h1>{{ platformName }}</h1>
-          <p>
-            面向工作人员的运营控制台，用于管理文章、活动、成员、申请、权限和站点内容配置。
+          <div class="brand-heading">
+            <div class="brand-mark">TGO</div>
+
+            <div class="brand-copy">
+              <span class="brand-tag">工作人员后台</span>
+              <h1>{{ platformName }}</h1>
+            </div>
+          </div>
+
+          <p class="brand-summary">
+            围绕文章、活动、申请、成员、工作人员与审计，维护整个社区的后台运营流程。
           </p>
 
-          <div class="brand-meta">
-            <span class="soft-pill">Better Auth</span>
-            <span class="soft-pill">Hono API</span>
-            <span class="soft-pill">运营工作区</span>
+          <div class="brand-stats">
+            <article class="brand-stat">
+              <span>模块</span>
+              <strong>{{ visibleModules.length }}</strong>
+            </article>
+            <article class="brand-stat">
+              <span>角色</span>
+              <strong>{{ me?.roles.length ?? 0 }}</strong>
+            </article>
+            <article class="brand-stat">
+              <span>权限</span>
+              <strong>{{ me?.permissions.length ?? 0 }}</strong>
+            </article>
           </div>
         </div>
 
-        <div class="sidebar-section-label">核心导航</div>
+        <div class="sidebar-nav-groups">
+          <section v-for="group in groupedModules" :key="group.key" class="nav-group">
+            <div class="nav-group-head">
+              <div class="nav-group-title">{{ group.label }}</div>
+              <p class="nav-group-copy">{{ group.summary }}</p>
+            </div>
 
-        <nav class="nav">
-          <router-link
-            v-for="item in visibleModules"
-            :key="item.to"
-            :to="item.to"
-            class="nav-link"
-          >
-            {{ item.label }}
-          </router-link>
-        </nav>
+            <nav class="nav" :aria-label="`${group.label}导航`">
+              <router-link
+                v-for="item in group.items"
+                :key="item.to"
+                :to="item.to"
+                class="nav-link"
+              >
+                {{ item.label }}
+              </router-link>
+            </nav>
+          </section>
+        </div>
 
         <div class="sidebar-footer">
-          <div class="sidebar-note">
-            <strong>{{ me?.user?.name ?? "工作人员会话" }}</strong>
+          <div class="sidebar-note sidebar-identity">
+            <div class="sidebar-identity-row">
+              <strong>{{ me?.user?.name ?? "工作人员会话" }}</strong>
+              <span class="sidebar-session-pill">{{ loadingMe ? "同步中" : me ? "已登录" : "未登录" }}</span>
+            </div>
             <p>{{ me?.user?.email ?? "登录后可查看当前工作人员邮箱与角色状态。" }}</p>
+            <small>{{ workspaceUserStatus }}</small>
           </div>
 
           <button class="nav-link nav-button" type="button" @click="signOut">
@@ -152,20 +214,26 @@ onMounted(() => {
     <main class="main">
       <header class="workspace-topbar">
         <div class="workspace-meta">
-          <div class="workspace-breadcrumb">TGO 控制台 / {{ workspaceTitle }}</div>
-          <div class="workspace-heading">{{ workspaceTitle }}</div>
+          <div class="workspace-breadcrumb">{{ workspaceGroupLabel }} / {{ workspaceTitle }}</div>
+          <div class="workspace-heading-row">
+            <div class="workspace-heading">{{ workspaceTitle }}</div>
+            <span class="status-pill workspace-state-pill">{{ loadingMe ? "同步中" : "在线" }}</span>
+          </div>
           <p class="workspace-copy">{{ workspaceSummary }}</p>
         </div>
 
-        <div class="workspace-user-card">
-          <div class="workspace-user-row">
-            <span class="workspace-status-dot" aria-hidden="true"></span>
-            <div>
-              <strong>{{ me?.user?.name ?? "未同步工作人员" }}</strong>
-              <span>{{ workspaceUserStatus }}</span>
-            </div>
-          </div>
-          <code v-if="me?.user?.email">{{ me.user.email }}</code>
+        <div class="workspace-metric-strip">
+          <article class="workspace-mini-card">
+            <span>角色</span>
+            <strong>{{ me?.roles.length ?? 0 }}</strong>
+            <small>{{ me?.roles.join(" / ") || "未分配角色" }}</small>
+          </article>
+
+          <article class="workspace-mini-card">
+            <span>权限</span>
+            <strong>{{ me?.permissions.length ?? 0 }}</strong>
+            <small>{{ me?.user?.email ?? "未读取到工作人员邮箱" }}</small>
+          </article>
         </div>
       </header>
 
