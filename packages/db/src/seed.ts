@@ -301,7 +301,7 @@ export const seedDatabase = async (db: Database): Promise<SeedDatabaseResult> =>
         slug: article.slug,
         title: article.title,
         excerpt: article.excerpt,
-        bodyRichtext: article.body.join("\n\n"),
+        bodyRichtext: article.body,
         status: "published" as const,
         authorId: authorIdByName.get(article.author.name) ?? null,
         branchId: article.branch ? branchIdBySlug.get(article.branch.slug) ?? null : null,

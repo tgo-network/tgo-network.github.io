@@ -239,11 +239,11 @@ test("public members listing keeps styled card layout after client render", asyn
     };
   });
 
-  expect(layout.gridColumns, "成员列表桌面端应保持四列网格").toBe(4);
+  expect(layout.gridColumns, "成员列表桌面端应保持三列网格").toBe(3);
   expect(layout.cardDisplay, "成员卡片应保持网格布局").toBe("grid");
   expect(layout.headColumns, "成员卡片头部应保持头像与文字两列布局").toBe(2);
-  expect(layout.avatarWidth, "成员头像尺寸异常，可能样式未命中").toBe("72px");
-  expect(layout.avatarHeight, "成员头像高度异常，可能样式未命中").toBe("72px");
+  expect(layout.avatarWidth, "成员头像尺寸异常，可能样式未命中").toBe("76px");
+  expect(layout.avatarHeight, "成员头像高度异常，可能样式未命中").toBe("76px");
   await expectNoHorizontalOverflow(page, "desktop:members-directory-cards");
 });
 
@@ -263,6 +263,9 @@ test("public content drill-down routes expose the expected detail content", asyn
   await expect(page).toHaveURL(/\/articles\/[^/]+$/);
   await expect(page.getByRole("heading", { name: leadArticleTitle })).toBeVisible();
   await expect(page.getByRole("link", { name: "返回文章列表" })).toBeVisible();
+  await expect(page.locator(".article-body-content h2").filter({ hasText: "城市页不是一个静态目录" })).toBeVisible();
+  await expect(page.locator(".article-body-content blockquote")).toContainText("长期节奏说清楚");
+  await expect(page.locator(".article-body-content pre code")).toContainText("const cityHub");
   await expectNoHorizontalOverflow(page, "article-detail");
 
   await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });

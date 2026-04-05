@@ -9,7 +9,8 @@ import {
   type AdminArticleReferences,
   type AdminArticleReferencesPayload,
   type AdminArticleRecord,
-  type AdminArticleUpsertInput
+  type AdminArticleUpsertInput,
+  renderMarkdownToHtml
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
@@ -77,6 +78,7 @@ const articleParagraphs = computed(() =>
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
 );
+const articleBodyPreviewHtml = computed(() => renderMarkdownToHtml(form.body));
 const excerptLength = computed(() => form.excerpt.trim().length);
 const seoTitlePreview = computed(() => form.seoTitle.trim() || form.title.trim() || "将回退为文章标题");
 const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.excerpt.trim() || "将回退为文章摘要");
@@ -117,7 +119,7 @@ const articleChecklist = computed(() => [
   {
     label: "正文",
     ready: articleParagraphs.value.length > 0,
-    hint: "详情页正文会按空行拆成段落展示。"
+    hint: "详情页会按 Markdown 结构渲染正文，因此建议使用标题、列表、引用和代码块。"
   },
   {
     label: "作者",
@@ -130,6 +132,24 @@ const articleChecklist = computed(() => [
     hint: "公开站文章详情页会通过这个 slug 对外访问。"
   }
 ]);
+const markdownGuideItems = [
+  {
+    label: "二级标题",
+    syntax: "## 标题"
+  },
+  {
+    label: "无序列表",
+    syntax: "- 列表项"
+  },
+  {
+    label: "引用",
+    syntax: "> 引用内容"
+  },
+  {
+    label: "代码块",
+    syntax: "```ts"
+  }
+] as const;
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -422,16 +442,34 @@ onMounted(() => {
         <section class="editor-section stacked-gap">
           <div class="editor-section-head">
             <div class="brand-tag">正文内容</div>
-            <h3>按详情页阅读节奏组织正文</h3>
-            <p>详情页会先展示标题、摘要、作者和封面，再进入正文内容，正文建议按自然段留空行分隔。</p>
+            <h3>使用 Markdown 组织正文</h3>
+            <p>文章正文现在使用 Markdown 编写；前台会按标题、列表、引用、代码块和表格等结构进行正式渲染。</p>
           </div>
 
-          <label class="field">
-            <span>正文</span>
-            <textarea v-model="form.body" rows="16" placeholder="文章正文内容。" />
-            <small class="field-hint">用空行分段后，前台会按段落展示；长文也更利于后续拆分为多段阅读。</small>
-            <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
-          </label>
+          <div class="field-grid field-grid-2 markdown-editor-grid">
+            <label class="field">
+              <span>Markdown 正文</span>
+              <textarea v-model="form.body" rows="18" placeholder="使用 Markdown 编写文章正文。" />
+              <small class="field-hint">建议用空行分段，并适度使用 `##`、列表、引用和代码块提高可读性。</small>
+              <small v-if="fieldIssues.body" class="field-error">{{ fieldIssues.body }}</small>
+            </label>
+
+            <div class="field">
+              <span>实时预览</span>
+              <div v-if="form.body.trim().length > 0" class="markdown-preview-panel markdown-preview-prose" v-html="articleBodyPreviewHtml"></div>
+              <div v-else class="markdown-preview-empty">
+                <strong>预览区域</strong>
+                <p>开始输入 Markdown 后，这里会显示前台文章详情页的大致排版效果。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="selection-summary-list">
+            <article v-for="item in markdownGuideItems" :key="item.label" class="selection-summary-card">
+              <strong>{{ item.label }}</strong>
+              <code>{{ item.syntax }}</code>
+            </article>
+          </div>
         </section>
 
         <section class="editor-section stacked-gap">
@@ -496,8 +534,8 @@ onMounted(() => {
                     <strong>{{ selectedBranchLabel }}</strong>
                   </li>
                   <li>
-                    <span>正文段落</span>
-                    <strong>{{ articleParagraphs.length > 0 ? `${articleParagraphs.length} 段` : "尚未填写正文" }}</strong>
+                    <span>Markdown 内容</span>
+                    <strong>{{ articleParagraphs.length > 0 ? `${articleParagraphs.length} 个内容块` : "尚未填写正文" }}</strong>
                   </li>
                 </ul>
               </div>
@@ -555,3 +593,141 @@ onMounted(() => {
     </template>
   </section>
 </template>
+
+<style scoped>
+  .markdown-editor-grid {
+    align-items: start;
+  }
+
+  .markdown-preview-panel,
+  .markdown-preview-empty {
+    min-height: 100%;
+    padding: 18px;
+    border: 1px solid rgba(138, 108, 57, 0.12);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .markdown-preview-empty {
+    display: grid;
+    gap: 8px;
+  }
+
+  .markdown-preview-empty strong,
+  .markdown-preview-empty p {
+    margin: 0;
+  }
+
+  .markdown-preview-empty p {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .selection-summary-card code {
+    font-family: "SFMono-Regular", Consolas, Monaco, monospace;
+    color: var(--accent-deep);
+  }
+
+  .markdown-preview-prose :deep(h2),
+  .markdown-preview-prose :deep(h3),
+  .markdown-preview-prose :deep(h4) {
+    margin: 0 0 12px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+
+  .markdown-preview-prose :deep(h2) {
+    font-size: 1.22rem;
+  }
+
+  .markdown-preview-prose :deep(h3) {
+    font-size: 1.08rem;
+  }
+
+  .markdown-preview-prose :deep(p),
+  .markdown-preview-prose :deep(li),
+  .markdown-preview-prose :deep(blockquote) {
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .markdown-preview-prose :deep(p),
+  .markdown-preview-prose :deep(ul),
+  .markdown-preview-prose :deep(ol),
+  .markdown-preview-prose :deep(pre),
+  .markdown-preview-prose :deep(blockquote),
+  .markdown-preview-prose :deep(table) {
+    margin: 0 0 14px;
+  }
+
+  .markdown-preview-prose :deep(ul),
+  .markdown-preview-prose :deep(ol) {
+    padding-left: 1.2rem;
+  }
+
+  .markdown-preview-prose :deep(blockquote) {
+    padding: 14px 16px;
+    border-left: 3px solid rgba(154, 119, 66, 0.8);
+    border-radius: 16px;
+    background: rgba(255, 252, 248, 0.92);
+  }
+
+  .markdown-preview-prose :deep(pre) {
+    padding: 16px 18px;
+    overflow-x: auto;
+    border-radius: 16px;
+    background: #1c1813;
+    color: #f7efe2;
+  }
+
+  .markdown-preview-prose :deep(code) {
+    font-family: "SFMono-Regular", Consolas, Monaco, monospace;
+    font-size: 0.9em;
+  }
+
+  .markdown-preview-prose :deep(:not(pre) > code) {
+    padding: 0.14rem 0.38rem;
+    border-radius: 999px;
+    background: rgba(154, 119, 66, 0.12);
+    color: var(--accent-deep);
+  }
+
+  .markdown-preview-prose :deep(pre code) {
+    color: inherit;
+  }
+
+  .markdown-preview-prose :deep(img) {
+    display: block;
+    width: 100%;
+    border-radius: 16px;
+    object-fit: cover;
+  }
+
+  .markdown-preview-prose :deep(a) {
+    color: var(--accent-deep);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .markdown-preview-prose :deep(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-radius: 16px;
+    background: rgba(255, 250, 244, 0.88);
+  }
+
+  .markdown-preview-prose :deep(th),
+  .markdown-preview-prose :deep(td) {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(138, 108, 57, 0.12);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown-preview-prose :deep(th) {
+    color: var(--ink);
+    background: rgba(250, 242, 232, 0.9);
+  }
+</style>

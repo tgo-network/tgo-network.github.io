@@ -399,10 +399,7 @@ export const getArticleDetailV2FromDb = async (slug: string): Promise<PublicArti
     authorName: author?.displayName ?? "TGO 编辑部",
     coverImage: toPublicImageAsset(coverAsset ?? undefined, `${article.title} cover image`),
     branch: toBranchReference(branch ?? null),
-    body: (article.bodyRichtext ?? "")
-      .split(/\n\n+/)
-      .map((paragraph) => paragraph.trim())
-      .filter(Boolean),
+    body: article.bodyRichtext ?? "",
     author: {
       name: author?.displayName ?? "TGO 编辑部",
       role: author?.bio ?? "工作人员"

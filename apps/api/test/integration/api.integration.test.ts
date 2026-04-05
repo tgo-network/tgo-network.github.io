@@ -922,7 +922,8 @@ describe("public API integration", () => {
     assert.equal(visibleDetailResult.response.status, 200);
     assert.equal(visibleDetailResult.payload.data.slug, "shipping-an-editorial-platform");
     assert.equal(visibleDetailResult.payload.data.author.name, "李墨言");
-    assert.ok(Array.isArray(visibleDetailResult.payload.data.body));
+    assert.equal(typeof visibleDetailResult.payload.data.body, "string");
+    assert.ok(visibleDetailResult.payload.data.body.includes("静态优先的页面"));
     assert.ok(!("citySummary" in visibleDetailResult.payload.data));
     assert.ok(!("topics" in visibleDetailResult.payload.data));
 

@@ -55,7 +55,7 @@ export interface PublicArticleSummaryV2 {
 }
 
 export interface PublicArticleDetailV2 extends PublicArticleSummaryV2 {
-  body: string[];
+  body: string;
   author: {
     name: string;
     role: string;
@@ -443,7 +443,10 @@ const articleRecords = [
     authorRole: "城市项目负责人",
     branchSlug: "beijing",
     body: [
-      "分会页不应只是一个沉寂的目录入口。它应该解释本地分会的状态，突出当前活跃成员与近期活动，并呈现下一步有意义的行动入口。",
+      "## 城市页不是一个静态目录\n\n分会页不应只是一个沉寂的目录入口。它应该解释本地分会的状态，突出当前活跃成员与近期活动，并呈现下一步有意义的行动入口。",
+      "真正有生命力的城市主页，至少要把下面三件事说清楚：\n\n- 这一城当前围绕哪些议题持续组织活动\n- 哪些成员和董事会成员正在推动社区节奏\n- 访客下一步应该去看活动、文章还是加入方式",
+      "> 城市主页真正的价值，不是展示信息，而是把长期节奏说清楚。",
+      "```ts\nconst cityHub = {\n  content: true,\n  events: true,\n  members: true\n};\n```",
       "这意味着从第一天开始，文章内容就需要和分会、活动、成员体系形成稳定的公开叙事，而不是仅仅挂在旧的主题和城市原型之下。",
       "当管理后台能够持续维护这些公开内容后，前台就能在不改代码的前提下稳定更新。"
     ]
@@ -577,7 +580,7 @@ export const publicArticleSummariesV2: PublicArticleSummaryV2[] = articleRecords
 
 export const publicArticleDetailsV2: PublicArticleDetailV2[] = articleRecords.map((article) => ({
   ...publicArticleSummariesV2.find((item) => item.slug === article.slug)!,
-  body: [...article.body],
+  body: article.body.join("\n\n"),
   author: {
     name: article.authorName,
     role: article.authorRole

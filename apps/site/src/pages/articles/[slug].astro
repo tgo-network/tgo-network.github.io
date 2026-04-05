@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDate } from "../../lib/format";
 import { getArticle, listArticles } from "../../lib/public-api";
+import { markdownToPlainText, renderMarkdownToHtml } from "@tgo/shared";
 
 export const getStaticPaths = async () => {
   const articles = await listArticles();
@@ -20,9 +21,9 @@ if (!article) {
   throw new Error(`文章不存在：${slug}`);
 }
 
-const estimatedReadMinutes = Math.max(3, Math.round(article.body.join("").length / 220));
-const [leadParagraph, ...remainingParagraphs] = article.body;
-const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : article.body;
+const articlePlainText = markdownToPlainText(article.body);
+const estimatedReadMinutes = Math.max(3, Math.round(articlePlainText.length / 220));
+const articleBodyHtml = renderMarkdownToHtml(article.body);
 ---
 
 <BaseLayout title={`${article.title} | 文章 | TGO 鲲鹏会`} description={article.excerpt}>
@@ -57,13 +58,7 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     <section class="section">
       <div class="detail-content-grid article-detail-layout">
         <article class="panel prose-panel detail-body-panel article-body-panel">
-          <div class="article-body-intro">
-            <p class="article-body-lead">{leadParagraph ?? article.excerpt}</p>
-          </div>
-
-          <div class="article-body-content">
-            {bodyParagraphs.map((paragraph) => <p>{paragraph}</p>)}
-          </div>
+          <div class="article-body-content markdown-prose" set:html={articleBodyHtml}></div>
         </article>
 
         <aside class="detail-side-stack article-side-stack detail-sticky">
@@ -129,40 +124,12 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
 
   .article-body-panel {
     display: grid;
-    gap: 24px;
     padding: clamp(22px, 2.6vw, 32px);
-  }
-
-  .article-body-intro {
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
-  }
-
-  .article-body-intro::before {
-    content: "";
-    display: block;
-    width: 78px;
-    height: 3px;
-    margin-bottom: 18px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(185, 138, 66, 0.95), rgba(185, 138, 66, 0.12));
   }
 
   .article-body-content {
     display: grid;
-    gap: 6px;
-  }
-
-  .article-body-lead,
-  .article-body-panel p:first-of-type {
-    color: var(--ink);
-    font-size: 1.06rem;
-  }
-
-  .article-body-lead {
-    margin: 0;
-    max-width: 62ch;
-    line-height: 1.9;
+    gap: 18px;
   }
 
   .article-side-stack {
@@ -197,6 +164,115 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
 
   .article-back-card p {
     max-width: 24ch;
+  }
+
+  .markdown-prose :global(h2),
+  .markdown-prose :global(h3),
+  .markdown-prose :global(h4) {
+    margin: 8px 0 0;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .markdown-prose :global(h2) {
+    font-size: clamp(1.45rem, 2vw, 1.8rem);
+  }
+
+  .markdown-prose :global(h3) {
+    font-size: clamp(1.18rem, 1.6vw, 1.38rem);
+  }
+
+  .markdown-prose :global(p),
+  .markdown-prose :global(li),
+  .markdown-prose :global(blockquote) {
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .markdown-prose :global(ul),
+  .markdown-prose :global(ol) {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 1.35rem;
+  }
+
+  .markdown-prose :global(blockquote) {
+    margin: 0;
+    padding: 16px 18px;
+    border-left: 3px solid rgba(185, 138, 66, 0.7);
+    border-radius: 18px;
+    background: rgba(255, 248, 238, 0.78);
+  }
+
+  .markdown-prose :global(pre) {
+    margin: 0;
+    padding: 18px 20px;
+    overflow-x: auto;
+    border-radius: 18px;
+    background: #191612;
+    color: #f7efe2;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .markdown-prose :global(code) {
+    font-family: "SFMono-Regular", "Consolas", "Monaco", monospace;
+    font-size: 0.92em;
+  }
+
+  .markdown-prose :global(:not(pre) > code) {
+    padding: 0.15rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(185, 138, 66, 0.14);
+    color: var(--accent-strong);
+  }
+
+  .markdown-prose :global(pre code) {
+    color: inherit;
+  }
+
+  .markdown-prose :global(img) {
+    display: block;
+    width: 100%;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow: var(--shadow);
+  }
+
+  .markdown-prose :global(a) {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .markdown-prose :global(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.84);
+  }
+
+  .markdown-prose :global(th),
+  .markdown-prose :global(td) {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown-prose :global(th) {
+    color: var(--ink);
+    background: rgba(255, 248, 238, 0.88);
+  }
+
+  .markdown-prose :global(hr) {
+    width: 100%;
+    height: 1px;
+    border: 0;
+    background: rgba(27, 23, 19, 0.08);
   }
 
   @media (max-width: 980px) {
