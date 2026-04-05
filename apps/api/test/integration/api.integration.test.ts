@@ -488,7 +488,7 @@ describe("admin and internal API integration", () => {
         title: `Transient Article ${index + 1}`,
         excerpt: "This article should be removed when the demo seed reruns.",
         bodyRichtext: "Transient body",
-        status: index === 0 ? "published" : "draft",
+        status: index === 0 ? ("published" as const) : ("draft" as const),
         publishedAt: index === 0 ? new Date() : null
       }))
     );
