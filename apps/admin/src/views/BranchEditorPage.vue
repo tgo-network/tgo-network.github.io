@@ -51,6 +51,14 @@ const createBlankForm = (): BranchFormState => ({
   boardMembers: [createBoardMember()]
 });
 
+const contentStatusDescriptions: Record<(typeof contentStatusOptions)[number]["value"], string> = {
+  draft: "继续准备分会资料，前台暂不公开。",
+  in_review: "进入校对审核阶段，等待最终确认。",
+  scheduled: "内容准备就绪，适合按计划定时上线。",
+  published: "会进入前台分会与董事会展示路径。",
+  archived: "分会从公开站下线，但后台资料仍保留。"
+};
+
 const form = reactive<BranchFormState>(createBlankForm());
 const branch = ref<AdminBranchRecord | null>(null);
 const memberOptions = ref<Array<{ id: string; label: string; description?: string | null }>>([]);
@@ -83,6 +91,28 @@ const boardMembersReady = computed(() =>
 const boardPreviewItems = computed(() => boardMembersReady.value.slice(0, 3));
 const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为分会名称");
 const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.summary.trim() || "将回退为分会简介");
+const branchOverviewCards = computed(() => [
+  {
+    label: "当前状态",
+    value: formatContentStatus(branch.value?.status ?? form.status),
+    summary: branch.value?.publishedAt ? `已发布于 ${formatDateTime(branch.value.publishedAt)}` : "发布后会进入公开站分会路径。"
+  },
+  {
+    label: "城市 / 区域",
+    value: form.cityName || "待补充城市",
+    summary: form.region || "待补充区域"
+  },
+  {
+    label: "董事会人数",
+    value: String(boardMembersReady.value.length),
+    summary: boardMembersReady.value.length > 0 ? "已补充真实组织推动者信息。" : "建议至少补充一位董事会成员。"
+  },
+  {
+    label: "公开路径",
+    value: previewHref.value,
+    summary: form.slug.trim().length > 0 ? `slug：${form.slug.trim()}` : "填写分会名称后可自动生成 slug。"
+  }
+]);
 const branchChecklist = computed(() => [
   {
     label: "名称与 slug",
@@ -303,8 +333,17 @@ onMounted(async () => {
       <p>正在准备分会编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid">
-      <div class="panel editor-main stacked-gap">
+    <template v-else>
+      <div class="editor-overview-grid">
+        <article v-for="item in branchOverviewCards" :key="item.label" class="editor-overview-card">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.summary }}</p>
+        </article>
+      </div>
+
+      <div class="editor-grid">
+        <div class="panel editor-main stacked-gap">
         <section class="editor-section stacked-gap">
           <div class="editor-section-head">
             <div class="brand-tag">基本信息</div>
@@ -328,7 +367,7 @@ onMounted(async () => {
             </label>
           </div>
 
-          <div class="field-grid field-grid-3">
+          <div class="field-grid field-grid-2">
             <label class="field">
               <span>城市</span>
               <input v-model="form.cityName" type="text" placeholder="上海" />
@@ -341,14 +380,27 @@ onMounted(async () => {
               <input v-model="form.region" type="text" placeholder="华东" />
               <small class="field-hint">用于分会列表卡片的上层地理语义，例如华东、华北等。</small>
             </label>
+          </div>
 
-            <label class="field">
-              <span>状态</span>
-              <select v-model="form.status">
-                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small class="field-hint">分会只有在发布后才会出现在公开站主路径中。</small>
-            </label>
+          <div class="field">
+            <span>状态</span>
+            <div class="option-card-grid option-card-grid-5">
+              <button
+                v-for="option in contentStatusOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.status === option.value }"
+                @click="form.status = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ contentStatusDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.status === option.value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+            <small class="field-hint">分会只有在发布后才会出现在公开站主路径中。</small>
           </div>
         </section>
 
@@ -484,9 +536,9 @@ onMounted(async () => {
             </div>
           </div>
         </section>
-      </div>
+        </div>
 
-      <aside class="editor-side stacked-gap">
+        <aside class="editor-side stacked-gap">
         <CoverAssetField
           v-model="form.coverAssetId"
           :assets="assets"
@@ -608,8 +660,8 @@ onMounted(async () => {
             </li>
           </ul>
         </div>
-      </aside>
-    </div>
+        </aside>
+      </div>
+    </template>
   </section>
 </template>
-

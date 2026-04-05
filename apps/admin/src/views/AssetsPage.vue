@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 
 import {
   adminAssetUploadTypeOptions,
+  assetStatusOptions,
   assetVisibilityOptions,
   type AdminAssetDetailPayload,
   type AdminAssetListItem,
@@ -14,6 +15,23 @@ import {
 import { AdminApiError, adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import { formatAdminAssetType, formatAssetStatus, formatAssetVisibility, formatBytes, formatDateTime } from "../lib/format";
 
+const assetTypeDescriptions: Record<AdminAssetType, string> = {
+  "site-banner": "用于首页与站点页中的横幅或大图区域。",
+  "branch-cover": "作为分会卡片与分会详情的封面图。",
+  "member-avatar": "成员列表与成员详情中使用的人像头像。",
+  "article-cover": "文章列表与文章详情使用的封面资源。",
+  "article-inline": "文章正文中的配图、图表或插画资源。",
+  "event-poster": "活动列表、活动详情与报名页中使用的海报或主视觉。",
+  "speaker-avatar": "活动嘉宾头像，用于议程与活动详情展示。",
+  "application-attachment": "加入申请或报名审核中的私密附件，不对外公开。",
+  "generic-file": "通用下载资料、内部文件或补充性文档。"
+};
+
+const visibilityDescriptions: Record<AssetVisibility, string> = {
+  public: "可用于公开站页面、文章、活动和成员展示。",
+  private: "仅用于后台审核或内部资料，不在公开站暴露。"
+};
+
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
 const rows = ref<AdminAssetListItem[]>([]);
@@ -22,6 +40,12 @@ const uploading = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
 const fieldIssues = ref<Record<string, string>>({});
+const filters = reactive({
+  query: "",
+  assetType: "all",
+  visibility: "all",
+  status: "all"
+});
 
 const form = reactive({
   assetType: "article-inline" as AdminAssetType,
@@ -46,6 +70,117 @@ const acceptedMimeTypes = computed(() =>
 );
 const selectedFileName = computed(() => selectedFile.value?.name ?? "尚未选择文件。");
 const selectedFileSize = computed(() => formatBytes(selectedFile.value?.size ?? 0));
+const selectedFileMimeType = computed(() => (selectedFile.value ? guessMimeType(selectedFile.value) : "待选择文件后识别"));
+const selectedAssetTypeLabel = computed(
+  () => adminAssetUploadTypeOptions.find((option) => option.value === form.assetType)?.label ?? formatAdminAssetType(form.assetType)
+);
+const selectedVisibilityLabel = computed(
+  () => assetVisibilityOptions.find((option) => option.value === form.visibility)?.label ?? formatAssetVisibility(form.visibility)
+);
+const imageAssetCount = computed(() => rows.value.filter((row) => row.mimeType.startsWith("image/")).length);
+const publicAssetCount = computed(() => rows.value.filter((row) => row.visibility === "public").length);
+const privateAssetCount = computed(() => rows.value.filter((row) => row.visibility === "private").length);
+const activeAssetCount = computed(() => rows.value.filter((row) => row.status === "active").length);
+const summaryCards = computed(() => [
+  {
+    label: "资源总数",
+    value: rows.value.length,
+    summary: "已经登记在系统中的全部资源元数据。"
+  },
+  {
+    label: "公开资源",
+    value: publicAssetCount.value,
+    summary: "可以被前台页面和公开内容直接引用的资源。"
+  },
+  {
+    label: "图片资源",
+    value: imageAssetCount.value,
+    summary: "用于封面、头像、海报和正文配图的图片总量。"
+  },
+  {
+    label: "启用中",
+    value: activeAssetCount.value,
+    summary: "状态正常、可继续被前台和后台复用的资源。"
+  }
+]);
+const filteredRows = computed(() => {
+  const query = filters.query.trim().toLowerCase();
+
+  return rows.value.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [
+        row.originalFilename,
+        row.objectKey,
+        row.altText,
+        row.mimeType,
+        formatAdminAssetType(row.assetType),
+        formatAssetVisibility(row.visibility),
+        formatAssetStatus(row.status)
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    const matchesAssetType = filters.assetType === "all" || row.assetType === filters.assetType;
+    const matchesVisibility = filters.visibility === "all" || row.visibility === filters.visibility;
+    const matchesStatus = filters.status === "all" || row.status === filters.status;
+
+    return matchesQuery && matchesAssetType && matchesVisibility && matchesStatus;
+  });
+});
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部资源",
+    matches: () => filters.visibility === "all" && filters.status === "all",
+    apply: () => {
+      filters.visibility = "all";
+      filters.status = "all";
+    }
+  },
+  {
+    key: "public",
+    label: "公开资源",
+    matches: () => filters.visibility === "public",
+    apply: () => {
+      filters.visibility = "public";
+    }
+  },
+  {
+    key: "private",
+    label: "私有资源",
+    matches: () => filters.visibility === "private",
+    apply: () => {
+      filters.visibility = "private";
+    }
+  },
+  {
+    key: "active",
+    label: "启用中",
+    matches: () => filters.status === "active",
+    apply: () => {
+      filters.status = "active";
+    }
+  }
+] as const;
+const selectedFileChecklist = computed(() => [
+  {
+    label: "文件",
+    value: selectedFile.value ? "已选择" : "待选择"
+  },
+  {
+    label: "资源类型",
+    value: selectedAssetTypeLabel.value
+  },
+  {
+    label: "可见性",
+    value: selectedVisibilityLabel.value
+  },
+  {
+    label: "替代文本",
+    value: form.altText.trim().length > 0 ? "已填写" : isImageAssetType.value ? "建议填写" : "可选"
+  }
+]);
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -211,7 +346,7 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <div>
         <h2>资源</h2>
-        <p>通过签名上传地址上传内容资源，并将资源元数据保存在后台系统中。</p>
+        <p>通过签名上传把文件送入对象存储，再由后台登记元数据，统一服务文章、活动、成员和站点内容。</p>
       </div>
 
       <div class="page-actions">
@@ -231,82 +366,220 @@ onMounted(() => {
       <p>{{ successMessage }}</p>
     </div>
 
+    <div class="editor-overview-grid">
+      <article v-for="item in summaryCards" :key="item.label" class="editor-overview-card">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+        <p>{{ item.summary }}</p>
+      </article>
+    </div>
+
     <div class="editor-grid">
       <div class="panel editor-main stacked-gap">
-        <div class="field-grid field-grid-2">
-          <label class="field">
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">上传设置</div>
+            <h3>先定义资源将在系统中的用途</h3>
+            <p>资源类型会决定它被谁复用；可见性则决定它能否进入公开站页面、文章、活动和成员展示。</p>
+          </div>
+
+          <div class="field">
             <span>资源类型</span>
-            <select v-model="form.assetType">
-              <option v-for="option in adminAssetUploadTypeOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
+            <div class="option-card-grid option-card-grid-3">
+              <button
+                v-for="option in adminAssetUploadTypeOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.assetType === option.value }"
+                @click="form.assetType = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ assetTypeDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.assetType === option.value ? "当前类型" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
             <small v-if="fieldIssues.assetType" class="field-error">{{ fieldIssues.assetType }}</small>
+          </div>
+
+          <div class="field">
+            <span>可见性</span>
+            <div class="option-card-grid option-card-grid-2">
+              <button
+                v-for="option in assetVisibilityOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.visibility === option.value }"
+                :disabled="visibilityLocked && option.value !== 'private'"
+                @click="form.visibility = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ visibilityDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">
+                    {{ form.visibility === option.value ? "当前可见性" : visibilityLocked && option.value !== "private" ? "已锁定" : "切换" }}
+                  </span>
+                </div>
+              </button>
+            </div>
+            <small v-if="visibilityLocked" class="field-hint">申请附件按照策略必须保持私有，不会进入公开站。</small>
+            <small v-if="fieldIssues.visibility" class="field-error">{{ fieldIssues.visibility }}</small>
+          </div>
+        </section>
+
+        <section class="editor-section stacked-gap">
+          <div class="editor-section-head">
+            <div class="brand-tag">文件信息</div>
+            <h3>补齐上传前必须确认的内容</h3>
+            <p>文件本体会进入对象存储，后台保存类型、可见性、尺寸、对象键与替代文本等稳定元数据。</p>
+          </div>
+
+          <label class="field">
+            <span>选择文件</span>
+            <input
+              ref="fileInput"
+              class="file-input"
+              type="file"
+              :accept="acceptedMimeTypes"
+              @change="onFileSelected"
+            />
+            <small class="field-hint">允许上传的 MIME 类型会随资源类型自动切换。</small>
+            <small v-if="fieldIssues.filename" class="field-error">{{ fieldIssues.filename }}</small>
+            <small v-if="fieldIssues.mimeType" class="field-error">{{ fieldIssues.mimeType }}</small>
+            <small v-if="fieldIssues.byteSize" class="field-error">{{ fieldIssues.byteSize }}</small>
           </label>
 
           <label class="field">
-            <span>可见性</span>
-            <select v-model="form.visibility" :disabled="visibilityLocked">
-              <option v-for="option in assetVisibilityOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="visibilityLocked" class="field-hint">按照策略，申请附件必须保持私有。</small>
-            <small v-if="fieldIssues.visibility" class="field-error">{{ fieldIssues.visibility }}</small>
+            <span>替代文本</span>
+            <textarea
+              v-model="form.altText"
+              rows="4"
+              placeholder="描述图片内容，便于无障碍访问与后续复用。"
+            />
+            <small class="field-hint">图片资源建议始终填写；文档型资源可按需要补充。</small>
+            <small v-if="fieldIssues.altText" class="field-error">{{ fieldIssues.altText }}</small>
           </label>
-        </div>
-
-        <label class="field">
-          <span>选择文件</span>
-          <input
-            ref="fileInput"
-            class="file-input"
-            type="file"
-            :accept="acceptedMimeTypes"
-            @change="onFileSelected"
-          />
-          <small class="field-hint">可接受的文件类型会根据所选资源类型变化。</small>
-          <small v-if="fieldIssues.filename" class="field-error">{{ fieldIssues.filename }}</small>
-          <small v-if="fieldIssues.mimeType" class="field-error">{{ fieldIssues.mimeType }}</small>
-          <small v-if="fieldIssues.byteSize" class="field-error">{{ fieldIssues.byteSize }}</small>
-        </label>
-
-        <label class="field">
-          <span>替代文本</span>
-          <textarea
-            v-model="form.altText"
-            rows="4"
-            placeholder="描述图片内容，便于无障碍访问与后续复用。"
-          />
-          <small class="field-hint">建议为所有图片资源填写；文档类型可以选填。</small>
-          <small v-if="fieldIssues.altText" class="field-error">{{ fieldIssues.altText }}</small>
-        </label>
+        </section>
       </div>
 
       <aside class="editor-side stacked-gap">
         <div class="panel stacked-gap">
-          <div class="brand-tag">已选文件</div>
+          <div class="brand-tag">待上传概览</div>
+
           <div class="info-card">
             <span>文件名</span>
             <strong>{{ selectedFileName }}</strong>
+            <p>{{ selectedFile ? "确认无误后可直接上传并登记。" : "选择文件后会在这里显示文件信息。" }}</p>
           </div>
+
           <div class="info-row">
             <span>大小</span>
             <strong>{{ selectedFileSize }}</strong>
           </div>
           <div class="info-row">
-            <span>允许类型</span>
-            <strong>{{ acceptedMimeTypes }}</strong>
+            <span>MIME 类型</span>
+            <strong>{{ selectedFileMimeType }}</strong>
           </div>
+          <div class="info-row">
+            <span>资源类型</span>
+            <strong>{{ selectedAssetTypeLabel }}</strong>
+          </div>
+          <div class="info-row">
+            <span>可见性</span>
+            <strong>{{ selectedVisibilityLabel }}</strong>
+          </div>
+
+          <ul class="selection-summary-list">
+            <li v-for="item in selectedFileChecklist" :key="item.label" class="selection-summary-card">
+              <strong>{{ item.label }}</strong>
+              <small>{{ item.value }}</small>
+            </li>
+          </ul>
         </div>
 
         <div class="panel stacked-gap">
           <div class="brand-tag">存储流程</div>
-          <p>1. 先向 API 申请签名上传地址。</p>
-          <p>2. 再把文件直接上传到对象存储。</p>
-          <p>3. 最后完成登记，让 PostgreSQL 保存稳定的资源元数据与 ID。</p>
+          <div class="preview-note">
+            <p>1. 先向 API 申请签名上传地址。</p>
+            <p>2. 文件直接写入对象存储，不经过业务数据库。</p>
+            <p>3. 完成登记后，再由 PostgreSQL 保存可长期引用的资源元数据与 ID。</p>
+          </div>
+
+          <div class="info-row">
+            <span>公开资源</span>
+            <strong>{{ publicAssetCount }}</strong>
+          </div>
+          <div class="info-row">
+            <span>私有资源</span>
+            <strong>{{ privateAssetCount }}</strong>
+          </div>
         </div>
       </aside>
+    </div>
+
+    <div class="panel filter-panel">
+      <div class="page-header-row compact-row">
+        <div>
+          <div class="brand-tag">资源检索</div>
+          <p class="section-copy">可按文件名、对象键、资源类型、可见性和状态筛选，快速找到前台或审核流程正在使用的资源。</p>
+        </div>
+        <div class="info-card compact-info-card">
+          <span>结果</span>
+          <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
+          <p>当前筛选命中的资源数量。</p>
+        </div>
+      </div>
+
+      <div class="filter-toolbar">
+        <div class="segmented-actions">
+          <button
+            v-for="item in quickFilters"
+            :key="item.key"
+            type="button"
+            class="segmented-button"
+            :class="{ 'is-active': item.matches() }"
+            @click="item.apply()"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="field-grid field-grid-3">
+        <label class="field">
+          <span>搜索</span>
+          <input v-model="filters.query" type="search" placeholder="搜索文件名、对象键、替代文本或 MIME 类型" />
+        </label>
+
+        <label class="field">
+          <span>资源类型</span>
+          <select v-model="filters.assetType">
+            <option value="all">全部类型</option>
+            <option v-for="option in adminAssetUploadTypeOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>状态</span>
+          <select v-model="filters.status">
+            <option value="all">全部状态</option>
+            <option v-for="option in assetStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-grid field-grid-2">
+        <label class="field">
+          <span>可见性</span>
+          <select v-model="filters.visibility">
+            <option value="all">全部可见性</option>
+            <option v-for="option in assetVisibilityOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+      </div>
     </div>
 
     <div v-if="loading" class="panel">
@@ -314,7 +587,21 @@ onMounted(() => {
       <p>正在加载已上传资源...</p>
     </div>
 
+    <div v-else-if="filteredRows.length === 0" class="panel empty-state-card">
+      <div class="brand-tag">暂无结果</div>
+      <p>当前筛选条件下没有匹配的资源，试试放宽关键词或切换筛选条件。</p>
+    </div>
+
     <div v-else class="panel table-panel">
+      <div class="table-card-head">
+        <div>
+          <h3>资源列表</h3>
+          <p class="table-card-copy">统一查看资源对象键、用途类型、可见性与当前状态，避免前台内容引用到错误的资源。</p>
+        </div>
+
+        <span class="status-pill">当前结果 {{ filteredRows.length }} 个</span>
+      </div>
+
       <table class="data-table assets-table">
         <thead>
           <tr>
@@ -327,7 +614,7 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rows" :key="row.id">
+          <tr v-for="row in filteredRows" :key="row.id">
             <td>
               <div class="asset-cell">
                 <img
@@ -337,13 +624,14 @@ onMounted(() => {
                   class="asset-thumb"
                 />
                 <div v-else class="asset-thumb asset-thumb-file">
-                  {{ row.mimeType === 'application/pdf' ? 'PDF' : '文件' }}
+                  {{ row.mimeType === "application/pdf" ? "PDF" : "文件" }}
                 </div>
 
                 <div class="asset-meta">
                   <strong>{{ row.originalFilename }}</strong>
                   <div class="muted-row">{{ row.objectKey }}</div>
-                  <div class="muted-row" v-if="row.altText">替代文本：{{ row.altText }}</div>
+                  <div class="muted-row">{{ row.mimeType }}</div>
+                  <div v-if="row.altText" class="muted-row">替代文本：{{ row.altText }}</div>
                 </div>
               </div>
             </td>
@@ -352,11 +640,6 @@ onMounted(() => {
             <td>{{ formatBytes(row.byteSize) }}</td>
             <td><span class="status-pill">{{ formatAssetStatus(row.status) }}</span></td>
             <td>{{ formatDateTime(row.createdAt) }}</td>
-          </tr>
-          <tr v-if="rows.length === 0">
-            <td colspan="6">
-              <div class="muted-row">还没有上传任何资源。</div>
-            </td>
           </tr>
         </tbody>
       </table>

@@ -141,6 +141,52 @@ test("admin editor pages expose structured overview and editing controls", async
   await expectNoHorizontalOverflow(page, "admin-member-editor");
 });
 
+test("admin branch, asset, and site configuration pages expose refined management layouts", async ({ page }) => {
+  await page.goto(`${adminUrl}/login`);
+  await signIn(page);
+
+  await page.goto(`${adminUrl}/members/branches`, { waitUntil: "networkidle" });
+  await expect(page).toHaveURL(/\/members\/branches$/);
+  await expect(page.getByRole("heading", { name: "分会维护", exact: true })).toBeVisible();
+  await expect(page.getByText("分会列表", { exact: true })).toBeVisible();
+  await page.getByPlaceholder("搜索分会、slug、城市或区域").fill("上海");
+  await expect(page.locator("tbody")).toContainText("上海分会");
+  await expectNoHorizontalOverflow(page, "admin-branches");
+
+  await page.locator("tr", { hasText: "上海分会" }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/members\/branches\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑分会：/ })).toBeVisible();
+  await expect(page.getByText("当前状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("状态", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-branch-editor");
+
+  await page.goto(`${adminUrl}/assets`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "资源", exact: true })).toBeVisible();
+  await expect(page.getByText("资源列表", { exact: true })).toBeVisible();
+  await expect(page.getByPlaceholder("搜索文件名、对象键、替代文本或 MIME 类型")).toBeVisible();
+  await expect(page.getByText("资源类型", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-assets");
+
+  await page.goto(`${adminUrl}/site/homepage`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "首页配置", exact: true })).toBeVisible();
+  await expect(page.getByText("首屏状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("当前精选内容", { exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-site-homepage");
+
+  await page.goto(`${adminUrl}/site/pages/about`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "关于页", exact: true })).toBeVisible();
+  await expect(page.getByText("页面状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("内容结构", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-site-about");
+
+  await page.goto(`${adminUrl}/site/pages/join`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "加入页", exact: true })).toBeVisible();
+  await expect(page.getByText("页面状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("内容结构", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-site-join");
+});
+
 test("admin dashboard and core lists support layout and filter verification", async ({ page }) => {
   await page.goto(`${adminUrl}/login`);
   await signIn(page);
