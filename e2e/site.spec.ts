@@ -11,10 +11,11 @@ const expectedBranchOrder = ["北京", "上海", "深圳", "广州", "杭州", "
 
 const createSuffix = () => `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 const expectMainHeading = (heading: string) => async (page: Page) => {
-  await expect(page.locator("main h1").filter({ hasText: heading })).toBeVisible();
+  await expect(page.locator("main h1").filter({ hasText: heading })).toHaveCount(1);
 };
 
 const expectArticlesIndexReady = async (page: Page) => {
+  await expect(page.locator("main h1").filter({ hasText: "文章" })).toHaveCount(1);
   await expect(page.locator(".article-lead-card, .article-list-grid, .empty-article-state").first()).toBeVisible();
 };
 

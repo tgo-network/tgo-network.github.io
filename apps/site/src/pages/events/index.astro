@@ -23,11 +23,9 @@ const initialMeta = {
 
 <BaseLayout title="活动 | TGO 鲲鹏会" description="查看各地分会活动与报名入口。">
   <main class="page-shell page-stack event-directory-shell">
+    <h1 class="sr-only">活动</h1>
     <section class="section event-list-section">
-      <div class="panel directory-lead event-directory-toolbar">
-        <div class="directory-header event-directory-head">
-          <h1>活动</h1>
-        </div>
+      <div class="panel event-directory-toolbar">
         <div class="filter-bar" data-event-filters>
           <button class="filter-chip is-active" type="button" data-city-filter="all">全部</button>
           {
@@ -296,7 +294,7 @@ const initialMeta = {
 
 <style>
   .event-directory-shell {
-    padding-top: 10px;
+    padding-top: 18px;
     padding-bottom: 48px;
   }
 
@@ -310,11 +308,6 @@ const initialMeta = {
     gap: 16px;
   }
 
-  .event-directory-head {
-    padding-top: 0;
-  }
-
-  .event-directory-head h1,
   .event-card-title {
     margin: 0;
   }
@@ -497,7 +490,7 @@ const initialMeta = {
 
   @media (max-width: 720px) {
     .event-directory-shell {
-      padding-top: 4px;
+      padding-top: 8px;
     }
 
     :global(.event-grid) {

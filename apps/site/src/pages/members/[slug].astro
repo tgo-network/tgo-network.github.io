@@ -20,16 +20,6 @@ const branch = member?.branch ? await getBranch(member.branch.slug) : null;
 if (!member) {
   throw new Error(`成员不存在：${slug}`);
 }
-
-const branchBodyExcerpt = branch
-  ? branch.body
-      .split(/(?<=[。！？])/u)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-  : "";
-const showBranchBodyExcerpt = Boolean(branchBodyExcerpt && branchBodyExcerpt !== branch?.summary);
 const memberFactItems = [
   {
     label: "所属分会",
@@ -110,7 +100,6 @@ const memberFactItems = [
             }
 
             <p>{branch.summary}</p>
-            {showBranchBodyExcerpt && <p>{branchBodyExcerpt}</p>}
 
             <a class="text-link" href={`/branches#${branch.slug}`}>查看分会董事会</a>
           </article>

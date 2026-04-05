@@ -13,6 +13,7 @@ import {
 
 import {
   getArticle,
+  getEvent,
   getHomePayload,
   getJoinPage,
   getPublicApiBaseUrl,
@@ -119,6 +120,19 @@ test("falls back to imported branch records when the API request fails", async (
   assert.equal(result.length, 12);
   assert.equal(result.find((branch) => branch.slug === "guangzhou")?.name, "广州分会");
   assert.equal(result.find((branch) => branch.slug === "guangzhou")?.boardMembers[0]?.displayName, "杨韶伟");
+});
+
+test("resolves imported branch and event images to public production-safe URLs", async () => {
+  globalThis.fetch = (async () => {
+    throw new Error("network unavailable");
+  }) as typeof fetch;
+
+  const [branches, event] = await Promise.all([listBranches(), getEvent("event-1")]);
+  const beijing = branches.find((branch) => branch.slug === "beijing");
+
+  assert.equal(beijing?.coverImage?.url, "https://static001-test.geekbang.org/resource/image/8c/53/8c1b4ed3909428950538db36b7813153.png");
+  assert.equal(beijing?.boardMembers[0]?.avatar?.url, "https://static001.geekbang.org/files/tgo/c/2/ccfa0f474b2fe7a63a42acee3ff7a5c2.png");
+  assert.equal(event?.coverImage?.url, "/mirrors/tgo-infoq/events/covers/1.png");
 });
 
 test("falls back to imported member summaries when the API returns a non-ok response", async () => {

@@ -141,8 +141,45 @@ const readRepoJson = async <T>(...segments: string[]): Promise<T | null> => {
   }
 };
 
+const normalizeImportedSourceUrl = (sourceUrl: string | null | undefined) => {
+  const normalized = sourceUrl?.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // GitHub Pages cannot serve our ignored imported binaries, so imported assets
+  // should resolve to a stable remote URL or a tracked mirror path.
+  if (normalized.startsWith("http://cdn001.geekbang.org/")) {
+    return null;
+  }
+
+  if (normalized.startsWith("http://")) {
+    return `https://${normalized.slice("http://".length)}`;
+  }
+
+  return normalized;
+};
+
+const toMirroredImportedPath = (localPath: string | null | undefined) => {
+  const normalized = localPath?.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.startsWith("/imports/tgo-infoq/events/covers/")) {
+    return normalized.replace("/imports/tgo-infoq/events/covers/", "/mirrors/tgo-infoq/events/covers/");
+  }
+
+  return normalized.startsWith("/imports/tgo-infoq/") ? null : normalized;
+};
+
+const resolveImportedImageUrl = (image: ImportedImageRef | null) =>
+  normalizeImportedSourceUrl(image?.sourceUrl) ?? toMirroredImportedPath(image?.localPath);
+
 const toImageAsset = (image: ImportedImageRef | null, alt: string): PublicImageAsset | null => {
-  const url = image?.localPath?.trim() || image?.sourceUrl?.trim();
+  const url = resolveImportedImageUrl(image);
 
   if (!url) {
     return null;

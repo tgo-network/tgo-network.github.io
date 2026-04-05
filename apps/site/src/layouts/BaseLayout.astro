@@ -1,19 +1,29 @@
 ---
 import SiteHeader from "../components/SiteHeader.astro";
 import { getSiteConfig } from "../lib/public-api";
+import { defaultOgImagePath, siteOrigin } from "../lib/site";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description?: string;
+  canonical?: string;
+  ogImage?: string;
+  noindex?: boolean;
 }
 
 const {
   title,
-  description = "TGO 鲲鹏会，展示组织介绍、分会、成员、活动与内容。"
+  description = "TGO 鲲鹏会，展示组织介绍、分会、成员、活动与内容。",
+  canonical,
+  ogImage,
+  noindex = false
 } = Astro.props;
 const config = await getSiteConfig();
 const currentYear = new Date().getFullYear();
+const siteBase = Astro.site?.toString() ?? siteOrigin;
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, siteBase).toString();
+const ogImageUrl = new URL(ogImage ?? defaultOgImagePath, siteBase).toString();
 const legalLinks = [
   { label: "隐私说明", href: "/privacy" },
   { label: "使用条款", href: "/terms" }
@@ -27,6 +37,19 @@ const legalLinks = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:site_name" content={config.platformName} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
   </head>
   <body>
     <SiteHeader config={config} />

@@ -28,13 +28,8 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 
 <BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会董事会成员信息。">
   <main class="page-shell page-stack branch-directory-shell">
+    <h1 class="sr-only">分会董事会</h1>
     <section class="section branch-directory-section">
-      <div class="panel directory-lead branch-directory-lead">
-        <div class="directory-header branch-directory-head">
-          <h1>分会董事会</h1>
-        </div>
-      </div>
-
       <div class="branch-record-list">
         {
           branches.map((branch) => (
@@ -78,19 +73,14 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 
 <style>
   .branch-directory-shell {
-    padding-top: 10px;
+    padding-top: 18px;
     padding-bottom: 48px;
   }
 
   .branch-directory-section,
-  .branch-record-list,
-  .branch-directory-lead {
+  .branch-record-list {
     display: grid;
     gap: 20px;
-  }
-
-  .branch-directory-head {
-    padding-top: 0;
   }
 
   .branch-record-card {
@@ -196,7 +186,7 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 
   @media (max-width: 720px) {
     .branch-directory-shell {
-      padding-top: 4px;
+      padding-top: 8px;
     }
 
     .branch-record-card {
