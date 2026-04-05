@@ -34,28 +34,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesBranch;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "文章总数",
-    value: rows.value.length,
-    summary: "后台当前维护的全部文章记录。"
-  },
-  {
-    label: "已发布",
-    value: rows.value.filter((row) => row.status === "published").length,
-    summary: "已经出现在公开文章列表中的内容。"
-  },
-  {
-    label: "定时 / 审核中",
-    value: rows.value.filter((row) => row.status === "scheduled" || row.status === "in_review").length,
-    summary: "接近上线，但仍需要继续确认的文章。"
-  },
-  {
-    label: "关联分会",
-    value: rows.value.filter((row) => row.branchName).length,
-    summary: "已经明确组织归属，更利于形成分会内容叙事。"
-  }
-]);
 
 onMounted(async () => {
   loading.value = true;
@@ -74,10 +52,7 @@ onMounted(async () => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>文章</h2>
-        <p>围绕标题、作者、分会归属与发布状态维护公开文章内容，让内容继续服务组织主线。</p>
-      </div>
+      <h2>文章</h2>
 
       <div class="page-actions">
         <RouterLink class="button-link button-primary" to="/articles/new">新建文章</RouterLink>
@@ -85,37 +60,15 @@ onMounted(async () => {
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载文章...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按标题、作者、分会和状态快速收敛当前需要继续编辑或发布的文章。</p>
-          </div>
-          <div class="info-card">
-            <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的文章数。</p>
-          </div>
-        </div>
-
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -138,11 +91,12 @@ onMounted(async () => {
             </select>
           </label>
         </div>
+
+        <div class="filter-summary">共 {{ filteredRows.length }} / {{ rows.length }} 篇文章</div>
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的文章，试试放宽关键词或切换状态筛选。</p>
+        <p>当前筛选条件下没有匹配的文章。</p>
       </div>
 
       <div v-else class="panel table-panel">

@@ -83,34 +83,10 @@ const buildListPath = () => {
   return `/api/admin/v1/events?${search.toString()}`;
 };
 
-const summaryCards = computed(() => [
-  {
-    label: "活动总数",
-    value: meta.value.stats.total,
-    summary: "后台当前维护的全部活动记录。"
-  },
-  {
-    label: "开放报名",
-    value: meta.value.stats.open,
-    summary: "前台会直接显示公开报名表单。"
-  },
-  {
-    label: "候补中",
-    value: meta.value.stats.waitlist,
-    summary: "仍可提交，但需要工作人员后续审核安排。"
-  },
-  {
-    label: "已发布",
-    value: meta.value.stats.published,
-    summary: "已经出现在公开活动列表中的活动。"
-  }
-]);
-
 const branchOptions = computed(() => meta.value.branchOptions);
 const hasResults = computed(() => meta.value.total > 0);
-const resultSummary = computed(() => `${meta.value.total} / ${meta.value.stats.total}`);
 const paginationSummary = computed(
-  () => `第 ${meta.value.page} / ${meta.value.pageCount} 页，每页 ${meta.value.pageSize} 条，当前页 ${rows.value.length} 条`
+  () => `第 ${meta.value.page} / ${meta.value.pageCount} 页 · 每页 ${meta.value.pageSize} 条 · 当前 ${rows.value.length} 条`
 );
 const quickFilters = [
   {
@@ -231,10 +207,7 @@ onBeforeUnmount(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>活动</h2>
-        <p>活动管理同时承接公开列表展示、详情页信息、议程配置和活动报名审核的上游入口。</p>
-      </div>
+      <h2>活动</h2>
 
       <div class="page-actions">
         <RouterLink class="button-link button-primary" to="/events/new">新建活动</RouterLink>
@@ -242,37 +215,15 @@ onBeforeUnmount(() => {
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-if="!hasLoadedOnce && loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载活动...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按活动标题、分会、场地、内容状态和报名状态锁定当前需要继续推进的活动。</p>
-          </div>
-          <div class="info-card">
-            <span>结果</span>
-            <strong>{{ resultSummary }}</strong>
-            <p>{{ paginationSummary }}</p>
-          </div>
-        </div>
-
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -286,6 +237,8 @@ onBeforeUnmount(() => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="filter-summary">共 {{ meta.total }} 条活动 · {{ paginationSummary }}</div>
         </div>
 
         <div class="field-grid field-grid-3">
@@ -330,26 +283,15 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="loading" class="panel">
-        <div class="brand-tag">刷新中</div>
-        <p>正在根据当前筛选条件更新活动列表...</p>
+        <p>正在更新活动列表...</p>
       </div>
 
       <div v-if="!loading && !hasResults" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的活动，试试调整报名状态、分会或关键词。</p>
+        <p>当前筛选条件下没有匹配的活动。</p>
       </div>
 
       <template v-else-if="hasResults">
         <div class="panel table-panel">
-          <div class="table-card-head">
-            <div>
-              <h3>活动列表</h3>
-              <p class="table-card-copy">当前页展示 {{ rows.length }} 场活动，可继续进入编辑、报名审核或前台预览。</p>
-            </div>
-
-            <span class="status-pill">{{ paginationSummary }}</span>
-          </div>
-
           <table class="data-table">
             <thead>
               <tr>
@@ -390,23 +332,14 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
-        <div class="panel pagination-panel">
-          <div class="info-card pagination-summary-card">
-            <span>分页</span>
-            <strong>{{ paginationSummary }}</strong>
-            <p>当前筛选共命中 {{ meta.total }} 条活动记录。</p>
-          </div>
+        <div class="pagination-panel">
+          <div class="filter-summary">{{ paginationSummary }}</div>
 
           <div class="pagination-actions">
             <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">
               上一页
             </button>
-            <button
-              class="button-link"
-              type="button"
-              :disabled="loading || meta.page >= meta.pageCount"
-              @click="changePage(meta.page + 1)"
-            >
+            <button class="button-link" type="button" :disabled="loading || meta.page >= meta.pageCount" @click="changePage(meta.page + 1)">
               下一页
             </button>
           </div>

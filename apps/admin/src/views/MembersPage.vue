@@ -36,28 +36,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesMembership && matchesVisibility && matchesBranch;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "成员总数",
-    value: rows.value.length,
-    summary: "后台当前维护的全部成员资料。"
-  },
-  {
-    label: "有效成员",
-    value: rows.value.filter((row) => row.membershipStatus === "active").length,
-    summary: "当前处于有效展示状态的成员。"
-  },
-  {
-    label: "公开资料",
-    value: rows.value.filter((row) => row.visibility === "public").length,
-    summary: "前台成员列表可以直接看到的资料数。"
-  },
-  {
-    label: "已分配分会",
-    value: rows.value.filter((row) => row.branchName).length,
-    summary: "已经补全组织归属，便于前台形成分会结构。"
-  }
-]);
 const quickFilters = [
   {
     key: "all",
@@ -114,10 +92,7 @@ onMounted(async () => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>成员</h2>
-        <p>维护成员资料、分会归属与公开可见性，让前台成员网络始终反映真实的组织结构。</p>
-      </div>
+      <h2>成员</h2>
 
       <div class="page-actions">
         <RouterLink class="button-link" to="/members/branches">分会维护</RouterLink>
@@ -126,37 +101,15 @@ onMounted(async () => {
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载成员...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按姓名、公司、分会、成员状态与公开可见性快速定位需要继续维护的成员资料。</p>
-          </div>
-          <div class="info-card">
-            <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的成员数。</p>
-          </div>
-        </div>
-
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -170,6 +123,8 @@ onMounted(async () => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="filter-summary">共 {{ filteredRows.length }} / {{ rows.length }} 位成员</div>
         </div>
 
         <div class="field-grid field-grid-3">
@@ -210,20 +165,10 @@ onMounted(async () => {
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的成员，试试切换分会或可见性条件。</p>
+        <p>当前筛选条件下没有匹配的成员。</p>
       </div>
 
       <div v-else class="panel table-panel">
-        <div class="table-card-head">
-          <div>
-            <h3>成员列表</h3>
-            <p class="table-card-copy">维护成员公开资料、分会归属与展示状态，保证前台成员网络口径一致。</p>
-          </div>
-
-          <span class="status-pill">当前结果 {{ filteredRows.length }} 位</span>
-        </div>
-
         <table class="data-table">
           <thead>
             <tr>
