@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
 import { shouldShowExternalRegistrationLink, stripEventDisplayUrls } from "../../lib/event-registration";
 import { getEvent, getPublicApiBaseUrl, listEvents } from "../../lib/public-api";
+import { normalizeLegacyEventMarkdown, renderMarkdownToHtml } from "@tgo/shared";
 
 export const getStaticPaths = async () => {
   const events = await listEvents();
@@ -12,21 +13,6 @@ export const getStaticPaths = async () => {
       slug: event.slug
     }
   }));
-};
-
-type EventBodySection = {
-  title: string;
-  items: string[];
-};
-
-type EventContentBlock = {
-  paragraphs: string[];
-  bullets: string[];
-};
-
-type AudienceCard = {
-  title: string;
-  summary: string;
 };
 
 const slug = Astro.params.slug!;
@@ -43,205 +29,10 @@ const registrationSubmitLabel = event.registrationState === "waitlist" ? "加入
 const branchName = event.branch?.name ?? `${event.cityName}活动`;
 const eventLocation = event.venueAddress || event.venueName;
 const sanitizedEventSummary = stripEventDisplayUrls(event.summary) || event.title;
-
-const eventBodyHeadingPatterns = [
-  /^活动简介$/,
-  /^活动流程$/,
-  /^参会须知$/,
-  /^谁该来.*参与.*$/,
-  /^活动亮点$/,
-  /^适合谁(?:参加)?$/,
-  /^适合人群$/,
-  /^报名方式$/,
-  /^报名链接$/,
-  /^温馨提示$/,
-  /^参会标准$/,
-  /^非会员申请标准$/
-];
-
-const stripListMarker = (value: string) => value.replace(/^[•●▪■◆★⭐-]\s*/, "").replace(/^\d+[、.．)]\s*/, "").trim();
-const isPureUrl = (value: string) => /^https?:\/\/\S+$/i.test(value);
-const isHeadingLine = (value: string) => eventBodyHeadingPatterns.some((pattern) => pattern.test(value));
-
-const eventBodySections = event.body
-  .replace(/\r/g, "")
-  .split("\n")
-  .map((line) => line.trim())
-  .filter(Boolean)
-  .reduce<EventBodySection[]>((sections, line) => {
-    if (isHeadingLine(line)) {
-      const previous = sections.at(-1);
-
-      if (previous?.title !== line) {
-        sections.push({
-          title: line,
-          items: []
-        });
-      }
-
-      return sections;
-    }
-
-    if (sections.length === 0) {
-      sections.push({
-        title: "活动简介",
-        items: []
-      });
-    }
-
-    const currentSection = sections[sections.length - 1]!;
-
-    if (line !== currentSection.title) {
-      currentSection.items.push(line);
-    }
-
-    return sections;
-  }, []);
-
-const createContentBlock = (items: string[]): EventContentBlock => {
-  const paragraphs: string[] = [];
-  const bullets: string[] = [];
-
-  for (const item of items) {
-    const trimmed = item.trim();
-    const cleaned = stripEventDisplayUrls(trimmed);
-
-    if (!cleaned || isPureUrl(trimmed)) {
-      continue;
-    }
-
-    if (/^[•●▪■◆★⭐-]/.test(cleaned) || /^\d+[、.．)]/.test(cleaned)) {
-      bullets.push(stripListMarker(cleaned));
-      continue;
-    }
-
-    paragraphs.push(cleaned);
-  }
-
-  return {
-    paragraphs,
-    bullets
-  };
-};
-
-const createAudienceCards = (items: string[]): AudienceCard[] => {
-  const cards: { title: string; details: string[] }[] = [];
-  let currentCard: { title: string; details: string[] } | null = null;
-
-  const pushCurrentCard = () => {
-    if (!currentCard) {
-      return;
-    }
-
-    cards.push(currentCard);
-    currentCard = null;
-  };
-
-  for (const item of items) {
-    const cleaned = stripEventDisplayUrls(item.trim());
-
-    if (!cleaned || isPureUrl(cleaned)) {
-      continue;
-    }
-
-    const isCardTitle = cleaned.startsWith("🦞") || /^(如果你是|适合|面向)/.test(cleaned);
-
-    if (isCardTitle) {
-      pushCurrentCard();
-      currentCard = {
-        title: cleaned.replace(/^🦞\s*/, "").trim(),
-        details: []
-      };
-      continue;
-    }
-
-    if (!currentCard) {
-      currentCard = {
-        title: "适合参与的人",
-        details: []
-      };
-    }
-
-    currentCard.details.push(stripListMarker(cleaned));
-  }
-
-  pushCurrentCard();
-
-  return cards
-    .map((card) => ({
-      title: card.title,
-      summary: card.details.join(" ").trim()
-    }))
-    .filter((card) => card.title && card.summary);
-};
-
+const eventBodyMarkdown = normalizeLegacyEventMarkdown(event.body || sanitizedEventSummary);
+const eventBodyHtml = renderMarkdownToHtml(eventBodyMarkdown || sanitizedEventSummary);
 const registrationUrl = event.registrationUrl;
 const showExternalRegistrationLink = shouldShowExternalRegistrationLink(event.registrationState, registrationUrl);
-const narrativeSections = eventBodySections.filter(
-  (section) =>
-    section.items.length > 0 &&
-    !/^活动流程$/.test(section.title) &&
-    !/^参会须知$/.test(section.title) &&
-    !/^报名方式$/.test(section.title) &&
-    !/^报名链接$/.test(section.title) &&
-    !/^参会标准$/.test(section.title) &&
-    !/^非会员申请标准$/.test(section.title) &&
-    !/^谁该来.*参与.*$/.test(section.title) &&
-    !/^适合/.test(section.title)
-);
-const introSection = narrativeSections[0] ?? {
-  title: "活动介绍",
-  items: [sanitizedEventSummary]
-};
-const introContent = createContentBlock(introSection.items);
-const additionalNarrativeSections = narrativeSections.slice(1).map((section) => ({
-  title: section.title,
-  content: createContentBlock(section.items)
-}));
-const audienceSectionItems = eventBodySections
-  .filter((section) => /^谁该来.*参与.*$/.test(section.title) || /^适合/.test(section.title))
-  .flatMap((section) => section.items);
-const audienceCards = createAudienceCards(audienceSectionItems);
-const fallbackAudienceCards = [
-  {
-    title: "开放报名",
-    summary: "活动对成员与非成员都开放报名，提交后统一进入工作人员后台审核。"
-  },
-  {
-    title: "资料完整更容易通过",
-    summary: "建议补充公司、职称和参会诉求，方便工作人员更快判断是否匹配活动定位。"
-  },
-  {
-    title: "审核后继续联系",
-    summary: "审核结果可能为通过、拒绝或候补，工作人员会继续跟进后续安排。"
-  }
-];
-const displayedAudienceCards = audienceCards.length > 0 ? audienceCards : fallbackAudienceCards;
-const registrationNoticeItems = Array.from(
-  new Set(
-    eventBodySections
-      .filter(
-        (section) =>
-          /^参会须知$/.test(section.title) ||
-          /^报名方式$/.test(section.title) ||
-          /^参会标准$/.test(section.title) ||
-          /^非会员申请标准$/.test(section.title)
-      )
-      .flatMap((section) => section.items)
-      .map((item) => stripListMarker(stripEventDisplayUrls(item)))
-      .filter((item) => item && !isPureUrl(item))
-  )
-);
-const registrationSideNotes =
-  registrationNoticeItems.length > 0
-    ? registrationNoticeItems
-    : [
-        "提交后会进入工作人员后台，由工作人员统一审核。",
-        "审核结果可能为通过、拒绝或转为候补。",
-        "审核通过后，工作人员会进一步联系并确认参与信息。"
-      ];
-const registrationNoticeLabel = registrationNoticeItems.length > 0 ? "报名须知" : "审核说明";
-const visibleRegistrationSideNotes = registrationSideNotes.slice(0, 3);
 const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName, formatRegistrationState(event.registrationState)];
 const eventFactItems = [
   {
@@ -261,6 +52,31 @@ const eventFactItems = [
     value: formatRegistrationState(event.registrationState)
   }
 ];
+const registrationNoticeTitle = event.registrationState === "closed" ? "状态说明" : event.registrationState === "not_open" ? "报名说明" : "审核说明";
+const registrationSideNotes =
+  event.registrationState === "closed"
+    ? [
+        "活动详情与议程继续保留，方便回看内容安排。",
+        "如需关注同城后续活动，可返回活动列表继续浏览。",
+        "报名已结束，后续安排以工作人员通知为准。"
+      ]
+    : event.registrationState === "not_open"
+      ? [
+          "当前页面用于活动预热，报名开放时间以后续通知为准。",
+          "可以先阅读活动正文与议程，判断是否适合继续关注。",
+          "报名开启后，成员与非成员都可在前台提交信息。"
+        ]
+      : event.registrationState === "waitlist"
+        ? [
+            "当前活动进入候补阶段，继续提交后会进入候补队列。",
+            "建议补充公司、职称与关注议题，方便工作人员判断递补优先级。",
+            "如有名额释放，工作人员会继续联系确认。"
+          ]
+        : [
+            "活动对成员与非成员都开放提交，报名后进入工作人员审核流程。",
+            "建议填写完整的公司、职称与参会诉求，方便更快完成审核。",
+            "审核通过后，工作人员会继续联系并确认参与方式。"
+          ];
 ---
 
 <BaseLayout title={`${event.title} | 活动 | TGO 鲲鹏会`} description={sanitizedEventSummary}>
@@ -268,7 +84,6 @@ const eventFactItems = [
     <section class="section">
       <article class:list={["panel detail-hero-card event-detail-head-card", !event.coverImage && "detail-hero-card-single"]}>
         <div class="detail-hero-copy">
-          <p class="page-eyebrow">活动</p>
           <h1>{event.title}</h1>
           <p class="detail-summary">{sanitizedEventSummary}</p>
 
@@ -296,38 +111,7 @@ const eventFactItems = [
       <div class="detail-content-grid event-detail-layout">
         <div class="event-main-stack">
           <article class="panel prose-panel detail-body-panel event-body-panel">
-            <h2 class="card-title">{introSection.title === "活动简介" ? "活动介绍" : introSection.title}</h2>
-            {(introContent.paragraphs.length > 0 ? introContent.paragraphs : [sanitizedEventSummary]).map((paragraph) => <p>{paragraph}</p>)}
-
-            {
-              introContent.bullets.length > 0 && (
-                <ul class="event-rich-list">
-                  {introContent.bullets.map((item) => <li>{item}</li>)}
-                </ul>
-              )
-            }
-
-            {
-              additionalNarrativeSections.length > 0 && (
-                <div class="event-section-stack">
-                  {
-                    additionalNarrativeSections.map((section) => (
-                      <section class="event-section-block">
-                        <h3>{section.title}</h3>
-                        {section.content.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-                        {
-                          section.content.bullets.length > 0 && (
-                            <ul class="event-rich-list event-rich-list-compact">
-                              {section.content.bullets.map((item) => <li>{item}</li>)}
-                            </ul>
-                          )
-                        }
-                      </section>
-                    ))
-                  }
-                </div>
-              )
-            }
+            <div class="event-body-content markdown-prose" set:html={eventBodyHtml}></div>
           </article>
 
           {
@@ -351,7 +135,7 @@ const eventFactItems = [
           }
         </div>
 
-        <div class="detail-side-stack event-side-stack">
+        <aside class="detail-side-stack event-side-stack detail-sticky">
           <article class="panel detail-side-card event-info-panel">
             <h2>活动信息</h2>
             <div class="event-fact-grid">
@@ -365,22 +149,7 @@ const eventFactItems = [
               }
             </div>
           </article>
-
-          <article class="panel detail-side-card audience-panel">
-            <h2>适合参与</h2>
-            <div class="audience-card-grid">
-              {
-                displayedAudienceCards.map((item) => (
-                  <article class="audience-card">
-                    <h3>{item.title}</h3>
-                    <p>{item.summary}</p>
-                  </article>
-                ))
-              }
-            </div>
-          </article>
-
-        </div>
+        </aside>
       </div>
     </section>
 
@@ -458,9 +227,9 @@ const eventFactItems = [
 
       <aside class="panel detail-side-card detail-sticky registration-side">
         <div>
-          <h2>{registrationNoticeLabel}</h2>
+          <h2>{registrationNoticeTitle}</h2>
           <div class="registration-note-cards">
-            {visibleRegistrationSideNotes.map((item) => <article class="registration-note-card">{item}</article>)}
+            {registrationSideNotes.map((item) => <article class="registration-note-card">{item}</article>)}
           </div>
         </div>
 
@@ -522,9 +291,7 @@ const eventFactItems = [
 
 <style>
   .event-main-stack,
-  .registration-shell,
-  .audience-card-grid,
-  .event-section-stack {
+  .registration-shell {
     display: grid;
     gap: 18px;
   }
@@ -533,14 +300,30 @@ const eventFactItems = [
     align-content: start;
   }
 
+  .event-detail-layout {
+    grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  }
+
+  .event-body-panel {
+    display: grid;
+    padding: clamp(22px, 2.6vw, 32px);
+  }
+
+  .event-body-content {
+    display: grid;
+    gap: 18px;
+  }
+
+  .event-side-stack {
+    gap: 16px;
+  }
+
   .registration-shell {
     grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
     align-items: start;
   }
 
-  .event-registration-prompt,
   .event-info-panel,
-  .audience-panel,
   .event-agenda-panel,
   .registration-panel,
   .registration-side {
@@ -548,7 +331,6 @@ const eventFactItems = [
   }
 
   .event-info-panel h2,
-  .audience-panel h2,
   .event-agenda-panel h2,
   .registration-head h2,
   .registration-side h2 {
@@ -556,8 +338,6 @@ const eventFactItems = [
   }
 
   .event-fact-card span,
-  .event-rich-list li,
-  .audience-card p,
   .registration-copy,
   .registration-note-card,
   .registration-note p {
@@ -570,37 +350,13 @@ const eventFactItems = [
     margin: 0;
   }
 
-  .event-body-panel p:first-of-type {
-    color: var(--ink);
-    font-size: 1.05rem;
-  }
-
-  .event-section-block {
-    display: grid;
-    gap: 12px;
-  }
-
-  .event-section-block h3,
-  .audience-card h3 {
-    margin: 0;
-    font-size: 1.06rem;
-  }
-
-  .event-rich-list {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding-left: 18px;
-  }
-
   .event-fact-grid {
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .event-fact-card,
-  .audience-card {
+  .event-fact-card {
     display: grid;
     gap: 6px;
     padding: 16px 18px;
@@ -676,6 +432,115 @@ const eventFactItems = [
     gap: 12px;
   }
 
+  .markdown-prose :global(h2),
+  .markdown-prose :global(h3),
+  .markdown-prose :global(h4) {
+    margin: 8px 0 0;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .markdown-prose :global(h2) {
+    font-size: clamp(1.45rem, 2vw, 1.8rem);
+  }
+
+  .markdown-prose :global(h3) {
+    font-size: clamp(1.18rem, 1.6vw, 1.38rem);
+  }
+
+  .markdown-prose :global(p),
+  .markdown-prose :global(li),
+  .markdown-prose :global(blockquote) {
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .markdown-prose :global(ul),
+  .markdown-prose :global(ol) {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 1.35rem;
+  }
+
+  .markdown-prose :global(blockquote) {
+    margin: 0;
+    padding: 16px 18px;
+    border-left: 3px solid rgba(185, 138, 66, 0.7);
+    border-radius: 18px;
+    background: rgba(255, 248, 238, 0.78);
+  }
+
+  .markdown-prose :global(pre) {
+    margin: 0;
+    padding: 18px 20px;
+    overflow-x: auto;
+    border-radius: 18px;
+    background: #191612;
+    color: #f7efe2;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .markdown-prose :global(code) {
+    font-family: "SFMono-Regular", "Consolas", "Monaco", monospace;
+    font-size: 0.92em;
+  }
+
+  .markdown-prose :global(:not(pre) > code) {
+    padding: 0.15rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(185, 138, 66, 0.14);
+    color: var(--accent-strong);
+  }
+
+  .markdown-prose :global(pre code) {
+    color: inherit;
+  }
+
+  .markdown-prose :global(img) {
+    display: block;
+    width: 100%;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow: var(--shadow);
+  }
+
+  .markdown-prose :global(a) {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .markdown-prose :global(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.84);
+  }
+
+  .markdown-prose :global(th),
+  .markdown-prose :global(td) {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown-prose :global(th) {
+    color: var(--ink);
+    background: rgba(255, 248, 238, 0.88);
+  }
+
+  .markdown-prose :global(hr) {
+    width: 100%;
+    height: 1px;
+    border: 0;
+    background: rgba(27, 23, 19, 0.08);
+  }
+
   @media (max-width: 1100px) {
     .registration-shell {
       grid-template-columns: 1fr;
@@ -687,6 +552,16 @@ const eventFactItems = [
 
     .registration-form-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .event-detail-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .event-detail-image {
+      min-height: 260px;
     }
   }
 

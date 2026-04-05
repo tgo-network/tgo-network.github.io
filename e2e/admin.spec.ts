@@ -130,6 +130,8 @@ test("admin editor pages expose structured overview and editing controls", async
   await expect(page.getByText("报名状态", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("议程概览", { exact: true })).toBeVisible();
   await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Markdown 正文", { exact: true })).toBeVisible();
+  await expect(page.getByText("实时预览", { exact: true })).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-event-editor");
 
   await page.goto(`${adminUrl}/members`, { waitUntil: "networkidle" });

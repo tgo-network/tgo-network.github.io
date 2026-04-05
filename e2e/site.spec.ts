@@ -270,6 +270,10 @@ test("public content drill-down routes expose the expected detail content", asyn
 
   await page.goto(`${siteUrl}/events/${openEventSlug}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: openEventTitle })).toBeVisible();
+  await expect(page.locator(".event-body-content h2").filter({ hasText: "活动简介" })).toBeVisible();
+  await expect(page.locator(".event-body-content h2").filter({ hasText: "谁该来？怎么参与？" })).toBeVisible();
+  await expect(page.locator(".event-body-content h3").filter({ hasText: "如果你是 TGO 会员" })).toBeVisible();
+  await expect(page.locator(".event-body-content li").filter({ hasText: "实践孵化" }).first()).toBeVisible();
   await expect(page.locator(".registration-panel h2").filter({ hasText: "活动报名" })).toBeVisible();
   await expect(page.getByRole("button", { name: "提交报名" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "event-detail");
