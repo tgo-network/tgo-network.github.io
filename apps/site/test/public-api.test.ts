@@ -130,9 +130,9 @@ test("resolves imported branch and event images to public production-safe URLs",
   const [branches, event] = await Promise.all([listBranches(), getEvent("event-1")]);
   const beijing = branches.find((branch) => branch.slug === "beijing");
 
-  assert.equal(beijing?.coverImage?.url, "https://static001-test.geekbang.org/resource/image/8c/53/8c1b4ed3909428950538db36b7813153.png");
-  assert.equal(beijing?.boardMembers[0]?.avatar?.url, "https://static001.geekbang.org/files/tgo/c/2/ccfa0f474b2fe7a63a42acee3ff7a5c2.png");
-  assert.equal(event?.coverImage?.url, "/mirrors/tgo-infoq/events/covers/1.png");
+  assert.equal(beijing?.coverImage?.url, "/mirrors/tgo-infoq/branches/banners/beijing.webp");
+  assert.equal(beijing?.boardMembers[0]?.avatar?.url, "/mirrors/tgo-infoq/branches/members/beijing/1171.webp");
+  assert.equal(event?.coverImage?.url, "/mirrors/tgo-infoq/events/covers/1.webp");
 });
 
 test("falls back to imported member summaries when the API returns a non-ok response", async () => {

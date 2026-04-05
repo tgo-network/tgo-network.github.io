@@ -102,6 +102,7 @@ let branchFallbackPromise: Promise<BranchDetail[] | null> | null = null;
 let memberFallbackPromise: Promise<ImportedMemberFallback | null> | null = null;
 let eventFallbackPromise: Promise<ImportedEventFallback | null> | null = null;
 let homeFallbackPromise: Promise<PublicHomePayloadV2 | null> | null = null;
+const mirroredAssetExistsCache = new Map<string, boolean>();
 
 const findRepoRoot = () => {
   if (repoRootCache !== undefined) {
@@ -161,6 +162,25 @@ const normalizeImportedSourceUrl = (sourceUrl: string | null | undefined) => {
   return normalized;
 };
 
+const hasMirroredAsset = (publicPath: string) => {
+  const cached = mirroredAssetExistsCache.get(publicPath);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const repoRoot = findRepoRoot();
+
+  if (!repoRoot) {
+    mirroredAssetExistsCache.set(publicPath, false);
+    return false;
+  }
+
+  const exists = existsSync(path.join(repoRoot, "apps", "site", "public", publicPath.replace(/^\//u, "")));
+  mirroredAssetExistsCache.set(publicPath, exists);
+  return exists;
+};
+
 const toMirroredImportedPath = (localPath: string | null | undefined) => {
   const normalized = localPath?.trim();
 
@@ -168,15 +188,28 @@ const toMirroredImportedPath = (localPath: string | null | undefined) => {
     return null;
   }
 
-  if (normalized.startsWith("/imports/tgo-infoq/events/covers/")) {
-    return normalized.replace("/imports/tgo-infoq/events/covers/", "/mirrors/tgo-infoq/events/covers/");
+  if (normalized.startsWith("/imports/tgo-infoq/")) {
+    const mirroredPath = normalized.replace("/imports/tgo-infoq/", "/mirrors/tgo-infoq/").replace(/\.[^.\/]+$/u, ".webp");
+    return hasMirroredAsset(mirroredPath) ? mirroredPath : null;
   }
 
-  return normalized.startsWith("/imports/tgo-infoq/") ? null : normalized;
+  return normalized;
 };
 
-const resolveImportedImageUrl = (image: ImportedImageRef | null) =>
-  normalizeImportedSourceUrl(image?.sourceUrl) ?? toMirroredImportedPath(image?.localPath);
+const resolveImportedImageUrl = (image: ImportedImageRef | null) => {
+  const localPath = image?.localPath?.trim() ?? null;
+  const mirroredPath = toMirroredImportedPath(localPath);
+
+  if (mirroredPath) {
+    return mirroredPath;
+  }
+
+  if (localPath?.startsWith("/imports/tgo-infoq/")) {
+    return null;
+  }
+
+  return normalizeImportedSourceUrl(image?.sourceUrl);
+};
 
 const toImageAsset = (image: ImportedImageRef | null, alt: string): PublicImageAsset | null => {
   const url = resolveImportedImageUrl(image);

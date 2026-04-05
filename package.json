@@ -29,6 +29,7 @@
     "test:e2e:install": "playwright install chromium",
     "data:fetch:tgo-infoq": "python3 scripts/scrape_tgo_infoq.py",
     "data:convert:members": "python3 scripts/convert_members_workbook.py",
+    "assets:generate:public-mirrors": "python3 scripts/generate_public_mirrors.py",
     "db:import:tgo-infoq": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db import:tgo-infoq",
     "db:import:members": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db import:members",
     "db:cleanup:demo-events": "env COREPACK_HOME=\"$PWD/.corepack\" corepack pnpm --filter @tgo/db cleanup:demo-events",
