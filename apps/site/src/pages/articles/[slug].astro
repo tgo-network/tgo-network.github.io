@@ -40,8 +40,8 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
           </div>
 
           <div class="hero-actions article-hero-actions">
-            <a class="button secondary" href="/articles">返回文章列表</a>
             {article.branch && <a class="button primary" href={`/branches#${article.branch.slug}`}>查看相关分会</a>}
+            <a class="text-link" href="/articles">返回文章列表</a>
           </div>
         </div>
 
