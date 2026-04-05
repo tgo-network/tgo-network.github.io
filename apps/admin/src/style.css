@@ -998,6 +998,182 @@ code {
   background: linear-gradient(180deg, rgba(154, 119, 66, 0.08), rgba(205, 171, 111, 0.1));
 }
 
+.editor-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.editor-overview-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(138, 108, 57, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 243, 235, 0.82));
+}
+
+.editor-overview-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.editor-overview-card strong {
+  line-height: 1.45;
+}
+
+.editor-overview-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.option-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.option-card-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.option-card-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.option-card-grid-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.option-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(138, 108, 57, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.option-card:hover,
+.option-card:focus-visible {
+  border-color: rgba(138, 108, 57, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+  outline: none;
+}
+
+.option-card.is-active {
+  border-color: rgba(154, 119, 66, 0.24);
+  background: linear-gradient(180deg, rgba(154, 119, 66, 0.13), rgba(205, 171, 111, 0.16));
+}
+
+.option-card strong,
+.option-card p {
+  margin: 0;
+}
+
+.option-card p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.option-card-foot {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.option-card-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--accent-deep);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.checkbox-card {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid rgba(138, 108, 57, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.checkbox-card:hover,
+.checkbox-card:focus-within {
+  border-color: rgba(138, 108, 57, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.checkbox-card.is-active {
+  border-color: rgba(154, 119, 66, 0.24);
+  background: linear-gradient(180deg, rgba(154, 119, 66, 0.13), rgba(205, 171, 111, 0.16));
+}
+
+.checkbox-card input {
+  margin-top: 2px;
+}
+
+.checkbox-card strong,
+.checkbox-card p {
+  margin: 0;
+}
+
+.checkbox-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.agenda-timeline-list {
+  display: grid;
+  gap: 12px;
+}
+
+.agenda-timeline-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(138, 108, 57, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.agenda-timeline-card strong,
+.agenda-timeline-card p {
+  margin: 0;
+}
+
+.agenda-timeline-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .dashboard-action-grid {
   display: grid;
   gap: 12px;
@@ -1495,6 +1671,7 @@ code {
   }
 
   .editor-grid,
+  .editor-overview-grid,
   .panel-grid-2,
   .panel-grid-4,
   .audit-log-diff,
@@ -1502,6 +1679,10 @@ code {
   .field-grid-3,
   .login-layout,
   .login-highlight-grid,
+  .option-card-grid-2,
+  .option-card-grid-3,
+  .option-card-grid-5,
+  .selection-grid-2,
   .workspace-metric-strip {
     grid-template-columns: 1fr;
   }

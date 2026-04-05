@@ -106,6 +106,41 @@ test("admin article list supports keyword filtering and preview actions", async 
   await expect(page.getByRole("link", { name: "前台预览" }).first()).toBeVisible();
 });
 
+test("admin editor pages expose structured overview and editing controls", async ({ page }) => {
+  await page.goto(`${adminUrl}/login`);
+  await signIn(page);
+
+  await page.getByRole("link", { name: "文章", exact: true }).click();
+  await page.getByPlaceholder("搜索标题、slug、作者或分会").fill("城市主页");
+  await page.locator("tr", { hasText: "一座城市主页在真正活起来之前需要什么" }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/articles\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑文章：/ })).toBeVisible();
+  await expect(page.getByText("当前状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("状态", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-article-editor");
+
+  await page.goto(`${adminUrl}/events`, { waitUntil: "networkidle" });
+  await page.getByPlaceholder("搜索标题、slug 或分会").fill(openEventSlug);
+  await page.locator("tr", { hasText: openEventSlug }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/events\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑活动：/ })).toBeVisible();
+  await expect(page.getByText("报名状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("议程概览", { exact: true })).toBeVisible();
+  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-event-editor");
+
+  await page.goto(`${adminUrl}/members`, { waitUntil: "networkidle" });
+  await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
+  await page.locator("tr", { hasText: "周扬" }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/members\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑成员：/ })).toBeVisible();
+  await expect(page.getByText("成员状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("可见性", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-member-editor");
+});
+
 test("admin dashboard and core lists support layout and filter verification", async ({ page }) => {
   await page.goto(`${adminUrl}/login`);
   await signIn(page);

@@ -65,6 +65,21 @@ const createBlankForm = (): EventFormState => ({
   agenda: [createAgendaItem()]
 });
 
+const contentStatusDescriptions: Record<(typeof contentStatusOptions)[number]["value"], string> = {
+  draft: "继续准备活动信息，前台暂不公开。",
+  in_review: "进入审核确认阶段，等待最终发布。",
+  scheduled: "内容准备就绪，适合按计划定时上线。",
+  published: "已在前台活动列表公开展示。",
+  archived: "活动下线归档，但后台记录仍保留。"
+};
+
+const registrationStateDescriptions: Record<(typeof eventRegistrationStateOptions)[number]["value"], string> = {
+  not_open: "仅展示活动信息，用于预热或待开放状态。",
+  open: "前台显示公开报名表单，可直接收集报名意向。",
+  waitlist: "允许继续提交，但进入候补与人工审核流程。",
+  closed: "活动详情继续可见，但不再接受新的报名。"
+};
+
 const form = reactive<EventFormState>(createBlankForm());
 const event = ref<AdminEventRecordV2 | null>(null);
 const references = ref<AdminEventReferencesV2>(emptyReferences());
@@ -120,6 +135,28 @@ const registrationExperienceSummary = computed(() => {
       return "前台会显示“报名暂未开放”，用于提前预热活动详情。";
   }
 });
+const eventOverviewCards = computed(() => [
+  {
+    label: "内容状态",
+    value: formatContentStatus(event.value?.status ?? form.status),
+    summary: event.value?.publishedAt ? `已发布于 ${formatDateTime(event.value.publishedAt)}` : "发布后会同步出现在前台活动列表。"
+  },
+  {
+    label: "报名状态",
+    value: formatEventRegistrationState(form.registrationState),
+    summary: registrationExperienceSummary.value
+  },
+  {
+    label: "时间 / 地点",
+    value: eventTimelineSummary.value,
+    summary: eventLocationSummary.value
+  },
+  {
+    label: "公开路径",
+    value: form.slug ? `/events/${form.slug}` : "待生成 slug",
+    summary: form.slug ? `${selectedBranchLabel.value} · ${capacitySummary.value}` : "标题填写后会自动生成公开路径。"
+  }
+]);
 const eventChecklist = computed(() => [
   {
     label: "标题与摘要",
@@ -358,8 +395,17 @@ onMounted(() => {
       <p>正在准备活动编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid">
-      <div class="panel editor-main stacked-gap">
+    <template v-else>
+      <div class="editor-overview-grid">
+        <article v-for="item in eventOverviewCards" :key="item.label" class="editor-overview-card">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.summary }}</p>
+        </article>
+      </div>
+
+      <div class="editor-grid">
+        <div class="panel editor-main stacked-gap">
         <section class="editor-section stacked-gap">
           <div class="editor-section-head">
             <div class="brand-tag">基本信息</div>
@@ -375,14 +421,11 @@ onMounted(() => {
               <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
             </label>
 
-            <label class="field">
-              <span>状态</span>
-              <select v-model="form.status">
-                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small class="field-hint">活动内容可先保持草稿，再根据准备进度切换状态。</small>
-              <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-            </label>
+            <div class="info-card">
+              <span>当前分会</span>
+              <strong>{{ selectedBranchLabel }}</strong>
+              <small class="field-hint">{{ capacitySummary }}</small>
+            </div>
           </div>
 
           <div class="field-grid field-grid-2">
@@ -402,6 +445,28 @@ onMounted(() => {
               <small class="field-hint">前台城市筛选会直接复用分会对应的城市信息。</small>
               <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
             </label>
+          </div>
+
+          <div class="field">
+            <span>内容状态</span>
+            <div class="option-card-grid option-card-grid-5">
+              <button
+                v-for="option in contentStatusOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.status === option.value }"
+                @click="form.status = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ contentStatusDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.status === option.value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+            <small class="field-hint">活动内容可先保持草稿，再根据准备进度切换状态。</small>
+            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
           </div>
         </section>
 
@@ -458,15 +523,28 @@ onMounted(() => {
             <p>当前活动详情页支持开放报名或候补报名，也可以切换为未开放或已关闭状态。</p>
           </div>
 
-          <div class="field-grid field-grid-3">
-            <label class="field">
-              <span>报名状态</span>
-              <select v-model="form.registrationState">
-                <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
-            </label>
+          <div class="field">
+            <span>报名状态</span>
+            <div class="option-card-grid option-card-grid-2">
+              <button
+                v-for="option in eventRegistrationStateOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.registrationState === option.value }"
+                @click="form.registrationState = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ registrationStateDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.registrationState === option.value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+            <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
+          </div>
 
+          <div class="field-grid field-grid-3">
             <label class="field">
               <span>人数上限</span>
               <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
@@ -559,9 +637,9 @@ onMounted(() => {
             </div>
           </div>
         </section>
-      </div>
+        </div>
 
-      <aside class="editor-side stacked-gap">
+        <aside class="editor-side stacked-gap">
         <CoverAssetField
           v-model="form.coverAssetId"
           :assets="coverAssets"
@@ -666,7 +744,27 @@ onMounted(() => {
             </li>
           </ul>
         </div>
-      </aside>
-    </div>
+
+        <div class="panel stacked-gap">
+          <div class="brand-tag">议程概览</div>
+          <div class="agenda-timeline-list">
+            <article
+              v-for="(item, index) in populatedAgendaItems.slice(0, 4)"
+              :key="`${index}-${item.title}-${item.startsAt}-${item.speakerName}`"
+              class="agenda-timeline-card"
+            >
+              <strong>{{ item.title || `议程 ${index + 1}` }}</strong>
+              <p>{{ item.startsAt ? formatDateTime(item.startsAt) : "待补充开始时间" }}<template v-if="item.endsAt"> - {{ formatDateTime(item.endsAt) }}</template></p>
+              <p>{{ item.speakerName || "待补充讲者" }}</p>
+            </article>
+            <article v-if="populatedAgendaItems.length === 0" class="agenda-timeline-card">
+              <strong>尚未填写议程</strong>
+              <p>至少补充一条议程后，这里会同步显示活动时间线摘要。</p>
+            </article>
+          </div>
+        </div>
+        </aside>
+      </div>
+    </template>
   </section>
 </template>

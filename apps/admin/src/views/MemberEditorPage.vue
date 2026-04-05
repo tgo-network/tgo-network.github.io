@@ -29,6 +29,17 @@ const visibilityLabels = {
   private: "私有"
 } as const;
 
+const membershipStatusDescriptions = {
+  active: "继续在前台成员列表中公开展示，是当前有效成员。",
+  alumni: "保留成员沉淀，但在身份表达上标记为校友成员。",
+  paused: "暂时不作为活跃成员对外展示，可后续再恢复。"
+} as const;
+
+const visibilityDescriptions = {
+  public: "会出现在前台成员列表和成员详情页中。",
+  private: "仍保留后台资料，但不会在公开站展示。"
+} as const;
+
 const route = useRoute();
 const router = useRouter();
 
@@ -75,6 +86,28 @@ const memberBioParagraphs = computed(() =>
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
 );
+const memberOverviewCards = computed(() => [
+  {
+    label: "可见性",
+    value: visibilityLabel.value,
+    summary: visibilityDescriptions[form.visibility as keyof typeof visibilityDescriptions]
+  },
+  {
+    label: "成员状态",
+    value: membershipStatusLabel.value,
+    summary: membershipStatusDescriptions[form.membershipStatus as keyof typeof membershipStatusDescriptions]
+  },
+  {
+    label: "组织位置",
+    value: selectedBranch.value?.label ?? "未分配分会",
+    summary: selectedBranch.value?.description ?? "前台会根据分会和城市组织成员网络。"
+  },
+  {
+    label: "公开路径",
+    value: form.slug ? `/members/${form.slug}` : "待生成 slug",
+    summary: form.slug ? `${joinedAtSummary.value} · ${form.featured ? "首页推荐中" : "未加入首页推荐"}` : "姓名填写后会自动生成公开路径。"
+  }
+]);
 const memberChecklist = computed(() => [
   {
     label: "姓名与 slug",
@@ -253,8 +286,17 @@ onMounted(async () => {
       <p>正在准备成员编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid">
-      <div class="panel editor-main stacked-gap">
+    <template v-else>
+      <div class="editor-overview-grid">
+        <article v-for="item in memberOverviewCards" :key="item.label" class="editor-overview-card">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.summary }}</p>
+        </article>
+      </div>
+
+      <div class="editor-grid">
+        <div class="panel editor-main stacked-gap">
         <section class="editor-section stacked-gap">
           <div class="editor-section-head">
             <div class="brand-tag">公开资料</div>
@@ -308,23 +350,52 @@ onMounted(async () => {
               <small class="field-hint">前台成员列表和详情会直接显示分会与城市归属。</small>
             </label>
 
-            <label class="field">
-              <span>成员状态</span>
-              <select v-model="form.membershipStatus">
-                <option value="active">有效成员</option>
-                <option value="alumni">校友成员</option>
-                <option value="paused">暂停展示</option>
-              </select>
-            </label>
+            <div class="info-card">
+              <span>当前城市</span>
+              <strong>{{ selectedBranch?.description ?? "待补充城市" }}</strong>
+              <small class="field-hint">{{ joinedAtSummary }}</small>
+            </div>
+          </div>
 
-            <label class="field">
-              <span>可见性</span>
-              <select v-model="form.visibility">
-                <option value="public">公开</option>
-                <option value="private">私有</option>
-              </select>
-              <small class="field-hint">私有成员不会出现在前台成员列表和详情页。</small>
-            </label>
+          <div class="field">
+            <span>成员状态</span>
+            <div class="option-card-grid option-card-grid-3">
+              <button
+                v-for="(label, value) in membershipStatusLabels"
+                :key="value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.membershipStatus === value }"
+                @click="form.membershipStatus = value"
+              >
+                <strong>{{ label }}</strong>
+                <p>{{ membershipStatusDescriptions[value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.membershipStatus === value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>可见性</span>
+            <div class="option-card-grid option-card-grid-2">
+              <button
+                v-for="(label, value) in visibilityLabels"
+                :key="value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.visibility === value }"
+                @click="form.visibility = value"
+              >
+                <strong>{{ label }}</strong>
+                <p>{{ visibilityDescriptions[value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.visibility === value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+            <small class="field-hint">私有成员不会出现在前台成员列表和详情页。</small>
           </div>
 
           <div class="field-grid field-grid-3">
@@ -340,10 +411,12 @@ onMounted(async () => {
               <small class="field-hint">数字越小越靠前，适合控制列表和精选排序。</small>
             </label>
 
-            <label class="field checkbox-field">
-              <span>首页推荐</span>
+            <label class="checkbox-card" :class="{ 'is-active': form.featured }">
               <input v-model="form.featured" type="checkbox" />
-              <small class="field-hint">开启后可作为首页精选成员候选。</small>
+              <div>
+                <strong>首页推荐</strong>
+                <p>开启后可作为首页精选成员候选，让成员推荐语或精选位继续复用这份资料。</p>
+              </div>
             </label>
           </div>
         </section>
@@ -381,9 +454,9 @@ onMounted(async () => {
             </label>
           </div>
         </section>
-      </div>
+        </div>
 
-      <aside class="editor-side stacked-gap">
+        <aside class="editor-side stacked-gap">
         <CoverAssetField
           v-model="form.avatarAssetId"
           :assets="assets"
@@ -486,7 +559,8 @@ onMounted(async () => {
             </li>
           </ul>
         </div>
-      </aside>
-    </div>
+        </aside>
+      </div>
+    </template>
   </section>
 </template>

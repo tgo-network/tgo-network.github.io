@@ -42,6 +42,14 @@ const createBlankForm = (): ArticleFormState => ({
   scheduledAt: ""
 });
 
+const contentStatusDescriptions: Record<(typeof contentStatusOptions)[number]["value"], string> = {
+  draft: "继续整理内容，暂不进入公开流程。",
+  in_review: "进入协作校稿阶段，等待最终确认。",
+  scheduled: "准备定时上线，适合已完成终审的内容。",
+  published: "立即出现在前台文章列表与详情页。",
+  archived: "从公开列表下线，但仍保留后台记录。"
+};
+
 const form = reactive<ArticleFormState>(createBlankForm());
 const article = ref<AdminArticleRecord | null>(null);
 const references = ref<AdminArticleReferences>(emptyReferences());
@@ -73,6 +81,28 @@ const excerptLength = computed(() => form.excerpt.trim().length);
 const seoTitlePreview = computed(() => form.seoTitle.trim() || form.title.trim() || "将回退为文章标题");
 const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.excerpt.trim() || "将回退为文章摘要");
 const scheduledAtSummary = computed(() => (form.scheduledAt ? formatDateTime(form.scheduledAt) : "未设置定时发布"));
+const articleOverviewCards = computed(() => [
+  {
+    label: "当前状态",
+    value: formatContentStatus(article.value?.status ?? form.status),
+    summary: article.value?.publishedAt ? `已发布于 ${formatDateTime(article.value.publishedAt)}` : scheduledAtSummary.value
+  },
+  {
+    label: "作者 / 分会",
+    value: selectedAuthorLabel.value,
+    summary: selectedBranchLabel.value
+  },
+  {
+    label: "摘要 / 正文",
+    value: `${excerptLength.value} 字 / ${articleParagraphs.value.length} 段`,
+    summary: excerptLength.value > 0 ? "摘要已可用于列表卡片展示。" : "建议先完成摘要，提升列表可读性。"
+  },
+  {
+    label: "公开路径",
+    value: form.slug ? `/articles/${form.slug}` : "待生成 slug",
+    summary: form.slug ? "前台文章详情页会通过这个路径访问。" : "标题填写后会自动生成公开路径。"
+  }
+]);
 const articleChecklist = computed(() => [
   {
     label: "标题",
@@ -274,8 +304,17 @@ onMounted(() => {
       <p>正在准备文章编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid">
-      <div class="panel editor-main stacked-gap">
+    <template v-else>
+      <div class="editor-overview-grid">
+        <article v-for="item in articleOverviewCards" :key="item.label" class="editor-overview-card">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.summary }}</p>
+        </article>
+      </div>
+
+      <div class="editor-grid">
+        <div class="panel editor-main stacked-gap">
         <section class="editor-section stacked-gap">
           <div class="editor-section-head">
             <div class="brand-tag">基本信息</div>
@@ -291,14 +330,11 @@ onMounted(() => {
               <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
             </label>
 
-            <label class="field">
-              <span>状态</span>
-              <select v-model="form.status">
-                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small class="field-hint">后台状态用于控制编辑节奏，真正公开展示仍以发布结果为准。</small>
-              <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-            </label>
+            <div class="info-card">
+              <span>当前归属</span>
+              <strong>{{ selectedBranchLabel }}</strong>
+              <small class="field-hint">{{ selectedAuthorLabel }}</small>
+            </div>
           </div>
 
           <label class="field">
@@ -307,6 +343,28 @@ onMounted(() => {
             <small class="field-hint">新建时会跟随标题自动生成，也可以手动改成更稳定的公开 URL。</small>
             <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
           </label>
+
+          <div class="field">
+            <span>状态</span>
+            <div class="option-card-grid option-card-grid-5">
+              <button
+                v-for="option in contentStatusOptions"
+                :key="option.value"
+                type="button"
+                class="option-card"
+                :class="{ 'is-active': form.status === option.value }"
+                @click="form.status = option.value"
+              >
+                <strong>{{ option.label }}</strong>
+                <p>{{ contentStatusDescriptions[option.value] }}</p>
+                <div class="option-card-foot">
+                  <span class="option-card-badge">{{ form.status === option.value ? "当前状态" : "切换" }}</span>
+                </div>
+              </button>
+            </div>
+            <small class="field-hint">后台状态用于控制编辑节奏，真正公开展示仍以发布结果为准。</small>
+            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+          </div>
 
           <div class="field-grid field-grid-2">
             <label class="field">
@@ -347,9 +405,9 @@ onMounted(() => {
             </label>
 
             <div class="info-card">
-              <span>当前归属</span>
-              <strong>{{ selectedBranchLabel }}</strong>
-              <small class="field-hint">{{ selectedAuthorLabel }}</small>
+              <span>发布时间线</span>
+              <strong>{{ scheduledAtSummary }}</strong>
+              <small class="field-hint">{{ article?.publishedAt ? `已发布于 ${formatDateTime(article.publishedAt)}` : "发布后会回写正式发布时间。" }}</small>
             </div>
           </div>
 
@@ -396,9 +454,9 @@ onMounted(() => {
             </label>
           </div>
         </section>
-      </div>
+        </div>
 
-      <aside class="editor-side stacked-gap">
+        <aside class="editor-side stacked-gap">
         <CoverAssetField v-model="form.coverAssetId" :assets="coverAssets" :error="fieldIssues.coverAssetId" label="封面资源" />
 
         <div class="panel stacked-gap">
@@ -492,7 +550,8 @@ onMounted(() => {
             </li>
           </ul>
         </div>
-      </aside>
-    </div>
+        </aside>
+      </div>
+    </template>
   </section>
 </template>
