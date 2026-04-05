@@ -41,6 +41,7 @@ import {
   getImportedMemberDetailFallback,
   getImportedMemberSummariesFallback
 } from "./imported-fallbacks.js";
+import { sanitizeEventRegistrationUrl } from "./event-registration.js";
 
 type ImportMetaEnvWithPublicApi = ImportMeta & {
   env?: {
@@ -124,6 +125,16 @@ const sortEventSummaries = (events: PublicEventSummaryV2[]) =>
 
     return rightTime - leftTime || left.title.localeCompare(right.title, "zh-CN");
   });
+
+const normalizeEventSummary = (event: PublicEventSummaryV2): PublicEventSummaryV2 => ({
+  ...event,
+  registrationUrl: sanitizeEventRegistrationUrl(event.registrationUrl)
+});
+
+const normalizeEventDetail = (event: PublicEventDetailV2): PublicEventDetailV2 => ({
+  ...event,
+  registrationUrl: sanitizeEventRegistrationUrl(event.registrationUrl)
+});
 
 const createEventListMeta = (
   total: number,
@@ -314,7 +325,7 @@ export const listEventPage = async (query: PublicEventListQuery = {}): Promise<P
 
     if (hasExplicitPublicApiBaseUrl() || payloadTotal >= fallbackFiltered.length) {
       return {
-        items: payload.data,
+        items: payload.data.map(normalizeEventSummary),
         meta:
           meta ?? {
             ...createEventListMeta(payload.data.length, page, pageSize, payload.data),
@@ -324,13 +335,13 @@ export const listEventPage = async (query: PublicEventListQuery = {}): Promise<P
     }
 
     return {
-      items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize),
+      items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize).map(normalizeEventSummary),
       meta: createEventListMeta(fallbackFiltered.length, page, pageSize, fallbackFiltered)
     };
   }
 
   return {
-    items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize),
+    items: fallbackFiltered.slice(fallbackStartIndex, fallbackStartIndex + pageSize).map(normalizeEventSummary),
     meta: createEventListMeta(fallbackFiltered.length, page, pageSize, fallbackFiltered)
   };
 };
@@ -345,16 +356,22 @@ export const listEvents = async (): Promise<PublicEventSummaryV2[]> => {
 
   // Demo events remain accessible by detail route for local testing, but they should not occupy the public list.
   if (demoEventCount > 0 && apiResult.items.length === importedEvents.length + demoEventCount) {
-    return importedEvents;
+    return importedEvents.map(normalizeEventSummary);
   }
 
-  return demoEventCount > 0 ? apiResult.items.filter((event) => !seedDemoEventSlugs.has(event.slug)) : apiResult.items;
+  return (demoEventCount > 0 ? apiResult.items.filter((event) => !seedDemoEventSlugs.has(event.slug)) : apiResult.items).map(
+    normalizeEventSummary
+  );
 };
 
-export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null> =>
-  (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ??
-  (await getImportedEventDetailFallback(slug)) ??
-  getPublicEventDetailV2(slug);
+export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null> => {
+  const event =
+    (await fetchPublic<PublicEventDetailV2>(`/api/public/v1/events/${slug}`)) ??
+    (await getImportedEventDetailFallback(slug)) ??
+    getPublicEventDetailV2(slug);
+
+  return event ? normalizeEventDetail(event) : null;
+};
 
 export const submitJoinApplication = async (payload: unknown): Promise<JoinApplicationReceipt | null> =>
   fetch(new URL("/api/public/v1/join-applications", getConfiguredApiBaseUrl()), {

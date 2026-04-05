@@ -9,15 +9,23 @@ const allEvents = await listEvents();
 const normalizeSummary = (value: string) => value.replace(/\s+/g, " ").trim();
 const getEventSummary = (value: string) => normalizeSummary(value) || "查看活动详情与报名信息。";
 const getEventVenue = (value: string) => value.trim() || "地点待定";
-const initialEvents = allEvents.slice(0, pageSize).map((event) => ({
-  ...event,
+const toClientEventCard = (event: (typeof allEvents)[number]) => ({
+  slug: event.slug,
+  title: event.title,
   summary: getEventSummary(event.summary),
-  venueName: getEventVenue(event.venueName)
-}));
+  startsAt: event.startsAt,
+  endsAt: event.endsAt,
+  cityName: event.cityName,
+  venueName: getEventVenue(event.venueName),
+  coverImage: event.coverImage,
+  registrationState: event.registrationState
+});
+const clientEvents = allEvents.map(toClientEventCard);
+const initialEvents = clientEvents.slice(0, pageSize);
 const initialMeta = {
   page: 1,
-  pageCount: Math.max(1, Math.ceil(allEvents.length / pageSize)),
-  cityOptions: orderBranchCities(Array.from(new Set(allEvents.map((event) => event.cityName).filter(Boolean))))
+  pageCount: Math.max(1, Math.ceil(clientEvents.length / pageSize)),
+  cityOptions: orderBranchCities(Array.from(new Set(clientEvents.map((event) => event.cityName).filter(Boolean))))
 };
 ---
 
@@ -97,7 +105,7 @@ const initialMeta = {
     </section>
   </main>
 
-  <script define:vars={{ initialEvents: allEvents, pageSize }} is:inline>
+  <script define:vars={{ initialEvents: clientEvents, pageSize }} is:inline>
     const events = Array.isArray(initialEvents) ? initialEvents : [];
     const filterRoot = document.querySelector("[data-event-filters]");
     const grid = document.querySelector("[data-event-grid]");

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
+import { shouldShowExternalRegistrationLink } from "../../lib/event-registration";
 import { getEvent, getPublicApiBaseUrl, listEvents } from "../../lib/public-api";
 
 export const getStaticPaths = async () => {
@@ -172,10 +173,8 @@ const createAudienceCards = (items: string[]): AudienceCard[] => {
     .filter((card) => card.title && card.summary);
 };
 
-const bodyLinks = Array.from(event.body.matchAll(/https?:\/\/\S+/gi)).map(([value]) =>
-  value.replace(/[)）。，；、]+$/g, "")
-);
-const registrationUrl = event.registrationUrl ?? bodyLinks[0] ?? null;
+const registrationUrl = event.registrationUrl;
+const showExternalRegistrationLink = shouldShowExternalRegistrationLink(event.registrationState, registrationUrl);
 const narrativeSections = eventBodySections.filter(
   (section) =>
     section.items.length > 0 &&
@@ -436,7 +435,13 @@ const eventFactItems = [
               <div class="form-actions registration-actions-row">
                 <div class="registration-actions">
                   <button class="button primary" type="submit">{registrationSubmitLabel}</button>
-                  {registrationUrl && <a class="button secondary" href={registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
+                  {
+                    showExternalRegistrationLink && (
+                      <a class="text-link registration-backup-link" href={registrationUrl!} target="_blank" rel="noreferrer">
+                        如页面提交异常，可改用外部报名入口
+                      </a>
+                    )
+                  }
                 </div>
                 <p class="form-status" data-event-registration-status>请至少填写姓名和手机号，便于工作人员联系。</p>
               </div>
@@ -444,7 +449,6 @@ const eventFactItems = [
           ) : (
             <div class="registration-note">
               <p>{event.registrationState === "closed" ? "这场活动的报名已经关闭。" : "报名暂未开放，请稍后再来查看。"}</p>
-              {registrationUrl && <a class="button secondary" href={registrationUrl} target="_blank" rel="noreferrer">打开外部表单</a>}
             </div>
           )
         }
@@ -651,6 +655,11 @@ const eventFactItems = [
   .registration-note-cards {
     display: grid;
     gap: 12px;
+  }
+
+  .registration-backup-link {
+    align-self: center;
+    font-size: 0.95rem;
   }
 
   .registration-note-card {
