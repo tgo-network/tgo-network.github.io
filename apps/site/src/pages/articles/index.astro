@@ -9,12 +9,6 @@ const articles = await listArticles();
 <BaseLayout title="文章 | TGO 鲲鹏会" description="查看由后台发布的文章内容。">
   <main class="page-shell page-stack article-directory-shell">
     <section class="section article-list-section">
-      <div class="panel directory-lead article-directory-lead">
-        <div class="directory-header article-directory-head">
-          <h1>文章</h1>
-        </div>
-      </div>
-
       {
         articles.length > 0 ? (
           <div class="article-list-grid">
