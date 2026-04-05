@@ -6,6 +6,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <main class="page-shell page-stack legal-page-shell">
     <section class="section">
       <article class="panel legal-text-page">
+        <p class="page-eyebrow">隐私说明</p>
         <h1>隐私说明</h1>
         <p>本说明适用于 TGO 鲲鹏会站点当前提供的公开浏览、加入申请与活动报名流程，说明相关信息如何被收集、使用与管理。</p>
         <p>当你通过站点提交加入申请或活动报名时，相关资料会进入工作人员后台，由工作人员继续审核、联系与处理。加入申请场景中，可能包括姓名、手机号、微信号、邮箱、个人介绍与申请信息；活动报名场景中，可能包括姓名、手机号、邮箱、公司、职称与补充说明。</p>
@@ -26,16 +27,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .legal-text-page {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     padding: clamp(24px, 3vw, 32px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+    background: rgba(255, 253, 249, 0.94);
   }
 
   .legal-text-page h1 {
     margin: 0;
     font-size: clamp(2rem, 4vw, 3rem);
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .legal-text-page p {

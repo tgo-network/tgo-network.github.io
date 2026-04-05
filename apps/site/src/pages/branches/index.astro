@@ -29,9 +29,11 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
 <BaseLayout title="分会董事会 | TGO 鲲鹏会" description="查看各地分会董事会成员信息。">
   <main class="page-shell page-stack branch-directory-shell">
     <section class="section branch-directory-section">
-      <div class="directory-header branch-directory-head">
-        <p class="page-eyebrow">分会董事会</p>
-        <h1>分会董事会</h1>
+      <div class="panel directory-lead branch-directory-lead">
+        <div class="directory-header branch-directory-head">
+          <p class="page-eyebrow">分会董事会</p>
+          <h1>分会董事会</h1>
+        </div>
       </div>
 
       <div class="branch-record-list">
@@ -82,18 +84,19 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
   }
 
   .branch-directory-section,
-  .branch-record-list {
+  .branch-record-list,
+  .branch-directory-lead {
     display: grid;
     gap: 20px;
   }
 
   .branch-directory-head {
-    padding-top: 6px;
+    padding-top: 0;
   }
 
   .branch-record-card {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     padding: clamp(20px, 2.6vw, 28px);
     background:
       radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 26%),
@@ -118,12 +121,12 @@ const getBranchDisplayName = (branch: (typeof branches)[number]) => {
   .branch-board-grid {
     display: grid;
     gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(236px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
   }
 
   .branch-board-card {
     min-height: 100%;
-    padding: 16px;
+    padding: 18px;
     border-radius: 18px;
     border: 1px solid rgba(27, 23, 19, 0.08);
     background: rgba(255, 255, 255, 0.72);

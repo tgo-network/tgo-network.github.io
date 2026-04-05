@@ -6,6 +6,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <main class="page-shell page-stack legal-page-shell">
     <section class="section">
       <article class="panel legal-text-page">
+        <p class="page-eyebrow">使用条款</p>
         <h1>使用条款</h1>
         <p>本条款适用于 TGO 鲲鹏会站点的访问、内容使用、加入申请与活动报名流程，用于说明当前站点的基本使用规则。</p>
         <p>本网站用于展示 TGO 鲲鹏会的组织介绍、分会董事会、成员信息、活动与文章内容，并提供加入申请与活动报名入口。工作人员后台与前台展示站点是两套独立系统，前台公开页面中的申请与报名信息会进入后台流程继续处理。</p>
@@ -26,16 +27,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .legal-text-page {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     padding: clamp(24px, 3vw, 32px);
-    background:
-      radial-gradient(circle at top right, rgba(200, 161, 93, 0.14), transparent 26%),
-      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.96));
+    background: rgba(255, 253, 249, 0.94);
   }
 
   .legal-text-page h1 {
     margin: 0;
     font-size: clamp(2rem, 4vw, 3rem);
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .legal-text-page p {
