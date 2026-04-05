@@ -1183,13 +1183,19 @@ textarea {
   }
 
   .site-nav {
-    gap: 4px;
-    padding-bottom: 2px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding-bottom: 0;
+    overflow: visible;
   }
 
   .site-nav-link {
-    padding: 8px 10px;
-    font-size: 0.88rem;
+    min-width: 0;
+    padding: 9px 8px;
+    font-size: 0.84rem;
+    text-align: center;
   }
 
   .directory-lead {
