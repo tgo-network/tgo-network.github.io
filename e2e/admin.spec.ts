@@ -57,6 +57,21 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page.getByText(adminEmail).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "成员", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "工作人员", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "角色", exact: true })).toBeVisible();
+
+  await page.getByRole("link", { name: "工作人员", exact: true }).click();
+  await expect(page).toHaveURL(/\/staff$/);
+  await expect(page.getByRole("heading", { name: "工作人员", exact: true })).toBeVisible();
+  await expect(page.getByText("工作人员列表", { exact: true })).toBeVisible();
+  await expect(page.getByPlaceholder("搜索姓名、邮箱、角色或状态")).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-staff");
+
+  await page.getByRole("link", { name: "角色", exact: true }).click();
+  await expect(page).toHaveURL(/\/roles$/);
+  await expect(page.getByRole("heading", { name: "角色", exact: true })).toBeVisible();
+  await expect(page.getByText("角色目录", { exact: true })).toBeVisible();
+  await expect(page.getByPlaceholder("搜索角色名称、代码、描述或权限代码")).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-roles");
 
   await page.getByRole("link", { name: "成员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);

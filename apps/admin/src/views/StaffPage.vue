@@ -23,6 +23,11 @@ const successMessage = ref("");
 const createIssues = ref<Record<string, string>>({});
 const editIssues = ref<Record<string, string>>({});
 const selectedStaffId = ref("");
+const filters = reactive({
+  query: "",
+  status: "all",
+  roleId: "all"
+});
 
 const createForm = reactive<AdminStaffCreateInput>({
   email: "",
@@ -41,9 +46,85 @@ const editForm = reactive<AdminStaffUpdateInput>({
   notes: ""
 });
 
+const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
 const activeCount = computed(() => rows.value.filter((row) => row.status === "active").length);
 const invitedCount = computed(() => rows.value.filter((row) => row.status === "invited").length);
-const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
+const recentLoginCount = computed(() => rows.value.filter((row) => Boolean(row.lastLoginAt)).length);
+const assignedRoleCoverage = computed(() => new Set(rows.value.flatMap((row) => row.roles.map((role) => role.id))).size);
+const roleOptions = computed(() => roles.value);
+const filteredRows = computed(() => {
+  const query = filters.query.trim().toLowerCase();
+
+  return rows.value.filter((row) => {
+    const roleNames = row.roles.map((role) => `${role.name} ${role.code}`).join(" ");
+    const matchesQuery =
+      query.length === 0 ||
+      [row.name, row.email, roleNames, formatStaffAccountStatus(row.status)].some((value) => value.toLowerCase().includes(query));
+    const matchesStatus = filters.status === "all" || row.status === filters.status;
+    const matchesRole = filters.roleId === "all" || row.roles.some((role) => role.id === filters.roleId);
+
+    return matchesQuery && matchesStatus && matchesRole;
+  });
+});
+const summaryCards = computed(() => [
+  {
+    label: "工作人员",
+    value: rows.value.length,
+    summary: "当前已经创建的后台工作人员账号总数。"
+  },
+  {
+    label: "启用中",
+    value: activeCount.value,
+    summary: "可以正常登录后台并处理运营工作的账号。"
+  },
+  {
+    label: "已邀请",
+    value: invitedCount.value,
+    summary: "已经创建但还未完成首次激活的工作人员账号。"
+  },
+  {
+    label: "角色覆盖",
+    value: `${assignedRoleCoverage.value} / ${roles.value.length}`,
+    summary: "当前已被工作人员实际使用的角色数量。"
+  }
+]);
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部工作人员",
+    matches: () => filters.status === "all",
+    apply: () => {
+      filters.status = "all";
+    }
+  },
+  {
+    key: "active",
+    label: "启用中",
+    matches: () => filters.status === "active",
+    apply: () => {
+      filters.status = "active";
+    }
+  },
+  {
+    key: "invited",
+    label: "已邀请",
+    matches: () => filters.status === "invited",
+    apply: () => {
+      filters.status = "invited";
+    }
+  },
+  {
+    key: "suspended",
+    label: "已暂停",
+    matches: () => filters.status === "suspended",
+    apply: () => {
+      filters.status = "suspended";
+    }
+  }
+] as const;
+const createSelectedRoles = computed(() => roles.value.filter((role) => createForm.roleIds.includes(role.id)));
+const editSelectedRoles = computed(() => roles.value.filter((role) => editForm.roleIds.includes(role.id)));
+const selectedStaffNote = computed(() => editForm.notes.trim() || "暂未填写工作人员备注。");
 
 const clearFeedback = () => {
   errorMessage.value = "";
@@ -155,7 +236,7 @@ const saveStaff = async () => {
   }
 };
 
-const formatRoleNames = (staff: AdminStaffListItem) => staff.roles.map((role) => role.name).join(", ") || "-";
+const formatRoleNames = (staff: AdminStaffListItem) => staff.roles.map((role) => role.name).join(" / ") || "未分配角色";
 
 onMounted(() => {
   void loadStaff();
@@ -166,7 +247,7 @@ onMounted(() => {
   <section class="stacked-gap">
     <header class="page-header">
       <h2>工作人员</h2>
-      <p>创建内部工作人员账号、管理账户状态，并把角色分配收敛在应用自身的权限模型中。</p>
+      <p>创建内部工作人员账号、管理状态与角色分配，并把后台权限模型稳定收敛在应用自身的授权体系里。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger stacked-gap">
@@ -186,22 +267,65 @@ onMounted(() => {
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
-        <article class="panel stat-panel">
-          <div class="brand-tag">工作人员</div>
-          <strong>{{ rows.length }}</strong>
+        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
+          <div class="brand-tag">{{ item.label }}</div>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.summary }}</p>
         </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">启用中</div>
-          <strong>{{ activeCount }}</strong>
-        </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">已邀请</div>
-          <strong>{{ invitedCount }}</strong>
-        </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">角色</div>
-          <strong>{{ roles.length }}</strong>
-        </article>
+      </div>
+
+      <div class="panel filter-panel">
+        <div class="page-header-row compact-row">
+          <div>
+            <div class="brand-tag">筛选</div>
+            <p class="section-copy">可按姓名、邮箱、角色和账号状态快速定位需要调整权限或状态的工作人员。</p>
+          </div>
+          <div class="info-card">
+            <span>最近登录</span>
+            <strong>{{ recentLoginCount }}</strong>
+            <p>至少登录过一次后台的工作人员账号。</p>
+          </div>
+        </div>
+
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid-3">
+          <label class="field">
+            <span>搜索</span>
+            <input v-model="filters.query" type="search" placeholder="搜索姓名、邮箱、角色或状态" />
+          </label>
+
+          <label class="field">
+            <span>状态</span>
+            <select v-model="filters.status">
+              <option value="all">全部状态</option>
+              <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>角色</span>
+            <select v-model="filters.roleId">
+              <option value="all">全部角色</option>
+              <option v-for="role in roleOptions" :key="role.id" :value="role.id">{{ role.name }}</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="editor-grid">
@@ -210,7 +334,7 @@ onMounted(() => {
             <div>
               <div class="brand-tag">创建工作人员</div>
               <h3>新建内部账号</h3>
-              <p class="section-copy">先创建具备登录凭证的用户，再绑定内部角色与工作人员状态。</p>
+              <p class="section-copy">先创建可登录的用户，再绑定角色、状态和内部备注，统一进入后台权限体系。</p>
             </div>
 
             <div class="page-actions">
@@ -253,16 +377,30 @@ onMounted(() => {
             </label>
           </div>
 
-          <label class="field">
-            <span>角色</span>
-            <select v-model="createForm.roleIds" multiple>
-              <option v-for="role in roles" :key="role.id" :value="role.id">
-                {{ role.name }} ({{ role.code }})
-              </option>
-            </select>
-            <small class="field-hint">可以分配一个或多个角色，最终生效权限会从这些角色包中计算得出。</small>
+          <section class="editor-section stacked-gap">
+            <div class="editor-section-head">
+              <div class="brand-tag">角色分配</div>
+              <h3>给新账号绑定权限包</h3>
+              <p>一个工作人员可以绑定多个角色，最终权限会在 API 层根据这些角色汇总计算。</p>
+            </div>
+
+            <div class="selection-grid selection-grid-2">
+              <label
+                v-for="role in roles"
+                :key="role.id"
+                class="checkbox-row selection-card"
+                :class="{ 'is-active': createForm.roleIds.includes(role.id) }"
+              >
+                <input v-model="createForm.roleIds" type="checkbox" :value="role.id" />
+                <div>
+                  <strong>{{ role.name }}</strong>
+                  <small class="selection-card-code">{{ role.code }}</small>
+                </div>
+              </label>
+            </div>
+            <small class="field-hint">当前已选择 {{ createSelectedRoles.length }} 个角色。</small>
             <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
-          </label>
+          </section>
 
           <label class="field">
             <span>备注</span>
@@ -309,15 +447,30 @@ onMounted(() => {
                 <small v-if="editIssues.status" class="field-error">{{ editIssues.status }}</small>
               </label>
 
-              <label class="field">
-                <span>角色</span>
-                <select v-model="editForm.roleIds" multiple>
-                  <option v-for="role in roles" :key="role.id" :value="role.id">
-                    {{ role.name }} ({{ role.code }})
-                  </option>
-                </select>
+              <section class="editor-section stacked-gap">
+                <div class="editor-section-head">
+                  <div class="brand-tag">角色调整</div>
+                  <h3>维护角色组合</h3>
+                  <p>角色的增删会直接影响后台路由可见性与 API 权限校验结果。</p>
+                </div>
+
+                <div class="selection-grid">
+                  <label
+                    v-for="role in roles"
+                    :key="role.id"
+                    class="checkbox-row selection-card"
+                    :class="{ 'is-active': editForm.roleIds.includes(role.id) }"
+                  >
+                    <input v-model="editForm.roleIds" type="checkbox" :value="role.id" />
+                    <div>
+                      <strong>{{ role.name }}</strong>
+                      <small class="selection-card-code">{{ role.code }}</small>
+                    </div>
+                  </label>
+                </div>
+                <small class="field-hint">当前已选择 {{ editSelectedRoles.length }} 个角色。</small>
                 <small v-if="editIssues.roleIds" class="field-error">{{ editIssues.roleIds }}</small>
-              </label>
+              </section>
 
               <label class="field">
                 <span>备注</span>
@@ -326,6 +479,14 @@ onMounted(() => {
               </label>
 
               <div class="panel inset-panel stacked-gap">
+                <div class="info-row">
+                  <span>当前状态</span>
+                  <strong class="status-pill">{{ formatStaffAccountStatus(selectedStaff.status) }}</strong>
+                </div>
+                <div class="info-row">
+                  <span>角色数量</span>
+                  <strong>{{ editSelectedRoles.length }}</strong>
+                </div>
                 <div class="info-row">
                   <span>邀请时间</span>
                   <strong>{{ formatDateTime(selectedStaff.invitedAt) }}</strong>
@@ -339,6 +500,15 @@ onMounted(() => {
                   <strong>{{ formatDateTime(selectedStaff.lastLoginAt) }}</strong>
                 </div>
               </div>
+
+              <div class="panel inset-panel stacked-gap">
+                <div class="brand-tag">角色预览</div>
+                <div class="pill-list">
+                  <span v-for="role in editSelectedRoles" :key="role.id" class="soft-pill">{{ role.name }}</span>
+                  <span v-if="editSelectedRoles.length === 0" class="soft-pill">未分配角色</span>
+                </div>
+                <p class="table-card-copy">{{ selectedStaffNote }}</p>
+              </div>
             </template>
 
             <template v-else>
@@ -348,7 +518,21 @@ onMounted(() => {
         </aside>
       </div>
 
-      <div class="panel table-panel">
+      <div v-if="filteredRows.length === 0" class="panel empty-state-card">
+        <div class="brand-tag">暂无结果</div>
+        <p>当前筛选条件下没有匹配的工作人员账号，试试放宽关键词或切换角色条件。</p>
+      </div>
+
+      <div v-else class="panel table-panel">
+        <div class="table-card-head">
+          <div>
+            <h3>工作人员列表</h3>
+            <p class="table-card-copy">集中查看账号状态、角色分配与最近登录情况，便于快速定位需要维护的后台账号。</p>
+          </div>
+
+          <span class="status-pill">当前结果 {{ filteredRows.length }} 位</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>
@@ -361,10 +545,12 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows" :key="row.id">
+            <tr v-for="row in filteredRows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
               <td>
-                <strong>{{ row.name }}</strong>
-                <div class="muted-row">{{ row.email }}</div>
+                <div class="table-cell-stack">
+                  <strong>{{ row.name }}</strong>
+                  <div class="muted-row">{{ row.email }}</div>
+                </div>
               </td>
               <td><span class="status-pill">{{ formatStaffAccountStatus(row.status) }}</span></td>
               <td>{{ formatRoleNames(row) }}</td>

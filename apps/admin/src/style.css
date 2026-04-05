@@ -929,6 +929,75 @@ code {
   line-height: 1.65;
 }
 
+.compact-info-card {
+  min-height: 100%;
+}
+
+.selection-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.selection-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.selection-card {
+  padding: 14px;
+  border: 1px solid rgba(138, 108, 57, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+  cursor: pointer;
+}
+
+.selection-card:hover,
+.selection-card:focus-within {
+  border-color: rgba(138, 108, 57, 0.22);
+  background: rgba(255, 255, 255, 0.94);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.selection-card.is-active {
+  border-color: rgba(154, 119, 66, 0.24);
+  background: linear-gradient(180deg, rgba(154, 119, 66, 0.12), rgba(205, 171, 111, 0.16));
+}
+
+.selection-card-code {
+  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--accent-deep);
+}
+
+.selection-summary-list {
+  display: grid;
+  gap: 12px;
+}
+
+.selection-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed rgba(138, 108, 57, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 252, 248, 0.9);
+}
+
+.selection-summary-card p,
+.selection-summary-card small {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.table-row-selected {
+  background: linear-gradient(180deg, rgba(154, 119, 66, 0.08), rgba(205, 171, 111, 0.1));
+}
+
 .dashboard-action-grid {
   display: grid;
   gap: 12px;
