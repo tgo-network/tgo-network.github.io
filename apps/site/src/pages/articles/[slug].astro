@@ -29,11 +29,10 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
   <main class="page-shell page-stack detail-page-shell article-detail-shell">
     <section class="section">
       <article class:list={["panel detail-hero-card article-detail-head-card", !article.coverImage && "detail-hero-card-single"]}>
-        <div class="detail-hero-copy">
-          <p class="page-eyebrow">文章</p>
+        <div class="detail-hero-copy article-detail-copy">
           <h1>{article.title}</h1>
-          <p class="detail-summary">{article.excerpt}</p>
-          <div class="detail-meta-row">
+          <p class="detail-summary article-detail-summary">{article.excerpt}</p>
+          <div class="detail-meta-row article-detail-meta">
             <span class="detail-meta-item">{formatDate(article.publishedAt)}</span>
             <span class="detail-meta-item">{article.author.name}</span>
             <span class="detail-meta-item">{estimatedReadMinutes} 分钟阅读</span>
@@ -56,7 +55,7 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     </section>
 
     <section class="section">
-      <div class="article-detail-stack">
+      <div class="detail-content-grid article-detail-layout">
         <article class="panel prose-panel detail-body-panel article-body-panel">
           <div class="article-body-intro">
             <p class="article-body-lead">{leadParagraph ?? article.excerpt}</p>
@@ -67,14 +66,14 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
           </div>
         </article>
 
-        <div class="article-context-grid">
-          <article class="panel detail-section-card article-context-card">
+        <aside class="detail-side-stack article-side-stack detail-sticky">
+          <article class="panel detail-side-card article-context-card">
             <h2>作者</h2>
             <strong>{article.author.name}</strong>
             <p>{article.author.role}</p>
           </article>
 
-          <article class="panel detail-section-card article-context-card">
+          <article class="panel detail-side-card article-context-card">
             <h2>发布时间</h2>
             <strong>{formatDate(article.publishedAt)}</strong>
             <p>预计阅读 {estimatedReadMinutes} 分钟</p>
@@ -82,43 +81,76 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
 
           {
             article.branch && (
-              <article class="panel detail-section-card article-context-card article-branch-panel">
+              <article class="panel detail-side-card article-context-card article-branch-panel">
                 <h2>相关分会</h2>
                 <strong>{article.branch.name}</strong>
                 <a class="text-link" href={`/branches#${article.branch.slug}`}>查看相关分会</a>
               </article>
             )
           }
-        </div>
+
+          <article class="panel detail-side-card article-context-card article-back-card">
+            <h2>继续浏览</h2>
+            <strong>返回文章列表</strong>
+            <p>查看更多技术管理与组织实践内容。</p>
+            <a class="text-link" href="/articles">查看全部文章</a>
+          </article>
+        </aside>
       </div>
     </section>
   </main>
 </BaseLayout>
 
 <style>
+  .article-detail-head-card {
+    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+    align-items: center;
+  }
+
+  .article-detail-copy {
+    gap: 18px;
+  }
+
+  .article-detail-summary {
+    max-width: 58ch;
+  }
+
+  .article-detail-meta {
+    max-width: 760px;
+  }
+
   .article-hero-actions {
     margin-top: 2px;
   }
 
-  .article-detail-stack,
-  .article-context-grid {
-    display: grid;
-    gap: 18px;
+  .article-detail-layout {
+    grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
   }
 
   .article-body-panel {
     display: grid;
-    gap: 22px;
+    gap: 24px;
+    padding: clamp(22px, 2.6vw, 32px);
   }
 
   .article-body-intro {
-    padding-bottom: 18px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+  }
+
+  .article-body-intro::before {
+    content: "";
+    display: block;
+    width: 78px;
+    height: 3px;
+    margin-bottom: 18px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(185, 138, 66, 0.95), rgba(185, 138, 66, 0.12));
   }
 
   .article-body-content {
     display: grid;
-    gap: 4px;
+    gap: 6px;
   }
 
   .article-body-lead,
@@ -133,14 +165,19 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     line-height: 1.9;
   }
 
-  .article-context-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .article-side-stack {
+    gap: 16px;
   }
 
   .article-context-card {
     display: grid;
     gap: 10px;
-    padding: 18px;
+    padding: 20px;
+  }
+
+  .article-context-card h2,
+  .article-context-card strong {
+    margin: 0;
   }
 
   .article-context-card strong {
@@ -153,12 +190,18 @@ const bodyParagraphs = remainingParagraphs.length > 0 ? remainingParagraphs : ar
     line-height: 1.8;
   }
 
-  .article-branch-panel .text-link {
+  .article-branch-panel .text-link,
+  .article-back-card .text-link {
     width: fit-content;
   }
 
+  .article-back-card p {
+    max-width: 24ch;
+  }
+
   @media (max-width: 980px) {
-    .article-context-grid {
+    .article-detail-head-card,
+    .article-detail-layout {
       grid-template-columns: 1fr;
     }
 

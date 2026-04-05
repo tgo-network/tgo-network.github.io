@@ -28,10 +28,6 @@ const memberFactItems = [
   {
     label: "加入时间",
     value: formatDate(member.joinedAt)
-  },
-  {
-    label: "公开身份",
-    value: "TGO 鲲鹏会成员"
   }
 ];
 ---
@@ -41,22 +37,28 @@ const memberFactItems = [
     <section class="section">
       <article class="panel detail-hero-card detail-hero-card-single member-detail-hero-card">
         <div class="member-profile-layout">
-          <div class="detail-hero-copy member-profile-lead">
-            <div class="member-profile-head">
-              {
-                member.avatar ? (
-                  <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
-                ) : (
-                  <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
-                    {member.name.slice(0, 1)}
-                  </div>
-                )
-              }
+          <div class="member-profile-lead">
+            <div class="member-profile-surface">
+              <div class="member-profile-head">
+                {
+                  member.avatar ? (
+                    <img class="member-profile-avatar" src={member.avatar.url} alt={member.avatar.alt} />
+                  ) : (
+                    <div class="member-profile-avatar member-profile-avatar-fallback" aria-hidden="true">
+                      {member.name.slice(0, 1)}
+                    </div>
+                  )
+                }
 
-              <div class="member-profile-copy">
-                <p class="page-eyebrow member-profile-eyebrow">{member.branch?.name ?? "TGO 鲲鹏会成员"}</p>
-                <h1>{member.name}</h1>
-                <p class="member-profile-role">{member.company} · {member.title}</p>
+                <div class="member-profile-copy">
+                  <h1>{member.name}</h1>
+                  <p class="member-profile-role">{member.company} · {member.title}</p>
+                </div>
+              </div>
+
+              <div class="detail-meta-row member-profile-meta">
+                {member.branch && <span class="detail-meta-item">{member.branch.name}</span>}
+                <span class="detail-meta-item">TGO 鲲鹏会成员</span>
               </div>
             </div>
           </div>
@@ -169,8 +171,19 @@ const memberFactItems = [
 
   .member-profile-lead {
     display: grid;
-    gap: 18px;
-    align-content: center;
+    align-content: stretch;
+  }
+
+  .member-profile-surface {
+    display: grid;
+    gap: 22px;
+    min-height: 100%;
+    padding: clamp(22px, 2.6vw, 30px);
+    border-radius: 24px;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 30%),
+      linear-gradient(180deg, rgba(255, 254, 252, 0.96), rgba(240, 232, 221, 0.92));
   }
 
   .member-profile-copy h1,
@@ -201,27 +214,19 @@ const memberFactItems = [
     font-size: 2.3rem;
   }
 
-  .member-profile-copy {
-    display: grid;
-    gap: 10px;
-  }
-
   .member-profile-overview {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     align-content: start;
-    padding: 24px;
+    padding: clamp(22px, 2.5vw, 28px);
     border-radius: 22px;
     border: 1px solid rgba(27, 23, 19, 0.08);
     background: rgba(255, 255, 255, 0.64);
   }
 
-  .member-profile-overline {
-    margin: 0;
-    color: var(--accent-strong);
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+  .member-profile-copy {
+    display: grid;
+    gap: 12px;
   }
 
   .member-profile-role,
@@ -238,12 +243,25 @@ const memberFactItems = [
     font-weight: 600;
   }
 
+  .member-profile-meta {
+    gap: 10px;
+  }
+
+  .member-profile-overline {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
   .member-profile-summary {
     max-width: 58ch;
+    font-size: 1.02rem;
   }
 
   .member-profile-fact-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .member-profile-fact {
@@ -351,8 +369,8 @@ const memberFactItems = [
       grid-template-columns: 1fr;
     }
 
-    .member-profile-fact-grid {
-      grid-template-columns: 1fr;
+    .member-profile-layout {
+      gap: 20px;
     }
   }
 
@@ -362,6 +380,10 @@ const memberFactItems = [
     }
 
     .member-profile-head {
+      grid-template-columns: 1fr;
+    }
+
+    .member-profile-fact-grid {
       grid-template-columns: 1fr;
     }
 
