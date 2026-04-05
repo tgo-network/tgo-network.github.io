@@ -27,7 +27,7 @@ const processCards = processPreview.map((item, index) => ({
 
           <div class="hero-actions">
             <a class="button primary" href="#application-form">填写申请表</a>
-            <a class="button secondary" href="#join-overview">查看加入说明</a>
+            <a class="text-link" href="#join-overview">查看加入说明</a>
           </div>
         </div>
 
@@ -178,6 +178,7 @@ const processCards = processPreview.map((item, index) => ({
 <style>
   .join-page-intro-card {
     gap: 24px;
+    align-items: stretch;
   }
 
   .join-overview-grid,
@@ -197,6 +198,10 @@ const processCards = processPreview.map((item, index) => ({
   .join-form-side-block {
     display: grid;
     gap: 14px;
+  }
+
+  .join-page-intro-copy {
+    align-content: center;
   }
 
   .join-page-intro-copy h1,
@@ -271,6 +276,10 @@ const processCards = processPreview.map((item, index) => ({
     padding-left: 20px;
   }
 
+  .join-overview-card {
+    padding: 24px;
+  }
+
   .join-application-section {
     grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
     align-items: start;
@@ -284,6 +293,13 @@ const processCards = processPreview.map((item, index) => ({
   .join-form-head {
     display: grid;
     gap: 10px;
+    padding-bottom: 4px;
+  }
+
+  .join-overview-card h2,
+  .join-form-head h2 {
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
   }
 
   .join-faq-preview {

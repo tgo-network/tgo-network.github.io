@@ -291,11 +291,12 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  padding: 0 18px;
+  min-height: 44px;
+  padding: 0 17px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -308,11 +309,16 @@ summary:focus-visible {
 .button.primary {
   color: #fff7ef;
   border-color: transparent;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background: linear-gradient(135deg, #9a7549 0%, var(--accent-strong) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 10px 24px rgba(95, 69, 40, 0.16);
 }
 
 .button.secondary {
-  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(138, 106, 67, 0.14);
+  background: rgba(255, 252, 246, 0.76);
+  color: var(--accent-ink);
 }
 
 .button:hover {
@@ -320,7 +326,9 @@ summary:focus-visible {
 }
 
 .button.primary:hover {
-  box-shadow: 0 16px 34px rgba(95, 69, 40, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 30px rgba(95, 69, 40, 0.2);
 }
 
 .button.secondary:hover {
@@ -370,8 +378,8 @@ summary:focus-visible {
 .page-eyebrow {
   margin: 0;
   color: var(--accent-strong);
-  font-size: 0.82rem;
-  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -720,7 +728,8 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  color: var(--accent-strong);
+  font-weight: 500;
 }
 
 .text-link::after {
@@ -998,7 +1007,7 @@ textarea {
   margin-top: 12px;
   padding: 0;
   font-size: 0.86rem;
-  background: linear-gradient(180deg, rgba(246, 241, 234, 0.96), rgba(241, 235, 226, 0.94));
+  background: linear-gradient(180deg, rgba(247, 242, 235, 0.96), rgba(242, 236, 228, 0.94));
   border-top: 1px solid rgba(27, 23, 19, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
 }
@@ -1014,13 +1023,13 @@ textarea {
   gap: 18px;
   justify-content: space-between;
   align-items: center;
-  min-height: 56px;
-  padding: 15px 0;
+  min-height: 58px;
+  padding: 16px 0;
 }
 
 .site-footer-copy {
   margin: 0;
-  color: rgba(93, 82, 72, 0.84);
+  color: rgba(93, 82, 72, 0.8);
   line-height: 1.5;
   text-align: left;
   font-size: 0.75rem;
@@ -1041,7 +1050,7 @@ textarea {
 .site-footer-legal-links a {
   position: relative;
   color: rgba(93, 82, 72, 0.82);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.75rem;
   padding: 0 0 3px;
   white-space: nowrap;
@@ -1069,7 +1078,7 @@ textarea {
 }
 
 .site-footer-legal-links a:hover {
-  color: var(--ink);
+  color: var(--accent-ink);
   border-color: rgba(27, 23, 19, 0.18);
   opacity: 1;
 }
