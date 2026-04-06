@@ -36,28 +36,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesBranch;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "申请总数",
-    value: rows.value.length,
-    summary: "前台提交到后台的全部加入申请。"
-  },
-  {
-    label: "待审核",
-    value: rows.value.filter((row) => row.status === "submitted").length,
-    summary: "还没有进入下一步跟进的申请。"
-  },
-  {
-    label: "跟进中",
-    value: rows.value.filter((row) => row.status === "in_review" || row.status === "contacted").length,
-    summary: "已经开始联系或进一步评估的申请。"
-  },
-  {
-    label: "已通过",
-    value: rows.value.filter((row) => row.status === "approved").length,
-    summary: "已经完成审核并进入后续安排的申请。"
-  }
-]);
 const quickFilters = [
   {
     key: "all",
@@ -109,43 +87,20 @@ onMounted(async () => {
 
 <template>
   <section class="stacked-gap">
-    <header class="page-header">
+    <header class="page-header page-header-row">
       <h2>申请</h2>
-      <p>非成员提交的加入申请会进入这里，由工作人员审核、联系、更新状态并持续跟进。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载加入申请...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按申请人、联系方式、意向分会与状态快速找到当前最需要处理的申请。</p>
-          </div>
-          <div class="info-card">
-            <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的申请数。</p>
-          </div>
-        </div>
-
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -186,20 +141,10 @@ onMounted(async () => {
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的申请，试试放宽关键词或切换审核状态。</p>
+        <p>当前筛选条件下没有匹配的申请。</p>
       </div>
 
       <div v-else class="panel table-panel">
-        <div class="table-card-head">
-          <div>
-            <h3>申请列表</h3>
-            <p class="table-card-copy">优先处理待审核申请，再跟进已联系或进入评估的记录。</p>
-          </div>
-
-          <span class="status-pill">当前结果 {{ filteredRows.length }} 条</span>
-        </div>
-
         <table class="data-table">
           <thead>
             <tr>

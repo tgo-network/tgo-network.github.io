@@ -92,7 +92,6 @@ onMounted(async () => {
           </label>
         </div>
 
-        <div class="filter-summary">共 {{ filteredRows.length }} / {{ rows.length }} 篇文章</div>
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">

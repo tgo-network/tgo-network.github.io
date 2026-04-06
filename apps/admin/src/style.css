@@ -132,9 +132,7 @@ a {
   text-transform: uppercase;
 }
 
-.sidebar-nav-groups {
-  display: grid;
-  gap: 16px;
+.sidebar-nav {
   align-content: start;
 }
 

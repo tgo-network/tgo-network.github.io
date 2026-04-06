@@ -27,18 +27,15 @@ const stats = computed(() => dashboard.value?.stats ?? emptyStats);
 const overviewCards = computed(() => [
   {
     label: "文章总数",
-    value: stats.value.articleCount,
-    meta: `已发布 ${stats.value.articleCount > 0 ? "可继续维护" : "等待创建"}`
+    value: stats.value.articleCount
   },
   {
     label: "活动总数",
-    value: stats.value.eventCount,
-    meta: `待审核报名 ${stats.value.pendingRegistrationCount}`
+    value: stats.value.eventCount
   },
   {
     label: "申请数量",
-    value: stats.value.applicationCount,
-    meta: `待审核申请 ${stats.value.pendingApplicationCount}`
+    value: stats.value.applicationCount
   },
   {
     label: "系统状态",
@@ -50,27 +47,17 @@ const quickLinks = computed(() => [
   {
     label: "文章",
     to: "/articles",
-    meta: `${stats.value.articleCount} 篇`
+    meta: "内容管理"
   },
   {
     label: "活动",
     to: "/events",
-    meta: `${stats.value.eventCount} 场`
+    meta: "报名与审核"
   },
   {
     label: "申请",
     to: "/applications",
     meta: `${stats.value.pendingApplicationCount} 条待审`
-  },
-  {
-    label: "成员",
-    to: "/members",
-    meta: `${stats.value.memberCount} 位`
-  },
-  {
-    label: "工作人员",
-    to: "/staff",
-    meta: "账号与角色"
   },
   {
     label: "审计日志",
@@ -117,13 +104,13 @@ onMounted(async () => {
         <article v-for="item in overviewCards" :key="item.label" class="panel stat-panel dashboard-stat-card">
           <span class="dashboard-stat-label">{{ item.label }}</span>
           <strong>{{ item.value }}</strong>
-          <p>{{ item.meta }}</p>
+          <p v-if="item.meta">{{ item.meta }}</p>
         </article>
       </div>
 
       <article class="panel stacked-gap">
         <div class="panel-toolbar">
-          <h3>常用操作</h3>
+          <h3>快捷入口</h3>
           <div class="panel-meta">待审核申请 {{ stats.pendingApplicationCount }} · 待审核报名 {{ stats.pendingRegistrationCount }}</div>
         </div>
 

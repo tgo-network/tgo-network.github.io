@@ -124,7 +124,6 @@ onMounted(async () => {
             </button>
           </div>
 
-          <div class="filter-summary">共 {{ filteredRows.length }} / {{ rows.length }} 位成员</div>
         </div>
 
         <div class="field-grid field-grid-3">

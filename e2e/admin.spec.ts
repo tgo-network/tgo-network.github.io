@@ -62,14 +62,12 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await page.getByRole("link", { name: "工作人员", exact: true }).click();
   await expect(page).toHaveURL(/\/staff$/);
   await expect(page.getByRole("heading", { name: "工作人员", exact: true })).toBeVisible();
-  await expect(page.getByText("工作人员列表", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索姓名、邮箱、角色或状态")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-staff");
 
   await page.getByRole("link", { name: "角色", exact: true }).click();
   await expect(page).toHaveURL(/\/roles$/);
   await expect(page.getByRole("heading", { name: "角色", exact: true })).toBeVisible();
-  await expect(page.getByText("角色目录", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索角色名称、代码、描述或权限代码")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-roles");
 
@@ -83,7 +81,7 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await page.goto(`${adminUrl}/audit-logs`);
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
-  await expect(page.getByText("记录总数")).toBeVisible();
+  await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();
 
   await page.getByRole("button", { name: "退出登录" }).click();
   await expect(page).toHaveURL(/\/login$/);
@@ -115,10 +113,10 @@ test("admin editor pages expose structured overview and editing controls", async
   await page.locator("tr", { hasText: "一座城市主页在真正活起来之前需要什么" }).first().getByRole("link", { name: "编辑" }).click();
   await expect(page).toHaveURL(/\/articles\/[^/]+\/edit$/);
   await expect(page.getByRole("heading", { name: /编辑文章：/ })).toBeVisible();
-  await expect(page.getByText("当前信息", { exact: true })).toBeVisible();
-  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("定时发布", { exact: true }).last()).toBeVisible();
-  await expect(page.getByText("状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("发布信息", { exact: true })).toBeVisible();
+  await expect(page.getByText("封面资源", { exact: true })).toBeVisible();
+  await expect(page.getByText("SEO（可选）", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("定时发布时间")).toBeVisible();
   await expect(page.getByText("Markdown 正文", { exact: true })).toBeVisible();
   await expect(page.getByText("实时预览", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "插入标题" }).first()).toBeVisible();
@@ -129,10 +127,10 @@ test("admin editor pages expose structured overview and editing controls", async
   await page.locator("tr", { hasText: openEventSlug }).first().getByRole("link", { name: "编辑" }).click();
   await expect(page).toHaveURL(/\/events\/[^/]+\/edit$/);
   await expect(page.getByRole("heading", { name: /编辑活动：/ })).toBeVisible();
-  await expect(page.getByText("当前信息", { exact: true })).toBeVisible();
-  await expect(page.getByText("报名状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("活动封面", { exact: true })).toBeVisible();
+  await expect(page.getByText("报名设置", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("报名状态")).toBeVisible();
   await expect(page.getByText("议程", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Markdown 正文", { exact: true })).toBeVisible();
   await expect(page.getByText("实时预览", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "插入标题" }).first()).toBeVisible();
@@ -201,15 +199,15 @@ test("admin dashboard and core lists support layout and filter verification", as
 
   await expect(page.getByText("文章总数", { exact: true })).toBeVisible();
   await expect(page.getByText("活动总数", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "常用操作" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /^申请 \d+ 条待审$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "快捷入口" })).toBeVisible();
+  await expect(page.locator(".dashboard-quick-links").getByRole("link", { name: /申请/ })).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-dashboard");
 
   await page.getByRole("link", { name: "活动", exact: true }).click();
   await expect(page).toHaveURL(/\/events$/);
   await expect(page.getByRole("heading", { name: "活动", exact: true })).toBeVisible();
   const eventSearchInput = page.getByPlaceholder("搜索标题、slug 或分会");
-  await expect(page.getByText(/第 \d+ \/ \d+ 页 · 每页 \d+ 条 · 当前 \d+ 条/).first()).toBeVisible();
+  await expect(page.getByText(/第 \d+ \/ \d+ 页 · 每页 \d+ 条 · 当前 \d+ 条/).last()).toBeVisible();
   await eventSearchInput.fill(openEventSlug);
   await expect(page.locator("tr", { hasText: openEventSlug }).first()).toContainText(openEventTitle);
   await expect(page.locator("tr", { hasText: openEventSlug }).first().getByRole("link", { name: "报名审核" })).toBeVisible();
@@ -236,7 +234,6 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "审计日志", exact: true }).click();
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
-  await expect(page.getByText("记录总数")).toBeVisible();
   await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-audit-logs");
 });

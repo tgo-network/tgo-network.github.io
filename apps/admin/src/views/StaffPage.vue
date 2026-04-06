@@ -47,10 +47,6 @@ const editForm = reactive<AdminStaffUpdateInput>({
 });
 
 const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
-const activeCount = computed(() => rows.value.filter((row) => row.status === "active").length);
-const invitedCount = computed(() => rows.value.filter((row) => row.status === "invited").length);
-const recentLoginCount = computed(() => rows.value.filter((row) => Boolean(row.lastLoginAt)).length);
-const assignedRoleCoverage = computed(() => new Set(rows.value.flatMap((row) => row.roles.map((role) => role.id))).size);
 const roleOptions = computed(() => roles.value);
 const filteredRows = computed(() => {
   const query = filters.query.trim().toLowerCase();
@@ -66,28 +62,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesRole;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "工作人员",
-    value: rows.value.length,
-    summary: "当前已经创建的后台工作人员账号总数。"
-  },
-  {
-    label: "启用中",
-    value: activeCount.value,
-    summary: "可以正常登录后台并处理运营工作的账号。"
-  },
-  {
-    label: "已邀请",
-    value: invitedCount.value,
-    summary: "已经创建但还未完成首次激活的工作人员账号。"
-  },
-  {
-    label: "角色覆盖",
-    value: `${assignedRoleCoverage.value} / ${roles.value.length}`,
-    summary: "当前已被工作人员实际使用的角色数量。"
-  }
-]);
 const quickFilters = [
   {
     key: "all",
@@ -122,9 +96,6 @@ const quickFilters = [
     }
   }
 ] as const;
-const createSelectedRoles = computed(() => roles.value.filter((role) => createForm.roleIds.includes(role.id)));
-const editSelectedRoles = computed(() => roles.value.filter((role) => editForm.roleIds.includes(role.id)));
-const selectedStaffNote = computed(() => editForm.notes.trim() || "暂未填写工作人员备注。");
 
 const clearFeedback = () => {
   errorMessage.value = "";
@@ -245,48 +216,24 @@ onMounted(() => {
 
 <template>
   <section class="stacked-gap">
-    <header class="page-header">
+    <header class="page-header page-header-row">
       <h2>工作人员</h2>
-      <p>创建内部工作人员账号、管理状态与角色分配，并把后台权限模型稳定收敛在应用自身的授权体系里。</p>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">操作错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel panel-success stacked-gap">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
-      <p>正在加载工作人员账号与角色信息...</p>
+      <p>正在加载工作人员账号...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按姓名、邮箱、角色和账号状态快速定位需要调整权限或状态的工作人员。</p>
-          </div>
-          <div class="info-card">
-            <span>最近登录</span>
-            <strong>{{ recentLoginCount }}</strong>
-            <p>至少登录过一次后台的工作人员账号。</p>
-          </div>
-        </div>
-
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -300,6 +247,7 @@ onMounted(() => {
               {{ item.label }}
             </button>
           </div>
+
         </div>
 
         <div class="field-grid field-grid-3">
@@ -328,20 +276,13 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="editor-grid">
+      <div class="editor-grid editor-grid-compact">
         <div class="panel editor-main stacked-gap">
-          <div class="page-header-row compact-row">
-            <div>
-              <div class="brand-tag">创建工作人员</div>
-              <h3>新建内部账号</h3>
-              <p class="section-copy">先创建可登录的用户，再绑定角色、状态和内部备注，统一进入后台权限体系。</p>
-            </div>
-
-            <div class="page-actions">
-              <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
-                {{ creating ? "创建中..." : "创建工作人员" }}
-              </button>
-            </div>
+          <div class="panel-toolbar">
+            <h3>新增工作人员</h3>
+            <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
+              {{ creating ? "创建中..." : "创建工作人员" }}
+            </button>
           </div>
 
           <div class="field-grid field-grid-2">
@@ -362,7 +303,6 @@ onMounted(() => {
             <label class="field">
               <span>临时密码</span>
               <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
-              <small class="field-hint">只有当该邮箱尚未绑定现有用户时，才会使用这个密码。</small>
               <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
             </label>
 
@@ -378,10 +318,9 @@ onMounted(() => {
           </div>
 
           <section class="editor-section stacked-gap">
-            <div class="editor-section-head">
-              <div class="brand-tag">角色分配</div>
-              <h3>给新账号绑定权限包</h3>
-              <p>一个工作人员可以绑定多个角色，最终权限会在 API 层根据这些角色汇总计算。</p>
+            <div class="panel-toolbar">
+              <h3>角色</h3>
+              <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
             </div>
 
             <div class="selection-grid selection-grid-2">
@@ -398,28 +337,21 @@ onMounted(() => {
                 </div>
               </label>
             </div>
-            <small class="field-hint">当前已选择 {{ createSelectedRoles.length }} 个角色。</small>
             <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
           </section>
 
           <label class="field">
             <span>备注</span>
-            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途、背景或运营备注。"></textarea>
+            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途。"></textarea>
             <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
           </label>
         </div>
 
         <aside class="editor-side stacked-gap">
-          <div class="panel stacked-gap">
-            <div class="brand-tag">编辑工作人员</div>
-
+          <div class="panel editor-side-card">
             <template v-if="selectedStaff">
-              <div class="page-header-row compact-row">
-                <div>
-                  <h3>{{ selectedStaff.name }}</h3>
-                  <p class="section-copy">{{ selectedStaff.email }}</p>
-                </div>
-
+              <div class="panel-toolbar">
+                <h3>编辑工作人员</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveStaff">
                   {{ saving ? "保存中..." : "保存修改" }}
                 </button>
@@ -448,10 +380,9 @@ onMounted(() => {
               </label>
 
               <section class="editor-section stacked-gap">
-                <div class="editor-section-head">
-                  <div class="brand-tag">角色调整</div>
-                  <h3>维护角色组合</h3>
-                  <p>角色的增删会直接影响后台路由可见性与 API 权限校验结果。</p>
+                <div class="panel-toolbar">
+                  <h3>角色</h3>
+                  <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>
                 </div>
 
                 <div class="selection-grid">
@@ -468,7 +399,6 @@ onMounted(() => {
                     </div>
                   </label>
                 </div>
-                <small class="field-hint">当前已选择 {{ editSelectedRoles.length }} 个角色。</small>
                 <small v-if="editIssues.roleIds" class="field-error">{{ editIssues.roleIds }}</small>
               </section>
 
@@ -477,62 +407,21 @@ onMounted(() => {
                 <textarea v-model="editForm.notes" rows="5"></textarea>
                 <small v-if="editIssues.notes" class="field-error">{{ editIssues.notes }}</small>
               </label>
-
-              <div class="panel inset-panel stacked-gap">
-                <div class="info-row">
-                  <span>当前状态</span>
-                  <strong class="status-pill">{{ formatStaffAccountStatus(selectedStaff.status) }}</strong>
-                </div>
-                <div class="info-row">
-                  <span>角色数量</span>
-                  <strong>{{ editSelectedRoles.length }}</strong>
-                </div>
-                <div class="info-row">
-                  <span>邀请时间</span>
-                  <strong>{{ formatDateTime(selectedStaff.invitedAt) }}</strong>
-                </div>
-                <div class="info-row">
-                  <span>激活时间</span>
-                  <strong>{{ formatDateTime(selectedStaff.activatedAt) }}</strong>
-                </div>
-                <div class="info-row">
-                  <span>最后登录</span>
-                  <strong>{{ formatDateTime(selectedStaff.lastLoginAt) }}</strong>
-                </div>
-              </div>
-
-              <div class="panel inset-panel stacked-gap">
-                <div class="brand-tag">角色预览</div>
-                <div class="pill-list">
-                  <span v-for="role in editSelectedRoles" :key="role.id" class="soft-pill">{{ role.name }}</span>
-                  <span v-if="editSelectedRoles.length === 0" class="soft-pill">未分配角色</span>
-                </div>
-                <p class="table-card-copy">{{ selectedStaffNote }}</p>
-              </div>
             </template>
 
             <template v-else>
-              <p>还没有选中任何工作人员账号。</p>
+              <h3>编辑工作人员</h3>
+              <p>请先从列表中选择一个账号。</p>
             </template>
           </div>
         </aside>
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的工作人员账号，试试放宽关键词或切换角色条件。</p>
+        <p>当前筛选条件下没有匹配的工作人员账号。</p>
       </div>
 
       <div v-else class="panel table-panel">
-        <div class="table-card-head">
-          <div>
-            <h3>工作人员列表</h3>
-            <p class="table-card-copy">集中查看账号状态、角色分配与最近登录情况，便于快速定位需要维护的后台账号。</p>
-          </div>
-
-          <span class="status-pill">当前结果 {{ filteredRows.length }} 位</span>
-        </div>
-
         <table class="data-table">
           <thead>
             <tr>

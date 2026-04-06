@@ -49,10 +49,8 @@ const formatActor = (row: AdminAuditLogRecord) => {
 
   return row.actor.name || row.actor.email || "系统";
 };
-const getActorKey = (row: AdminAuditLogRecord) => row.actor.userId || row.actor.email || row.actor.name || "system";
 
-const formatJson = (value: Record<string, unknown> | null) =>
-  value ? JSON.stringify(value, null, 2) : "没有记录快照。";
+const formatJson = (value: Record<string, unknown> | null) => (value ? JSON.stringify(value, null, 2) : "没有记录快照。");
 
 const formatSnapshotState = (row: AdminAuditLogRecord) => {
   if (row.beforeJson && row.afterJson) {
@@ -101,28 +99,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesTargetType && matchesAction && matchesActionFamily;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "记录总数",
-    value: rows.value.length,
-    summary: "最近 50 条后台敏感操作都会收敛到这里。"
-  },
-  {
-    label: "操作人",
-    value: new Set(rows.value.map((row) => getActorKey(row))).size,
-    summary: "实际在后台发起敏感操作的工作人员数量。"
-  },
-  {
-    label: "对象类型",
-    value: new Set(rows.value.map((row) => row.targetType)).size,
-    summary: "当前审计日志覆盖到的业务对象类型数量。"
-  },
-  {
-    label: "最近操作",
-    value: rows.value[0] ? formatDateTime(rows.value[0].createdAt) : "-",
-    summary: "用于快速判断后台最近一次敏感变更发生在什么时候。"
-  }
-]);
 const quickFilters = [
   {
     key: "all",
@@ -182,43 +158,20 @@ onMounted(async () => {
 
 <template>
   <section class="stacked-gap">
-    <header class="page-header">
+    <header class="page-header page-header-row">
       <h2>审计日志</h2>
-      <p>追踪敏感后台操作的行为人身份、请求元数据以及前后变化快照。</p>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
-      <p>正在加载最近的审计活动...</p>
+      <p>正在加载审计日志...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
       <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按动作、对象类型、操作人、目标 ID、请求 IP 或浏览器标识快速定位一条审计记录。</p>
-          </div>
-          <div class="info-card">
-            <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的审计记录数。</p>
-          </div>
-        </div>
-
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -259,35 +212,20 @@ onMounted(async () => {
       </div>
 
       <div v-if="rows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无记录</div>
-        <p>当前还没有记录到后台审计事件。</p>
+        <p>当前还没有审计记录。</p>
       </div>
 
       <div v-else-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的审计日志，试试放宽关键词或切换对象类型。</p>
+        <p>当前筛选条件下没有匹配的审计日志。</p>
       </div>
 
       <div v-else class="audit-log-list">
-        <div class="panel table-panel">
-          <div class="table-card-head">
-            <div>
-              <h3>审计记录</h3>
-              <p class="table-card-copy">保留操作人、对象、请求来源以及前后快照，便于回看敏感变更。</p>
-            </div>
-
-            <span class="status-pill">当前结果 {{ filteredRows.length }} 条</span>
-          </div>
-        </div>
-
         <article v-for="row in filteredRows" :key="row.id" class="panel audit-log-card stacked-gap">
           <div class="page-header-row audit-log-head">
             <div>
               <div class="brand-tag">{{ formatTargetType(row.targetType) }}</div>
               <h3>{{ formatAction(row.action) }}</h3>
-              <p class="audit-log-meta">
-                {{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}
-              </p>
+              <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
             </div>
 
             <div class="audit-log-badges">
@@ -297,25 +235,21 @@ onMounted(async () => {
           </div>
 
           <div class="panel-grid panel-grid-2 audit-log-context-grid">
-            <article class="info-card">
+            <article class="info-card compact-info-card">
               <span>操作人</span>
               <strong>{{ formatActor(row) }}</strong>
-              <p>{{ row.actor.staffAccountId || "未记录工作人员账号 ID" }}</p>
             </article>
-            <article class="info-card">
+            <article class="info-card compact-info-card">
               <span>目标对象</span>
               <strong>{{ formatTargetType(row.targetType) }}</strong>
-              <p>{{ row.targetId || "未记录目标 ID" }}</p>
             </article>
-            <article class="info-card">
+            <article class="info-card compact-info-card">
               <span>请求 IP</span>
               <strong>{{ row.requestIp || "-" }}</strong>
-              <p>用于补充定位操作来源。</p>
             </article>
-            <article class="info-card">
-              <span>浏览器标识</span>
+            <article class="info-card compact-info-card">
+              <span>浏览器</span>
               <strong class="audit-log-user-agent">{{ row.userAgent || "-" }}</strong>
-              <p>保留请求设备与浏览器环境信息。</p>
             </article>
           </div>
 

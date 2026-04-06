@@ -16,7 +16,7 @@ import {
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import CoverAssetField from "../components/CoverAssetField.vue";
 import MarkdownEditorField from "../components/MarkdownEditorField.vue";
-import { formatContentStatus, formatDateTime, slugify, toDateTimeInputValue } from "../lib/format";
+import { slugify, toDateTimeInputValue } from "../lib/format";
 
 interface ArticleFormState extends Omit<AdminArticleUpsertInput, "scheduledAt"> {
   scheduledAt: string;
@@ -59,15 +59,7 @@ const slugTouched = ref(false);
 const articleId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => articleId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建文章" : `编辑文章：${article.value?.title ?? "加载中..."}`));
-const selectedAuthorLabel = computed(
-  () => references.value.authors.find((item) => item.id === form.authorId)?.label ?? "未选择"
-);
-const selectedBranchLabel = computed(
-  () => references.value.branches.find((item) => item.id === form.branchId)?.label ?? "未关联"
-);
 const articleBodyPreviewHtml = computed(() => renderMarkdownToHtml(form.body));
-const scheduledAtSummary = computed(() => (form.scheduledAt ? formatDateTime(form.scheduledAt) : "未设置"));
-const publicPath = computed(() => (form.slug ? `/articles/${form.slug}` : "待生成"));
 const markdownToolbarItems = [
   {
     label: "插入标题",
@@ -254,151 +246,106 @@ onMounted(() => {
       <p>正在准备文章编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid editor-grid-compact">
-      <div class="panel editor-main stacked-gap">
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>基本信息</h3>
-            <p>维护标题、路径、作者、分会和状态。</p>
-          </div>
+    <div v-else class="stacked-gap">
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>发布信息</h3>
+        </div>
 
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>标题</span>
-              <input v-model="form.title" type="text" placeholder="在不锁死技术栈的前提下交付内容平台" @input="onTitleInput" />
-              <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
-            </label>
-
-            <label class="field">
-              <span>URL 标识</span>
-              <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
-              <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>作者</span>
-              <select v-model="form.authorId">
-                <option :value="null">暂不选择作者</option>
-                <option v-for="option in references.authors" :key="option.id" :value="option.id">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
-            </label>
-
-            <label class="field">
-              <span>所属分会</span>
-              <select v-model="form.branchId">
-                <option :value="null">暂不关联分会</option>
-                <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>状态</span>
-              <select v-model="form.status">
-                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-            </label>
-
-            <label class="field">
-              <span>定时发布时间</span>
-              <input v-model="form.scheduledAt" type="datetime-local" />
-              <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
-            </label>
-          </div>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>摘要</h3>
-            <p>用于文章列表与详情页摘要。</p>
-          </div>
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>标题</span>
+            <input v-model="form.title" type="text" placeholder="在不锁死技术栈的前提下交付内容平台" @input="onTitleInput" />
+            <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
+          </label>
 
           <label class="field">
-            <span>摘要</span>
-            <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
-            <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
+            <span>URL 标识</span>
+            <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
+            <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
           </label>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>正文</h3>
-            <p>正文使用 Markdown 编写并实时预览。</p>
-          </div>
-
-          <MarkdownEditorField
-            v-model="form.body"
-            placeholder="使用 Markdown 编写文章正文。"
-            help="支持标题、列表、引用和代码块。"
-            :error="fieldIssues.body"
-            :preview-html="articleBodyPreviewHtml"
-            preview-empty-description="开始输入 Markdown 后，这里会显示文章正文的排版效果。"
-            :toolbar-items="markdownToolbarItems"
-          />
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>SEO（可选）</h3>
-            <p>不填写时会回退到标题和摘要。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>SEO 标题</span>
-              <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
-              <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
-            </label>
-
-            <label class="field">
-              <span>SEO 描述</span>
-              <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
-              <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
-            </label>
-          </div>
-        </section>
-      </div>
-
-      <aside class="editor-side stacked-gap">
-        <CoverAssetField v-model="form.coverAssetId" :assets="coverAssets" :error="fieldIssues.coverAssetId" help="用于文章列表与详情页的封面图。" />
-
-        <div class="panel editor-side-card">
-          <h3>当前信息</h3>
-
-          <div class="editor-meta-list">
-            <div class="info-row">
-              <span>状态</span>
-              <strong class="status-pill">{{ formatContentStatus(article?.status ?? form.status) }}</strong>
-            </div>
-            <div class="info-row">
-              <span>作者</span>
-              <strong>{{ selectedAuthorLabel }}</strong>
-            </div>
-            <div class="info-row">
-              <span>分会</span>
-              <strong>{{ selectedBranchLabel }}</strong>
-            </div>
-            <div class="info-row">
-              <span>公开路径</span>
-              <strong>{{ publicPath }}</strong>
-            </div>
-            <div class="info-row">
-              <span>定时发布</span>
-              <strong>{{ scheduledAtSummary }}</strong>
-            </div>
-            <div class="info-row">
-              <span>最近更新</span>
-              <strong>{{ formatDateTime(article?.updatedAt) }}</strong>
-            </div>
-          </div>
         </div>
-      </aside>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>作者</span>
+            <select v-model="form.authorId">
+              <option :value="null">暂不选择作者</option>
+              <option v-for="option in references.authors" :key="option.id" :value="option.id">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
+          </label>
+
+          <label class="field">
+            <span>所属分会</span>
+            <select v-model="form.branchId">
+              <option :value="null">暂不关联分会</option>
+              <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>状态</span>
+            <select v-model="form.status">
+              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+          </label>
+
+          <label class="field">
+            <span>定时发布时间</span>
+            <input v-model="form.scheduledAt" type="datetime-local" />
+            <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>摘要</span>
+          <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
+          <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
+        </label>
+      </section>
+
+      <CoverAssetField v-model="form.coverAssetId" :assets="coverAssets" :error="fieldIssues.coverAssetId" help="用于文章列表与详情页的封面图。" />
+
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>正文</h3>
+        </div>
+
+        <MarkdownEditorField
+          v-model="form.body"
+          placeholder="使用 Markdown 编写文章正文。"
+          help="支持标题、列表、引用和代码块。"
+          :error="fieldIssues.body"
+          :preview-html="articleBodyPreviewHtml"
+          preview-empty-description="开始输入 Markdown 后，这里会显示文章正文的排版效果。"
+          :toolbar-items="markdownToolbarItems"
+        />
+      </section>
+
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>SEO（可选）</h3>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>SEO 标题</span>
+            <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
+            <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
+          </label>
+
+          <label class="field">
+            <span>SEO 描述</span>
+            <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
+            <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
+          </label>
+        </div>
+      </section>
     </div>
   </section>
 </template>

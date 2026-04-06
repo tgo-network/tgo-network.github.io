@@ -238,7 +238,6 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <div class="filter-summary">共 {{ meta.total }} 条活动 · {{ paginationSummary }}</div>
         </div>
 
         <div class="field-grid field-grid-3">

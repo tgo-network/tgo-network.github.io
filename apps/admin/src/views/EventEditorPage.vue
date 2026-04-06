@@ -18,7 +18,7 @@ import {
 import CoverAssetField from "../components/CoverAssetField.vue";
 import MarkdownEditorField from "../components/MarkdownEditorField.vue";
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatContentStatus, formatDateTime, formatEventRegistrationState, slugify, toDateTimeInputValue } from "../lib/format";
+import { slugify, toDateTimeInputValue } from "../lib/format";
 
 interface EventAgendaFormItem {
   title: string;
@@ -83,36 +83,7 @@ const slugTouched = ref(false);
 const eventId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => eventId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建活动" : `编辑活动：${event.value?.title ?? "加载中..."}`));
-const selectedBranchLabel = computed(
-  () => references.value.branches.find((item) => item.id === form.branchId)?.label ?? "未选择"
-);
-const populatedAgendaItems = computed(() =>
-  form.agenda.filter((item) => {
-    return [item.title, item.summary, item.speakerName].some((value) => value.trim().length > 0) || Boolean(item.startsAt || item.endsAt);
-  })
-);
-const eventTimelineSummary = computed(() => {
-  if (form.startsAt && form.endsAt) {
-    return `${formatDateTime(form.startsAt)} - ${formatDateTime(form.endsAt)}`;
-  }
-
-  if (form.startsAt) {
-    return `开始于 ${formatDateTime(form.startsAt)}`;
-  }
-
-  if (form.endsAt) {
-    return `结束于 ${formatDateTime(form.endsAt)}`;
-  }
-
-  return "待补充";
-});
-const eventLocationSummary = computed(() => {
-  const values = [form.venueName.trim(), form.venueAddress.trim()].filter((item) => item.length > 0);
-  return values.length > 0 ? values.join(" · ") : "待补充";
-});
-const capacitySummary = computed(() => (form.capacity && form.capacity > 0 ? `${form.capacity} 人上限` : "未设置"));
 const eventBodyPreviewHtml = computed(() => renderMarkdownToHtml(normalizeLegacyEventMarkdown(form.body)));
-const publicPath = computed(() => (form.slug ? `/events/${form.slug}` : "待生成"));
 const markdownToolbarItems = [
   {
     label: "插入标题",
@@ -336,236 +307,184 @@ onMounted(() => {
       <p>正在准备活动编辑器...</p>
     </div>
 
-    <div v-else class="editor-grid editor-grid-compact">
-      <div class="panel editor-main stacked-gap">
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>基本信息</h3>
-            <p>维护标题、路径、分会和内容状态。</p>
-          </div>
+    <div v-else class="stacked-gap">
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>基本信息</h3>
+        </div>
 
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>标题</span>
-              <input v-model="form.title" type="text" placeholder="春季平台工作坊" @input="onTitleInput" />
-              <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
-            </label>
-
-            <label class="field">
-              <span>URL 标识</span>
-              <input v-model="form.slug" type="text" placeholder="spring-platform-workshop" @input="onSlugInput" />
-              <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>分会</span>
-              <select v-model="form.branchId">
-                <option :value="null">暂不选择分会</option>
-                <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
-            </label>
-
-            <label class="field">
-              <span>内容状态</span>
-              <select v-model="form.status">
-                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-            </label>
-          </div>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>时间与地点</h3>
-            <p>维护活动时间、场地和人数信息。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>开始时间</span>
-              <input v-model="form.startsAt" type="datetime-local" />
-              <small v-if="fieldIssues.startsAt" class="field-error">{{ fieldIssues.startsAt }}</small>
-            </label>
-
-            <label class="field">
-              <span>结束时间</span>
-              <input v-model="form.endsAt" type="datetime-local" />
-              <small v-if="fieldIssues.endsAt" class="field-error">{{ fieldIssues.endsAt }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-3">
-            <label class="field">
-              <span>场地名称</span>
-              <input v-model="form.venueName" type="text" placeholder="北外滩工作室" />
-            </label>
-
-            <label class="field">
-              <span>时区</span>
-              <input v-model="form.timezone" type="text" placeholder="Asia/Shanghai" />
-            </label>
-
-            <label class="field">
-              <span>人数上限</span>
-              <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
-            </label>
-          </div>
-
+        <div class="field-grid field-grid-2">
           <label class="field">
-            <span>场地地址</span>
-            <input v-model="form.venueAddress" type="text" placeholder="完整场地地址" />
-          </label>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>报名规则</h3>
-            <p>控制前台的报名状态和外部链接。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>报名状态</span>
-              <select v-model="form.registrationState">
-                <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-              <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
-            </label>
-
-            <label class="field">
-              <span>报名链接</span>
-              <input v-model="form.registrationUrl" type="text" placeholder="https://example.com/register" />
-            </label>
-          </div>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <h3>摘要与正文</h3>
-            <p>摘要用于列表，正文使用 Markdown 编写。</p>
-          </div>
-
-          <label class="field">
-            <span>摘要</span>
-            <textarea v-model="form.summary" rows="5" placeholder="用于列表和详情页首屏展示的活动摘要。" />
-            <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
+            <span>标题</span>
+            <input v-model="form.title" type="text" placeholder="春季平台工作坊" @input="onTitleInput" />
+            <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
           </label>
 
-          <MarkdownEditorField
-            v-model="form.body"
-            placeholder="使用 Markdown 编写活动正文。"
-            help="支持标题、列表、引用和表格。"
-            :error="fieldIssues.body"
-            :preview-html="eventBodyPreviewHtml"
-            preview-empty-description="开始输入 Markdown 后，这里会显示活动正文的排版效果。"
-            :toolbar-items="markdownToolbarItems"
-          />
-        </section>
+          <label class="field">
+            <span>URL 标识</span>
+            <input v-model="form.slug" type="text" placeholder="spring-platform-workshop" @input="onSlugInput" />
+            <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+          </label>
+        </div>
 
-        <section class="editor-section stacked-gap">
-          <div class="panel-toolbar">
-            <div class="editor-section-head">
-              <h3>议程</h3>
-              <p>维护活动环节、讲者与时间。</p>
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>分会</span>
+            <select v-model="form.branchId">
+              <option :value="null">暂不选择分会</option>
+              <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+          </label>
+
+          <label class="field">
+            <span>内容状态</span>
+            <select v-model="form.status">
+              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+          </label>
+        </div>
+      </section>
+
+      <CoverAssetField
+        v-model="form.coverAssetId"
+        :assets="coverAssets"
+        label="活动封面"
+        help="用于活动列表与详情页封面。"
+        :error="fieldIssues.coverAssetId"
+      />
+
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>时间与地点</h3>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>开始时间</span>
+            <input v-model="form.startsAt" type="datetime-local" />
+            <small v-if="fieldIssues.startsAt" class="field-error">{{ fieldIssues.startsAt }}</small>
+          </label>
+
+          <label class="field">
+            <span>结束时间</span>
+            <input v-model="form.endsAt" type="datetime-local" />
+            <small v-if="fieldIssues.endsAt" class="field-error">{{ fieldIssues.endsAt }}</small>
+          </label>
+        </div>
+
+        <div class="field-grid field-grid-3">
+          <label class="field">
+            <span>场地名称</span>
+            <input v-model="form.venueName" type="text" placeholder="北外滩工作室" />
+          </label>
+
+          <label class="field">
+            <span>时区</span>
+            <input v-model="form.timezone" type="text" placeholder="Asia/Shanghai" />
+          </label>
+
+          <label class="field">
+            <span>人数上限</span>
+            <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>场地地址</span>
+          <input v-model="form.venueAddress" type="text" placeholder="完整场地地址" />
+        </label>
+      </section>
+
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>报名设置</h3>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>报名状态</span>
+            <select v-model="form.registrationState">
+              <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
+          </label>
+
+          <label class="field">
+            <span>报名链接</span>
+            <input v-model="form.registrationUrl" type="text" placeholder="https://example.com/register" />
+          </label>
+        </div>
+      </section>
+
+      <section class="editor-section stacked-gap">
+        <div class="editor-section-head">
+          <h3>摘要与正文</h3>
+        </div>
+
+        <label class="field">
+          <span>摘要</span>
+          <textarea v-model="form.summary" rows="5" placeholder="用于列表和详情页首屏展示的活动摘要。" />
+          <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
+        </label>
+
+        <MarkdownEditorField
+          v-model="form.body"
+          placeholder="使用 Markdown 编写活动正文。"
+          help="支持标题、列表、引用和表格。"
+          :error="fieldIssues.body"
+          :preview-html="eventBodyPreviewHtml"
+          preview-empty-description="开始输入 Markdown 后，这里会显示活动正文的排版效果。"
+          :toolbar-items="markdownToolbarItems"
+        />
+      </section>
+
+      <section class="editor-section stacked-gap">
+        <div class="panel-toolbar">
+          <div class="editor-section-head">
+            <h3>议程</h3>
+          </div>
+
+          <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
+        </div>
+
+        <div class="panel inset-panel stacked-gap">
+          <div v-for="(item, index) in form.agenda" :key="index" class="panel stacked-gap">
+            <div class="panel-toolbar">
+              <strong>议程 {{ index + 1 }}</strong>
+              <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
             </div>
 
-            <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
-          </div>
-
-          <div class="panel inset-panel stacked-gap">
-            <div v-for="(item, index) in form.agenda" :key="index" class="panel stacked-gap">
-              <div class="panel-toolbar">
-                <strong>议程 {{ index + 1 }}</strong>
-                <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
-              </div>
-
-              <div class="field-grid field-grid-2">
-                <label class="field">
-                  <span>议程标题</span>
-                  <input v-model="item.title" type="text" />
-                </label>
-                <label class="field">
-                  <span>讲者</span>
-                  <input v-model="item.speakerName" type="text" />
-                </label>
-              </div>
-
-              <div class="field-grid field-grid-2">
-                <label class="field">
-                  <span>开始时间</span>
-                  <input v-model="item.startsAt" type="datetime-local" />
-                </label>
-                <label class="field">
-                  <span>结束时间</span>
-                  <input v-model="item.endsAt" type="datetime-local" />
-                </label>
-              </div>
-
+            <div class="field-grid field-grid-2">
               <label class="field">
-                <span>议程说明</span>
-                <textarea v-model="item.summary" rows="4" />
+                <span>议程标题</span>
+                <input v-model="item.title" type="text" />
+              </label>
+              <label class="field">
+                <span>讲者</span>
+                <input v-model="item.speakerName" type="text" />
               </label>
             </div>
-          </div>
-        </section>
-      </div>
 
-      <aside class="editor-side stacked-gap">
-        <CoverAssetField
-          v-model="form.coverAssetId"
-          :assets="coverAssets"
-          label="活动封面"
-          help="用于活动列表与详情页封面。"
-          :error="fieldIssues.coverAssetId"
-        />
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>开始时间</span>
+                <input v-model="item.startsAt" type="datetime-local" />
+              </label>
+              <label class="field">
+                <span>结束时间</span>
+                <input v-model="item.endsAt" type="datetime-local" />
+              </label>
+            </div>
 
-        <div class="panel editor-side-card">
-          <h3>当前信息</h3>
-
-          <div class="editor-meta-list">
-            <div class="info-row">
-              <span>内容状态</span>
-              <strong class="status-pill">{{ formatContentStatus(event?.status ?? form.status) }}</strong>
-            </div>
-            <div class="info-row">
-              <span>报名状态</span>
-              <strong>{{ formatEventRegistrationState(form.registrationState) }}</strong>
-            </div>
-            <div class="info-row">
-              <span>分会</span>
-              <strong>{{ selectedBranchLabel }}</strong>
-            </div>
-            <div class="info-row">
-              <span>时间</span>
-              <strong>{{ eventTimelineSummary }}</strong>
-            </div>
-            <div class="info-row">
-              <span>地点</span>
-              <strong>{{ eventLocationSummary }}</strong>
-            </div>
-            <div class="info-row">
-              <span>人数</span>
-              <strong>{{ capacitySummary }}</strong>
-            </div>
-            <div class="info-row">
-              <span>公开路径</span>
-              <strong>{{ publicPath }}</strong>
-            </div>
-            <div class="info-row">
-              <span>议程数量</span>
-              <strong>{{ populatedAgendaItems.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>最近更新</span>
-              <strong>{{ formatDateTime(event?.updatedAt) }}</strong>
-            </div>
+            <label class="field">
+              <span>议程说明</span>
+              <textarea v-model="item.summary" rows="4" />
+            </label>
           </div>
         </div>
-      </aside>
+      </section>
     </div>
   </section>
 </template>

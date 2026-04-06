@@ -16,34 +16,7 @@ const showShell = computed(() => route.name !== "login");
 const me = ref<AdminMePayload | null>(null);
 const loadingMe = ref(false);
 
-const visibleModules = computed(() => getVisibleAdminModules(me.value, loadingMe.value));
-
-const moduleGroupDefinitions = [
-  {
-    key: "operations",
-    label: "运营",
-    routes: ["/dashboard", "/articles", "/events", "/applications"]
-  },
-  {
-    key: "organization",
-    label: "组织",
-    routes: ["/members", "/staff", "/roles"]
-  },
-  {
-    key: "system",
-    label: "系统",
-    routes: ["/audit-logs"]
-  }
-] as const;
-
-const groupedModules = computed(() =>
-  moduleGroupDefinitions
-    .map((group) => ({
-      ...group,
-      items: visibleModules.value.filter((item) => group.routes.some((routePath) => routePath === item.to))
-    }))
-    .filter((group) => group.items.length > 0)
-);
+const sidebarModules = computed(() => getVisibleAdminModules(me.value, loadingMe.value));
 
 const loadMe = async () => {
   if (!showShell.value) {
@@ -94,22 +67,16 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="sidebar-nav-groups">
-          <section v-for="group in groupedModules" :key="group.key" class="nav-group">
-            <div class="nav-group-title">{{ group.label }}</div>
-
-            <nav class="nav" :aria-label="`${group.label}导航`">
-              <router-link
-                v-for="item in group.items"
-                :key="item.to"
-                :to="item.to"
-                class="nav-link"
-              >
-                {{ item.label }}
-              </router-link>
-            </nav>
-          </section>
-        </div>
+        <nav class="nav sidebar-nav" aria-label="后台导航">
+          <router-link
+            v-for="item in sidebarModules"
+            :key="item.to"
+            :to="item.to"
+            class="nav-link"
+          >
+            {{ item.label }}
+          </router-link>
+        </nav>
 
         <div class="sidebar-footer">
           <div class="sidebar-account">
