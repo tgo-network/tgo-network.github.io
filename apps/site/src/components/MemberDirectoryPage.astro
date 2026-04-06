@@ -1,0 +1,240 @@
+---
+import type { MemberDirectoryPageData } from "../lib/member-directory.js";
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+interface Props extends MemberDirectoryPageData {}
+
+const { items, cityLinks, currentCity, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
+const heading = currentCity ? `${currentCity}成员` : "成员列表";
+const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 位成员。` : `当前共展示 ${total} 位成员。`;
+---
+
+<BaseLayout title={title} description={description} canonical={canonical}>
+  <main class="page-shell page-stack member-directory-shell">
+    <section class="section member-directory-section">
+      <div class="directory-heading">
+        <div>
+          <h1>{heading}</h1>
+          <p class="card-copy">{summary}</p>
+        </div>
+      </div>
+
+      <div class="panel member-directory-toolbar">
+        <nav class="filter-bar" aria-label="成员城市筛选">
+          {
+            cityLinks.map((link) => (
+              <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+
+      <div class="member-directory-grid">
+        {
+          items.map((member) => (
+            <a class="panel member-directory-card" href={`/members/${member.slug}`}>
+              <div class="member-directory-head">
+                {
+                  member.avatar ? (
+                    <img class="member-directory-avatar" src={member.avatar.url} alt={member.avatar.alt} loading="lazy" />
+                  ) : (
+                    <div class="member-directory-avatar member-directory-avatar-fallback" aria-hidden="true">
+                      {member.name.slice(0, 1)}
+                    </div>
+                  )
+                }
+
+                <div class="member-directory-copy">
+                  <p class="member-directory-branch">{member.branch?.name ?? "未标注分会"}</p>
+                  <h2>{member.name}</h2>
+                  <p class="member-directory-company">{member.company}</p>
+                  <p class="member-directory-title">{member.title}</p>
+                </div>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+
+      {
+        items.length === 0 && (
+          <div class="panel panel-soft empty-state">
+            <div class="card-label">暂无成员</div>
+            <p class="card-copy">当前分会下暂无可展示的成员。</p>
+          </div>
+        )
+      }
+
+      <div class="pagination-bar member-pagination-bar" aria-label="成员分页">
+        {
+          prevHref ? (
+            <a class="button secondary pagination-button" href={prevHref} rel="prev">
+              上一页
+            </a>
+          ) : (
+            <button class="button secondary pagination-button" type="button" disabled>
+              上一页
+            </button>
+          )
+        }
+
+        <p class="member-directory-page-indicator">第 {page} / {pageCount} 页</p>
+
+        {
+          nextHref ? (
+            <a class="button secondary pagination-button" href={nextHref} rel="next">
+              下一页
+            </a>
+          ) : (
+            <button class="button secondary pagination-button" type="button" disabled>
+              下一页
+            </button>
+          )
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .member-directory-shell {
+    padding-top: 18px;
+    padding-bottom: 48px;
+  }
+
+  .member-directory-section,
+  .member-directory-toolbar,
+  .directory-heading {
+    display: grid;
+    gap: 18px;
+  }
+
+  .directory-heading h1 {
+    margin: 0;
+  }
+
+  .directory-heading .card-copy {
+    margin: 0;
+  }
+
+  .member-directory-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-directory-card {
+    display: grid;
+    min-height: 100%;
+    padding: 24px;
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 28%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 238, 227, 0.92));
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .member-directory-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 106, 67, 0.18);
+    box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
+  }
+
+  .member-directory-head {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .member-directory-copy {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .member-directory-branch {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(138, 106, 67, 0.16);
+    background: rgba(255, 248, 238, 0.72);
+    color: var(--accent-strong);
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+  }
+
+  .member-directory-copy h2,
+  .member-directory-company,
+  .member-directory-title {
+    margin: 0;
+  }
+
+  .member-directory-company,
+  .member-directory-title,
+  .member-directory-page-indicator {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .member-directory-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+    object-fit: cover;
+    background: rgba(27, 23, 19, 0.06);
+  }
+
+  .member-directory-avatar-fallback {
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(27, 23, 19, 0.08);
+    background: linear-gradient(180deg, rgba(255, 254, 252, 0.96), rgba(239, 231, 220, 0.92));
+    color: var(--accent-strong);
+    font-family: var(--font-display);
+    font-size: 1.56rem;
+  }
+
+  .member-pagination-bar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .member-directory-page-indicator {
+    margin: 0;
+    text-align: center;
+  }
+
+  @media (max-width: 980px) {
+    .member-directory-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .member-directory-shell {
+      padding-top: 8px;
+    }
+
+    .member-directory-grid,
+    .member-pagination-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .member-directory-card {
+      padding: 18px;
+    }
+
+    .member-directory-page-indicator {
+      order: -1;
+    }
+  }
+</style>

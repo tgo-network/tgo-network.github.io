@@ -1,0 +1,10 @@
+---
+import EventDirectoryPage from "../../../../components/EventDirectoryPage.astro";
+import { getEventCityIndexRouteProps } from "../../../../lib/event-directory.js";
+
+export async function getStaticPaths() {
+  return getEventCityIndexRouteProps();
+}
+---
+
+<EventDirectoryPage {...Astro.props} />

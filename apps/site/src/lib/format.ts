@@ -13,11 +13,23 @@ const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   minute: "2-digit"
 });
 
-export const formatDate = (value: string) => dateFormatter.format(new Date(value));
+const toValidDate = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+export const formatDate = (value: string) => {
+  const date = toValidDate(value);
+  return date ? dateFormatter.format(date) : "时间待定";
+};
 
 export const formatDateRange = (startsAt: string, endsAt: string) => {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
+  const start = toValidDate(startsAt);
+  const end = toValidDate(endsAt);
+
+  if (!start || !end) {
+    return "时间待定";
+  }
 
   return `${dateTimeFormatter.format(start)} - ${dateTimeFormatter.format(end)}`;
 };

@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getJoinPage, getPublicApiBaseUrl } from "../lib/public-api";
+import { getJoinPage, getPublicWriteApiBaseUrl } from "../lib/public-api";
 
-const [page, apiBaseUrl] = await Promise.all([getJoinPage(), Promise.resolve(getPublicApiBaseUrl())]);
+const [page, apiBaseUrl] = await Promise.all([getJoinPage(), Promise.resolve(getPublicWriteApiBaseUrl())]);
 const applicationGuidance = [
   "尽量写清当前职责、团队范围与技术管理工作。",
   "如希望加入特定分会，建议写明目标城市与参与诉求。",
@@ -71,7 +71,7 @@ const processCards = processPreview.map((item, index) => ({
           <p class="card-copy">请填写姓名、电话、微信号、邮箱、个人介绍与申请信息。提交后由工作人员继续审核与联系。</p>
         </div>
 
-        <form class="form-panel" data-application-form data-api-base={apiBaseUrl}>
+        <form class="form-panel" data-application-form data-api-base={apiBaseUrl ?? undefined}>
           <div class="form-grid">
             <label>
               <span>姓名</span>
@@ -145,10 +145,11 @@ const processCards = processPreview.map((item, index) => ({
         const payload = Object.fromEntries(
           Array.from(formData.entries()).filter(([, value]) => typeof value === "string" && value.trim().length > 0)
         );
-        const baseUrl = form.dataset.apiBase ?? "http://127.0.0.1:8787";
+        const baseUrl = form.dataset.apiBase;
+        const requestUrl = baseUrl ? new URL("/api/public/v1/join-applications", baseUrl) : "/api/public/v1/join-applications";
 
         try {
-          const response = await fetch(new URL("/api/public/v1/join-applications", baseUrl), {
+          const response = await fetch(requestUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

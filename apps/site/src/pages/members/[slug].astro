@@ -1,19 +1,18 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDate } from "../../lib/format";
-import { getBranch, getMember, listMembers } from "../../lib/public-api";
+import { getBranch, getMember } from "../../lib/public-api";
+import { getMemberStaticPaths } from "../../lib/member-directory";
 
-export const getStaticPaths = async () => {
-  const members = await listMembers();
-
-  return members.map((member) => ({
-    params: {
-      slug: member.slug
+export const getStaticPaths = async () =>
+  (await getMemberStaticPaths()).map(({ params }) => ({
+    params,
+    props: {
+      slug: params.slug
     }
   }));
-};
 
-const slug = Astro.params.slug!;
+const slug = Astro.props.slug;
 const member = await getMember(slug);
 const branch = member?.branch ? await getBranch(member.branch.slug) : null;
 

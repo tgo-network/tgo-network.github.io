@@ -54,8 +54,25 @@ const getConfiguredApiBaseUrl = () =>
   process.env.PUBLIC_API_BASE_URL ??
   "http://127.0.0.1:8787";
 
+const getConfiguredApiWriteBaseUrl = () =>
+  (import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ?? process.env.PUBLIC_API_BASE_URL ?? null;
+
 const hasExplicitPublicApiBaseUrl = () =>
   Boolean((import.meta as ImportMetaEnvWithPublicApi).env?.PUBLIC_API_BASE_URL ?? process.env.PUBLIC_API_BASE_URL);
+
+const createPublicWriteRequestUrl = (path: string) => {
+  const explicitBaseUrl = getConfiguredApiWriteBaseUrl();
+
+  if (explicitBaseUrl) {
+    return new URL(path, explicitBaseUrl);
+  }
+
+  if (typeof window !== "undefined") {
+    return path;
+  }
+
+  return new URL(path, getConfiguredApiBaseUrl());
+};
 
 const defaultEventPageSize = 24;
 const seedDemoEventSlugs = new Set(["beijing-strategy-forum", "hangzhou-engineering-workshop", "shanghai-ai-leadership-salon"]);
@@ -238,6 +255,7 @@ const filterEventSummaries = (events: PublicEventSummaryV2[], query: PublicEvent
 };
 
 export const getPublicApiBaseUrl = () => getConfiguredApiBaseUrl();
+export const getPublicWriteApiBaseUrl = () => getConfiguredApiWriteBaseUrl();
 
 export const getSiteConfig = async (): Promise<PublicSiteConfig> =>
   (await fetchPublic<PublicSiteConfig>("/api/public/v1/site-config")) ?? siteConfig;
@@ -374,7 +392,7 @@ export const getEvent = async (slug: string): Promise<PublicEventDetailV2 | null
 };
 
 export const submitJoinApplication = async (payload: unknown): Promise<JoinApplicationReceipt | null> =>
-  fetch(new URL("/api/public/v1/join-applications", getConfiguredApiBaseUrl()), {
+  fetch(createPublicWriteRequestUrl("/api/public/v1/join-applications"), {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -396,7 +414,7 @@ export const submitEventRegistration = async (
   eventId: string,
   payload: unknown
 ): Promise<PublicEventRegistrationReceiptV2 | null> =>
-  fetch(new URL(`/api/public/v1/events/${eventId}/registrations`, getConfiguredApiBaseUrl()), {
+  fetch(createPublicWriteRequestUrl(`/api/public/v1/events/${eventId}/registrations`), {
     method: "POST",
     headers: {
       Accept: "application/json",
