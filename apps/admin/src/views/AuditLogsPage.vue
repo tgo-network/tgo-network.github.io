@@ -126,10 +126,6 @@ const summaryItems = computed(() => [
   {
     label: "当前结果",
     value: `${meta.value.total} 条`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [

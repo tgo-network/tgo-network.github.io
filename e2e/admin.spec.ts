@@ -235,7 +235,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await expectDefaultPagination(page, page.locator("tbody tr"));
   await page.getByPlaceholder("搜索姓名、手机号、微信号、邮箱或分会").fill("李昊然");
   await expect(page.locator("tbody")).toContainText("李昊然");
-  await expect(page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" })).toBeVisible();
+  await expect(page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "审核" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-applications");
 
   await page.getByRole("link", { name: "会员", exact: true }).click();
@@ -265,7 +265,7 @@ test("admin review detail flows support saving application and registration deci
   await page.getByRole("link", { name: "申请", exact: true }).click();
   await expect(page).toHaveURL(/\/applications$/);
   await page.getByPlaceholder("搜索姓名、手机号、微信号、邮箱或分会").fill("李昊然");
-  await page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" }).click();
+  await page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "审核" }).click();
   await expect(page).toHaveURL(/\/applications\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "李昊然" })).toBeVisible();
   await page.getByLabel("状态").selectOption("in_review");

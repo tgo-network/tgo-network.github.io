@@ -97,10 +97,6 @@ const summaryChips = computed(() => [
   {
     label: "候补中",
     value: `${meta.value.stats.waitlist} 场`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [

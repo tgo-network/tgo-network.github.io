@@ -90,10 +90,6 @@ const summaryChips = computed(() => [
   {
     label: "已分配",
     value: `${meta.value.stats.assigned} 个`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -429,7 +425,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="field-grid">
+        <div class="field-grid field-grid-2">
           <label class="field">
             <span>角色名称</span>
             <input v-model="form.name" type="text" />
@@ -438,7 +434,7 @@ onBeforeUnmount(() => {
 
           <label class="field">
             <span>描述</span>
-            <textarea v-model="form.description" rows="3"></textarea>
+            <textarea v-model="form.description" rows="2"></textarea>
             <small v-if="fieldIssues.description" class="field-error">{{ fieldIssues.description }}</small>
           </label>
         </div>
@@ -449,7 +445,7 @@ onBeforeUnmount(() => {
             <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>
           </div>
 
-          <div class="selection-grid selection-grid-3 selection-grid-tight">
+          <div class="selection-grid selection-grid-4 selection-grid-tight">
             <label
               v-for="permission in permissions"
               :key="permission.id"

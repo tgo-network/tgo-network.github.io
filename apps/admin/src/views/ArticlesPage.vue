@@ -77,10 +77,6 @@ const summaryChips = computed(() => [
   {
     label: "已发布",
     value: `${meta.value.stats.published} 篇`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [

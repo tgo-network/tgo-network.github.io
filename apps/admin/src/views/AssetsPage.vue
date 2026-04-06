@@ -100,10 +100,6 @@ const summaryChips = computed(() => [
   {
     label: "当前",
     value: `${meta.value.total} 个`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [

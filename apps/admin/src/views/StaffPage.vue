@@ -101,10 +101,6 @@ const summaryChips = computed(() => [
   {
     label: "已暂停",
     value: `${meta.value.stats.suspended} 个`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -567,7 +563,7 @@ onBeforeUnmount(() => {
             <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>
           </div>
 
-          <div class="selection-grid selection-grid-3 selection-grid-tight">
+          <div class="selection-grid selection-grid-4 selection-grid-tight">
             <label
               v-for="role in roles"
               :key="role.id"
@@ -639,7 +635,7 @@ onBeforeUnmount(() => {
             <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
           </div>
 
-          <div class="selection-grid selection-grid-3 selection-grid-tight">
+          <div class="selection-grid selection-grid-4 selection-grid-tight">
             <label
               v-for="role in roles"
               :key="role.id"

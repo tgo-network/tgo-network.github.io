@@ -962,6 +962,10 @@ code {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.selection-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .selection-grid-tight {
   gap: 8px;
 }
@@ -1773,7 +1777,8 @@ code {
   .field-grid-4,
   .field-grid-5,
   .selection-grid-2,
-  .selection-grid-3 {
+  .selection-grid-3,
+  .selection-grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1831,7 +1836,8 @@ code {
   .field-grid-4,
   .field-grid-5,
   .selection-grid-2,
-  .selection-grid-3 {
+  .selection-grid-3,
+  .selection-grid-4 {
     grid-template-columns: 1fr;
   }
 
