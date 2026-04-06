@@ -77,32 +77,9 @@ const selectedAssetTypeLabel = computed(
 const selectedVisibilityLabel = computed(
   () => assetVisibilityOptions.find((option) => option.value === form.visibility)?.label ?? formatAssetVisibility(form.visibility)
 );
-const imageAssetCount = computed(() => rows.value.filter((row) => row.mimeType.startsWith("image/")).length);
 const publicAssetCount = computed(() => rows.value.filter((row) => row.visibility === "public").length);
 const privateAssetCount = computed(() => rows.value.filter((row) => row.visibility === "private").length);
 const activeAssetCount = computed(() => rows.value.filter((row) => row.status === "active").length);
-const summaryCards = computed(() => [
-  {
-    label: "资源总数",
-    value: rows.value.length,
-    summary: "已经登记在系统中的全部资源元数据。"
-  },
-  {
-    label: "公开资源",
-    value: publicAssetCount.value,
-    summary: "可以被前台页面和公开内容直接引用的资源。"
-  },
-  {
-    label: "图片资源",
-    value: imageAssetCount.value,
-    summary: "用于封面、头像、海报和正文配图的图片总量。"
-  },
-  {
-    label: "启用中",
-    value: activeAssetCount.value,
-    summary: "状态正常、可继续被前台和后台复用的资源。"
-  }
-]);
 const filteredRows = computed(() => {
   const query = filters.query.trim().toLowerCase();
 
@@ -163,24 +140,6 @@ const quickFilters = [
     }
   }
 ] as const;
-const selectedFileChecklist = computed(() => [
-  {
-    label: "文件",
-    value: selectedFile.value ? "已选择" : "待选择"
-  },
-  {
-    label: "资源类型",
-    value: selectedAssetTypeLabel.value
-  },
-  {
-    label: "可见性",
-    value: selectedVisibilityLabel.value
-  },
-  {
-    label: "替代文本",
-    value: form.altText.trim().length > 0 ? "已填写" : isImageAssetType.value ? "建议填写" : "可选"
-  }
-]);
 
 const resetFeedback = () => {
   errorMessage.value = "";
@@ -344,97 +303,60 @@ onMounted(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>资源</h2>
-        <p>通过签名上传把文件送入对象存储，再由后台登记元数据，统一服务文章、活动、成员和站点内容。</p>
-      </div>
+      <h2>资源</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <button class="button-link button-primary" type="button" :disabled="uploading" @click="uploadAsset">
           {{ uploading ? "上传中..." : "上传资源" }}
         </button>
       </div>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">上传错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
-    <div class="editor-overview-grid">
-      <article v-for="item in summaryCards" :key="item.label" class="editor-overview-card">
-        <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
-        <p>{{ item.summary }}</p>
-      </article>
-    </div>
-
-    <div class="editor-grid">
-      <div class="panel editor-main stacked-gap">
-        <section class="editor-section stacked-gap">
+    <div class="editor-grid editor-grid-focus">
+      <div class="panel panel-compact editor-main stacked-gap">
+        <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
-            <div class="brand-tag">上传设置</div>
-            <h3>先定义资源将在系统中的用途</h3>
-            <p>资源类型会决定它被谁复用；可见性则决定它能否进入公开站页面、文章、活动和成员展示。</p>
+            <h3>上传设置</h3>
           </div>
 
-          <div class="field">
+          <label class="field">
             <span>资源类型</span>
-            <div class="option-card-grid option-card-grid-3">
-              <button
-                v-for="option in adminAssetUploadTypeOptions"
-                :key="option.value"
-                type="button"
-                class="option-card"
-                :class="{ 'is-active': form.assetType === option.value }"
-                @click="form.assetType = option.value"
-              >
-                <strong>{{ option.label }}</strong>
-                <p>{{ assetTypeDescriptions[option.value] }}</p>
-                <div class="option-card-foot">
-                  <span class="option-card-badge">{{ form.assetType === option.value ? "当前类型" : "切换" }}</span>
-                </div>
-              </button>
-            </div>
+            <select v-model="form.assetType">
+              <option v-for="option in adminAssetUploadTypeOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <small class="field-hint">{{ assetTypeDescriptions[form.assetType] }}</small>
             <small v-if="fieldIssues.assetType" class="field-error">{{ fieldIssues.assetType }}</small>
-          </div>
+          </label>
 
-          <div class="field">
+          <label class="field">
             <span>可见性</span>
-            <div class="option-card-grid option-card-grid-2">
-              <button
+            <select v-model="form.visibility">
+              <option
                 v-for="option in assetVisibilityOptions"
                 :key="option.value"
-                type="button"
-                class="option-card"
-                :class="{ 'is-active': form.visibility === option.value }"
+                :value="option.value"
                 :disabled="visibilityLocked && option.value !== 'private'"
-                @click="form.visibility = option.value"
               >
-                <strong>{{ option.label }}</strong>
-                <p>{{ visibilityDescriptions[option.value] }}</p>
-                <div class="option-card-foot">
-                  <span class="option-card-badge">
-                    {{ form.visibility === option.value ? "当前可见性" : visibilityLocked && option.value !== "private" ? "已锁定" : "切换" }}
-                  </span>
-                </div>
-              </button>
-            </div>
+                {{ option.label }}
+              </option>
+            </select>
+            <small class="field-hint">{{ visibilityDescriptions[form.visibility] }}</small>
             <small v-if="visibilityLocked" class="field-hint">申请附件按照策略必须保持私有，不会进入公开站。</small>
             <small v-if="fieldIssues.visibility" class="field-error">{{ fieldIssues.visibility }}</small>
-          </div>
+          </label>
         </section>
 
-        <section class="editor-section stacked-gap">
+        <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
-            <div class="brand-tag">文件信息</div>
-            <h3>补齐上传前必须确认的内容</h3>
-            <p>文件本体会进入对象存储，后台保存类型、可见性、尺寸、对象键与替代文本等稳定元数据。</p>
+            <h3>文件信息</h3>
           </div>
 
           <label class="field">
@@ -446,7 +368,6 @@ onMounted(() => {
               :accept="acceptedMimeTypes"
               @change="onFileSelected"
             />
-            <small class="field-hint">允许上传的 MIME 类型会随资源类型自动切换。</small>
             <small v-if="fieldIssues.filename" class="field-error">{{ fieldIssues.filename }}</small>
             <small v-if="fieldIssues.mimeType" class="field-error">{{ fieldIssues.mimeType }}</small>
             <small v-if="fieldIssues.byteSize" class="field-error">{{ fieldIssues.byteSize }}</small>
@@ -459,80 +380,65 @@ onMounted(() => {
               rows="4"
               placeholder="描述图片内容，便于无障碍访问与后续复用。"
             />
-            <small class="field-hint">图片资源建议始终填写；文档型资源可按需要补充。</small>
             <small v-if="fieldIssues.altText" class="field-error">{{ fieldIssues.altText }}</small>
           </label>
         </section>
       </div>
 
       <aside class="editor-side stacked-gap">
-        <div class="panel stacked-gap">
-          <div class="brand-tag">待上传概览</div>
+        <div class="panel panel-compact summary-panel stacked-gap-tight">
+          <h3>待上传概览</h3>
 
-          <div class="info-card">
-            <span>文件名</span>
-            <strong>{{ selectedFileName }}</strong>
-            <p>{{ selectedFile ? "确认无误后可直接上传并登记。" : "选择文件后会在这里显示文件信息。" }}</p>
+          <div class="summary-list">
+            <div class="summary-row">
+              <span>文件名</span>
+              <strong>{{ selectedFileName }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>大小</span>
+              <strong>{{ selectedFileSize }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>MIME 类型</span>
+              <strong>{{ selectedFileMimeType }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>资源类型</span>
+              <strong>{{ selectedAssetTypeLabel }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>可见性</span>
+              <strong>{{ selectedVisibilityLabel }}</strong>
+            </div>
           </div>
-
-          <div class="info-row">
-            <span>大小</span>
-            <strong>{{ selectedFileSize }}</strong>
-          </div>
-          <div class="info-row">
-            <span>MIME 类型</span>
-            <strong>{{ selectedFileMimeType }}</strong>
-          </div>
-          <div class="info-row">
-            <span>资源类型</span>
-            <strong>{{ selectedAssetTypeLabel }}</strong>
-          </div>
-          <div class="info-row">
-            <span>可见性</span>
-            <strong>{{ selectedVisibilityLabel }}</strong>
-          </div>
-
-          <ul class="selection-summary-list">
-            <li v-for="item in selectedFileChecklist" :key="item.label" class="selection-summary-card">
-              <strong>{{ item.label }}</strong>
-              <small>{{ item.value }}</small>
-            </li>
-          </ul>
         </div>
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">存储流程</div>
-          <div class="preview-note">
-            <p>1. 先向 API 申请签名上传地址。</p>
-            <p>2. 文件直接写入对象存储，不经过业务数据库。</p>
-            <p>3. 完成登记后，再由 PostgreSQL 保存可长期引用的资源元数据与 ID。</p>
-          </div>
+        <div class="panel panel-compact summary-panel stacked-gap-tight">
+          <h3>资源概况</h3>
 
-          <div class="info-row">
-            <span>公开资源</span>
-            <strong>{{ publicAssetCount }}</strong>
-          </div>
-          <div class="info-row">
-            <span>私有资源</span>
-            <strong>{{ privateAssetCount }}</strong>
+          <div class="summary-list">
+            <div class="summary-row">
+              <span>资源总数</span>
+              <strong>{{ rows.length }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>公开资源</span>
+              <strong>{{ publicAssetCount }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>私有资源</span>
+              <strong>{{ privateAssetCount }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>启用中</span>
+              <strong>{{ activeAssetCount }}</strong>
+            </div>
           </div>
         </div>
       </aside>
     </div>
 
-    <div class="panel filter-panel">
-      <div class="page-header-row compact-row">
-        <div>
-          <div class="brand-tag">资源检索</div>
-          <p class="section-copy">可按文件名、对象键、资源类型、可见性和状态筛选，快速找到前台或审核流程正在使用的资源。</p>
-        </div>
-        <div class="info-card compact-info-card">
-          <span>结果</span>
-          <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-          <p>当前筛选命中的资源数量。</p>
-        </div>
-      </div>
-
+    <div class="panel panel-compact filter-panel filter-panel-compact">
       <div class="filter-toolbar">
         <div class="segmented-actions">
           <button
@@ -583,21 +489,16 @@ onMounted(() => {
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载已上传资源...</p>
     </div>
 
     <div v-else-if="filteredRows.length === 0" class="panel empty-state-card">
-      <div class="brand-tag">暂无结果</div>
-      <p>当前筛选条件下没有匹配的资源，试试放宽关键词或切换筛选条件。</p>
+      <p>当前筛选条件下没有匹配的资源。</p>
     </div>
 
     <div v-else class="panel table-panel">
       <div class="table-card-head">
-        <div>
-          <h3>资源列表</h3>
-          <p class="table-card-copy">统一查看资源对象键、用途类型、可见性与当前状态，避免前台内容引用到错误的资源。</p>
-        </div>
+        <h3>资源列表</h3>
 
         <span class="status-pill">当前结果 {{ filteredRows.length }} 个</span>
       </div>

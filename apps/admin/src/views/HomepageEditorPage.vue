@@ -71,56 +71,22 @@ const resolveSelectedLabels = (ids: string[], options: Array<{ id: string; label
 const selectedArticleLabels = computed(() => resolveSelectedLabels(form.featuredArticleIds, references.value.articles));
 const selectedEventLabels = computed(() => resolveSelectedLabels(form.featuredEventIds, references.value.events));
 const selectedBranchLabels = computed(() => resolveSelectedLabels(form.branchHighlightIds, references.value.branches));
-const homepageOverviewCards = computed(() => [
+const homepageMetaItems = computed(() => [
   {
     label: "首屏状态",
-    value: form.heroTitle.trim() || "待补充首页主标题",
-    summary: form.heroSummary.trim() || "建议用 2-3 句话说明组织边界、对象人群与核心价值。"
-  },
-  {
-    label: "覆盖人群 / 指标",
-    value: `${trimmedAudienceItems.value.length} 条人群 · ${filledMetrics.value.length} 条指标`,
-    summary: form.introTitle.trim() || "首页第二屏需要把组织介绍与覆盖人群一起讲清楚。"
-  },
-  {
-    label: "精选分发",
-    value: `${selectedArticleLabels.value.length} 篇文章 · ${selectedEventLabels.value.length} 场活动 · ${selectedBranchLabels.value.length} 个分会`,
-    summary: "首页是分发页，只保留最能代表组织的内容与城市节点。"
-  },
-  {
-    label: "最近更新",
-    value: formatDateTime(homepage.value?.updatedAt),
-    summary: form.joinTitle.trim() || "补齐加入引导标题与链接，作为首页最后一步转化。"
-  }
-]);
-const homepageChecklist = computed(() => [
-  {
-    label: "首屏标题与摘要",
-    ready: form.heroTitle.trim().length > 0 && form.heroSummary.trim().length > 0,
-    hint: "首页第一屏优先回答“这是什么组织”和“为什么值得继续看”。"
-  },
-  {
-    label: "按钮入口",
-    ready: form.primaryActionHref.trim().length > 0 && form.secondaryActionHref.trim().length > 0,
-    hint: "首屏至少需要明确承接加入和活动两个主入口。"
+    value: form.heroTitle.trim() || "待补充首页主标题"
   },
   {
     label: "覆盖人群",
-    ready: form.introTitle.trim().length > 0 && trimmedAudienceItems.value.length > 0,
-    hint: "组织介绍需要说明覆盖人群，否则首页会失去“社区边界感”。"
+    value: `${trimmedAudienceItems.value.length} 条`
   },
   {
-    label: "关键指标",
-    ready: filledMetrics.value.length > 0,
-    hint: "指标卡用于快速建立规模感，建议至少补全 3 条有效数据。"
+    label: "指标卡",
+    value: `${filledMetrics.value.length} 条`
   },
   {
-    label: "精选内容与加入引导",
-    ready:
-      (selectedArticleLabels.value.length > 0 || selectedEventLabels.value.length > 0 || selectedBranchLabels.value.length > 0) &&
-      form.joinTitle.trim().length > 0 &&
-      form.joinHref.trim().length > 0,
-    hint: "首页后半段需要同时承接内容浏览和加入转化。"
+    label: "最近更新",
+    value: formatDateTime(homepage.value?.updatedAt)
   }
 ]);
 
@@ -228,12 +194,9 @@ onMounted(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>首页配置</h2>
-        <p>首页需要先建立组织感，再分发到分会、成员、活动、文章和加入路径，因此编辑节奏应围绕这条主线展开。</p>
-      </div>
+      <h2>首页配置</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <a class="button-link" href="/" target="_blank" rel="noreferrer">预览前台</a>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存首页配置" }}
@@ -241,37 +204,24 @@ onMounted(() => {
       </div>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">操作错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel panel-success stacked-gap">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在准备首页配置...</p>
     </div>
 
     <template v-else>
-      <div class="editor-overview-grid">
-        <article v-for="item in homepageOverviewCards" :key="item.label" class="editor-overview-card">
-          <span>{{ item.label }}</span>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
-      <div class="editor-grid">
-        <div class="panel editor-main stacked-gap">
-          <section class="editor-section stacked-gap">
+      <div class="editor-grid editor-grid-focus">
+        <div class="panel panel-compact editor-main stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <div class="brand-tag">首屏</div>
-              <h3>先回答“这是什么组织”</h3>
-              <p>首页首屏不是普通 banner，而是整个公开站的入口判断器，必须先建立组织定位与主行动路径。</p>
+              <h3>首屏</h3>
             </div>
 
             <div class="field-grid field-grid-2">
@@ -283,7 +233,6 @@ onMounted(() => {
               <label class="field">
                 <span>主标题</span>
                 <input v-model="form.heroTitle" type="text" placeholder="连接技术领导者、分会活动与长期交流网络" />
-                <small class="field-hint">建议直接说明组织的边界与主价值，而不是写成宽泛口号。</small>
                 <small v-if="fieldIssues.heroTitle" class="field-error">{{ fieldIssues.heroTitle }}</small>
               </label>
             </div>
@@ -291,7 +240,6 @@ onMounted(() => {
             <label class="field">
               <span>摘要</span>
               <textarea v-model="form.heroSummary" rows="4" placeholder="说明首页首屏的核心表达。" />
-              <small class="field-hint">摘要建议同时覆盖对象人群、组织方式和价值承诺。</small>
             </label>
 
             <div class="field-grid field-grid-2">
@@ -316,11 +264,9 @@ onMounted(() => {
             </div>
           </section>
 
-          <section class="editor-section stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <div class="brand-tag">组织介绍与覆盖人群</div>
-              <h3>把社区边界说清楚</h3>
-              <p>首页第二屏要解释组织形式、覆盖人群和整体定位，帮助访客判断自己是否适合继续浏览或申请加入。</p>
+              <h3>组织介绍</h3>
             </div>
 
             <label class="field">
@@ -339,11 +285,8 @@ onMounted(() => {
             </label>
 
             <div class="stacked-gap">
-              <div class="page-header-row compact-row">
-                <div>
-                  <strong>覆盖人群条目</strong>
-                  <p class="section-copy">逐条维护首页右侧展示的人群描述，建议每条只表达一种角色或特征。</p>
-                </div>
+              <div class="panel-toolbar">
+                <strong>覆盖人群条目</strong>
                 <button class="button-link button-compact" type="button" @click="addAudienceItem">添加条目</button>
               </div>
 
@@ -354,24 +297,19 @@ onMounted(() => {
             </div>
           </section>
 
-          <section class="editor-section stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <div class="brand-tag">关键指标</div>
-              <h3>建立规模感和可信度</h3>
-              <p>指标卡用于快速建立“这是一个真实在运转的组织”这一印象，建议优先填可持续维护的数据口径。</p>
+              <h3>关键指标</h3>
             </div>
 
-            <div class="panel inset-panel stacked-gap">
-              <div class="page-header-row compact-row">
-                <div>
-                  <div class="brand-tag">关键指标</div>
-                  <p class="section-copy">用于首页指标卡片展示，建议保持 3-4 条核心指标。</p>
-                </div>
+            <div class="panel inset-panel panel-compact stacked-gap">
+              <div class="panel-toolbar">
+                <strong>指标列表</strong>
                 <button class="button-link button-compact" type="button" @click="addMetric">添加指标</button>
               </div>
 
-              <div v-for="(_, index) in form.metrics" :key="`metric-${index}`" class="panel stacked-gap">
-                <div class="page-header-row compact-row">
+              <div v-for="(_, index) in form.metrics" :key="`metric-${index}`" class="panel panel-compact stacked-gap">
+                <div class="panel-toolbar">
                   <strong>指标 {{ index + 1 }}</strong>
                   <button class="button-link button-danger button-compact" type="button" @click="removeMetric(index)">移除</button>
                 </div>
@@ -394,11 +332,9 @@ onMounted(() => {
             </div>
           </section>
 
-          <section class="editor-section stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <div class="brand-tag">首页精选</div>
-              <h3>选择要被首页重点分发的内容</h3>
-              <p>首页不是完整列表，而是引导页。精选内容应该直接指向文章、活动和分会三条核心浏览路径。</p>
+              <h3>首页精选</h3>
             </div>
 
             <div class="field-grid field-grid-3">
@@ -407,7 +343,6 @@ onMounted(() => {
                 <select v-model="form.featuredArticleIds" multiple size="6">
                   <option v-for="option in references.articles" :key="option.id" :value="option.id">{{ option.label }}</option>
                 </select>
-                <small class="field-hint">建议选择最能代表组织实践与活动沉淀的文章。</small>
               </label>
 
               <label class="field">
@@ -415,7 +350,6 @@ onMounted(() => {
                 <select v-model="form.featuredEventIds" multiple size="6">
                   <option v-for="option in references.events" :key="option.id" :value="option.id">{{ option.label }}</option>
                 </select>
-                <small class="field-hint">建议选择近期仍然值得浏览或报名的活动。</small>
               </label>
 
               <label class="field">
@@ -423,34 +357,13 @@ onMounted(() => {
                 <select v-model="form.branchHighlightIds" multiple size="6">
                   <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
                 </select>
-                <small class="field-hint">建议优先选择节奏更成熟、组织表达更完整的分会。</small>
               </label>
-            </div>
-
-            <div class="selection-summary-list">
-              <article class="selection-summary-card">
-                <strong>精选文章</strong>
-                <p>{{ selectedArticleLabels.slice(0, 5).join(" / ") || "尚未选择文章。" }}</p>
-                <small>已选择 {{ selectedArticleLabels.length }} 项</small>
-              </article>
-              <article class="selection-summary-card">
-                <strong>精选活动</strong>
-                <p>{{ selectedEventLabels.slice(0, 5).join(" / ") || "尚未选择活动。" }}</p>
-                <small>已选择 {{ selectedEventLabels.length }} 项</small>
-              </article>
-              <article class="selection-summary-card">
-                <strong>分会高亮</strong>
-                <p>{{ selectedBranchLabels.slice(0, 5).join(" / ") || "尚未选择分会。" }}</p>
-                <small>已选择 {{ selectedBranchLabels.length }} 项</small>
-              </article>
             </div>
           </section>
 
-          <section class="editor-section stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <div class="brand-tag">加入引导</div>
-              <h3>承接首页最后一步转化</h3>
-              <p>加入引导是首页最后的行动收口，语义应清晰指向“理解定位后开始申请”。</p>
+              <h3>加入引导</h3>
             </div>
 
             <label class="field">
@@ -472,120 +385,38 @@ onMounted(() => {
         </div>
 
         <aside class="editor-side stacked-gap">
-          <div class="panel stacked-gap">
-            <div class="brand-tag">前台映射</div>
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>当前状态</h3>
 
-            <div class="preview-stack">
-              <div class="preview-group">
-                <span class="preview-label">首页首屏</span>
-                <div class="preview-card preview-card-dark">
-                  <span class="preview-eyebrow">{{ form.heroEyebrow || "首页眉标" }}</span>
-                  <strong class="preview-title">{{ form.heroTitle || "首页主标题会展示在这里" }}</strong>
-                  <p class="preview-copy">{{ form.heroSummary || "摘要会先解释这是怎样的组织，再决定用户是否继续浏览。" }}</p>
-                  <div class="preview-meta">
-                    <span>主按钮：{{ form.primaryActionLabel || "待补充" }} → {{ form.primaryActionHref || "/join" }}</span>
-                    <span>次按钮：{{ form.secondaryActionLabel || "待补充" }} → {{ form.secondaryActionHref || "/events" }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="preview-group">
-                <span class="preview-label">首页结构</span>
-                <div class="preview-card">
-                  <ul class="preview-list">
-                    <li>
-                      <span>组织介绍</span>
-                      <strong>{{ form.introTitle || "待补充介绍标题" }}</strong>
-                    </li>
-                    <li>
-                      <span>覆盖人群</span>
-                      <strong>{{ trimmedAudienceItems.length > 0 ? `${trimmedAudienceItems.length} 条` : "尚未补充" }}</strong>
-                    </li>
-                    <li>
-                      <span>指标卡</span>
-                      <strong>{{ filledMetrics.length > 0 ? `${filledMetrics.length} 条` : "尚未补充" }}</strong>
-                    </li>
-                    <li>
-                      <span>首页精选</span>
-                      <strong>{{ selectedArticleLabels.length }} 篇文章 · {{ selectedEventLabels.length }} 场活动 · {{ selectedBranchLabels.length }} 个分会</strong>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="preview-group">
-                <span class="preview-label">加入引导卡</span>
-                <div class="preview-card">
-                  <strong class="preview-title">{{ form.joinTitle || "加入引导标题会展示在这里" }}</strong>
-                  <p class="preview-copy">{{ form.joinSummary || "首页最后一屏会通过这段摘要把用户引导到加入说明页。" }}</p>
-                  <div class="preview-meta">
-                    <span>链接：{{ form.joinHref || "/join" }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="preview-group">
-                <span class="preview-label">当前精选内容</span>
-                <div class="preview-card">
-                  <ul class="preview-list">
-                    <li>
-                      <span>精选文章</span>
-                      <strong>{{ selectedArticleLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
-                    </li>
-                    <li>
-                      <span>精选活动</span>
-                      <strong>{{ selectedEventLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
-                    </li>
-                    <li>
-                      <span>分会高亮</span>
-                      <strong>{{ selectedBranchLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
-                    </li>
-                  </ul>
-                </div>
+            <div class="summary-list">
+              <div v-for="item in homepageMetaItems" :key="item.label" class="summary-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
               </div>
             </div>
           </div>
 
-          <div class="panel stacked-gap">
-            <div class="brand-tag">运营提示</div>
-            <div class="info-row">
-              <span>覆盖人群条目</span>
-              <strong>{{ trimmedAudienceItems.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>指标卡片</span>
-              <strong>{{ filledMetrics.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>精选文章</span>
-              <strong>{{ selectedArticleLabels.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>精选活动</span>
-              <strong>{{ selectedEventLabels.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>分会高亮</span>
-              <strong>{{ selectedBranchLabels.length }}</strong>
-            </div>
-            <div class="info-row">
-              <span>最近更新</span>
-              <strong>{{ formatDateTime(homepage?.updatedAt) }}</strong>
-            </div>
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>当前精选内容</h3>
 
-            <div class="preview-note">
-              <p>首页优先承担“建立组织认知 + 分发到 7 个公开模块”的职责，不建议再把旧的主题页或城市页作为主入口。</p>
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>精选文章</span>
+                <strong>{{ selectedArticleLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>精选活动</span>
+                <strong>{{ selectedEventLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>分会高亮</span>
+                <strong>{{ selectedBranchLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>加入链接</span>
+                <strong>{{ form.joinHref || "/join" }}</strong>
+              </div>
             </div>
-
-            <ul class="checklist">
-              <li v-for="item in homepageChecklist" :key="item.label">
-                <span class="checklist-indicator" :class="item.ready ? 'is-ready' : 'is-pending'"></span>
-                <div>
-                  <strong>{{ item.label }}</strong>
-                  <small>{{ item.hint }}</small>
-                </div>
-              </li>
-            </ul>
           </div>
         </aside>
       </div>

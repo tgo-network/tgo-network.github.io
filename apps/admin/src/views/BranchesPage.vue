@@ -34,28 +34,6 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesRegion;
   });
 });
-const summaryCards = computed(() => [
-  {
-    label: "分会总数",
-    value: rows.value.length,
-    summary: "当前系统内已经建立的全部分会节点。"
-  },
-  {
-    label: "已发布",
-    value: rows.value.filter((row) => row.status === "published").length,
-    summary: "会在前台分会董事会页中公开展示的分会。"
-  },
-  {
-    label: "覆盖区域",
-    value: regionOptions.value.length,
-    summary: "当前分会节点覆盖到的区域数量。"
-  },
-  {
-    label: "董事会席位",
-    value: rows.value.reduce((total, row) => total + row.boardMemberCount, 0),
-    summary: "已进入分会结构的董事会成员总数。"
-  }
-]);
 const quickFilters = [
   {
     key: "all",
@@ -108,49 +86,24 @@ onMounted(async () => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>分会维护</h2>
-        <p>维护各个分会与董事会结构，它们会直接影响前台分会展示、成员归属和活动城市映射。</p>
-      </div>
+      <h2>分会维护</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members">返回成员</RouterLink>
         <RouterLink class="button-link button-primary" to="/members/branches/new">新增分会</RouterLink>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载分会...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
-        <article v-for="item in summaryCards" :key="item.label" class="panel stat-panel">
-          <div class="brand-tag">{{ item.label }}</div>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
-      <div class="panel filter-panel">
-        <div class="page-header-row compact-row">
-          <div>
-            <div class="brand-tag">筛选</div>
-            <p class="section-copy">可按分会名称、城市、区域和状态快速定位需要继续补充董事会或内容信息的分会。</p>
-          </div>
-          <div class="info-card compact-info-card">
-            <span>结果</span>
-            <strong>{{ filteredRows.length }} / {{ rows.length }}</strong>
-            <p>当前筛选命中的分会数量。</p>
-          </div>
-        </div>
-
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -191,16 +144,12 @@ onMounted(async () => {
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <div class="brand-tag">暂无结果</div>
-        <p>当前筛选条件下没有匹配的分会，试试放宽关键词或切换状态条件。</p>
+        <p>当前筛选条件下没有匹配的分会。</p>
       </div>
 
       <div v-else class="panel table-panel">
         <div class="table-card-head">
-          <div>
-            <h3>分会列表</h3>
-            <p class="table-card-copy">统一管理分会基本信息、区域归属与董事会人数，确保前台组织结构口径一致。</p>
-          </div>
+          <h3>分会列表</h3>
 
           <span class="status-pill">当前结果 {{ filteredRows.length }} 个</span>
         </div>
