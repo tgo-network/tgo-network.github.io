@@ -100,13 +100,8 @@ onMounted(async () => {
 
 <template>
   <section class="stacked-gap">
-    <header class="page-header page-header-row">
+    <header class="page-header">
       <h2>仪表盘</h2>
-
-      <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/articles/new">新建文章</RouterLink>
-        <RouterLink class="button-link button-primary" to="/events/new">新建活动</RouterLink>
-      </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
