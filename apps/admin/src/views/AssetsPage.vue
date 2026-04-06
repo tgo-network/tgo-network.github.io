@@ -36,6 +36,7 @@ const visibilityDescriptions: Record<AssetVisibility, string> = {
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
+const showUploadPanel = ref(false);
 const rows = ref<AdminAssetListItem[]>([]);
 const loading = ref(true);
 const uploading = ref(false);
@@ -99,14 +100,6 @@ const summaryChips = computed(() => [
   {
     label: "当前",
     value: `${meta.value.total} 个`
-  },
-  {
-    label: "公开资源",
-    value: `${meta.value.stats.public} 个`
-  },
-  {
-    label: "启用中",
-    value: `${meta.value.stats.active} 个`
   },
   {
     label: "分页",
@@ -280,6 +273,7 @@ const readImageDimensions = async (file: File, mimeType: string) => {
 
 const uploadAsset = async () => {
   resetFeedback();
+  showUploadPanel.value = true;
 
   if (!selectedFile.value) {
     fieldIssues.value = {
@@ -329,6 +323,7 @@ const uploadAsset = async () => {
 
     successMessage.value = "资源已上传并完成登记。";
     resetForm();
+    showUploadPanel.value = false;
     currentPage.value = 1;
     await loadAssets();
   } catch (error) {
@@ -346,7 +341,17 @@ const uploadAsset = async () => {
 const onFileSelected = (event: Event) => {
   const input = event.target as HTMLInputElement;
   selectedFile.value = input.files?.[0] ?? null;
+  showUploadPanel.value = true;
   resetFeedback();
+};
+
+const toggleUploadPanel = () => {
+  showUploadPanel.value = !showUploadPanel.value;
+
+  if (!showUploadPanel.value) {
+    resetFeedback();
+    resetForm();
+  }
 };
 
 watch(
@@ -400,8 +405,8 @@ onBeforeUnmount(() => {
       <h2>资源</h2>
 
       <div class="page-actions page-actions-compact">
-        <button class="button-link button-primary" type="button" :disabled="uploading" @click="uploadAsset">
-          {{ uploading ? "上传中..." : "上传资源" }}
+        <button class="button-link button-primary" type="button" :disabled="uploading" @click="toggleUploadPanel">
+          {{ showUploadPanel ? "收起上传" : "上传资源" }}
         </button>
       </div>
     </header>
@@ -414,8 +419,18 @@ onBeforeUnmount(() => {
       <p>{{ successMessage }}</p>
     </div>
 
-    <div class="editor-grid editor-grid-compact">
+    <div v-if="showUploadPanel" class="editor-grid editor-grid-compact">
       <div class="panel panel-compact editor-main stacked-gap">
+        <div class="panel-toolbar">
+          <div class="editor-section-head">
+            <h3>上传资源</h3>
+          </div>
+
+          <button class="button-link button-primary" type="button" :disabled="uploading" @click="uploadAsset">
+            {{ uploading ? "上传中..." : "开始上传" }}
+          </button>
+        </div>
+
         <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
             <h3>上传设置</h3>
@@ -483,7 +498,7 @@ onBeforeUnmount(() => {
         <div class="panel panel-compact summary-panel stacked-gap-tight">
           <h3>待上传概览</h3>
 
-          <div class="summary-list">
+          <div class="summary-list summary-list-compact">
             <div class="summary-row">
               <span>文件名</span>
               <strong>{{ selectedFileName }}</strong>
@@ -504,13 +519,6 @@ onBeforeUnmount(() => {
               <span>可见性</span>
               <strong>{{ selectedVisibilityLabel }}</strong>
             </div>
-          </div>
-        </div>
-
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>资源概况</h3>
-
-          <div class="summary-list">
             <div class="summary-row">
               <span>资源总数</span>
               <strong>{{ meta.total }}</strong>
@@ -640,7 +648,6 @@ onBeforeUnmount(() => {
 
                 <div class="asset-meta">
                   <strong>{{ row.originalFilename }}</strong>
-                  <div class="muted-row">{{ row.objectKey }}</div>
                   <div class="muted-row">{{ row.mimeType }}</div>
                   <div v-if="row.altText" class="muted-row">替代文本：{{ row.altText }}</div>
                 </div>

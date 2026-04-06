@@ -95,16 +95,20 @@ const eventMetaItems = computed(() => [
     value: formatContentStatus(event.value?.status ?? form.status)
   },
   {
-    label: "报名状态",
-    value: formatEventRegistrationState(form.registrationState)
-  },
-  {
     label: "分会",
     value: selectedBranchLabel.value
   },
   {
     label: "开始时间",
     value: formatDateTime(form.startsAt)
+  },
+  {
+    label: "场地",
+    value: venueSummary.value
+  },
+  {
+    label: "议程",
+    value: agendaCount.value > 0 ? `${agendaCount.value} 项` : "待补充"
   },
   {
     label: "公开路径",
@@ -444,7 +448,7 @@ onMounted(() => {
 
             <label class="field">
               <span>摘要</span>
-              <textarea v-model="form.summary" rows="5" placeholder="用于列表和详情页首屏展示的活动摘要。" />
+              <textarea v-model="form.summary" rows="4" placeholder="用于列表和详情页首屏展示的活动摘要。" />
               <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
             </label>
           </section>
@@ -475,7 +479,7 @@ onMounted(() => {
             </div>
 
             <div class="stacked-gap">
-              <div v-for="(item, index) in form.agenda" :key="index" class="panel panel-compact stacked-gap">
+              <div v-for="(item, index) in form.agenda" :key="index" class="panel panel-compact agenda-item-card stacked-gap-tight">
                 <div class="panel-toolbar">
                   <strong>议程 {{ index + 1 }}</strong>
                   <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
@@ -505,7 +509,7 @@ onMounted(() => {
 
                 <label class="field">
                   <span>议程说明</span>
-                  <textarea v-model="item.summary" rows="4" />
+                  <textarea v-model="item.summary" rows="3" />
                 </label>
               </div>
             </div>
@@ -532,32 +536,9 @@ onMounted(() => {
             class="panel-compact"
             :assets="coverAssets"
             label="活动封面"
-            help="用于活动列表与详情页封面。"
+            help="用于活动封面。"
             :error="fieldIssues.coverAssetId"
           />
-
-          <div class="panel panel-compact summary-panel stacked-gap-tight">
-            <h3>活动概览</h3>
-
-            <div class="summary-list">
-              <div class="summary-row">
-                <span>场地</span>
-                <strong>{{ venueSummary }}</strong>
-              </div>
-              <div class="summary-row">
-                <span>议程数</span>
-                <strong>{{ agendaCount > 0 ? `${agendaCount} 项` : "待补充" }}</strong>
-              </div>
-              <div class="summary-row">
-                <span>人数上限</span>
-                <strong>{{ form.capacity ?? "未设置" }}</strong>
-              </div>
-              <div class="summary-row">
-                <span>报名链接</span>
-                <strong>{{ form.registrationUrl.trim() || "未设置" }}</strong>
-              </div>
-            </div>
-          </div>
         </aside>
       </div>
     </div>

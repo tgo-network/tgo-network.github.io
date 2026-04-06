@@ -82,10 +82,6 @@ const articleMetaItems = computed(() => [
     value: form.slug ? `/articles/${form.slug}` : "待生成"
   },
   {
-    label: "定时发布",
-    value: form.scheduledAt ? formatDateTime(form.scheduledAt) : "未设置"
-  },
-  {
     label: "最近更新",
     value: formatDateTime(article.value?.updatedAt)
   }
@@ -341,7 +337,7 @@ onMounted(() => {
 
             <label class="field">
               <span>摘要</span>
-              <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
+              <textarea v-model="form.excerpt" rows="4" placeholder="用于文章列表与信息卡片的简短摘要。" />
               <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
             </label>
           </section>
@@ -370,7 +366,7 @@ onMounted(() => {
               <span class="status-pill">{{ formatContentStatus(article?.status ?? form.status) }}</span>
             </div>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div v-for="item in articleMetaItems" :key="item.label" class="summary-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
@@ -383,37 +379,37 @@ onMounted(() => {
             class="panel-compact"
             :assets="coverAssets"
             :error="fieldIssues.coverAssetId"
-            help="用于文章列表与详情页的封面图。"
+            help="用于文章封面。"
           />
 
-          <section class="panel panel-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>SEO（可选）</h3>
-            </div>
+          <details class="panel panel-compact detail-card">
+            <summary>SEO（可选）</summary>
 
-            <label class="field">
-              <span>SEO 标题</span>
-              <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
-              <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
-            </label>
+            <div class="detail-card-body stacked-gap">
+              <label class="field">
+                <span>SEO 标题</span>
+                <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
+                <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
+              </label>
 
-            <label class="field">
-              <span>SEO 描述</span>
-              <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
-              <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
-            </label>
+              <label class="field">
+                <span>SEO 描述</span>
+                <textarea v-model="form.seoDescription" rows="3" placeholder="搜索与社交分享摘要。" />
+                <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
+              </label>
 
-            <div class="summary-list">
-              <div class="summary-row">
-                <span>标题回退</span>
-                <strong>{{ seoTitlePreview }}</strong>
+              <div class="summary-list summary-list-compact">
+                <div class="summary-row">
+                  <span>标题回退</span>
+                  <strong>{{ seoTitlePreview }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>描述回退</span>
+                  <strong>{{ seoDescriptionPreview }}</strong>
+                </div>
               </div>
-              <div class="summary-row">
-                <span>描述回退</span>
-                <strong>{{ seoDescriptionPreview }}</strong>
-              </div>
             </div>
-          </section>
+          </details>
         </aside>
       </div>
     </div>

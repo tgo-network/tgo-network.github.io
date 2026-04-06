@@ -128,14 +128,6 @@ const summaryItems = computed(() => [
     value: `${meta.value.total} 条`
   },
   {
-    label: "对象类型",
-    value: filters.targetType === "all" ? "全部" : formatTargetType(filters.targetType)
-  },
-  {
-    label: "动作",
-    value: filters.action === "all" ? "全部" : formatAction(filters.action)
-  },
-  {
     label: "分页",
     value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
@@ -342,16 +334,19 @@ onBeforeUnmount(() => {
           <article v-for="row in rows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap-tight">
             <div class="audit-log-head">
               <div class="audit-log-headline">
-                <div class="stacked-gap-tight">
+                <div class="audit-log-title-row">
                   <h3>{{ formatAction(row.action) }}</h3>
-                  <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
+
+                  <div class="audit-log-topline">
+                    <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
+                    <span class="status-pill">{{ formatSnapshotState(row) }}</span>
+                  </div>
                 </div>
 
-                <div class="audit-log-topline">
-                  <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
-                  <span class="status-pill">{{ formatSnapshotState(row) }}</span>
-                  <span class="status-pill">{{ row.targetId ? `ID ${row.targetId}` : "无目标 ID" }}</span>
-                </div>
+                <p class="audit-log-meta">
+                  {{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}
+                  <template v-if="row.targetId"> · 目标 ID {{ row.targetId }}</template>
+                </p>
               </div>
             </div>
 

@@ -166,6 +166,8 @@ const insertSnippet = async (snippet: string) => {
   .markdown-preview-panel,
   .markdown-preview-empty {
     min-height: 100%;
+    max-height: min(68vh, 720px);
+    overflow: auto;
     padding: 18px;
     border: 1px solid rgba(138, 108, 57, 0.12);
     border-radius: 20px;

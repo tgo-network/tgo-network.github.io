@@ -546,6 +546,10 @@ code {
   gap: 8px;
 }
 
+.summary-list-compact {
+  gap: 6px;
+}
+
 .summary-list-inline {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 12px;
@@ -585,6 +589,41 @@ code {
   margin: 0;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.detail-card {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-card > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  list-style: none;
+}
+
+.detail-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.detail-card > summary::after {
+  content: "展开";
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.detail-card[open] > summary::after {
+  content: "收起";
+}
+
+.detail-card-body {
+  display: grid;
+  gap: 12px;
 }
 
 .field-grid {
@@ -1421,6 +1460,11 @@ code {
   gap: 12px;
 }
 
+.audit-log-card {
+  padding: 12px;
+  border-radius: 18px;
+}
+
 .audit-log-card h3 {
   margin: 0;
   font-size: 1rem;
@@ -1428,27 +1472,33 @@ code {
 
 .audit-log-head {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .audit-log-headline {
+  display: grid;
+  gap: 6px;
+}
+
+.audit-log-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .audit-log-meta {
   margin: 0;
   color: var(--muted);
-  line-height: 1.5;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .audit-log-topline {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .audit-log-badges {
@@ -1475,7 +1525,7 @@ code {
 
 .audit-log-diff {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1557,6 +1607,7 @@ code {
 }
 
 .asset-meta .muted-row {
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
@@ -1719,12 +1770,6 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .editor-grid,
-  .editor-grid-compact,
-  .editor-grid-focus,
-  .editor-grid-balanced,
-  .editor-grid-role,
-  .editor-overview-grid,
   .panel-grid-2,
   .panel-grid-4,
   .audit-log-summary-grid,
@@ -1734,6 +1779,17 @@ code {
   .option-card-grid-2,
   .option-card-grid-3,
   .option-card-grid-5 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .editor-grid,
+  .editor-grid-compact,
+  .editor-grid-focus,
+  .editor-grid-balanced,
+  .editor-grid-role,
+  .editor-overview-grid {
     grid-template-columns: 1fr;
   }
 }

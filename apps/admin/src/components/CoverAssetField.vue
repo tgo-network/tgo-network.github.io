@@ -15,7 +15,7 @@ const props = withDefaults(
   }>(),
   {
     label: "封面资源",
-    help: "选择一个公开图片资源，让公开站可以将其作为封面媒体展示。",
+    help: "选择一个公开图片资源作为封面。",
     error: ""
   }
 );
@@ -80,7 +80,6 @@ const selectedValue = computed({
         <div class="asset-meta">
           <strong>{{ selectedAsset.originalFilename }}</strong>
           <div class="muted-row">{{ formatBytes(selectedAsset.byteSize) }} · {{ formatAssetVisibility(selectedAsset.visibility) }}</div>
-          <div class="muted-row">{{ selectedAsset.objectKey }}</div>
           <div v-if="selectedAsset.altText" class="muted-row">替代文本：{{ selectedAsset.altText }}</div>
           <div v-if="!isSelectableAsset(selectedAsset)" class="field-error">
             当前资源不是可用中的公开图片，建议替换。
