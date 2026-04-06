@@ -200,7 +200,7 @@ const loadRoles = async (preferredRoleId?: string) => {
         ? preferredRoleId
         : selectedRoleId.value && payload.roles.some((role) => role.id === selectedRoleId.value)
           ? selectedRoleId.value
-          : payload.roles[0]?.id ?? "";
+          : "";
 
     selectedRoleId.value = nextSelectedId;
     applySelectedRole(payload.roles.find((role) => role.id === nextSelectedId) ?? null);
@@ -225,6 +225,13 @@ const selectRole = (role: AdminRoleListItem) => {
   fieldIssues.value = {};
   clearFeedback();
   applySelectedRole(role);
+};
+
+const closeRoleEditor = () => {
+  selectedRoleId.value = "";
+  fieldIssues.value = {};
+  clearFeedback();
+  applySelectedRole(null);
 };
 
 const saveRole = async () => {
@@ -337,137 +344,132 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="editor-grid editor-grid-role">
-        <div class="panel panel-compact editor-main stacked-gap">
-          <div v-if="loading" class="panel panel-compact inset-panel empty-state-card">
-            <p>正在更新角色列表...</p>
+      <div class="panel panel-compact editor-main stacked-gap">
+        <div v-if="loading" class="panel panel-compact inset-panel empty-state-card">
+          <p>正在更新角色列表...</p>
+        </div>
+
+        <div v-else-if="meta.total === 0" class="panel panel-compact inset-panel empty-state-card">
+          <p>当前筛选条件下没有匹配的角色。</p>
+        </div>
+
+        <div v-else class="panel panel-compact table-panel inset-panel">
+          <div class="table-card-head">
+            <h3>角色列表</h3>
+            <span class="status-pill">当前 {{ meta.total }} 个</span>
           </div>
 
-          <div v-else-if="meta.total === 0" class="panel panel-compact inset-panel empty-state-card">
-            <p>当前筛选条件下没有匹配的角色。</p>
-          </div>
-
-          <div v-else class="panel panel-compact table-panel inset-panel">
-            <div class="table-card-head">
-              <h3>角色列表</h3>
-              <span class="status-pill">当前 {{ meta.total }} 个</span>
-            </div>
-
-            <table class="data-table data-table-fit data-table-compact">
-              <thead>
-                <tr>
-                  <th>角色</th>
-                  <th>更新时间</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="role in roles" :key="role.id" :class="{ 'table-row-selected': selectedRoleId === role.id }">
-                  <td>
-                    <div class="table-cell-stack">
-                      <strong>{{ role.name }}</strong>
-                      <div class="table-meta-row">
-                        <span>{{ role.code }}</span>
-                        <span>{{ role.isSystem ? "系统角色" : "自定义角色" }}</span>
-                        <span>{{ role.assignedStaffCount }} 人</span>
-                        <span>{{ role.permissionIds.length }} 权限</span>
-                      </div>
+          <table class="data-table data-table-fit data-table-compact data-table-role-list">
+            <thead>
+              <tr>
+                <th>角色</th>
+                <th>更新时间</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="role in roles" :key="role.id" :class="{ 'table-row-selected': selectedRoleId === role.id }">
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ role.name }}</strong>
+                    <div class="table-meta-row">
+                      <span>{{ role.code }}</span>
+                      <span>{{ role.isSystem ? "系统角色" : "自定义角色" }}</span>
+                      <span>{{ role.assignedStaffCount }} 人</span>
+                      <span>{{ role.permissionIds.length }} 权限</span>
                     </div>
-                  </td>
-                  <td>{{ formatDateTime(role.updatedAt) }}</td>
-                  <td class="table-actions-cell">
-                    <button class="button-link button-compact" type="button" @click="selectRole(role)">
-                      {{ selectedRoleId === role.id ? "编辑中" : "编辑" }}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </div>
+                </td>
+                <td class="table-cell-nowrap">{{ formatDateTime(role.updatedAt) }}</td>
+                <td class="table-actions-cell">
+                  <button class="button-link button-compact" type="button" @click="selectRole(role)">
+                    {{ selectedRoleId === role.id ? "编辑中" : "编辑" }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-            <div class="pagination-panel">
-              <div class="filter-summary">{{ paginationSummary }}</div>
+          <div class="pagination-panel">
+            <div class="filter-summary">{{ paginationSummary }}</div>
 
-              <div class="pagination-actions">
-                <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadRoles()">
-                  上一页
-                </button>
-                <button
-                  class="button-link"
-                  type="button"
-                  :disabled="loading || meta.page >= meta.pageCount"
-                  @click="currentPage = meta.page + 1; void loadRoles()"
-                >
-                  下一页
-                </button>
-              </div>
+            <div class="pagination-actions">
+              <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadRoles()">
+                上一页
+              </button>
+              <button
+                class="button-link"
+                type="button"
+                :disabled="loading || meta.page >= meta.pageCount"
+                @click="currentPage = meta.page + 1; void loadRoles()"
+              >
+                下一页
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <aside class="editor-side stacked-gap">
-          <template v-if="selectedRole">
-            <div class="panel panel-compact editor-side-card">
-              <div class="panel-toolbar">
-                <h3>编辑角色</h3>
-                <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
-                  {{ saving ? "保存中..." : "保存角色" }}
-                </button>
-              </div>
+      <div v-if="selectedRole" class="panel panel-compact editor-side-card">
+        <div class="panel-toolbar">
+          <h3>编辑角色</h3>
 
-              <div class="summary-list summary-list-inline">
-                <div v-for="item in selectedRoleMetaItems" :key="item.label" class="summary-row">
-                  <span>{{ item.label }}</span>
-                  <strong>{{ item.value }}</strong>
-                </div>
-              </div>
-
-              <label class="field">
-                <span>角色名称</span>
-                <input v-model="form.name" type="text" />
-                <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
-              </label>
-
-              <label class="field">
-                <span>描述</span>
-                <textarea v-model="form.description" rows="4"></textarea>
-                <small v-if="fieldIssues.description" class="field-error">{{ fieldIssues.description }}</small>
-              </label>
-
-              <section class="editor-section editor-section-compact stacked-gap">
-                <div class="panel-toolbar">
-                  <h3>权限</h3>
-                  <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>
-                </div>
-
-                <div class="selection-grid selection-grid-2 selection-grid-tight">
-                  <label
-                    v-for="permission in permissions"
-                    :key="permission.id"
-                    class="checkbox-row selection-card selection-card-compact"
-                    :class="{ 'is-active': form.permissionIds.includes(permission.id) }"
-                  >
-                    <input v-model="form.permissionIds" type="checkbox" :value="permission.id" />
-                    <div>
-                      <strong>{{ permission.name }}</strong>
-                      <small class="selection-card-code">{{ permission.code }}</small>
-                      <small>{{ formatPermissionResource(permission.resource) }} / {{ permission.action }}</small>
-                    </div>
-                  </label>
-                </div>
-                <small v-if="fieldIssues.permissionIds" class="field-error">{{ fieldIssues.permissionIds }}</small>
-              </section>
-
-              <div v-if="isSuperAdmin" class="panel inset-panel stacked-gap">
-                <p>`super_admin` 必须保留完整权限集。</p>
-              </div>
-            </div>
-          </template>
-
-          <div v-else class="panel panel-compact editor-side-card">
-            <h3>编辑角色</h3>
-            <p>请先从列表中选择一个角色。</p>
+          <div class="page-actions page-actions-compact">
+            <button class="button-link" type="button" @click="closeRoleEditor">关闭</button>
+            <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
+              {{ saving ? "保存中..." : "保存角色" }}
+            </button>
           </div>
-        </aside>
+        </div>
+
+        <div class="summary-list summary-list-inline">
+          <div v-for="item in selectedRoleMetaItems" :key="item.label" class="summary-row">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+        </div>
+
+        <div class="field-grid field-grid-2">
+          <label class="field">
+            <span>角色名称</span>
+            <input v-model="form.name" type="text" />
+            <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
+          </label>
+
+          <label class="field">
+            <span>描述</span>
+            <textarea v-model="form.description" rows="4"></textarea>
+            <small v-if="fieldIssues.description" class="field-error">{{ fieldIssues.description }}</small>
+          </label>
+        </div>
+
+        <section class="editor-section editor-section-compact stacked-gap">
+          <div class="panel-toolbar">
+            <h3>权限</h3>
+            <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>
+          </div>
+
+          <div class="selection-grid selection-grid-2 selection-grid-tight">
+            <label
+              v-for="permission in permissions"
+              :key="permission.id"
+              class="checkbox-row selection-card selection-card-compact"
+              :class="{ 'is-active': form.permissionIds.includes(permission.id) }"
+            >
+              <input v-model="form.permissionIds" type="checkbox" :value="permission.id" />
+              <div>
+                <strong>{{ permission.name }}</strong>
+                <small class="selection-card-code">{{ permission.code }}</small>
+                <small>{{ formatPermissionResource(permission.resource) }} / {{ permission.action }}</small>
+              </div>
+            </label>
+          </div>
+          <small v-if="fieldIssues.permissionIds" class="field-error">{{ fieldIssues.permissionIds }}</small>
+        </section>
+
+        <div v-if="isSuperAdmin" class="panel inset-panel stacked-gap">
+          <p>`super_admin` 必须保留完整权限集。</p>
+        </div>
       </div>
     </template>
   </section>

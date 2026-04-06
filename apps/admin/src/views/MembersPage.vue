@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
 
       <template v-else-if="hasResults">
         <div class="panel panel-compact table-panel">
-          <table class="data-table">
+          <table class="data-table data-table-member-list">
             <thead>
               <tr>
                 <th>姓名</th>
@@ -331,12 +331,12 @@ onBeforeUnmount(() => {
                     <div class="muted-row">{{ row.title }}</div>
                   </div>
                 </td>
-                <td>{{ row.branchName || "未分配" }}</td>
-                <td><span class="status-pill">{{ formatMembershipStatus(row.membershipStatus) }}</span></td>
-                <td><span class="status-pill">{{ formatMemberVisibility(row.visibility) }}</span></td>
-                <td>{{ formatDateTime(row.joinedAt) }}</td>
+                <td class="table-cell-nowrap">{{ row.branchName || "未分配" }}</td>
+                <td class="table-cell-nowrap"><span class="status-pill">{{ formatMembershipStatus(row.membershipStatus) }}</span></td>
+                <td class="table-cell-nowrap"><span class="status-pill">{{ formatMemberVisibility(row.visibility) }}</span></td>
+                <td class="table-cell-nowrap">{{ formatDateTime(row.joinedAt) }}</td>
                 <td class="table-actions-cell">
-                  <div class="table-action-list">
+                  <div class="table-action-list table-action-list-inline">
                     <RouterLink class="table-link" :to="`/members/${row.id}/edit`">编辑</RouterLink>
                     <a class="table-link" :href="`/members/${row.slug}`" target="_blank" rel="noreferrer">前台预览</a>
                   </div>

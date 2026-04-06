@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
 
       <template v-else-if="hasResults">
         <div class="panel panel-compact table-panel">
-          <table class="data-table">
+          <table class="data-table data-table-application-list">
             <thead>
               <tr>
                 <th>申请人</th>
@@ -302,9 +302,9 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </td>
-                <td>{{ row.targetBranchName || "未指定" }}</td>
-                <td><span class="status-pill">{{ formatApplicationStatus(row.status) }}</span></td>
-                <td>{{ formatDateTime(row.createdAt) }}</td>
+                <td class="table-cell-nowrap">{{ row.targetBranchName || "未指定" }}</td>
+                <td class="table-cell-nowrap"><span class="status-pill">{{ formatApplicationStatus(row.status) }}</span></td>
+                <td class="table-cell-nowrap">{{ formatDateTime(row.createdAt) }}</td>
                 <td class="table-actions-cell">
                   <RouterLink class="table-link" :to="`/applications/${row.id}`">进入审核</RouterLink>
                 </td>
