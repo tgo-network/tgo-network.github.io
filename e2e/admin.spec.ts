@@ -62,13 +62,15 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await page.getByRole("link", { name: "Staff", exact: true }).click();
   await expect(page).toHaveURL(/\/staff$/);
   await expect(page.getByRole("heading", { name: "工作人员", exact: true })).toBeVisible();
-  await expect(page.getByPlaceholder("搜索姓名、邮箱、角色或状态")).toBeVisible();
+  const staffFilters = page.locator(".filter-panel").first();
+  await expect(staffFilters.getByLabel("状态")).toBeVisible();
+  await expect(staffFilters.getByLabel("角色")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-staff");
 
   await page.getByRole("link", { name: "角色", exact: true }).click();
   await expect(page).toHaveURL(/\/roles$/);
   await expect(page.getByRole("heading", { name: "角色", exact: true })).toBeVisible();
-  await expect(page.getByPlaceholder("搜索角色名称、代码、描述或权限代码")).toBeVisible();
+  await expect(page.getByRole("button", { name: "系统角色" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-roles");
 
   await page.getByRole("link", { name: "会员", exact: true }).click();
@@ -81,7 +83,7 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await page.goto(`${adminUrl}/audit-logs`);
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
-  await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();
+  await expect(page.getByPlaceholder("搜索动作、对象、操作人或目标 ID")).toBeVisible();
 
   await page.getByRole("button", { name: "退出登录" }).click();
   await expect(page).toHaveURL(/\/login$/);
@@ -234,7 +236,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "日志", exact: true }).click();
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
-  await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();
+  await expect(page.getByPlaceholder("搜索动作、对象、操作人或目标 ID")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-audit-logs");
 });
 

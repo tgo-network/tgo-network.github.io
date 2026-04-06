@@ -24,10 +24,10 @@ const createIssues = ref<Record<string, string>>({});
 const editIssues = ref<Record<string, string>>({});
 const selectedStaffId = ref("");
 const filters = reactive({
-  query: "",
   status: "all",
   roleId: "all"
 });
+const visibleStaffStatusOptions = staffAccountStatusOptions.filter((option) => option.value !== "invited");
 
 const createForm = reactive<AdminStaffCreateInput>({
   email: "",
@@ -47,7 +47,13 @@ const editForm = reactive<AdminStaffUpdateInput>({
 });
 
 const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
+const editStatusOptions = computed(() =>
+  selectedStaff.value?.status === "invited"
+    ? [{ value: "invited", label: "待启用（遗留）" }, ...visibleStaffStatusOptions]
+    : visibleStaffStatusOptions
+);
 const roleOptions = computed(() => roles.value);
+const formatStaffStatus = (value: string | null | undefined) => (value === "invited" ? "待启用" : formatStaffAccountStatus(value));
 const selectedStaffMetaItems = computed(() => [
   {
     label: "邮箱",
@@ -55,7 +61,7 @@ const selectedStaffMetaItems = computed(() => [
   },
   {
     label: "状态",
-    value: selectedStaff.value ? formatStaffAccountStatus(selectedStaff.value.status) : "-"
+    value: selectedStaff.value ? formatStaffStatus(selectedStaff.value.status) : "-"
   },
   {
     label: "角色",
@@ -66,20 +72,14 @@ const selectedStaffMetaItems = computed(() => [
     value: formatDateTime(selectedStaff.value?.lastLoginAt)
   }
 ]);
-const filteredRows = computed(() => {
-  const query = filters.query.trim().toLowerCase();
-
-  return rows.value.filter((row) => {
-    const roleNames = row.roles.map((role) => `${role.name} ${role.code}`).join(" ");
-    const matchesQuery =
-      query.length === 0 ||
-      [row.name, row.email, roleNames, formatStaffAccountStatus(row.status)].some((value) => value.toLowerCase().includes(query));
+const filteredRows = computed(() =>
+  rows.value.filter((row) => {
     const matchesStatus = filters.status === "all" || row.status === filters.status;
     const matchesRole = filters.roleId === "all" || row.roles.some((role) => role.id === filters.roleId);
 
-    return matchesQuery && matchesStatus && matchesRole;
-  });
-});
+    return matchesStatus && matchesRole;
+  })
+);
 const summaryChips = computed(() => [
   {
     label: "当前",
@@ -90,8 +90,8 @@ const summaryChips = computed(() => [
     value: `${rows.value.filter((row) => row.status === "active").length} 个`
   },
   {
-    label: "已邀请",
-    value: `${rows.value.filter((row) => row.status === "invited").length} 个`
+    label: "已暂停",
+    value: `${rows.value.filter((row) => row.status === "suspended").length} 个`
   }
 ]);
 const quickFilters = [
@@ -112,19 +112,19 @@ const quickFilters = [
     }
   },
   {
-    key: "invited",
-    label: "已邀请",
-    matches: () => filters.status === "invited",
-    apply: () => {
-      filters.status = "invited";
-    }
-  },
-  {
     key: "suspended",
     label: "已暂停",
     matches: () => filters.status === "suspended",
     apply: () => {
       filters.status = "suspended";
+    }
+  },
+  {
+    key: "disabled",
+    label: "已停用",
+    matches: () => filters.status === "disabled",
+    apply: () => {
+      filters.status = "disabled";
     }
   }
 ] as const;
@@ -288,17 +288,12 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="field-grid field-grid-3">
-          <label class="field">
-            <span>搜索</span>
-            <input v-model="filters.query" type="search" placeholder="搜索姓名、邮箱、角色或状态" />
-          </label>
-
+        <div class="field-grid field-grid-2">
           <label class="field">
             <span>状态</span>
             <select v-model="filters.status">
               <option value="all">全部状态</option>
-              <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
+              <option v-for="option in visibleStaffStatusOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>
@@ -345,7 +340,7 @@ onMounted(() => {
                       <div class="muted-row">{{ row.email }}</div>
                     </div>
                   </td>
-                  <td><span class="status-pill">{{ formatStaffAccountStatus(row.status) }}</span></td>
+                  <td><span class="status-pill">{{ formatStaffStatus(row.status) }}</span></td>
                   <td>{{ formatRoleNames(row) }}</td>
                   <td>{{ formatDateTime(row.lastLoginAt) }}</td>
                   <td>{{ formatDateTime(row.updatedAt) }}</td>
@@ -392,7 +387,7 @@ onMounted(() => {
               <label class="field">
                 <span>状态</span>
                 <select v-model="editForm.status">
-                  <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
+                  <option v-for="option in editStatusOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
                   </option>
                 </select>
@@ -467,7 +462,7 @@ onMounted(() => {
               <label class="field">
                 <span>状态</span>
                 <select v-model="createForm.status">
-                  <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
+                  <option v-for="option in visibleStaffStatusOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
                   </option>
                 </select>

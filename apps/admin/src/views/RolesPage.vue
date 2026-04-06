@@ -35,7 +35,6 @@ const successMessage = ref("");
 const fieldIssues = ref<Record<string, string>>({});
 const selectedRoleId = ref("");
 const filters = reactive({
-  query: "",
   scope: "all"
 });
 
@@ -64,22 +63,15 @@ const selectedRoleMetaItems = computed(() => [
     value: formatDateTime(selectedRole.value?.updatedAt)
   }
 ]);
-const filteredRoles = computed(() => {
-  const query = filters.query.trim().toLowerCase();
-
-  return roles.value.filter((role) => {
-    const matchesQuery =
-      query.length === 0 ||
-      [role.name, role.code, role.description, role.permissionCodes.join(" ")].some((value) => value.toLowerCase().includes(query));
-    const matchesScope =
+const filteredRoles = computed(() =>
+  roles.value.filter(
+    (role) =>
       filters.scope === "all" ||
       (filters.scope === "system" && role.isSystem) ||
       (filters.scope === "assigned" && role.assignedStaffCount > 0) ||
-      (filters.scope === "empty" && role.permissionIds.length === 0);
-
-    return matchesQuery && matchesScope;
-  });
-});
+      (filters.scope === "empty" && role.permissionIds.length === 0)
+  )
+);
 const summaryChips = computed(() => [
   {
     label: "当前",
@@ -254,16 +246,9 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>搜索</span>
-            <input v-model="filters.query" type="search" placeholder="搜索角色名称、代码、描述或权限代码" />
-          </label>
-        </div>
       </div>
 
-      <div class="editor-grid editor-grid-balanced">
+      <div class="editor-grid editor-grid-role">
         <div class="panel panel-compact editor-main stacked-gap">
           <div v-if="filteredRoles.length === 0" class="panel panel-compact inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的角色。</p>
@@ -275,12 +260,10 @@ onMounted(() => {
               <span class="status-pill">当前 {{ filteredRoles.length }} 个</span>
             </div>
 
-            <table class="data-table">
+            <table class="data-table data-table-fit data-table-compact">
               <thead>
                 <tr>
                   <th>角色</th>
-                  <th>工作人员数</th>
-                  <th>权限数</th>
                   <th>更新时间</th>
                   <th></th>
                 </tr>
@@ -293,11 +276,11 @@ onMounted(() => {
                       <div class="table-meta-row">
                         <span>{{ role.code }}</span>
                         <span>{{ role.isSystem ? "系统角色" : "自定义角色" }}</span>
+                        <span>{{ role.assignedStaffCount }} 人</span>
+                        <span>{{ role.permissionIds.length }} 权限</span>
                       </div>
                     </div>
                   </td>
-                  <td>{{ role.assignedStaffCount }}</td>
-                  <td>{{ role.permissionIds.length }}</td>
                   <td>{{ formatDateTime(role.updatedAt) }}</td>
                   <td class="table-actions-cell">
                     <button class="button-link button-compact" type="button" @click="selectRole(role)">
@@ -345,11 +328,11 @@ onMounted(() => {
                   <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>
                 </div>
 
-                <div class="selection-grid selection-grid-2">
+                <div class="selection-grid selection-grid-2 selection-grid-tight">
                   <label
                     v-for="permission in permissions"
                     :key="permission.id"
-                    class="checkbox-row selection-card"
+                    class="checkbox-row selection-card selection-card-compact"
                     :class="{ 'is-active': form.permissionIds.includes(permission.id) }"
                   >
                     <input v-model="form.permissionIds" type="checkbox" :value="permission.id" />

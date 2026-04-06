@@ -84,14 +84,9 @@ const filteredRows = computed(() => {
   return rows.value.filter((row) => {
     const matchesQuery =
       query.length === 0 ||
-      [
-        formatAction(row.action),
-        formatTargetType(row.targetType),
-        formatActor(row),
-        row.targetId ?? "",
-        row.requestIp ?? "",
-        row.userAgent ?? ""
-      ].some((value) => value.toLowerCase().includes(query));
+      [formatAction(row.action), formatTargetType(row.targetType), formatActor(row), row.targetId ?? ""].some((value) =>
+        value.toLowerCase().includes(query)
+      );
     const matchesTargetType = filters.targetType === "all" || row.targetType === filters.targetType;
     const matchesAction = filters.action === "all" || row.action === filters.action;
     const matchesActionFamily = filters.actionFamily === "all" || row.action.endsWith(".update");
@@ -211,7 +206,7 @@ onMounted(async () => {
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
-            <input v-model="filters.query" type="search" placeholder="搜索动作、对象、操作人、目标 ID、IP 或浏览器标识" />
+            <input v-model="filters.query" type="search" placeholder="搜索动作、对象、操作人或目标 ID" />
           </label>
 
           <label class="field">
@@ -243,41 +238,27 @@ onMounted(async () => {
       <div v-else class="audit-log-list">
         <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap-tight">
           <div class="audit-log-head">
-            <div class="audit-log-topline">
-              <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
-              <span class="status-pill">{{ formatSnapshotState(row) }}</span>
-              <span class="status-pill">{{ row.targetId || "无目标 ID" }}</span>
-            </div>
-            <h3>{{ formatAction(row.action) }}</h3>
-            <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
-          </div>
+            <div class="audit-log-headline">
+              <div class="stacked-gap-tight">
+                <h3>{{ formatAction(row.action) }}</h3>
+                <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
+              </div>
 
-          <div class="summary-list audit-log-summary-grid">
-            <div class="summary-row">
-              <span>操作人</span>
-              <strong>{{ formatActor(row) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>目标对象</span>
-              <strong>{{ formatTargetType(row.targetType) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>请求 IP</span>
-              <strong>{{ row.requestIp || "-" }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>浏览器</span>
-              <strong class="audit-log-user-agent">{{ row.userAgent || "-" }}</strong>
+              <div class="audit-log-topline">
+                <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
+                <span class="status-pill">{{ formatSnapshotState(row) }}</span>
+                <span class="status-pill">{{ row.targetId ? `ID ${row.targetId}` : "无目标 ID" }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="audit-log-diff">
-            <details class="audit-log-detail">
+          <div v-if="row.beforeJson || row.afterJson" class="audit-log-diff">
+            <details v-if="row.beforeJson" class="audit-log-detail">
               <summary>变更前快照</summary>
               <pre class="json-preview">{{ formatJson(row.beforeJson) }}</pre>
             </details>
 
-            <details class="audit-log-detail">
+            <details v-if="row.afterJson" class="audit-log-detail">
               <summary>变更后快照</summary>
               <pre class="json-preview">{{ formatJson(row.afterJson) }}</pre>
             </details>
