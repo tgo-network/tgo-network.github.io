@@ -232,7 +232,6 @@ onMounted(() => {
               {{ item.label }}
             </button>
           </div>
-
         </div>
 
         <div class="field-grid field-grid-2">
@@ -245,11 +244,11 @@ onMounted(() => {
 
       <div class="editor-grid editor-grid-balanced">
         <div class="panel panel-compact editor-main stacked-gap">
-          <div v-if="filteredRoles.length === 0" class="panel inset-panel empty-state-card">
+          <div v-if="filteredRoles.length === 0" class="panel panel-compact inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的角色。</p>
           </div>
 
-          <div v-else class="panel table-panel inset-panel">
+          <div v-else class="panel panel-compact table-panel inset-panel">
             <div class="table-card-head">
               <h3>角色列表</h3>
               <span class="status-pill">当前 {{ filteredRoles.length }} 个</span>

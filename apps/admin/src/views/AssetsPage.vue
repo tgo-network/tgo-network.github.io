@@ -320,7 +320,7 @@ onMounted(() => {
       <p>{{ successMessage }}</p>
     </div>
 
-    <div class="editor-grid editor-grid-focus">
+    <div class="editor-grid editor-grid-compact">
       <div class="panel panel-compact editor-main stacked-gap">
         <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
@@ -496,11 +496,11 @@ onMounted(() => {
       <p>当前筛选条件下没有匹配的资源。</p>
     </div>
 
-    <div v-else class="panel table-panel">
+    <div v-else class="panel panel-compact table-panel">
       <div class="table-card-head">
         <h3>资源列表</h3>
 
-        <span class="status-pill">当前结果 {{ filteredRows.length }} 个</span>
+        <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
       </div>
 
       <table class="data-table assets-table">

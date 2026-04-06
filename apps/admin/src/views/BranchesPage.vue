@@ -147,11 +147,11 @@ onMounted(async () => {
         <p>当前筛选条件下没有匹配的分会。</p>
       </div>
 
-      <div v-else class="panel table-panel">
+      <div v-else class="panel panel-compact table-panel">
         <div class="table-card-head">
           <h3>分会列表</h3>
 
-          <span class="status-pill">当前结果 {{ filteredRows.length }} 个</span>
+          <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
         </div>
 
         <table class="data-table">

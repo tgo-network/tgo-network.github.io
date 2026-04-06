@@ -265,7 +265,6 @@ onMounted(() => {
               {{ item.label }}
             </button>
           </div>
-
         </div>
 
         <div class="field-grid field-grid-3">
@@ -301,11 +300,11 @@ onMounted(() => {
             <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
           </div>
 
-          <div v-if="filteredRows.length === 0" class="panel inset-panel empty-state-card">
+          <div v-if="filteredRows.length === 0" class="panel panel-compact inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的工作人员账号。</p>
           </div>
 
-          <div v-else class="panel table-panel inset-panel">
+          <div v-else class="panel panel-compact table-panel inset-panel">
             <table class="data-table">
               <thead>
                 <tr>
