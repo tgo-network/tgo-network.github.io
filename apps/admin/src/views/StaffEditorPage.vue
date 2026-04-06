@@ -4,15 +4,14 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import {
   staffAccountStatusOptions,
+  type AdminStaffEditorPayload,
   type AdminRoleSummary,
   type AdminStaffCreateInput,
   type AdminStaffListItem,
-  type AdminStaffListMeta,
-  type AdminStaffListPayload,
   type AdminStaffUpdateInput
 } from "@tgo/shared";
 
-import { adminFetch, adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
+import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import { formatDateTime, formatStaffAccountStatus } from "../lib/format";
 
 interface StaffFormState extends AdminStaffUpdateInput {
@@ -80,8 +79,8 @@ const metaItems = computed(() => [
 ]);
 
 const loadRoleOptions = async () => {
-  const payload = await adminFetchWithMeta<AdminStaffListPayload, AdminStaffListMeta>("/api/admin/v1/staff?page=1&pageSize=1");
-  roles.value = payload.data.roles;
+  const payload = await adminFetch<Pick<AdminStaffEditorPayload, "roles">>("/api/admin/v1/staff/references");
+  roles.value = payload.roles;
 };
 
 const applyStaff = (value: AdminStaffListItem | null) => {

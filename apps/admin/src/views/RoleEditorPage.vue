@@ -4,14 +4,13 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import {
   type AdminPermissionRecord,
+  type AdminRoleEditorPayload,
   type AdminRoleCreateInput,
   type AdminRoleListItem,
-  type AdminRolesListMeta,
-  type AdminRolesPayload,
   type AdminRoleUpdateInput
 } from "@tgo/shared";
 
-import { adminFetch, adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
+import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import { formatDateTime, slugify } from "../lib/format";
 
 interface RoleFormState extends AdminRoleUpdateInput {
@@ -86,8 +85,8 @@ const formatPermissionResource = (value: string) => resourceLabels[value] ?? val
 const toRoleCode = (value: string) => slugify(value).replace(/-/g, "_");
 
 const loadPermissions = async () => {
-  const payload = await adminFetchWithMeta<AdminRolesPayload, AdminRolesListMeta>("/api/admin/v1/roles?page=1&pageSize=1");
-  permissions.value = payload.data.permissions;
+  const payload = await adminFetch<Pick<AdminRoleEditorPayload, "permissions">>("/api/admin/v1/roles/references");
+  permissions.value = payload.permissions;
 };
 
 const applyRole = (value: AdminRoleListItem | null) => {

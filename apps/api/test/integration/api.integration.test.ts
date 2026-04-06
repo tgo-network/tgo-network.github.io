@@ -296,6 +296,29 @@ describe("admin and internal API integration", () => {
     assert.ok(reviewerRole, "Expected reviewer role to exist.");
     assert.ok(mediaManagerRole, "Expected media_manager role to exist.");
 
+    const staffReferencesResult = await requestJson("/api/admin/v1/staff/references", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(staffReferencesResult.response.status, 200);
+    assert.ok(Array.isArray(staffReferencesResult.payload.data.roles));
+    assert.ok(
+      staffReferencesResult.payload.data.roles.some((role: { code: string }) => role.code === "reviewer"),
+      "Expected reviewer role in staff references."
+    );
+
+    const roleReferencesResult = await requestJson("/api/admin/v1/roles/references", {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(roleReferencesResult.response.status, 200);
+    assert.ok(Array.isArray(roleReferencesResult.payload.data.permissions));
+    assert.ok(roleReferencesResult.payload.data.permissions.length > 0, "Expected role permissions in references.");
+
     const customRoleCode = `ops_${randomUUID().replace(/-/g, "_")}`;
     const customRoleCreateResult = await requestJson("/api/admin/v1/roles", {
       method: "POST",

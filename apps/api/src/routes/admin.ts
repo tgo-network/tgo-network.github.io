@@ -863,6 +863,20 @@ adminRoutes.post("/staff", requireActiveStaff("staff.manage"), async (c) => {
   }
 });
 
+adminRoutes.get("/staff/references", requireActiveStaff("staff.manage"), async (c) => {
+  try {
+    const payload = await getAdminStaffEditorPayload();
+
+    return c.json(
+      ok({
+        roles: payload.roles
+      })
+    );
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
+});
+
 adminRoutes.get("/staff/:id", requireActiveStaff("staff.manage"), async (c) => {
   try {
     return c.json(ok((await getAdminStaffEditorPayload(c.req.param("id"))).staff));
@@ -917,6 +931,20 @@ adminRoutes.get("/roles", requireActiveStaff("role.manage"), async (c) => {
       meta
     )
   );
+});
+
+adminRoutes.get("/roles/references", requireActiveStaff("role.manage"), async (c) => {
+  try {
+    const payload = await getAdminRoleEditorPayload();
+
+    return c.json(
+      ok({
+        permissions: payload.permissions
+      })
+    );
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
 });
 
 adminRoutes.get("/roles/:id", requireActiveStaff("role.manage"), async (c) => {
