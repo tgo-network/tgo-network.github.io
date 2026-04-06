@@ -84,14 +84,6 @@ const summaryChips = computed(() => [
   {
     label: "有效成员",
     value: `${meta.value.stats.active} 位`
-  },
-  {
-    label: "公开资料",
-    value: `${meta.value.stats.public} 位`
-  },
-  {
-    label: "分页",
-    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [

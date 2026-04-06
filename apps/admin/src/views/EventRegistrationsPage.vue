@@ -46,16 +46,8 @@ const createEmptyMeta = (nextPageSize: number): AdminEventRegistrationListMetaV2
 
 const summaryChips = computed(() => [
   {
-    label: "活动标识",
-    value: eventSlug.value || "-"
-  },
-  {
     label: "报名数",
     value: `${meta.value.total} 条`
-  },
-  {
-    label: "已审核",
-    value: `${meta.value.reviewedCount} 条`
   },
   {
     label: "待处理",
@@ -175,20 +167,26 @@ onBeforeUnmount(() => {
     </div>
 
     <template v-else>
-      <div class="filter-toolbar">
-        <div class="summary-chip-row">
-          <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.value }}</strong>
+      <div class="panel panel-compact filter-panel filter-panel-compact">
+        <div class="filter-toolbar">
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            <div class="summary-chip">
+              <span>活动标识</span>
+              <strong>{{ eventSlug || "-" }}</strong>
+            </div>
           </div>
-        </div>
 
-        <label class="field">
-          <span>每页数量</span>
-          <select v-model.number="pageSize">
-            <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
-          </select>
-        </label>
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="pageSize">
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div v-if="loading" class="panel">
@@ -201,29 +199,49 @@ onBeforeUnmount(() => {
 
       <template v-else>
         <div class="panel panel-compact table-panel">
-          <table class="data-table">
+          <div class="table-card-head">
+            <h3>报名列表</h3>
+            <span class="status-pill">已审核 {{ meta.reviewedCount }} 条</span>
+          </div>
+
+          <table class="data-table data-table-event-registration-list">
             <thead>
               <tr>
                 <th>报名人</th>
                 <th>联系方式</th>
                 <th>公司 / 职称</th>
                 <th>状态</th>
-                <th>提交时间</th>
-                <th>审核时间</th>
+                <th>时间</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in registrations" :key="row.id">
-                <td><strong>{{ row.name }}</strong></td>
                 <td>
-                  <div>{{ row.phoneNumber }}</div>
-                  <div class="muted-row">{{ row.wechatId || row.email || "未填写微信或邮箱" }}</div>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.name }}</strong>
+                    <div class="muted-row">报名编号 {{ row.id }}</div>
+                  </div>
                 </td>
-                <td>{{ row.company || "-" }} · {{ row.title || "-" }}</td>
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.phoneNumber }}</strong>
+                    <div class="muted-row">{{ row.wechatId || row.email || "未填写微信或邮箱" }}</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.company || "-" }}</strong>
+                    <div class="muted-row">{{ row.title || "-" }}</div>
+                  </div>
+                </td>
                 <td><span class="status-pill">{{ formatEventRegistrationStatus(row.status) }}</span></td>
-                <td>{{ formatDateTime(row.createdAt) }}</td>
-                <td>{{ formatDateTime(row.reviewedAt) }}</td>
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ formatDateTime(row.createdAt) }}</strong>
+                    <div class="muted-row">审核 {{ formatDateTime(row.reviewedAt) }}</div>
+                  </div>
+                </td>
                 <td class="table-actions-cell">
                   <RouterLink class="table-link" :to="`/registrations/${row.id}`">审核</RouterLink>
                 </td>

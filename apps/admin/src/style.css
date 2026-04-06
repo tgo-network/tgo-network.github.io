@@ -383,6 +383,10 @@ code {
   min-width: 760px;
 }
 
+.data-table-event-registration-list {
+  min-width: 900px;
+}
+
 .data-table-fit {
   min-width: 0;
 }
