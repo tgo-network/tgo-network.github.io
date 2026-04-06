@@ -118,7 +118,7 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4">
+      <div class="dashboard-overview-grid">
         <article v-for="item in overviewCards" :key="item.label" class="panel panel-compact stat-panel dashboard-stat-card">
           <span class="dashboard-stat-label">{{ item.label }}</span>
           <strong>{{ item.value }}</strong>
@@ -160,7 +160,10 @@ onMounted(async () => {
 
 <style scoped>
   .dashboard-stat-card {
-    gap: 10px;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
   }
 
   .dashboard-stat-label {
@@ -169,6 +172,22 @@ onMounted(async () => {
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .dashboard-overview-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .dashboard-stat-card :deep(strong) {
+    margin-top: 0;
+    font-size: clamp(1.9rem, 3vw, 2.5rem);
+  }
+
+  .dashboard-stat-card :deep(p) {
+    margin: 0;
+    line-height: 1.45;
   }
 
   .dashboard-quick-links {
@@ -210,8 +229,20 @@ onMounted(async () => {
     outline: none;
   }
 
+  @media (max-width: 1100px) {
+    .dashboard-overview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 900px) {
     .dashboard-quick-links {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-overview-grid {
       grid-template-columns: 1fr;
     }
   }

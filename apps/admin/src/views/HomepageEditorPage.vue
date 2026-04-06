@@ -239,7 +239,7 @@ onMounted(() => {
 
             <label class="field">
               <span>摘要</span>
-              <textarea v-model="form.heroSummary" rows="4" placeholder="说明首页首屏的核心表达。" />
+              <textarea v-model="form.heroSummary" rows="3" placeholder="说明首页首屏的核心表达。" />
             </label>
 
             <div class="field-grid field-grid-2">
@@ -276,7 +276,7 @@ onMounted(() => {
 
             <label class="field">
               <span>介绍摘要</span>
-              <textarea v-model="form.introSummary" rows="4" placeholder="说明组织形式、覆盖人群和整体定位。" />
+              <textarea v-model="form.introSummary" rows="3" placeholder="说明组织形式、覆盖人群和整体定位。" />
             </label>
 
             <label class="field">
@@ -297,98 +297,98 @@ onMounted(() => {
             </div>
           </section>
 
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>关键指标</h3>
-            </div>
+          <details class="panel panel-compact detail-card" open>
+            <summary>关键指标</summary>
 
-            <div class="panel inset-panel panel-compact stacked-gap">
-              <div class="panel-toolbar">
-                <strong>指标列表</strong>
-                <button class="button-link button-compact" type="button" @click="addMetric">添加指标</button>
-              </div>
-
-              <div v-for="(_, index) in form.metrics" :key="`metric-${index}`" class="panel panel-compact stacked-gap">
+            <div class="detail-card-body">
+              <div class="panel inset-panel panel-compact stacked-gap">
                 <div class="panel-toolbar">
-                  <strong>指标 {{ index + 1 }}</strong>
-                  <button class="button-link button-danger button-compact" type="button" @click="removeMetric(index)">移除</button>
+                  <strong>指标列表</strong>
+                  <button class="button-link button-compact" type="button" @click="addMetric">添加指标</button>
                 </div>
 
-                <div class="field-grid field-grid-3">
-                  <label class="field">
-                    <span>标签</span>
-                    <input v-model="form.metrics[index].label" type="text" placeholder="覆盖城市" />
-                  </label>
-                  <label class="field">
-                    <span>数值</span>
-                    <input v-model="form.metrics[index].value" type="text" placeholder="3+" />
-                  </label>
-                  <label class="field">
-                    <span>说明</span>
-                    <input v-model="form.metrics[index].description" type="text" placeholder="先从重点分会启动" />
-                  </label>
+                <div v-for="(_, index) in form.metrics" :key="`metric-${index}`" class="panel panel-compact stacked-gap">
+                  <div class="panel-toolbar">
+                    <strong>指标 {{ index + 1 }}</strong>
+                    <button class="button-link button-danger button-compact" type="button" @click="removeMetric(index)">移除</button>
+                  </div>
+
+                  <div class="field-grid field-grid-3">
+                    <label class="field">
+                      <span>标签</span>
+                      <input v-model="form.metrics[index].label" type="text" placeholder="覆盖城市" />
+                    </label>
+                    <label class="field">
+                      <span>数值</span>
+                      <input v-model="form.metrics[index].value" type="text" placeholder="3+" />
+                    </label>
+                    <label class="field">
+                      <span>说明</span>
+                      <input v-model="form.metrics[index].description" type="text" placeholder="先从重点分会启动" />
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-          </section>
+          </details>
 
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>首页精选</h3>
+          <details class="panel panel-compact detail-card">
+            <summary>首页精选</summary>
+
+            <div class="detail-card-body">
+              <div class="field-grid field-grid-3">
+                <label class="field">
+                  <span>精选文章</span>
+                  <select v-model="form.featuredArticleIds" multiple size="6">
+                    <option v-for="option in references.articles" :key="option.id" :value="option.id">{{ option.label }}</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>精选活动</span>
+                  <select v-model="form.featuredEventIds" multiple size="6">
+                    <option v-for="option in references.events" :key="option.id" :value="option.id">{{ option.label }}</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>分会高亮</span>
+                  <select v-model="form.branchHighlightIds" multiple size="6">
+                    <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+                  </select>
+                </label>
+              </div>
             </div>
+          </details>
 
-            <div class="field-grid field-grid-3">
+          <details class="panel panel-compact detail-card">
+            <summary>加入引导</summary>
+
+            <div class="detail-card-body stacked-gap">
               <label class="field">
-                <span>精选文章</span>
-                <select v-model="form.featuredArticleIds" multiple size="6">
-                  <option v-for="option in references.articles" :key="option.id" :value="option.id">{{ option.label }}</option>
-                </select>
+                <span>标题</span>
+                <input v-model="form.joinTitle" type="text" placeholder="成为下一位加入网络的技术领导者" />
               </label>
 
               <label class="field">
-                <span>精选活动</span>
-                <select v-model="form.featuredEventIds" multiple size="6">
-                  <option v-for="option in references.events" :key="option.id" :value="option.id">{{ option.label }}</option>
-                </select>
+                <span>摘要</span>
+                <textarea v-model="form.joinSummary" rows="3" placeholder="说明加入入口和转化路径。" />
               </label>
 
               <label class="field">
-                <span>分会高亮</span>
-                <select v-model="form.branchHighlightIds" multiple size="6">
-                  <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
-                </select>
+                <span>按钮链接</span>
+                <input v-model="form.joinHref" type="text" placeholder="/join" />
+                <small v-if="fieldIssues.joinHref" class="field-error">{{ fieldIssues.joinHref }}</small>
               </label>
             </div>
-          </section>
-
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>加入引导</h3>
-            </div>
-
-            <label class="field">
-              <span>标题</span>
-              <input v-model="form.joinTitle" type="text" placeholder="成为下一位加入网络的技术领导者" />
-            </label>
-
-            <label class="field">
-              <span>摘要</span>
-              <textarea v-model="form.joinSummary" rows="4" placeholder="说明加入入口和转化路径。" />
-            </label>
-
-            <label class="field">
-              <span>按钮链接</span>
-              <input v-model="form.joinHref" type="text" placeholder="/join" />
-              <small v-if="fieldIssues.joinHref" class="field-error">{{ fieldIssues.joinHref }}</small>
-            </label>
-          </section>
+          </details>
         </div>
 
         <aside class="editor-side stacked-gap">
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>当前状态</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div v-for="item in homepageMetaItems" :key="item.label" class="summary-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
@@ -399,7 +399,7 @@ onMounted(() => {
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>当前精选内容</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div class="summary-row">
                 <span>精选文章</span>
                 <strong>{{ selectedArticleLabels.slice(0, 3).join(" / ") || "尚未选择" }}</strong>

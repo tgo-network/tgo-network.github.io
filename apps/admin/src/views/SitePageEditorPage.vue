@@ -210,7 +210,7 @@ onMounted(() => {
 
             <label class="field">
               <span>摘要</span>
-              <textarea v-model="form.summary" rows="4" placeholder="用于前台首屏摘要与 SEO 回退。" />
+              <textarea v-model="form.summary" rows="3" placeholder="用于前台首屏摘要与 SEO 回退。" />
             </label>
           </section>
 
@@ -223,7 +223,7 @@ onMounted(() => {
               <span>正文</span>
               <textarea
                 v-model="form.body"
-                rows="16"
+                rows="14"
                 placeholder="可按段落书写，建议每段之间空一行。公开前台会根据空行拆分展示。"
               />
               <small class="field-hint">{{ bodyHint }}</small>
@@ -231,30 +231,30 @@ onMounted(() => {
             </label>
           </section>
 
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>SEO（可选）</h3>
-            </div>
+          <details class="panel panel-compact detail-card">
+            <summary>SEO（可选）</summary>
 
-            <div class="field-grid field-grid-2">
-              <label class="field">
-                <span>SEO 标题</span>
-                <input v-model="form.seoTitle" type="text" placeholder="可选，不填则回退页面标题。" />
-              </label>
+            <div class="detail-card-body">
+              <div class="field-grid field-grid-2">
+                <label class="field">
+                  <span>SEO 标题</span>
+                  <input v-model="form.seoTitle" type="text" placeholder="可选，不填则回退页面标题。" />
+                </label>
 
-              <label class="field">
-                <span>SEO 描述</span>
-                <textarea v-model="form.seoDescription" rows="4" placeholder="可选，不填则回退摘要。" />
-              </label>
+                <label class="field">
+                  <span>SEO 描述</span>
+                  <textarea v-model="form.seoDescription" rows="3" placeholder="可选，不填则回退摘要。" />
+                </label>
+              </div>
             </div>
-          </section>
+          </details>
         </div>
 
         <aside class="editor-side stacked-gap">
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>当前状态</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div v-for="item in pageMetaItems" :key="item.label" class="summary-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
@@ -265,7 +265,7 @@ onMounted(() => {
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>SEO 回退</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div class="summary-row">
                 <span>标题</span>
                 <strong>{{ seoTitlePreview }}</strong>
