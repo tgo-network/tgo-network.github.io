@@ -570,6 +570,14 @@ code {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.field-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.field-grid-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .field {
   display: grid;
   gap: 5px;
@@ -1647,6 +1655,8 @@ code {
   .audit-log-diff,
   .field-grid-2,
   .field-grid-3,
+  .field-grid-4,
+  .field-grid-5,
   .login-layout,
   .login-highlight-grid,
   .option-card-grid-2,

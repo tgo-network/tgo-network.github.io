@@ -80,6 +80,20 @@ const filteredRoles = computed(() => {
     return matchesQuery && matchesScope;
   });
 });
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${filteredRoles.value.length} 个`
+  },
+  {
+    label: "系统角色",
+    value: `${roles.value.filter((role) => role.isSystem).length} 个`
+  },
+  {
+    label: "已分配",
+    value: `${roles.value.filter((role) => role.assignedStaffCount > 0).length} 个`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -231,6 +245,13 @@ onMounted(() => {
             >
               {{ item.label }}
             </button>
+          </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
           </div>
         </div>
 

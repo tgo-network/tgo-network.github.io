@@ -80,6 +80,20 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesRole;
   });
 });
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${filteredRows.value.length} 个`
+  },
+  {
+    label: "启用中",
+    value: `${rows.value.filter((row) => row.status === "active").length} 个`
+  },
+  {
+    label: "已邀请",
+    value: `${rows.value.filter((row) => row.status === "invited").length} 个`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -264,6 +278,13 @@ onMounted(() => {
             >
               {{ item.label }}
             </button>
+          </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
           </div>
         </div>
 

@@ -88,6 +88,24 @@ const hasResults = computed(() => meta.value.total > 0);
 const paginationSummary = computed(
   () => `第 ${meta.value.page} / ${meta.value.pageCount} 页 · 每页 ${meta.value.pageSize} 条 · 当前 ${rows.value.length} 条`
 );
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${meta.value.total} 场`
+  },
+  {
+    label: "开放报名",
+    value: `${meta.value.stats.open} 场`
+  },
+  {
+    label: "候补中",
+    value: `${meta.value.stats.waitlist} 场`
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -237,9 +255,16 @@ onBeforeUnmount(() => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
         </div>
 
-        <div class="field-grid field-grid-3">
+        <div class="field-grid field-grid-5">
           <label class="field">
             <span>搜索</span>
             <input v-model="filters.query" type="search" placeholder="搜索标题、slug 或分会" />
@@ -260,9 +285,7 @@ onBeforeUnmount(() => {
               <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </label>
-        </div>
 
-        <div class="field-grid field-grid-3">
           <label class="field">
             <span>分会</span>
             <select v-model="filters.branchId">
@@ -290,11 +313,6 @@ onBeforeUnmount(() => {
 
       <template v-else-if="hasResults">
         <div class="panel panel-compact table-panel">
-          <div class="table-card-head">
-            <h3>活动列表</h3>
-            <span class="status-pill">{{ paginationSummary }}</span>
-          </div>
-
           <table class="data-table">
             <thead>
               <tr>
@@ -336,7 +354,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="pagination-panel">
-          <div class="filter-summary">共 {{ meta.total }} 条</div>
+          <div class="filter-summary">{{ paginationSummary }}</div>
 
           <div class="pagination-actions">
             <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">

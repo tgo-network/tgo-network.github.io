@@ -17,6 +17,24 @@ const eventSlug = ref("");
 const registrations = ref<AdminEventRegistrationListItemV2[]>([]);
 
 const reviewedCount = computed(() => registrations.value.filter((row) => row.reviewedAt).length);
+const summaryChips = computed(() => [
+  {
+    label: "活动标识",
+    value: eventSlug.value || "-"
+  },
+  {
+    label: "报名数",
+    value: `${registrations.value.length} 条`
+  },
+  {
+    label: "已审核",
+    value: `${reviewedCount.value} 条`
+  },
+  {
+    label: "待处理",
+    value: `${registrations.value.length - reviewedCount.value} 条`
+  }
+]);
 
 const loadRegistrations = async () => {
   const nextEventId = typeof route.params.id === "string" ? route.params.id : "";
@@ -49,12 +67,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>{{ eventTitle }}</h2>
-        <p>审核这场活动的报名信息，并同步更新报名状态、审核备注与成员关联。</p>
-      </div>
+      <h2>{{ eventTitle }}</h2>
 
       <div class="page-actions">
         <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
@@ -63,41 +78,26 @@ onMounted(() => {
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
-      <div class="brand-tag">API 错误</div>
       <p>{{ errorMessage }}</p>
     </div>
 
     <div v-else-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在加载活动报名...</p>
     </div>
 
     <template v-else>
-      <div class="panel-grid panel-grid-4" style="margin-bottom: 18px;">
-        <article class="panel stat-panel">
-          <div class="brand-tag">活动</div>
-          <strong>{{ eventSlug || "-" }}</strong>
-        </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">报名数</div>
-          <strong>{{ registrations.length }}</strong>
-        </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">已审核</div>
-          <strong>{{ reviewedCount }}</strong>
-        </article>
-        <article class="panel stat-panel">
-          <div class="brand-tag">待处理</div>
-          <strong>{{ registrations.length - reviewedCount }}</strong>
-        </article>
+      <div class="summary-chip-row">
+        <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </div>
       </div>
 
       <div v-if="registrations.length === 0" class="panel">
-        <div class="brand-tag">暂无报名</div>
         <p>这场活动暂时还没有收到报名提交。</p>
       </div>
 
-      <div v-else class="panel table-panel">
+      <div v-else class="panel panel-compact table-panel">
         <table class="data-table">
           <thead>
             <tr>

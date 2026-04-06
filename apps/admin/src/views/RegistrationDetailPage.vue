@@ -29,6 +29,34 @@ const form = reactive<AdminEventRegistrationUpdateInputV2>({
 });
 
 const registrationId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
+const overviewItems = computed(() => {
+  if (!registration.value || !eventInfo.value) {
+    return [];
+  }
+
+  return [
+    {
+      label: "报名状态",
+      value: formatEventRegistrationState(eventInfo.value.registrationState)
+    },
+    {
+      label: "活动",
+      value: eventInfo.value.title
+    },
+    {
+      label: "开始时间",
+      value: formatDateTime(eventInfo.value.startsAt)
+    },
+    {
+      label: "提交时间",
+      value: formatDateTime(registration.value.createdAt)
+    },
+    {
+      label: "审核时间",
+      value: formatDateTime(registration.value.reviewedAt)
+    }
+  ];
+});
 
 const loadRegistration = async () => {
   loading.value = true;
@@ -181,43 +209,15 @@ onMounted(() => {
             <span>审核备注</span>
             <textarea v-model="form.reviewNotes" rows="8" placeholder="记录通过、拒绝、候补或后续联系建议。" />
           </label>
-        </div>
 
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>活动信息</h3>
-
-          <div class="summary-list">
-            <div class="summary-row">
-              <span>活动</span>
-              <strong>{{ eventInfo.title }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>URL 标识</span>
-              <strong>/{{ eventInfo.slug }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>报名状态</span>
-              <strong class="status-pill">{{ formatEventRegistrationState(eventInfo.registrationState) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>开始时间</span>
-              <strong>{{ formatDateTime(eventInfo.startsAt) }}</strong>
+          <div class="summary-list summary-list-inline">
+            <div v-for="item in overviewItems" :key="item.label" class="summary-row">
+              <span>{{ item.label }}</span>
+              <strong :class="{ 'status-pill': item.label === '报名状态' }">{{ item.value }}</strong>
             </div>
           </div>
-        </div>
-
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>提交记录</h3>
 
           <div class="summary-list">
-            <div class="summary-row">
-              <span>提交时间</span>
-              <strong>{{ formatDateTime(registration.createdAt) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>审核时间</span>
-              <strong>{{ formatDateTime(registration.reviewedAt) }}</strong>
-            </div>
             <div class="summary-row">
               <span>提交 IP</span>
               <strong>{{ registration.submittedIp || "未记录" }}</strong>

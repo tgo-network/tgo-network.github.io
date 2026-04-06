@@ -36,6 +36,20 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesMembership && matchesVisibility && matchesBranch;
   });
 });
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${filteredRows.value.length} 位`
+  },
+  {
+    label: "有效成员",
+    value: `${rows.value.filter((row) => row.membershipStatus === "active").length} 位`
+  },
+  {
+    label: "公开资料",
+    value: `${rows.value.filter((row) => row.visibility === "public").length} 位`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -123,9 +137,16 @@ onMounted(async () => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
         </div>
 
-        <div class="field-grid field-grid-3">
+        <div class="field-grid field-grid-4">
           <label class="field">
             <span>搜索</span>
             <input v-model="filters.query" type="search" placeholder="搜索姓名、slug、公司、职称或分会" />
@@ -149,9 +170,7 @@ onMounted(async () => {
               <option value="private">私有</option>
             </select>
           </label>
-        </div>
 
-        <div class="field-grid field-grid-3">
           <label class="field">
             <span>分会</span>
             <select v-model="filters.branch">
@@ -167,11 +186,6 @@ onMounted(async () => {
       </div>
 
       <div v-else class="panel panel-compact table-panel">
-        <div class="table-card-head">
-          <h3>成员列表</h3>
-          <span class="status-pill">当前 {{ filteredRows.length }} 位</span>
-        </div>
-
         <table class="data-table">
           <thead>
             <tr>

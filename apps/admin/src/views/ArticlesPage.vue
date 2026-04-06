@@ -34,6 +34,16 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesBranch;
   });
 });
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${filteredRows.value.length} 篇`
+  },
+  {
+    label: "已发布",
+    value: `${rows.value.filter((row) => row.status === "published").length} 篇`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -116,6 +126,13 @@ onMounted(async () => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
         </div>
 
         <div class="field-grid field-grid-3">
@@ -147,11 +164,6 @@ onMounted(async () => {
       </div>
 
       <div v-else class="panel panel-compact table-panel">
-        <div class="table-card-head">
-          <h3>文章列表</h3>
-          <span class="status-pill">当前 {{ filteredRows.length }} 篇</span>
-        </div>
-
         <table class="data-table">
           <thead>
             <tr>

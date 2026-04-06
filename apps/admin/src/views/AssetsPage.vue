@@ -105,6 +105,20 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesAssetType && matchesVisibility && matchesStatus;
   });
 });
+const summaryChips = computed(() => [
+  {
+    label: "当前",
+    value: `${filteredRows.value.length} 个`
+  },
+  {
+    label: "公开资源",
+    value: `${publicAssetCount.value} 个`
+  },
+  {
+    label: "启用中",
+    value: `${activeAssetCount.value} 个`
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -452,9 +466,16 @@ onMounted(() => {
             {{ item.label }}
           </button>
         </div>
+
+        <div class="summary-chip-row">
+          <div v-for="item in summaryChips" :key="item.label" class="summary-chip">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+        </div>
       </div>
 
-      <div class="field-grid field-grid-3">
+      <div class="field-grid field-grid-4">
         <label class="field">
           <span>搜索</span>
           <input v-model="filters.query" type="search" placeholder="搜索文件名、对象键、替代文本或 MIME 类型" />
@@ -475,9 +496,7 @@ onMounted(() => {
             <option v-for="option in assetStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select>
         </label>
-      </div>
 
-      <div class="field-grid field-grid-2">
         <label class="field">
           <span>可见性</span>
           <select v-model="filters.visibility">

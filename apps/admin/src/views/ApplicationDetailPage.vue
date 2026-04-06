@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 import {
@@ -23,6 +23,34 @@ const fieldIssues = ref<Record<string, string>>({});
 const form = reactive<AdminJoinApplicationUpdateInput>({
   status: "submitted",
   reviewNotes: ""
+});
+const overviewItems = computed(() => {
+  if (!application.value) {
+    return [];
+  }
+
+  return [
+    {
+      label: "当前状态",
+      value: formatApplicationStatus(application.value.status)
+    },
+    {
+      label: "意向分会",
+      value: application.value.targetBranchName || "未指定"
+    },
+    {
+      label: "提交时间",
+      value: formatDateTime(application.value.createdAt)
+    },
+    {
+      label: "审核时间",
+      value: formatDateTime(application.value.reviewedAt)
+    },
+    {
+      label: "邮箱",
+      value: application.value.email || "未填写"
+    }
+  ];
 });
 
 const loadApplication = async () => {
@@ -133,10 +161,6 @@ onMounted(() => {
               <span>意向分会</span>
               <strong>{{ application.targetBranchName || "未指定" }}</strong>
             </div>
-            <div class="info-card">
-              <span>当前状态</span>
-              <strong>{{ formatApplicationStatus(application.status) }}</strong>
-            </div>
           </div>
         </section>
 
@@ -174,42 +198,11 @@ onMounted(() => {
             <textarea v-model="form.reviewNotes" rows="10" placeholder="记录沟通结论、跟进动作与审核判断。" />
             <small v-if="fieldIssues.reviewNotes" class="field-error">{{ fieldIssues.reviewNotes }}</small>
           </label>
-        </div>
 
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>当前状态</h3>
-
-          <div class="summary-list">
-            <div class="summary-row">
-              <span>当前状态</span>
-              <strong class="status-pill">{{ formatApplicationStatus(application.status) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>意向分会</span>
-              <strong>{{ application.targetBranchName || "未指定" }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>邮箱</span>
-              <strong>{{ application.email || "未填写" }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>时间记录</h3>
-
-          <div class="summary-list">
-            <div class="summary-row">
-              <span>提交时间</span>
-              <strong>{{ formatDateTime(application.createdAt) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>更新时间</span>
-              <strong>{{ formatDateTime(application.updatedAt) }}</strong>
-            </div>
-            <div class="summary-row">
-              <span>审核时间</span>
-              <strong>{{ formatDateTime(application.reviewedAt) }}</strong>
+          <div class="summary-list summary-list-inline">
+            <div v-for="item in overviewItems" :key="item.label" class="summary-row">
+              <span>{{ item.label }}</span>
+              <strong :class="{ 'status-pill': item.label === '当前状态' }">{{ item.value }}</strong>
             </div>
           </div>
         </div>
