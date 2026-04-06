@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
     <header class="page-header page-header-row">
       <h2>活动</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link button-primary" to="/events/new">新建活动</RouterLink>
       </div>
     </header>
@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -237,7 +237,6 @@ onBeforeUnmount(() => {
               {{ item.label }}
             </button>
           </div>
-
         </div>
 
         <div class="field-grid field-grid-3">
@@ -290,7 +289,12 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else-if="hasResults">
-        <div class="panel table-panel">
+        <div class="panel panel-compact table-panel">
+          <div class="table-card-head">
+            <h3>活动列表</h3>
+            <span class="status-pill">{{ paginationSummary }}</span>
+          </div>
+
           <table class="data-table">
             <thead>
               <tr>
@@ -332,7 +336,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="pagination-panel">
-          <div class="filter-summary">{{ paginationSummary }}</div>
+          <div class="filter-summary">共 {{ meta.total }} 条</div>
 
           <div class="pagination-actions">
             <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">

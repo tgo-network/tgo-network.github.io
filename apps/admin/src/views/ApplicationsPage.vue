@@ -100,7 +100,7 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -144,7 +144,12 @@ onMounted(async () => {
         <p>当前筛选条件下没有匹配的申请。</p>
       </div>
 
-      <div v-else class="panel table-panel">
+      <div v-else class="panel panel-compact table-panel">
+        <div class="table-card-head">
+          <h3>申请列表</h3>
+          <span class="status-pill">当前 {{ filteredRows.length }} 条</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>

@@ -47,12 +47,12 @@ const quickLinks = computed(() => [
   {
     label: "文章",
     to: "/articles",
-    meta: "内容管理"
+    meta: "内容"
   },
   {
     label: "活动",
     to: "/events",
-    meta: "报名与审核"
+    meta: "报名"
   },
   {
     label: "申请",
@@ -62,7 +62,25 @@ const quickLinks = computed(() => [
   {
     label: "审计日志",
     to: "/audit-logs",
-    meta: "查看留痕"
+    meta: "留痕"
+  }
+]);
+const reviewItems = computed(() => [
+  {
+    label: "待审核申请",
+    value: `${stats.value.pendingApplicationCount} 条`
+  },
+  {
+    label: "待审核报名",
+    value: `${stats.value.pendingRegistrationCount} 条`
+  },
+  {
+    label: "成员",
+    value: `${stats.value.memberCount} 位`
+  },
+  {
+    label: "分会",
+    value: `${stats.value.branchCount} 个`
   }
 ]);
 
@@ -85,7 +103,7 @@ onMounted(async () => {
     <header class="page-header page-header-row">
       <h2>仪表盘</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/articles/new">新建文章</RouterLink>
         <RouterLink class="button-link button-primary" to="/events/new">新建活动</RouterLink>
       </div>
@@ -101,26 +119,41 @@ onMounted(async () => {
 
     <template v-else>
       <div class="panel-grid panel-grid-4">
-        <article v-for="item in overviewCards" :key="item.label" class="panel stat-panel dashboard-stat-card">
+        <article v-for="item in overviewCards" :key="item.label" class="panel panel-compact stat-panel dashboard-stat-card">
           <span class="dashboard-stat-label">{{ item.label }}</span>
           <strong>{{ item.value }}</strong>
           <p v-if="item.meta">{{ item.meta }}</p>
         </article>
       </div>
 
-      <article class="panel stacked-gap">
-        <div class="panel-toolbar">
+      <div class="editor-grid editor-grid-balanced">
+        <article class="panel panel-compact stacked-gap">
+          <div class="table-card-head">
+            <h3>待处理</h3>
+          </div>
+
+          <div class="summary-list">
+            <div v-for="item in reviewItems" :key="item.label" class="summary-row">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel panel-compact stacked-gap">
+          <div class="panel-toolbar">
           <h3>快捷入口</h3>
           <div class="panel-meta">待审核申请 {{ stats.pendingApplicationCount }} · 待审核报名 {{ stats.pendingRegistrationCount }}</div>
-        </div>
+          </div>
 
-        <div class="dashboard-quick-links">
-          <RouterLink v-for="item in quickLinks" :key="item.to" class="dashboard-quick-link" :to="item.to">
-            <strong>{{ item.label }}</strong>
-            <span>{{ item.meta }}</span>
-          </RouterLink>
-        </div>
-      </article>
+          <div class="dashboard-quick-links">
+            <RouterLink v-for="item in quickLinks" :key="item.to" class="dashboard-quick-link" :to="item.to">
+              <strong>{{ item.label }}</strong>
+              <span>{{ item.meta }}</span>
+            </RouterLink>
+          </div>
+        </article>
+      </div>
     </template>
   </section>
 </template>
@@ -140,7 +173,7 @@ onMounted(async () => {
 
   .dashboard-quick-links {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -178,12 +211,6 @@ onMounted(async () => {
   }
 
   @media (max-width: 900px) {
-    .dashboard-quick-links {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 640px) {
     .dashboard-quick-links {
       grid-template-columns: 1fr;
     }

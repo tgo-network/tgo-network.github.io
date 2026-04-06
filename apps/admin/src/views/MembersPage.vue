@@ -94,7 +94,7 @@ onMounted(async () => {
     <header class="page-header page-header-row">
       <h2>成员</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members/branches">分会维护</RouterLink>
         <RouterLink class="button-link button-primary" to="/members/new">新增成员</RouterLink>
       </div>
@@ -109,7 +109,7 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -123,7 +123,6 @@ onMounted(async () => {
               {{ item.label }}
             </button>
           </div>
-
         </div>
 
         <div class="field-grid field-grid-3">
@@ -167,7 +166,12 @@ onMounted(async () => {
         <p>当前筛选条件下没有匹配的成员。</p>
       </div>
 
-      <div v-else class="panel table-panel">
+      <div v-else class="panel panel-compact table-panel">
+        <div class="table-card-head">
+          <h3>成员列表</h3>
+          <span class="status-pill">当前 {{ filteredRows.length }} 位</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>

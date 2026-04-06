@@ -34,6 +34,40 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesStatus && matchesBranch;
   });
 });
+const quickFilters = [
+  {
+    key: "all",
+    label: "全部文章",
+    matches: () => filters.status === "all",
+    apply: () => {
+      filters.status = "all";
+    }
+  },
+  {
+    key: "published",
+    label: "已发布",
+    matches: () => filters.status === "published",
+    apply: () => {
+      filters.status = "published";
+    }
+  },
+  {
+    key: "in-review",
+    label: "审核中",
+    matches: () => filters.status === "in_review",
+    apply: () => {
+      filters.status = "in_review";
+    }
+  },
+  {
+    key: "draft",
+    label: "草稿",
+    matches: () => filters.status === "draft",
+    apply: () => {
+      filters.status = "draft";
+    }
+  }
+] as const;
 
 onMounted(async () => {
   loading.value = true;
@@ -54,7 +88,7 @@ onMounted(async () => {
     <header class="page-header page-header-row">
       <h2>文章</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link button-primary" to="/articles/new">新建文章</RouterLink>
       </div>
     </header>
@@ -68,7 +102,22 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
+        <div class="filter-toolbar">
+          <div class="segmented-actions">
+            <button
+              v-for="item in quickFilters"
+              :key="item.key"
+              type="button"
+              class="segmented-button"
+              :class="{ 'is-active': item.matches() }"
+              @click="item.apply()"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-grid field-grid-3">
           <label class="field">
             <span>搜索</span>
@@ -91,14 +140,18 @@ onMounted(async () => {
             </select>
           </label>
         </div>
-
       </div>
 
       <div v-if="filteredRows.length === 0" class="panel empty-state-card">
         <p>当前筛选条件下没有匹配的文章。</p>
       </div>
 
-      <div v-else class="panel table-panel">
+      <div v-else class="panel panel-compact table-panel">
+        <div class="table-card-head">
+          <h3>文章列表</h3>
+          <span class="status-pill">当前 {{ filteredRows.length }} 篇</span>
+        </div>
+
         <table class="data-table">
           <thead>
             <tr>
