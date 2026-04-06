@@ -55,11 +55,11 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
 
   await signIn(page);
   await expect(page.getByText(adminEmail).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "成员", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "工作人员", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "会员", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Staff", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "角色", exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "工作人员", exact: true }).click();
+  await page.getByRole("link", { name: "Staff", exact: true }).click();
   await expect(page).toHaveURL(/\/staff$/);
   await expect(page.getByRole("heading", { name: "工作人员", exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索姓名、邮箱、角色或状态")).toBeVisible();
@@ -71,12 +71,12 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page.getByPlaceholder("搜索角色名称、代码、描述或权限代码")).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-roles");
 
-  await page.getByRole("link", { name: "成员", exact: true }).click();
+  await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
   await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
 
-  const auditLogsLink = page.getByRole("link", { name: "审计日志", exact: true });
+  const auditLogsLink = page.getByRole("link", { name: "日志", exact: true });
   await expect(auditLogsLink).toBeVisible();
   await page.goto(`${adminUrl}/audit-logs`);
   await expect(page).toHaveURL(/\/audit-logs$/);
@@ -223,7 +223,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await expect(page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" })).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-applications");
 
-  await page.getByRole("link", { name: "成员", exact: true }).click();
+  await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
   await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
   await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
@@ -231,7 +231,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await expect(page.getByRole("link", { name: "前台预览" }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-members");
 
-  await page.getByRole("link", { name: "审计日志", exact: true }).click();
+  await page.getByRole("link", { name: "日志", exact: true }).click();
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索动作、对象、操作人、目标 ID、IP 或浏览器标识")).toBeVisible();

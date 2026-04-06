@@ -76,12 +76,12 @@ export const adminModules = [
     permission: "application.review"
   },
   {
-    label: "成员",
+    label: "会员",
     to: "/members",
     permission: "member.manage"
   },
   {
-    label: "工作人员",
+    label: "Staff",
     to: "/staff",
     permission: "staff.manage"
   },
@@ -91,7 +91,7 @@ export const adminModules = [
     permission: "role.manage"
   },
   {
-    label: "审计日志",
+    label: "日志",
     to: "/audit-logs",
     permission: "audit_log.read"
   }
