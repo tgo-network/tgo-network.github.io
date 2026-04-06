@@ -498,6 +498,10 @@ code {
   grid-template-columns: minmax(0, 1.58fr) minmax(260px, 0.82fr);
 }
 
+.editor-grid-review {
+  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.94fr);
+}
+
 .editor-grid-balanced {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
@@ -948,6 +952,10 @@ code {
 
 .selection-grid-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.selection-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .selection-grid-tight {
@@ -1760,7 +1768,8 @@ code {
   .field-grid-3,
   .field-grid-4,
   .field-grid-5,
-  .selection-grid-2 {
+  .selection-grid-2,
+  .selection-grid-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1787,6 +1796,7 @@ code {
   .editor-grid,
   .editor-grid-compact,
   .editor-grid-focus,
+  .editor-grid-review,
   .editor-grid-balanced,
   .editor-grid-role,
   .editor-overview-grid {
@@ -1816,7 +1826,8 @@ code {
   .field-grid-3,
   .field-grid-4,
   .field-grid-5,
-  .selection-grid-2 {
+  .selection-grid-2,
+  .selection-grid-3 {
     grid-template-columns: 1fr;
   }
 

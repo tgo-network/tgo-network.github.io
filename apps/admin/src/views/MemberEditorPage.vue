@@ -339,7 +339,7 @@ onMounted(async () => {
 
             <label class="field">
               <span>个人简介</span>
-              <textarea v-model="form.bio" rows="10" placeholder="用于成员详情页展示的个人简介。" />
+              <textarea v-model="form.bio" rows="8" placeholder="用于成员详情页展示的个人简介。" />
             </label>
           </section>
 
@@ -358,7 +358,7 @@ onMounted(async () => {
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>当前信息</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div v-for="item in memberMetaItems" :key="item.label" class="summary-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
@@ -366,32 +366,32 @@ onMounted(async () => {
             </div>
           </div>
 
-          <section class="panel panel-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>SEO（可选）</h3>
-            </div>
+          <details class="panel panel-compact detail-card">
+            <summary>SEO（可选）</summary>
 
-            <label class="field">
-              <span>SEO 标题</span>
-              <input v-model="form.seoTitle" type="text" />
-            </label>
+            <div class="detail-card-body stacked-gap">
+              <label class="field">
+                <span>SEO 标题</span>
+                <input v-model="form.seoTitle" type="text" />
+              </label>
 
-            <label class="field">
-              <span>SEO 描述</span>
-              <textarea v-model="form.seoDescription" rows="4" />
-            </label>
+              <label class="field">
+                <span>SEO 描述</span>
+                <textarea v-model="form.seoDescription" rows="3" />
+              </label>
 
-            <div class="summary-list">
-              <div class="summary-row">
-                <span>标题回退</span>
-                <strong>{{ seoTitlePreview }}</strong>
+              <div class="summary-list summary-list-compact">
+                <div class="summary-row">
+                  <span>标题回退</span>
+                  <strong>{{ seoTitlePreview }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>描述回退</span>
+                  <strong>{{ seoDescriptionPreview }}</strong>
+                </div>
               </div>
-              <div class="summary-row">
-                <span>描述回退</span>
-                <strong>{{ seoDescriptionPreview }}</strong>
-              </div>
             </div>
-          </section>
+          </details>
         </aside>
       </div>
     </template>

@@ -142,14 +142,14 @@ onMounted(() => {
       <p>正在准备报名详情...</p>
     </div>
 
-    <div v-else-if="registration && eventInfo" class="editor-grid editor-grid-focus">
+    <div v-else-if="registration && eventInfo" class="editor-grid editor-grid-review">
       <div class="panel panel-compact editor-main stacked-gap">
         <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
             <h3>报名人信息</h3>
           </div>
 
-          <div class="field-grid field-grid-2">
+          <div class="field-grid field-grid-3">
             <div class="info-card">
               <span>姓名</span>
               <strong>{{ registration.name }}</strong>
@@ -207,26 +207,32 @@ onMounted(() => {
 
           <label class="field">
             <span>审核备注</span>
-            <textarea v-model="form.reviewNotes" rows="8" placeholder="记录通过、拒绝、候补或后续联系建议。" />
+            <textarea v-model="form.reviewNotes" rows="6" placeholder="记录通过、拒绝、候补或后续联系建议。" />
           </label>
 
-          <div class="summary-list summary-list-inline">
+          <div class="summary-list summary-list-compact">
             <div v-for="item in overviewItems" :key="item.label" class="summary-row">
               <span>{{ item.label }}</span>
               <strong :class="{ 'status-pill': item.label === '报名状态' }">{{ item.value }}</strong>
             </div>
           </div>
 
-          <div class="summary-list">
-            <div class="summary-row">
-              <span>提交 IP</span>
-              <strong>{{ registration.submittedIp || "未记录" }}</strong>
+          <details class="panel panel-compact detail-card">
+            <summary>提交环境（可选）</summary>
+
+            <div class="detail-card-body">
+              <div class="summary-list summary-list-compact">
+                <div class="summary-row">
+                  <span>提交 IP</span>
+                  <strong>{{ registration.submittedIp || "未记录" }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>User-Agent</span>
+                  <strong>{{ registration.submittedUserAgent || "未记录" }}</strong>
+                </div>
+              </div>
             </div>
-            <div class="summary-row">
-              <span>User-Agent</span>
-              <strong>{{ registration.submittedUserAgent || "未记录" }}</strong>
-            </div>
-          </div>
+          </details>
         </div>
       </aside>
     </div>

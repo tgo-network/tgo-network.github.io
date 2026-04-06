@@ -280,6 +280,15 @@ const closeCreatePanel = () => {
   resetCreateForm();
 };
 
+const toggleCreatePanel = () => {
+  if (showCreatePanel.value) {
+    closeCreatePanel();
+    return;
+  }
+
+  openCreatePanel();
+};
+
 const createStaff = async () => {
   creating.value = true;
   clearFeedback();
@@ -367,7 +376,14 @@ onBeforeUnmount(() => {
       <h2>工作人员</h2>
 
       <div class="page-actions page-actions-compact">
-        <button class="button-link button-primary" type="button" @click="openCreatePanel">新增 Staff</button>
+        <button
+          class="button-link"
+          :class="showCreatePanel ? 'button-subtle' : 'button-primary'"
+          type="button"
+          @click="toggleCreatePanel"
+        >
+          {{ showCreatePanel ? "收起新增" : "新增 Staff" }}
+        </button>
       </div>
     </header>
 
@@ -551,11 +567,11 @@ onBeforeUnmount(() => {
             <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>
           </div>
 
-          <div class="selection-grid selection-grid-2">
+          <div class="selection-grid selection-grid-3 selection-grid-tight">
             <label
               v-for="role in roles"
               :key="role.id"
-              class="checkbox-row selection-card"
+              class="checkbox-row selection-card selection-card-compact"
               :class="{ 'is-active': editForm.roleIds.includes(role.id) }"
             >
               <input v-model="editForm.roleIds" type="checkbox" :value="role.id" />
@@ -570,7 +586,7 @@ onBeforeUnmount(() => {
 
         <label class="field">
           <span>备注</span>
-          <textarea v-model="editForm.notes" rows="4"></textarea>
+          <textarea v-model="editForm.notes" rows="3"></textarea>
           <small v-if="editIssues.notes" class="field-error">{{ editIssues.notes }}</small>
         </label>
       </div>
@@ -587,7 +603,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="field-grid field-grid-2">
+        <div class="field-grid field-grid-3">
           <label class="field">
             <span>姓名</span>
             <input v-model="createForm.name" type="text" placeholder="运营负责人" />
@@ -598,14 +614,6 @@ onBeforeUnmount(() => {
             <span>邮箱</span>
             <input v-model="createForm.email" type="email" placeholder="ops@example.com" />
             <small v-if="createIssues.email" class="field-error">{{ createIssues.email }}</small>
-          </label>
-        </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>临时密码</span>
-            <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
-            <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
           </label>
 
           <label class="field">
@@ -619,17 +627,23 @@ onBeforeUnmount(() => {
           </label>
         </div>
 
+        <label class="field">
+          <span>临时密码</span>
+          <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
+          <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
+        </label>
+
         <section class="editor-section editor-section-compact stacked-gap">
           <div class="panel-toolbar">
             <h3>角色</h3>
             <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
           </div>
 
-          <div class="selection-grid selection-grid-2">
+          <div class="selection-grid selection-grid-3 selection-grid-tight">
             <label
               v-for="role in roles"
               :key="role.id"
-              class="checkbox-row selection-card"
+              class="checkbox-row selection-card selection-card-compact"
               :class="{ 'is-active': createForm.roleIds.includes(role.id) }"
             >
               <input v-model="createForm.roleIds" type="checkbox" :value="role.id" />
@@ -644,7 +658,7 @@ onBeforeUnmount(() => {
 
         <label class="field">
           <span>备注</span>
-          <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途。"></textarea>
+          <textarea v-model="createForm.notes" rows="3" placeholder="说明这个工作人员账号的用途。"></textarea>
           <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
         </label>
       </div>

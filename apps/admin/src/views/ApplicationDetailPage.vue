@@ -133,14 +133,14 @@ onMounted(() => {
       <p>正在准备申请详情...</p>
     </div>
 
-    <div v-else-if="application" class="editor-grid editor-grid-focus">
+    <div v-else-if="application" class="editor-grid editor-grid-review">
       <div class="panel panel-compact editor-main stacked-gap">
         <section class="editor-section editor-section-compact stacked-gap">
           <div class="editor-section-head">
             <h3>申请人信息</h3>
           </div>
 
-          <div class="field-grid field-grid-2">
+          <div class="field-grid field-grid-3">
             <div class="info-card">
               <span>姓名</span>
               <strong>{{ application.name }}</strong>
@@ -195,11 +195,11 @@ onMounted(() => {
 
           <label class="field">
             <span>审核备注</span>
-            <textarea v-model="form.reviewNotes" rows="10" placeholder="记录沟通结论、跟进动作与审核判断。" />
+            <textarea v-model="form.reviewNotes" rows="7" placeholder="记录沟通结论、跟进动作与审核判断。" />
             <small v-if="fieldIssues.reviewNotes" class="field-error">{{ fieldIssues.reviewNotes }}</small>
           </label>
 
-          <div class="summary-list summary-list-inline">
+          <div class="summary-list summary-list-compact">
             <div v-for="item in overviewItems" :key="item.label" class="summary-row">
               <span>{{ item.label }}</span>
               <strong :class="{ 'status-pill': item.label === '当前状态' }">{{ item.value }}</strong>
