@@ -2,6 +2,7 @@ import type { MemberSummary } from "@tgo/shared";
 
 import { orderBranchCities, sortByBranchOrder } from "./branch-order.js";
 import { getCitySegment, slicePageItems } from "./directory-pagination.js";
+import { sortMemberSummaries } from "./member-search.js";
 import { listMembers } from "./public-api.js";
 
 export interface MemberFilterLink {
@@ -16,6 +17,7 @@ export interface MemberDirectoryPageData {
   branchLinks: MemberFilterLink[];
   currentCity: string | null;
   currentBranch: string | null;
+  currentBranchSlug: string | null;
   page: number;
   pageCount: number;
   total: number;
@@ -47,32 +49,12 @@ export const memberPageSize = 12;
 
 let memberDirectoryMetaPromise: Promise<MemberDirectoryMeta> | null = null;
 
-const sortMembers = (items: MemberSummary[]) =>
-  [...items].sort((left, right) => {
-    const leftTime = Date.parse(left.joinedAt);
-    const rightTime = Date.parse(right.joinedAt);
-
-    if (Number.isNaN(leftTime) && Number.isNaN(rightTime)) {
-      return left.name.localeCompare(right.name, "zh-CN");
-    }
-
-    if (Number.isNaN(leftTime)) {
-      return 1;
-    }
-
-    if (Number.isNaN(rightTime)) {
-      return -1;
-    }
-
-    return rightTime - leftTime || left.name.localeCompare(right.name, "zh-CN");
-  });
-
 const getMemberCity = (member: MemberSummary) => member.branch?.cityName || "未标注分会";
 
 const getMemberDirectoryMeta = async (): Promise<MemberDirectoryMeta> => {
   if (!memberDirectoryMetaPromise) {
     memberDirectoryMetaPromise = listMembers().then((members) => {
-      const orderedMembers = sortMembers(members);
+      const orderedMembers = sortMemberSummaries(members);
       const cityOptions = orderBranchCities(Array.from(new Set(orderedMembers.map((member) => getMemberCity(member)))));
       const branchOptions = sortByBranchOrder(
         Array.from(
@@ -156,6 +138,7 @@ const createMemberDirectoryPage = (meta: MemberDirectoryMeta, filter: MemberDire
   const pagedItems = slicePageItems(allItems, page, memberPageSize);
   const canonical = buildMemberDirectoryHref(filter, pagedItems.page);
   const currentBranch = filter.kind === "branch" ? meta.branchOptions.find((branch) => branch.slug === filter.branchSlug)?.label ?? null : null;
+  const currentBranchSlug = filter.kind === "branch" ? filter.branchSlug : null;
   const currentCity = filter.kind === "city" ? filter.city : null;
 
   return {
@@ -186,6 +169,7 @@ const createMemberDirectoryPage = (meta: MemberDirectoryMeta, filter: MemberDire
     ],
     currentCity,
     currentBranch,
+    currentBranchSlug,
     page: pagedItems.page,
     pageCount: pagedItems.pageCount,
     total: pagedItems.total,

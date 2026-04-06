@@ -1,17 +1,24 @@
 ---
+import { getPublicWriteApiBaseUrl } from "../lib/public-api.js";
 import type { MemberDirectoryPageData } from "../lib/member-directory.js";
-
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 interface Props extends MemberDirectoryPageData {}
 
-const { items, cityLinks, branchLinks, currentCity, currentBranch, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
+const { items, cityLinks, branchLinks, currentCity, currentBranch, currentBranchSlug, page, pageCount, total, prevHref, nextHref, canonical, title, description } =
+  Astro.props as Props;
 const heading = currentBranch ? `${currentBranch}成员` : currentCity ? `${currentCity}成员` : "成员列表";
 const summary = currentBranch
   ? `当前筛选 ${currentBranch}，共 ${total} 位成员。`
   : currentCity
     ? `当前筛选 ${currentCity}，共 ${total} 位成员。`
     : `当前共展示 ${total} 位成员。`;
+const searchApiBase = getPublicWriteApiBaseUrl() ?? "";
+const searchPlaceholder = currentBranch
+  ? `搜索 ${currentBranch} 的名字、公司或头衔`
+  : currentCity
+    ? `搜索 ${currentCity} 的名字、公司或头衔`
+    : "搜索名字、公司或头衔";
 ---
 
 <BaseLayout title={title} description={description} canonical={canonical}>
@@ -20,11 +27,44 @@ const summary = currentBranch
       <div class="directory-heading">
         <div>
           <h1>{heading}</h1>
-          <p class="card-copy">{summary}</p>
+          <p class="card-copy" data-member-directory-summary>{summary}</p>
         </div>
       </div>
 
       <div class="panel member-directory-toolbar">
+        <form
+          class="directory-search-form"
+          data-member-search-form
+          data-api-base={searchApiBase}
+          data-current-city={currentCity ?? ""}
+          data-current-branch-slug={currentBranchSlug ?? ""}
+          data-search-index-path="/members/search-index.json"
+        >
+          <label for="member-directory-search">
+            <span class="directory-filter-label">关键词搜索</span>
+            <span class="sr-only">支持搜索名字、公司或头衔</span>
+          </label>
+          <div class="directory-search-controls">
+            <input
+              id="member-directory-search"
+              name="q"
+              type="search"
+              placeholder={searchPlaceholder}
+              autocomplete="off"
+              enterkeyhint="search"
+              data-member-search-input
+            />
+            <button class="button secondary" type="submit">
+              搜索
+            </button>
+            <button class="button secondary directory-search-reset" type="button" data-member-search-reset hidden>
+              清除
+            </button>
+          </div>
+          <p class="card-copy directory-search-hint">支持搜索名字、公司或头衔，且会保留当前城市或分会筛选。</p>
+          <p class="card-copy directory-search-status" data-member-search-status aria-live="polite"></p>
+        </form>
+
         <div class="directory-filter-stack">
           <div class="directory-filter-group">
             <p class="directory-filter-label">按城市</p>
@@ -54,7 +94,7 @@ const summary = currentBranch
         </div>
       </div>
 
-      <div class="member-directory-grid">
+      <div class="member-directory-grid" data-member-directory-grid>
         {
           items.map((member) => (
             <a class="panel member-directory-card" href={`/members/${member.slug}`}>
@@ -81,16 +121,12 @@ const summary = currentBranch
         }
       </div>
 
-      {
-        items.length === 0 && (
-          <div class="panel panel-soft empty-state">
-            <div class="card-label">暂无成员</div>
-            <p class="card-copy">当前筛选下暂无可展示的成员。</p>
-          </div>
-        )
-      }
+      <div class="panel panel-soft empty-state" data-member-directory-empty-state hidden={items.length > 0}>
+        <div class="card-label" data-member-directory-empty-title>暂无成员</div>
+        <p class="card-copy" data-member-directory-empty-copy>当前筛选下暂无可展示的成员。</p>
+      </div>
 
-      <div class="pagination-bar member-pagination-bar" aria-label="成员分页">
+      <div class="pagination-bar member-pagination-bar" aria-label="成员分页" data-member-directory-pagination>
         {
           prevHref ? (
             <a class="button secondary pagination-button" href={prevHref} rel="prev">
@@ -119,6 +155,12 @@ const summary = currentBranch
       </div>
     </section>
   </main>
+
+  <script>
+    import { setupMemberDirectorySearch } from "../scripts/member-directory-search";
+
+    setupMemberDirectorySearch();
+  </script>
 </BaseLayout>
 
 <style>
@@ -130,6 +172,8 @@ const summary = currentBranch
   .member-directory-section,
   .member-directory-toolbar,
   .directory-heading,
+  .directory-search-form,
+  .directory-search-controls,
   .directory-filter-stack,
   .directory-filter-group {
     display: grid;
@@ -143,6 +187,29 @@ const summary = currentBranch
 
   .directory-heading .card-copy {
     margin: 0;
+  }
+
+  .directory-search-form {
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(138, 106, 67, 0.12);
+  }
+
+  .directory-search-controls {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+  }
+
+  .directory-search-hint,
+  .directory-search-status {
+    margin: 0;
+  }
+
+  .directory-search-status {
+    min-height: 1.7em;
+  }
+
+  .directory-search-reset[hidden] {
+    display: none;
   }
 
   .directory-filter-label {
@@ -256,6 +323,7 @@ const summary = currentBranch
       padding-top: 8px;
     }
 
+    .directory-search-controls,
     .member-directory-grid,
     .member-pagination-bar {
       grid-template-columns: 1fr;
