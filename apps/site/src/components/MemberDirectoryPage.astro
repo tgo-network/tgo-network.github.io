@@ -5,9 +5,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 interface Props extends MemberDirectoryPageData {}
 
-const { items, cityLinks, currentCity, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
-const heading = currentCity ? `${currentCity}成员` : "成员列表";
-const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 位成员。` : `当前共展示 ${total} 位成员。`;
+const { items, cityLinks, branchLinks, currentCity, currentBranch, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
+const heading = currentBranch ? `${currentBranch}成员` : currentCity ? `${currentCity}成员` : "成员列表";
+const summary = currentBranch
+  ? `当前筛选 ${currentBranch}，共 ${total} 位成员。`
+  : currentCity
+    ? `当前筛选 ${currentCity}，共 ${total} 位成员。`
+    : `当前共展示 ${total} 位成员。`;
 ---
 
 <BaseLayout title={title} description={description} canonical={canonical}>
@@ -21,15 +25,33 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 位成
       </div>
 
       <div class="panel member-directory-toolbar">
-        <nav class="filter-bar" aria-label="成员城市筛选">
-          {
-            cityLinks.map((link) => (
-              <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
-                {link.label}
-              </a>
-            ))
-          }
-        </nav>
+        <div class="directory-filter-stack">
+          <div class="directory-filter-group">
+            <p class="directory-filter-label">按城市</p>
+            <nav class="filter-bar" aria-label="成员城市筛选">
+              {
+                cityLinks.map((link) => (
+                  <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                    {link.label}
+                  </a>
+                ))
+              }
+            </nav>
+          </div>
+
+          <div class="directory-filter-group">
+            <p class="directory-filter-label">按分会</p>
+            <nav class="filter-bar" aria-label="成员分会筛选">
+              {
+                branchLinks.map((link) => (
+                  <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                    {link.label}
+                  </a>
+                ))
+              }
+            </nav>
+          </div>
+        </div>
       </div>
 
       <div class="member-directory-grid">
@@ -63,7 +85,7 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 位成
         items.length === 0 && (
           <div class="panel panel-soft empty-state">
             <div class="card-label">暂无成员</div>
-            <p class="card-copy">当前分会下暂无可展示的成员。</p>
+            <p class="card-copy">当前筛选下暂无可展示的成员。</p>
           </div>
         )
       }
@@ -107,17 +129,27 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 位成
 
   .member-directory-section,
   .member-directory-toolbar,
-  .directory-heading {
+  .directory-heading,
+  .directory-filter-stack,
+  .directory-filter-group {
     display: grid;
     gap: 18px;
   }
 
-  .directory-heading h1 {
+  .directory-heading h1,
+  .directory-filter-label {
     margin: 0;
   }
 
   .directory-heading .card-copy {
     margin: 0;
+  }
+
+  .directory-filter-label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .member-directory-grid {

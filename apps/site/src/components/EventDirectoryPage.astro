@@ -6,9 +6,13 @@ import { formatDateRange, formatRegistrationState } from "../lib/format.js";
 
 interface Props extends EventDirectoryPageData {}
 
-const { items, cityLinks, currentCity, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
-const heading = currentCity ? `${currentCity}活动` : "活动";
-const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活动。` : `当前共展示 ${total} 场活动。`;
+const { items, cityLinks, branchLinks, currentCity, currentBranch, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
+const heading = currentBranch ? `${currentBranch}活动` : currentCity ? `${currentCity}活动` : "活动";
+const summary = currentBranch
+  ? `当前筛选 ${currentBranch}，共 ${total} 场活动。`
+  : currentCity
+    ? `当前筛选 ${currentCity}，共 ${total} 场活动。`
+    : `当前共展示 ${total} 场活动。`;
 ---
 
 <BaseLayout title={title} description={description} canonical={canonical}>
@@ -22,15 +26,33 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
       </div>
 
       <div class="panel event-directory-toolbar">
-        <nav class="filter-bar" aria-label="活动城市筛选">
-          {
-            cityLinks.map((link) => (
-              <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
-                {link.label}
-              </a>
-            ))
-          }
-        </nav>
+        <div class="directory-filter-stack">
+          <div class="directory-filter-group">
+            <p class="directory-filter-label">按城市</p>
+            <nav class="filter-bar" aria-label="活动城市筛选">
+              {
+                cityLinks.map((link) => (
+                  <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                    {link.label}
+                  </a>
+                ))
+              }
+            </nav>
+          </div>
+
+          <div class="directory-filter-group">
+            <p class="directory-filter-label">按分会</p>
+            <nav class="filter-bar" aria-label="活动分会筛选">
+              {
+                branchLinks.map((link) => (
+                  <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                    {link.label}
+                  </a>
+                ))
+              }
+            </nav>
+          </div>
+        </div>
       </div>
 
       <div class="event-grid">
@@ -50,6 +72,7 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
                   <div class="event-card-head">
                     <div class="event-card-meta">
                       <span>{event.cityName}</span>
+                      {event.branchName && <span>{event.branchName}</span>}
                       <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
                     </div>
                     <span class:list={["event-state", `event-state-${event.registrationState}`]}>
@@ -75,7 +98,7 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
         items.length === 0 && (
           <div class="panel panel-soft empty-state">
             <div class="card-label">暂无活动</div>
-            <p class="card-copy">当前城市下暂无可展示的活动。</p>
+            <p class="card-copy">当前筛选下暂无可展示的活动。</p>
           </div>
         )
       }
@@ -120,7 +143,9 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
   .event-list-section,
   .event-grid,
   .event-directory-toolbar,
-  .directory-heading {
+  .directory-heading,
+  .directory-filter-stack,
+  .directory-filter-group {
     display: grid;
     gap: 18px;
   }
@@ -131,8 +156,16 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
   }
 
   .directory-heading .card-copy,
-  .event-directory-page-indicator {
+  .event-directory-page-indicator,
+  .directory-filter-label {
     margin: 0;
+  }
+
+  .directory-filter-label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .event-grid {
@@ -238,17 +271,38 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
   .event-card-summary,
   .event-card-footer p,
   .event-directory-page-indicator {
-    color: var(--muted);
-    line-height: 1.74;
-  }
-
-  .event-card-summary,
-  .event-card-footer p {
     margin: 0;
   }
 
   .event-card-footer p {
-    max-width: 18rem;
+    color: var(--muted);
+  }
+
+  .event-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .event-state-open {
+    background: rgba(44, 122, 85, 0.12);
+    color: #206042;
+  }
+
+  .event-state-waitlist {
+    background: rgba(180, 126, 44, 0.14);
+    color: #8c5f18;
+  }
+
+  .event-state-closed,
+  .event-state-not_open {
+    background: rgba(77, 67, 57, 0.12);
+    color: rgba(77, 67, 57, 0.94);
   }
 
   @media (max-width: 980px) {
@@ -262,13 +316,18 @@ const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活
       padding-top: 8px;
     }
 
-    .event-grid {
+    .event-grid,
+    .event-pagination-bar {
       grid-template-columns: 1fr;
     }
 
-    .event-pagination-bar {
-      flex-direction: column;
-      align-items: stretch;
+    .event-card-body {
+      padding: 18px;
+    }
+
+    .event-directory-page-indicator {
+      order: -1;
+      text-align: center;
     }
   }
 </style>

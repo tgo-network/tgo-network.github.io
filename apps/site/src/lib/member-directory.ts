@@ -1,10 +1,10 @@
 import type { MemberSummary } from "@tgo/shared";
 
-import { orderBranchCities } from "./branch-order.js";
+import { orderBranchCities, sortByBranchOrder } from "./branch-order.js";
 import { getCitySegment, slicePageItems } from "./directory-pagination.js";
 import { listMembers } from "./public-api.js";
 
-export interface MemberCityLink {
+export interface MemberFilterLink {
   label: string;
   href: string;
   active: boolean;
@@ -12,8 +12,10 @@ export interface MemberCityLink {
 
 export interface MemberDirectoryPageData {
   items: MemberSummary[];
-  cityLinks: MemberCityLink[];
+  cityLinks: MemberFilterLink[];
+  branchLinks: MemberFilterLink[];
   currentCity: string | null;
+  currentBranch: string | null;
   page: number;
   pageCount: number;
   total: number;
@@ -24,10 +26,22 @@ export interface MemberDirectoryPageData {
   description: string;
 }
 
+interface MemberBranchOption {
+  label: string;
+  slug: string;
+  cityName: string | null;
+}
+
 interface MemberDirectoryMeta {
   members: MemberSummary[];
   cityOptions: string[];
+  branchOptions: MemberBranchOption[];
 }
+
+type MemberDirectoryFilter =
+  | { kind: "all" }
+  | { kind: "city"; city: string }
+  | { kind: "branch"; branchSlug: string };
 
 export const memberPageSize = 12;
 
@@ -60,10 +74,36 @@ const getMemberDirectoryMeta = async (): Promise<MemberDirectoryMeta> => {
     memberDirectoryMetaPromise = listMembers().then((members) => {
       const orderedMembers = sortMembers(members);
       const cityOptions = orderBranchCities(Array.from(new Set(orderedMembers.map((member) => getMemberCity(member)))));
+      const branchOptions = sortByBranchOrder(
+        Array.from(
+          new Map(
+            orderedMembers
+              .map((member) => member.branch)
+              .filter((branch): branch is NonNullable<MemberSummary["branch"]> => Boolean(branch?.slug && branch?.name))
+              .map((branch) => [
+                branch.slug,
+                {
+                  label: branch.name,
+                  slug: branch.slug,
+                  cityName: branch.cityName
+                }
+              ])
+          ).values()
+        ),
+        (branch) => ({
+          slug: branch.slug,
+          cityName: branch.cityName
+        })
+      ).map(({ label, slug, cityName }) => ({
+        label,
+        slug,
+        cityName
+      }));
 
       return {
         members: orderedMembers,
-        cityOptions
+        cityOptions,
+        branchOptions
       };
     });
   }
@@ -71,13 +111,17 @@ const getMemberDirectoryMeta = async (): Promise<MemberDirectoryMeta> => {
   return memberDirectoryMetaPromise;
 };
 
-const buildMemberDirectoryHref = (city: string | null, page: number) => {
-  if (!city) {
-    return page <= 1 ? "/members" : `/members/page/${page}`;
+const buildMemberDirectoryHref = (filter: MemberDirectoryFilter, page: number) => {
+  switch (filter.kind) {
+    case "city": {
+      const citySegment = getCitySegment(filter.city);
+      return page <= 1 ? `/members/city/${citySegment}` : `/members/city/${citySegment}/page/${page}`;
+    }
+    case "branch":
+      return page <= 1 ? `/members/branch/${filter.branchSlug}` : `/members/branch/${filter.branchSlug}/page/${page}`;
+    default:
+      return page <= 1 ? "/members" : `/members/page/${page}`;
   }
-
-  const citySegment = getCitySegment(city);
-  return page <= 1 ? `/members/city/${citySegment}` : `/members/city/${citySegment}/page/${page}`;
 };
 
 const getMemberCityBySegment = (meta: MemberDirectoryMeta, citySegment: string | undefined) => {
@@ -88,45 +132,93 @@ const getMemberCityBySegment = (meta: MemberDirectoryMeta, citySegment: string |
   return meta.cityOptions.find((city) => getCitySegment(city) === citySegment) ?? null;
 };
 
-const createMemberDirectoryPage = (meta: MemberDirectoryMeta, city: string | null, page: number): MemberDirectoryPageData => {
-  const allItems = city ? meta.members.filter((member) => getMemberCity(member) === city) : meta.members;
+const getMemberBranchBySegment = (meta: MemberDirectoryMeta, branchSegment: string | undefined) => {
+  if (!branchSegment) {
+    return null;
+  }
+
+  return meta.branchOptions.find((branch) => branch.slug === branchSegment) ?? null;
+};
+
+const getMemberDirectoryItems = (meta: MemberDirectoryMeta, filter: MemberDirectoryFilter) => {
+  switch (filter.kind) {
+    case "city":
+      return meta.members.filter((member) => getMemberCity(member) === filter.city);
+    case "branch":
+      return meta.members.filter((member) => member.branch?.slug === filter.branchSlug);
+    default:
+      return meta.members;
+  }
+};
+
+const createMemberDirectoryPage = (meta: MemberDirectoryMeta, filter: MemberDirectoryFilter, page: number): MemberDirectoryPageData => {
+  const allItems = getMemberDirectoryItems(meta, filter);
   const pagedItems = slicePageItems(allItems, page, memberPageSize);
-  const canonical = buildMemberDirectoryHref(city, pagedItems.page);
+  const canonical = buildMemberDirectoryHref(filter, pagedItems.page);
+  const currentBranch = filter.kind === "branch" ? meta.branchOptions.find((branch) => branch.slug === filter.branchSlug)?.label ?? null : null;
+  const currentCity = filter.kind === "city" ? filter.city : null;
 
   return {
     items: pagedItems.items,
     cityLinks: [
       {
         label: "全部",
-        href: buildMemberDirectoryHref(null, 1),
-        active: city === null
+        href: buildMemberDirectoryHref({ kind: "all" }, 1),
+        active: filter.kind !== "city"
       },
       ...meta.cityOptions.map((option) => ({
         label: option,
-        href: buildMemberDirectoryHref(option, 1),
-        active: option === city
+        href: buildMemberDirectoryHref({ kind: "city", city: option }, 1),
+        active: filter.kind === "city" && option === filter.city
       }))
     ],
-    currentCity: city,
+    branchLinks: [
+      {
+        label: "全部",
+        href: buildMemberDirectoryHref({ kind: "all" }, 1),
+        active: filter.kind !== "branch"
+      },
+      ...meta.branchOptions.map((option) => ({
+        label: option.label,
+        href: buildMemberDirectoryHref({ kind: "branch", branchSlug: option.slug }, 1),
+        active: filter.kind === "branch" && option.slug === filter.branchSlug
+      }))
+    ],
+    currentCity,
+    currentBranch,
     page: pagedItems.page,
     pageCount: pagedItems.pageCount,
     total: pagedItems.total,
-    prevHref: pagedItems.page > 1 ? buildMemberDirectoryHref(city, pagedItems.page - 1) : null,
-    nextHref: pagedItems.page < pagedItems.pageCount ? buildMemberDirectoryHref(city, pagedItems.page + 1) : null,
+    prevHref: pagedItems.page > 1 ? buildMemberDirectoryHref(filter, pagedItems.page - 1) : null,
+    nextHref: pagedItems.page < pagedItems.pageCount ? buildMemberDirectoryHref(filter, pagedItems.page + 1) : null,
     canonical,
-    title: city ? `${city}成员 | TGO 鲲鹏会` : "成员列表 | TGO 鲲鹏会",
-    description: city ? `查看 ${city} 分会相关成员资料。` : "查看 TGO 鲲鹏会成员资料。"
+    title: currentBranch ? `${currentBranch}成员 | TGO 鲲鹏会` : currentCity ? `${currentCity}成员 | TGO 鲲鹏会` : "成员列表 | TGO 鲲鹏会",
+    description: currentBranch ? `查看 ${currentBranch} 分会成员资料。` : currentCity ? `查看 ${currentCity} 分会相关成员资料。` : "查看 TGO 鲲鹏会成员资料。"
   };
 };
 
 export const getMemberDirectoryPage = async (city: string | null, page: number) => {
   const meta = await getMemberDirectoryMeta();
-  return createMemberDirectoryPage(meta, city, page);
+  return createMemberDirectoryPage(meta, city ? { kind: "city", city } : { kind: "all" }, page);
 };
 
 export const getMemberDirectoryPageFromSegment = async (citySegment: string | undefined, page: number) => {
   const meta = await getMemberDirectoryMeta();
-  return createMemberDirectoryPage(meta, getMemberCityBySegment(meta, citySegment), page);
+  const city = getMemberCityBySegment(meta, citySegment);
+
+  return createMemberDirectoryPage(meta, city ? { kind: "city", city } : { kind: "all" }, page);
+};
+
+export const getMemberBranchDirectoryPage = async (branchSlug: string | null, page: number) => {
+  const meta = await getMemberDirectoryMeta();
+  return createMemberDirectoryPage(meta, branchSlug ? { kind: "branch", branchSlug } : { kind: "all" }, page);
+};
+
+export const getMemberBranchDirectoryPageFromSegment = async (branchSegment: string | undefined, page: number) => {
+  const meta = await getMemberDirectoryMeta();
+  const branch = getMemberBranchBySegment(meta, branchSegment);
+
+  return createMemberDirectoryPage(meta, branch ? { kind: "branch", branchSlug: branch.slug } : { kind: "all" }, page);
 };
 
 export const getMemberPageRouteProps = async () => {
@@ -139,15 +231,10 @@ export const getMemberPageRouteProps = async () => {
       params: {
         page: String(page)
       },
-      props: createMemberDirectoryPage(meta, null, page)
+      props: createMemberDirectoryPage(meta, { kind: "all" }, page)
     };
   });
 };
-
-export const getMemberPageRouteParams = async () =>
-  (await getMemberPageRouteProps()).map(({ params }) => ({
-    params
-  }));
 
 export const getMemberCityIndexRouteProps = async () => {
   const meta = await getMemberDirectoryMeta();
@@ -156,14 +243,9 @@ export const getMemberCityIndexRouteProps = async () => {
     params: {
       city: getCitySegment(city)
     },
-    props: createMemberDirectoryPage(meta, city, 1)
+    props: createMemberDirectoryPage(meta, { kind: "city", city }, 1)
   }));
 };
-
-export const getMemberCityIndexRouteParams = async () =>
-  (await getMemberCityIndexRouteProps()).map(({ params }) => ({
-    params
-  }));
 
 export const getMemberCityPageRouteProps = async () => {
   const meta = await getMemberDirectoryMeta();
@@ -180,16 +262,43 @@ export const getMemberCityPageRouteProps = async () => {
           city: getCitySegment(city),
           page: String(page)
         },
-        props: createMemberDirectoryPage(meta, city, page)
+        props: createMemberDirectoryPage(meta, { kind: "city", city }, page)
       };
     });
   });
 };
 
-export const getMemberCityPageRouteParams = async () =>
-  (await getMemberCityPageRouteProps()).map(({ params }) => ({
-    params
+export const getMemberBranchIndexRouteProps = async () => {
+  const meta = await getMemberDirectoryMeta();
+
+  return meta.branchOptions.map((branch) => ({
+    params: {
+      branch: branch.slug
+    },
+    props: createMemberDirectoryPage(meta, { kind: "branch", branchSlug: branch.slug }, 1)
   }));
+};
+
+export const getMemberBranchPageRouteProps = async () => {
+  const meta = await getMemberDirectoryMeta();
+
+  return meta.branchOptions.flatMap((branch) => {
+    const branchItems = meta.members.filter((member) => member.branch?.slug === branch.slug);
+    const pageCount = Math.ceil(branchItems.length / memberPageSize);
+
+    return Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) => {
+      const page = index + 2;
+
+      return {
+        params: {
+          branch: branch.slug,
+          page: String(page)
+        },
+        props: createMemberDirectoryPage(meta, { kind: "branch", branchSlug: branch.slug }, page)
+      };
+    });
+  });
+};
 
 export const getMemberStaticPaths = async () => {
   const meta = await getMemberDirectoryMeta();
