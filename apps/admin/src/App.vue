@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 import type { AdminMePayload } from "@tgo/shared";
+import adminPackage from "../package.json";
 
 import { authClient } from "./lib/auth-client";
 import { adminFetch } from "./lib/api";
@@ -14,6 +15,7 @@ const router = useRouter();
 const showShell = computed(() => route.name !== "login");
 const me = ref<AdminMePayload | null>(null);
 const loadingMe = ref(false);
+const adminVersion = `v${adminPackage.version}`;
 
 const sidebarModules = computed(() => getVisibleAdminModules(me.value, loadingMe.value));
 
@@ -78,6 +80,7 @@ onMounted(() => {
           </div>
 
           <button class="nav-link nav-button" type="button" @click="signOut">退出登录</button>
+          <div class="sidebar-version">版本 {{ adminVersion }}</div>
         </div>
       </div>
     </aside>
