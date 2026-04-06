@@ -87,6 +87,8 @@ const selectedBranchLabel = computed(
   () => references.value.branches.find((option) => option.id === form.branchId)?.label ?? "暂未选择"
 );
 const eventBodyPreviewHtml = computed(() => renderMarkdownToHtml(normalizeLegacyEventMarkdown(form.body)));
+const agendaCount = computed(() => form.agenda.filter((item) => item.title.trim().length > 0 || item.summary.trim().length > 0).length);
+const venueSummary = computed(() => form.venueName.trim() || form.venueAddress.trim() || "待补充");
 const eventMetaItems = computed(() => [
   {
     label: "内容状态",
@@ -439,6 +441,74 @@ onMounted(() => {
                 <input v-model="form.registrationUrl" type="text" placeholder="https://example.com/register" />
               </label>
             </div>
+
+            <label class="field">
+              <span>摘要</span>
+              <textarea v-model="form.summary" rows="5" placeholder="用于列表和详情页首屏展示的活动摘要。" />
+              <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
+            </label>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>正文</h3>
+            </div>
+
+            <MarkdownEditorField
+              v-model="form.body"
+              placeholder="使用 Markdown 编写活动正文。"
+              help="支持标题、列表、引用和表格。"
+              :error="fieldIssues.body"
+              :preview-html="eventBodyPreviewHtml"
+              preview-empty-description="开始输入 Markdown 后，这里会显示活动正文的排版效果。"
+              :toolbar-items="markdownToolbarItems"
+            />
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="panel-toolbar">
+              <div class="editor-section-head">
+                <h3>议程</h3>
+              </div>
+
+              <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
+            </div>
+
+            <div class="stacked-gap">
+              <div v-for="(item, index) in form.agenda" :key="index" class="panel panel-compact stacked-gap">
+                <div class="panel-toolbar">
+                  <strong>议程 {{ index + 1 }}</strong>
+                  <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label class="field">
+                    <span>议程标题</span>
+                    <input v-model="item.title" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>讲者</span>
+                    <input v-model="item.speakerName" type="text" />
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label class="field">
+                    <span>开始时间</span>
+                    <input v-model="item.startsAt" type="datetime-local" />
+                  </label>
+                  <label class="field">
+                    <span>结束时间</span>
+                    <input v-model="item.endsAt" type="datetime-local" />
+                  </label>
+                </div>
+
+                <label class="field">
+                  <span>议程说明</span>
+                  <textarea v-model="item.summary" rows="4" />
+                </label>
+              </div>
+            </div>
           </section>
         </div>
 
@@ -465,76 +535,31 @@ onMounted(() => {
             help="用于活动列表与详情页封面。"
             :error="fieldIssues.coverAssetId"
           />
+
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>活动概览</h3>
+
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>场地</span>
+                <strong>{{ venueSummary }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>议程数</span>
+                <strong>{{ agendaCount > 0 ? `${agendaCount} 项` : "待补充" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>人数上限</span>
+                <strong>{{ form.capacity ?? "未设置" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>报名链接</span>
+                <strong>{{ form.registrationUrl.trim() || "未设置" }}</strong>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
-
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>摘要与正文</h3>
-        </div>
-
-        <label class="field">
-          <span>摘要</span>
-          <textarea v-model="form.summary" rows="5" placeholder="用于列表和详情页首屏展示的活动摘要。" />
-          <small v-if="fieldIssues.summary" class="field-error">{{ fieldIssues.summary }}</small>
-        </label>
-
-        <MarkdownEditorField
-          v-model="form.body"
-          placeholder="使用 Markdown 编写活动正文。"
-          help="支持标题、列表、引用和表格。"
-          :error="fieldIssues.body"
-          :preview-html="eventBodyPreviewHtml"
-          preview-empty-description="开始输入 Markdown 后，这里会显示活动正文的排版效果。"
-          :toolbar-items="markdownToolbarItems"
-        />
-      </section>
-
-      <section class="editor-section stacked-gap">
-        <div class="panel-toolbar">
-          <div class="editor-section-head">
-            <h3>议程</h3>
-          </div>
-
-          <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
-        </div>
-
-        <div class="panel inset-panel stacked-gap">
-          <div v-for="(item, index) in form.agenda" :key="index" class="panel stacked-gap">
-            <div class="panel-toolbar">
-              <strong>议程 {{ index + 1 }}</strong>
-              <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
-            </div>
-
-            <div class="field-grid field-grid-2">
-              <label class="field">
-                <span>议程标题</span>
-                <input v-model="item.title" type="text" />
-              </label>
-              <label class="field">
-                <span>讲者</span>
-                <input v-model="item.speakerName" type="text" />
-              </label>
-            </div>
-
-            <div class="field-grid field-grid-2">
-              <label class="field">
-                <span>开始时间</span>
-                <input v-model="item.startsAt" type="datetime-local" />
-              </label>
-              <label class="field">
-                <span>结束时间</span>
-                <input v-model="item.endsAt" type="datetime-local" />
-              </label>
-            </div>
-
-            <label class="field">
-              <span>议程说明</span>
-              <textarea v-model="item.summary" rows="4" />
-            </label>
-          </div>
-        </div>
-      </section>
     </div>
   </section>
 </template>

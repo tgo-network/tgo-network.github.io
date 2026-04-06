@@ -46,6 +46,24 @@ const form = reactive<AdminRoleUpdateInput>({
 });
 
 const selectedRole = computed(() => roles.value.find((role) => role.id === selectedRoleId.value) ?? null);
+const selectedRoleMetaItems = computed(() => [
+  {
+    label: "角色代码",
+    value: selectedRole.value?.code ?? "-"
+  },
+  {
+    label: "工作人员数",
+    value: selectedRole.value ? String(selectedRole.value.assignedStaffCount) : "-"
+  },
+  {
+    label: "权限数",
+    value: selectedRole.value ? String(selectedRole.value.permissionIds.length) : "-"
+  },
+  {
+    label: "更新时间",
+    value: formatDateTime(selectedRole.value?.updatedAt)
+  }
+]);
 const filteredRoles = computed(() => {
   const query = filters.query.trim().toLowerCase();
 
@@ -232,6 +250,11 @@ onMounted(() => {
           </div>
 
           <div v-else class="panel table-panel inset-panel">
+            <div class="table-card-head">
+              <h3>角色列表</h3>
+              <span class="status-pill">当前 {{ filteredRoles.length }} 个</span>
+            </div>
+
             <table class="data-table">
               <thead>
                 <tr>
@@ -268,28 +291,24 @@ onMounted(() => {
         </div>
 
         <aside class="editor-side stacked-gap">
-          <div class="panel panel-compact editor-side-card">
-            <template v-if="selectedRole">
+          <template v-if="selectedRole">
+            <div class="panel panel-compact summary-panel stacked-gap-tight">
+              <h3>当前角色</h3>
+
+              <div class="summary-list">
+                <div v-for="item in selectedRoleMetaItems" :key="item.label" class="summary-row">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel panel-compact editor-side-card">
               <div class="panel-toolbar">
                 <h3>编辑角色</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
                   {{ saving ? "保存中..." : "保存角色" }}
                 </button>
-              </div>
-
-              <div class="summary-list">
-                <div class="summary-row">
-                  <span>角色代码</span>
-                  <strong>{{ selectedRole.code }}</strong>
-                </div>
-                <div class="summary-row">
-                  <span>工作人员数</span>
-                  <strong>{{ selectedRole.assignedStaffCount }}</strong>
-                </div>
-                <div class="summary-row">
-                  <span>更新时间</span>
-                  <strong>{{ formatDateTime(selectedRole.updatedAt) }}</strong>
-                </div>
               </div>
 
               <label class="field">
@@ -310,7 +329,7 @@ onMounted(() => {
                   <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>
                 </div>
 
-                <div class="selection-grid">
+                <div class="selection-grid selection-grid-2">
                   <label
                     v-for="permission in permissions"
                     :key="permission.id"
@@ -331,12 +350,12 @@ onMounted(() => {
               <div v-if="isSuperAdmin" class="panel inset-panel stacked-gap">
                 <p>`super_admin` 必须保留完整权限集。</p>
               </div>
-            </template>
+            </div>
+          </template>
 
-            <template v-else>
-              <h3>编辑角色</h3>
-              <p>请先从列表中选择一个角色。</p>
-            </template>
+          <div v-else class="panel panel-compact editor-side-card">
+            <h3>编辑角色</h3>
+            <p>请先从列表中选择一个角色。</p>
           </div>
         </aside>
       </div>

@@ -69,6 +69,8 @@ const membershipStatusLabel = computed(
 );
 const visibilityLabel = computed(() => visibilityLabels[form.visibility as keyof typeof visibilityLabels] ?? form.visibility);
 const joinedAtSummary = computed(() => (form.joinedAt ? formatDate(form.joinedAt) : "待补充加入时间"));
+const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为成员姓名");
+const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.bio.trim() || "将回退为成员简介");
 const memberMetaItems = computed(() => [
   {
     label: "成员状态",
@@ -320,12 +322,12 @@ onMounted(async () => {
                 <input v-model.number="form.sortOrder" type="number" min="0" />
               </label>
 
-              <label class="checkbox-card" :class="{ 'is-active': form.featured }">
-                <input v-model="form.featured" type="checkbox" />
-                <div>
-                  <strong>首页推荐</strong>
-                  <p>允许在首页推荐位复用这份成员资料。</p>
-                </div>
+              <label class="field">
+                <span>首页推荐</span>
+                <select v-model="form.featured">
+                  <option :value="false">关闭</option>
+                  <option :value="true">开启</option>
+                </select>
               </label>
             </div>
           </section>
@@ -341,23 +343,6 @@ onMounted(async () => {
             </label>
           </section>
 
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="editor-section-head">
-              <h3>SEO（可选）</h3>
-            </div>
-
-            <div class="field-grid field-grid-2">
-              <label class="field">
-                <span>SEO 标题</span>
-                <input v-model="form.seoTitle" type="text" />
-              </label>
-
-              <label class="field">
-                <span>SEO 描述</span>
-                <textarea v-model="form.seoDescription" rows="4" />
-              </label>
-            </div>
-          </section>
         </div>
 
         <aside class="editor-side stacked-gap">
@@ -379,9 +364,34 @@ onMounted(async () => {
                 <strong>{{ item.value }}</strong>
               </div>
             </div>
-
-            <p class="field-hint">成员资料只服务前台公开展示，与 Staff 账号完全分开，不会赋予后台权限。</p>
           </div>
+
+          <section class="panel panel-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>SEO（可选）</h3>
+            </div>
+
+            <label class="field">
+              <span>SEO 标题</span>
+              <input v-model="form.seoTitle" type="text" />
+            </label>
+
+            <label class="field">
+              <span>SEO 描述</span>
+              <textarea v-model="form.seoDescription" rows="4" />
+            </label>
+
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>标题回退</span>
+                <strong>{{ seoTitlePreview }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>描述回退</span>
+                <strong>{{ seoDescriptionPreview }}</strong>
+              </div>
+            </div>
+          </section>
         </aside>
       </div>
     </template>

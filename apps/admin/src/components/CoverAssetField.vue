@@ -51,7 +51,9 @@ const selectedValue = computed({
 
 <template>
   <div class="panel stacked-gap">
-    <div class="brand-tag">{{ label }}</div>
+    <div class="editor-section-head">
+      <h3>{{ label }}</h3>
+    </div>
 
     <label class="field">
       <span>选择资源</span>
@@ -87,8 +89,6 @@ const selectedValue = computed({
       </div>
     </div>
 
-    <p v-else class="section-copy">
-      尚未选择封面资源。
-    </p>
+    <p v-else class="field-hint">尚未选择封面资源。</p>
   </div>
 </template>

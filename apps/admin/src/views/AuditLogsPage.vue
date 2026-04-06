@@ -99,6 +99,20 @@ const filteredRows = computed(() => {
     return matchesQuery && matchesTargetType && matchesAction && matchesActionFamily;
   });
 });
+const summaryItems = computed(() => [
+  {
+    label: "当前结果",
+    value: `${filteredRows.value.length} 条`
+  },
+  {
+    label: "对象类型",
+    value: filters.targetType === "all" ? "全部" : formatTargetType(filters.targetType)
+  },
+  {
+    label: "动作",
+    value: filters.action === "all" ? "全部" : formatAction(filters.action)
+  }
+]);
 const quickFilters = [
   {
     key: "all",
@@ -220,6 +234,17 @@ onMounted(async () => {
       </div>
 
       <div v-else class="audit-log-list">
+        <div class="panel panel-compact summary-panel stacked-gap-tight">
+          <h3>筛选结果</h3>
+
+          <div class="summary-list">
+            <div v-for="item in summaryItems" :key="item.label" class="summary-row">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
+        </div>
+
         <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap">
           <div class="audit-log-head">
             <div class="audit-log-topline">
@@ -231,23 +256,23 @@ onMounted(async () => {
             <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
           </div>
 
-          <div class="panel-grid panel-grid-2 audit-log-context-grid">
-            <article class="info-card compact-info-card">
+          <div class="summary-list audit-log-summary-grid">
+            <div class="summary-row">
               <span>操作人</span>
               <strong>{{ formatActor(row) }}</strong>
-            </article>
-            <article class="info-card compact-info-card">
+            </div>
+            <div class="summary-row">
               <span>目标对象</span>
               <strong>{{ formatTargetType(row.targetType) }}</strong>
-            </article>
-            <article class="info-card compact-info-card">
+            </div>
+            <div class="summary-row">
               <span>请求 IP</span>
               <strong>{{ row.requestIp || "-" }}</strong>
-            </article>
-            <article class="info-card compact-info-card">
+            </div>
+            <div class="summary-row">
               <span>浏览器</span>
               <strong class="audit-log-user-agent">{{ row.userAgent || "-" }}</strong>
-            </article>
+            </div>
           </div>
 
           <div class="audit-log-diff">

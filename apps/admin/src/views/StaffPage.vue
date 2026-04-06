@@ -48,6 +48,24 @@ const editForm = reactive<AdminStaffUpdateInput>({
 
 const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
 const roleOptions = computed(() => roles.value);
+const selectedStaffMetaItems = computed(() => [
+  {
+    label: "邮箱",
+    value: selectedStaff.value?.email ?? "-"
+  },
+  {
+    label: "状态",
+    value: selectedStaff.value ? formatStaffAccountStatus(selectedStaff.value.status) : "-"
+  },
+  {
+    label: "角色",
+    value: selectedStaff.value ? formatRoleNames(selectedStaff.value) : "-"
+  },
+  {
+    label: "最后登录",
+    value: formatDateTime(selectedStaff.value?.lastLoginAt)
+  }
+]);
 const filteredRows = computed(() => {
   const query = filters.query.trim().toLowerCase();
 
@@ -276,99 +294,66 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="editor-grid editor-grid-balanced">
+      <div class="editor-grid editor-grid-focus">
         <div class="panel panel-compact editor-main stacked-gap">
-          <div class="panel-toolbar">
-            <h3>新增工作人员</h3>
-            <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
-              {{ creating ? "创建中..." : "创建工作人员" }}
-            </button>
+          <div class="table-card-head">
+            <h3>工作人员列表</h3>
+            <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
           </div>
 
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>姓名</span>
-              <input v-model="createForm.name" type="text" placeholder="运营负责人" />
-              <small v-if="createIssues.name" class="field-error">{{ createIssues.name }}</small>
-            </label>
-
-            <label class="field">
-              <span>邮箱</span>
-              <input v-model="createForm.email" type="email" placeholder="ops@example.com" />
-              <small v-if="createIssues.email" class="field-error">{{ createIssues.email }}</small>
-            </label>
+          <div v-if="filteredRows.length === 0" class="panel inset-panel empty-state-card">
+            <p>当前筛选条件下没有匹配的工作人员账号。</p>
           </div>
 
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>临时密码</span>
-              <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
-              <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
-            </label>
-
-            <label class="field">
-              <span>状态</span>
-              <select v-model="createForm.status">
-                <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <small v-if="createIssues.status" class="field-error">{{ createIssues.status }}</small>
-            </label>
+          <div v-else class="panel table-panel inset-panel">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>姓名</th>
+                  <th>状态</th>
+                  <th>角色</th>
+                  <th>最后登录</th>
+                  <th>更新时间</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in filteredRows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
+                  <td>
+                    <div class="table-cell-stack">
+                      <strong>{{ row.name }}</strong>
+                      <div class="muted-row">{{ row.email }}</div>
+                    </div>
+                  </td>
+                  <td><span class="status-pill">{{ formatStaffAccountStatus(row.status) }}</span></td>
+                  <td>{{ formatRoleNames(row) }}</td>
+                  <td>{{ formatDateTime(row.lastLoginAt) }}</td>
+                  <td>{{ formatDateTime(row.updatedAt) }}</td>
+                  <td class="table-actions-cell">
+                    <button class="button-link button-compact" type="button" @click="selectStaff(row)">
+                      {{ selectedStaffId === row.id ? "编辑中" : "编辑" }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="panel-toolbar">
-              <h3>角色</h3>
-              <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
-            </div>
-
-            <div class="selection-grid selection-grid-2">
-              <label
-                v-for="role in roles"
-                :key="role.id"
-                class="checkbox-row selection-card"
-                :class="{ 'is-active': createForm.roleIds.includes(role.id) }"
-              >
-                <input v-model="createForm.roleIds" type="checkbox" :value="role.id" />
-                <div>
-                  <strong>{{ role.name }}</strong>
-                  <small class="selection-card-code">{{ role.code }}</small>
-                </div>
-              </label>
-            </div>
-            <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
-          </section>
-
-          <label class="field">
-            <span>备注</span>
-            <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途。"></textarea>
-            <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
-          </label>
         </div>
 
         <aside class="editor-side stacked-gap">
           <div class="panel panel-compact editor-side-card">
             <template v-if="selectedStaff">
               <div class="panel-toolbar">
-                <h3>编辑工作人员</h3>
+                <h3>编辑 Staff</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveStaff">
                   {{ saving ? "保存中..." : "保存修改" }}
                 </button>
               </div>
 
               <div class="summary-list">
-                <div class="summary-row">
-                  <span>邮箱</span>
-                  <strong>{{ selectedStaff.email }}</strong>
-                </div>
-                <div class="summary-row">
-                  <span>状态</span>
-                  <strong>{{ formatStaffAccountStatus(selectedStaff.status) }}</strong>
-                </div>
-                <div class="summary-row">
-                  <span>最后登录</span>
-                  <strong>{{ formatDateTime(selectedStaff.lastLoginAt) }}</strong>
+                <div v-for="item in selectedStaffMetaItems" :key="item.label" class="summary-row">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
                 </div>
               </div>
 
@@ -400,7 +385,7 @@ onMounted(() => {
                   <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>
                 </div>
 
-                <div class="selection-grid">
+                <div class="selection-grid selection-grid-2">
                   <label
                     v-for="role in roles"
                     :key="role.id"
@@ -425,49 +410,81 @@ onMounted(() => {
             </template>
 
             <template v-else>
-              <h3>编辑工作人员</h3>
+              <h3>编辑 Staff</h3>
               <p>请先从列表中选择一个账号。</p>
             </template>
           </div>
+
+          <div class="panel panel-compact editor-side-card">
+            <div class="panel-toolbar">
+              <h3>新增 Staff</h3>
+              <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
+                {{ creating ? "创建中..." : "创建工作人员" }}
+              </button>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>姓名</span>
+                <input v-model="createForm.name" type="text" placeholder="运营负责人" />
+                <small v-if="createIssues.name" class="field-error">{{ createIssues.name }}</small>
+              </label>
+
+              <label class="field">
+                <span>邮箱</span>
+                <input v-model="createForm.email" type="email" placeholder="ops@example.com" />
+                <small v-if="createIssues.email" class="field-error">{{ createIssues.email }}</small>
+              </label>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>临时密码</span>
+                <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
+                <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
+              </label>
+
+              <label class="field">
+                <span>状态</span>
+                <select v-model="createForm.status">
+                  <option v-for="option in staffAccountStatusOptions" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <small v-if="createIssues.status" class="field-error">{{ createIssues.status }}</small>
+              </label>
+            </div>
+
+            <section class="editor-section editor-section-compact stacked-gap">
+              <div class="panel-toolbar">
+                <h3>角色</h3>
+                <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
+              </div>
+
+              <div class="selection-grid selection-grid-2">
+                <label
+                  v-for="role in roles"
+                  :key="role.id"
+                  class="checkbox-row selection-card"
+                  :class="{ 'is-active': createForm.roleIds.includes(role.id) }"
+                >
+                  <input v-model="createForm.roleIds" type="checkbox" :value="role.id" />
+                  <div>
+                    <strong>{{ role.name }}</strong>
+                    <small class="selection-card-code">{{ role.code }}</small>
+                  </div>
+                </label>
+              </div>
+              <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
+            </section>
+
+            <label class="field">
+              <span>备注</span>
+              <textarea v-model="createForm.notes" rows="4" placeholder="说明这个工作人员账号的用途。"></textarea>
+              <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
+            </label>
+          </div>
         </aside>
-      </div>
-
-      <div v-if="filteredRows.length === 0" class="panel empty-state-card">
-        <p>当前筛选条件下没有匹配的工作人员账号。</p>
-      </div>
-
-      <div v-else class="panel table-panel">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>姓名</th>
-              <th>状态</th>
-              <th>角色</th>
-              <th>最后登录</th>
-              <th>更新时间</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in filteredRows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
-              <td>
-                <div class="table-cell-stack">
-                  <strong>{{ row.name }}</strong>
-                  <div class="muted-row">{{ row.email }}</div>
-                </div>
-              </td>
-              <td><span class="status-pill">{{ formatStaffAccountStatus(row.status) }}</span></td>
-              <td>{{ formatRoleNames(row) }}</td>
-              <td>{{ formatDateTime(row.lastLoginAt) }}</td>
-              <td>{{ formatDateTime(row.updatedAt) }}</td>
-              <td class="table-actions-cell">
-                <button class="button-link button-compact" type="button" @click="selectStaff(row)">
-                  {{ selectedStaffId === row.id ? "编辑中" : "编辑" }}
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </template>
   </section>

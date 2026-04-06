@@ -66,6 +66,8 @@ const selectedBranchLabel = computed(
   () => references.value.branches.find((option) => option.id === form.branchId)?.label ?? "暂未关联"
 );
 const articleBodyPreviewHtml = computed(() => renderMarkdownToHtml(form.body));
+const seoTitlePreview = computed(() => form.seoTitle.trim() || form.title.trim() || "将回退为文章标题");
+const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.excerpt.trim() || "将回退为文章摘要");
 const articleMetaItems = computed(() => [
   {
     label: "作者",
@@ -343,6 +345,22 @@ onMounted(() => {
               <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
             </label>
           </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>正文</h3>
+            </div>
+
+            <MarkdownEditorField
+              v-model="form.body"
+              placeholder="使用 Markdown 编写文章正文。"
+              help="支持标题、列表、引用和代码块。"
+              :error="fieldIssues.body"
+              :preview-html="articleBodyPreviewHtml"
+              preview-empty-description="开始输入 Markdown 后，这里会显示文章正文的排版效果。"
+              :toolbar-items="markdownToolbarItems"
+            />
+          </section>
         </section>
 
         <aside class="editor-side stacked-gap">
@@ -367,44 +385,37 @@ onMounted(() => {
             :error="fieldIssues.coverAssetId"
             help="用于文章列表与详情页的封面图。"
           />
+
+          <section class="panel panel-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>SEO（可选）</h3>
+            </div>
+
+            <label class="field">
+              <span>SEO 标题</span>
+              <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
+              <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
+            </label>
+
+            <label class="field">
+              <span>SEO 描述</span>
+              <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
+              <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
+            </label>
+
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>标题回退</span>
+                <strong>{{ seoTitlePreview }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>描述回退</span>
+                <strong>{{ seoDescriptionPreview }}</strong>
+              </div>
+            </div>
+          </section>
         </aside>
       </div>
-
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>正文</h3>
-        </div>
-
-        <MarkdownEditorField
-          v-model="form.body"
-          placeholder="使用 Markdown 编写文章正文。"
-          help="支持标题、列表、引用和代码块。"
-          :error="fieldIssues.body"
-          :preview-html="articleBodyPreviewHtml"
-          preview-empty-description="开始输入 Markdown 后，这里会显示文章正文的排版效果。"
-          :toolbar-items="markdownToolbarItems"
-        />
-      </section>
-
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>SEO（可选）</h3>
-        </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>SEO 标题</span>
-            <input v-model="form.seoTitle" type="text" placeholder="在不锁死技术栈的前提下交付内容平台 | TGO 鲲鹏会" />
-            <small v-if="fieldIssues.seoTitle" class="field-error">{{ fieldIssues.seoTitle }}</small>
-          </label>
-
-          <label class="field">
-            <span>SEO 描述</span>
-            <textarea v-model="form.seoDescription" rows="4" placeholder="搜索与社交分享摘要。" />
-            <small v-if="fieldIssues.seoDescription" class="field-error">{{ fieldIssues.seoDescription }}</small>
-          </label>
-        </div>
-      </section>
     </div>
   </section>
 </template>
