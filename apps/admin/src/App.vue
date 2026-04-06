@@ -16,6 +16,7 @@ const showShell = computed(() => route.name !== "login");
 const me = ref<AdminMePayload | null>(null);
 const loadingMe = ref(false);
 const adminVersion = `v${adminPackage.version}`;
+const adminBuildLabel = __ADMIN_BUILD_SHA__ ? `${adminVersion} · ${__ADMIN_BUILD_SHA__}` : adminVersion;
 
 const sidebarModules = computed(() => getVisibleAdminModules(me.value, loadingMe.value));
 
@@ -80,7 +81,7 @@ onMounted(() => {
           </div>
 
           <button class="nav-link nav-button" type="button" @click="signOut">退出登录</button>
-          <div class="sidebar-version">版本 {{ adminVersion }}</div>
+          <div class="sidebar-version">{{ adminBuildLabel }}</div>
         </div>
       </div>
     </aside>
