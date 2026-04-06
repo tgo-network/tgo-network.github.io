@@ -300,7 +300,7 @@ test("admin review detail flows support saving application and registration deci
   await expect(page.getByRole("heading", { name: attendeeName })).toBeVisible();
   await page.getByLabel("状态").selectOption("approved");
   await page.getByLabel("审核备注").fill(`Playwright 自动报名审核 ${suffix}`);
-  await page.getByRole("button", { name: "保存状态" }).click();
+  await page.getByRole("button", { name: "保存审核" }).click();
   await expect(page.getByText("报名状态已更新。")).toBeVisible();
   await expect(page.getByLabel("状态")).toHaveValue("approved");
   await expect(page.locator(".editor-side .status-pill").first()).toContainText("开放中");

@@ -125,7 +125,7 @@ onMounted(() => {
       <div class="page-actions page-actions-compact">
         <RouterLink v-if="eventInfo" class="button-link" :to="`/events/${eventInfo.id}/registrations`">返回报名列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
-          {{ saving ? "保存中..." : "保存状态" }}
+          {{ saving ? "保存中..." : "保存审核" }}
         </button>
       </div>
     </header>

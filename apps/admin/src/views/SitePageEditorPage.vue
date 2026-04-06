@@ -166,7 +166,7 @@ onMounted(() => {
         <RouterLink class="button-link" :to="pageSlug === 'join' ? '/site/pages/about' : '/site/pages/join'">
           {{ pageSlug === "join" ? "切换到关于页" : "切换到加入页" }}
         </RouterLink>
-        <a class="button-link" :href="previewHref" target="_blank" rel="noreferrer">预览前台</a>
+        <a class="button-link" :href="previewHref" target="_blank" rel="noreferrer">前台预览</a>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : `保存${pageLabel}` }}
         </button>

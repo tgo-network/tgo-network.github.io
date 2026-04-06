@@ -197,7 +197,7 @@ onMounted(() => {
       <h2>首页配置</h2>
 
       <div class="page-actions page-actions-compact">
-        <a class="button-link" href="/" target="_blank" rel="noreferrer">预览前台</a>
+        <a class="button-link" href="/" target="_blank" rel="noreferrer">前台预览</a>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存首页配置" }}
         </button>

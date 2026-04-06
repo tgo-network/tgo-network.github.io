@@ -92,6 +92,16 @@ const boardMembersReady = computed(() =>
 const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为分会名称");
 const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.summary.trim() || "将回退为分会简介");
 
+const resolveBoardMemberName = (item: BoardMemberFormItem, index: number) =>
+  item.displayName.trim() ||
+  memberOptions.value.find((option) => option.id === item.memberId)?.label ||
+  `成员 ${index + 1}`;
+
+const resolveBoardMemberMeta = (item: BoardMemberFormItem) => {
+  const values = [item.company.trim(), item.title.trim()].filter((value) => value.length > 0);
+  return values.length > 0 ? values.join(" · ") : "待补充公司与身份";
+};
+
 const loadMemberOptions = async () => {
   const members = await adminFetch<AdminMemberListItem[]>("/api/admin/v1/members");
   memberOptions.value = members.map((member) => ({
@@ -259,7 +269,7 @@ onMounted(async () => {
 
       <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members/branches">返回分会列表</RouterLink>
-        <a class="button-link" :href="previewHref" target="_blank" rel="noreferrer">预览前台</a>
+        <a class="button-link" :href="previewHref" target="_blank" rel="noreferrer">前台预览</a>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建分会" : "保存修改" }}
         </button>
@@ -340,26 +350,30 @@ onMounted(async () => {
 
           <section class="editor-section editor-section-compact stacked-gap">
             <div class="editor-section-head">
-              <h3>排序与 SEO</h3>
+              <h3>排序</h3>
             </div>
 
-            <div class="field-grid field-grid-2">
-              <label class="field">
-                <span>排序</span>
-                <input v-model.number="form.sortOrder" type="number" min="0" />
-              </label>
+            <label class="field">
+              <span>排序</span>
+              <input v-model.number="form.sortOrder" type="number" min="0" />
+            </label>
+          </section>
 
+          <details class="panel panel-compact detail-card">
+            <summary>SEO（可选）</summary>
+
+            <div class="detail-card-body stacked-gap">
               <label class="field">
                 <span>SEO 标题</span>
                 <input v-model="form.seoTitle" type="text" placeholder="可选，不填则回退分会名称。" />
               </label>
-            </div>
 
-            <label class="field">
-              <span>SEO 描述</span>
-              <textarea v-model="form.seoDescription" rows="4" placeholder="可选，不填则回退分会简介。" />
-            </label>
-          </section>
+              <label class="field">
+                <span>SEO 描述</span>
+                <textarea v-model="form.seoDescription" rows="3" placeholder="可选，不填则回退分会简介。" />
+              </label>
+            </div>
+          </details>
 
           <section class="editor-section editor-section-compact stacked-gap">
             <div class="page-header-row compact-row">
@@ -369,71 +383,79 @@ onMounted(async () => {
               <button class="button-link button-compact" type="button" @click="addBoardMember">添加成员</button>
             </div>
 
-            <div v-for="(item, index) in form.boardMembers" :key="`${index}-${item.memberId ?? 'manual'}`" class="panel panel-compact stacked-gap">
-              <div class="page-header-row compact-row">
-                <strong>成员 {{ index + 1 }}</strong>
-                <button class="button-link button-danger button-compact" type="button" @click="removeBoardMember(index)">移除</button>
-              </div>
-
-              <div class="field-grid field-grid-2">
-                <label class="field">
-                  <span>关联成员</span>
-                  <select v-model="item.memberId" @change="onMemberPick(item)">
-                    <option :value="null">不关联现有成员</option>
-                    <option v-for="option in memberOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
-                  </select>
-                  <small class="field-hint">{{ memberOptions.find((option) => option.id === item.memberId)?.description ?? "可选" }}</small>
-                </label>
-
-                <label class="field">
-                  <span>头像资源</span>
-                  <select v-model="item.avatarAssetId">
-                    <option :value="null">暂不单独设置头像</option>
-                    <option v-for="asset in selectableAvatarAssets" :key="asset.id" :value="asset.id">{{ asset.originalFilename }}</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="field-grid field-grid-3">
-                <label class="field">
-                  <span>显示姓名</span>
-                  <input v-model="item.displayName" type="text" />
-                </label>
-                <label class="field">
-                  <span>公司</span>
-                  <input v-model="item.company" type="text" />
-                </label>
-                <label class="field">
-                  <span>组织身份</span>
-                  <input v-model="item.title" type="text" />
-                </label>
-              </div>
-
-              <div class="field-grid field-grid-3">
-                <label class="field">
-                  <span>状态</span>
-                  <select v-model="item.status">
-                    <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-                  </select>
-                </label>
-
-                <label class="field">
-                  <span>排序</span>
-                  <input v-model.number="item.sortOrder" type="number" min="0" />
-                </label>
-
-                <div class="info-card">
-                  <span>前台显示</span>
-                  <strong>{{ item.displayName || "待补充姓名" }}</strong>
-                  <p>{{ item.company || "待补充公司" }} · {{ item.title || "待补充组织身份" }}</p>
+            <details
+              v-for="(item, index) in form.boardMembers"
+              :key="`${index}-${item.memberId ?? 'manual'}`"
+              class="panel panel-compact detail-card branch-board-member-card"
+            >
+              <summary>
+                <div class="branch-board-member-summary">
+                  <strong>{{ resolveBoardMemberName(item, index) }}</strong>
+                  <small>{{ resolveBoardMemberMeta(item) }}</small>
                 </div>
-              </div>
+                <span class="status-pill">{{ formatContentStatus(item.status) }}</span>
+              </summary>
 
-              <label class="field">
-                <span>简介</span>
-                <textarea v-model="item.bio" rows="3" />
-              </label>
-            </div>
+              <div class="detail-card-body stacked-gap">
+                <div class="page-header-row compact-row">
+                  <div class="panel-meta">成员 {{ index + 1 }}</div>
+                  <button class="button-link button-danger button-compact" type="button" @click="removeBoardMember(index)">移除</button>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label class="field">
+                    <span>关联成员</span>
+                    <select v-model="item.memberId" @change="onMemberPick(item)">
+                      <option :value="null">不关联现有成员</option>
+                      <option v-for="option in memberOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+                    </select>
+                    <small class="field-hint">{{ memberOptions.find((option) => option.id === item.memberId)?.description ?? "可选" }}</small>
+                  </label>
+
+                  <label class="field">
+                    <span>头像资源</span>
+                    <select v-model="item.avatarAssetId">
+                      <option :value="null">暂不单独设置头像</option>
+                      <option v-for="asset in selectableAvatarAssets" :key="asset.id" :value="asset.id">{{ asset.originalFilename }}</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-3">
+                  <label class="field">
+                    <span>显示姓名</span>
+                    <input v-model="item.displayName" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>公司</span>
+                    <input v-model="item.company" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>组织身份</span>
+                    <input v-model="item.title" type="text" />
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label class="field">
+                    <span>状态</span>
+                    <select v-model="item.status">
+                      <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>排序</span>
+                    <input v-model.number="item.sortOrder" type="number" min="0" />
+                  </label>
+                </div>
+
+                <label class="field">
+                  <span>简介</span>
+                  <textarea v-model="item.bio" rows="3" />
+                </label>
+              </div>
+            </details>
           </section>
         </div>
 
@@ -449,7 +471,7 @@ onMounted(async () => {
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>当前状态</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div class="summary-row">
                 <span>当前状态</span>
                 <strong class="status-pill">{{ formatContentStatus(branch?.status ?? form.status) }}</strong>
@@ -476,7 +498,7 @@ onMounted(async () => {
           <div class="panel panel-compact summary-panel stacked-gap-tight">
             <h3>内容概览</h3>
 
-            <div class="summary-list">
+            <div class="summary-list summary-list-compact">
               <div class="summary-row">
                 <span>简介</span>
                 <strong>{{ form.summary.trim().length > 0 ? "已填写" : "待补充" }}</strong>
@@ -504,3 +526,27 @@ onMounted(async () => {
     </template>
   </section>
 </template>
+
+<style scoped>
+  .branch-board-member-card > summary {
+    align-items: center;
+  }
+
+  .branch-board-member-summary {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .branch-board-member-summary strong,
+  .branch-board-member-summary small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .branch-board-member-summary small {
+    color: var(--muted);
+    line-height: 1.4;
+  }
+</style>
