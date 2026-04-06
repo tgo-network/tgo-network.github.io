@@ -208,7 +208,7 @@ onMounted(() => {
       <h2>{{ pageTitle }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/roles">返回角色列表</RouterLink>
+        <RouterLink class="button-link" to="/roles">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建角色" : "保存角色" }}
         </button>
@@ -301,7 +301,7 @@ onMounted(() => {
           </div>
 
           <div v-if="isSuperAdmin" class="panel panel-compact inset-panel stacked-gap-tight">
-            <p>`super_admin` 必须保留完整权限集。</p>
+            <p>超级管理员必须保留完整权限集。</p>
           </div>
         </aside>
       </div>

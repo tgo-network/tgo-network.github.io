@@ -191,7 +191,7 @@ onMounted(() => {
       <h2>{{ pageTitle }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/staff">返回 Staff 列表</RouterLink>
+        <RouterLink class="button-link" to="/staff">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建 Staff" : "保存修改" }}
         </button>
@@ -246,6 +246,12 @@ onMounted(() => {
                 <input v-model="form.password" type="password" placeholder="至少 12 个字符" />
                 <small v-if="fieldIssues.password" class="field-error">{{ fieldIssues.password }}</small>
               </label>
+
+              <div v-else class="info-card compact-info-card">
+                <span>最近登录</span>
+                <strong>{{ formatDateTime(staff?.lastLoginAt) }}</strong>
+                <p>当前已分配 {{ selectedRoleCount }} 项角色。</p>
+              </div>
             </div>
           </section>
 
