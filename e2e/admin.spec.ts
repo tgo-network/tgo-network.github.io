@@ -54,7 +54,7 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expectNoHorizontalOverflow(page, "admin-login");
 
   await signIn(page);
-  await expect(page.getByText(adminEmail).first()).toBeVisible();
+  await expect(page.locator(".sidebar-account strong")).toBeVisible();
   await expect(page.getByRole("link", { name: "会员", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Staff", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "角色", exact: true })).toBeVisible();

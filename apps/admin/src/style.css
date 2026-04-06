@@ -54,8 +54,8 @@ a {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 164px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 10px;
   padding: 12px;
 }
 
@@ -64,7 +64,7 @@ a {
   top: 12px;
   align-self: start;
   min-height: calc(100vh - 24px);
-  padding: 8px 6px 6px;
+  padding: 9px 7px 7px;
   border: 1px solid var(--line);
   border-radius: 26px;
   background:
@@ -76,7 +76,7 @@ a {
 
 .sidebar-inner {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-height: 100%;
 }
 
@@ -89,13 +89,13 @@ a {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   border: 1px solid rgba(138, 108, 57, 0.16);
   background: linear-gradient(135deg, rgba(154, 119, 66, 0.16), rgba(223, 196, 151, 0.24));
   color: var(--accent-deep);
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -135,17 +135,17 @@ a {
 
 .nav {
   display: grid;
-  gap: 5px;
+  gap: 6px;
 }
 
 .nav-link {
   display: block;
-  padding: 7px 8px;
+  padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0);
-  border-radius: 12px;
+  border-radius: 14px;
   color: var(--muted);
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   background: rgba(255, 255, 255, 0.28);
   text-align: left;
   white-space: nowrap;
@@ -183,29 +183,20 @@ a {
 .sidebar-footer {
   margin-top: auto;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sidebar-account {
   display: grid;
   gap: 2px;
-  padding: 7px 8px;
+  padding: 8px 10px;
   border: 1px solid rgba(138, 108, 57, 0.1);
-  border-radius: 14px;
+  border-radius: 15px;
   background: rgba(255, 255, 255, 0.58);
 }
 
 .sidebar-account strong {
-  font-size: 0.82rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar-account span {
-  color: var(--muted);
-  font-size: 0.7rem;
-  line-height: 1.3;
+  font-size: 0.88rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

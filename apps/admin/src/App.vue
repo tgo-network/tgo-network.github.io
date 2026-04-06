@@ -75,7 +75,6 @@ onMounted(() => {
         <div class="sidebar-footer">
           <div class="sidebar-account">
             <strong>{{ me?.user?.name ?? "工作人员" }}</strong>
-            <span>{{ me?.user?.email ?? (loadingMe ? "正在同步账户信息" : "未读取到账户信息") }}</span>
           </div>
 
           <button class="nav-link nav-button" type="button" @click="signOut">退出登录</button>
