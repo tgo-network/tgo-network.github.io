@@ -233,7 +233,7 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -276,8 +276,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="editor-grid editor-grid-compact">
-        <div class="panel editor-main stacked-gap">
+      <div class="editor-grid editor-grid-balanced">
+        <div class="panel panel-compact editor-main stacked-gap">
           <div class="panel-toolbar">
             <h3>新增工作人员</h3>
             <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
@@ -317,7 +317,7 @@ onMounted(() => {
             </label>
           </div>
 
-          <section class="editor-section stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="panel-toolbar">
               <h3>角色</h3>
               <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
@@ -348,13 +348,28 @@ onMounted(() => {
         </div>
 
         <aside class="editor-side stacked-gap">
-          <div class="panel editor-side-card">
+          <div class="panel panel-compact editor-side-card">
             <template v-if="selectedStaff">
               <div class="panel-toolbar">
                 <h3>编辑工作人员</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveStaff">
                   {{ saving ? "保存中..." : "保存修改" }}
                 </button>
+              </div>
+
+              <div class="summary-list">
+                <div class="summary-row">
+                  <span>邮箱</span>
+                  <strong>{{ selectedStaff.email }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>状态</span>
+                  <strong>{{ formatStaffAccountStatus(selectedStaff.status) }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>最后登录</span>
+                  <strong>{{ formatDateTime(selectedStaff.lastLoginAt) }}</strong>
+                </div>
               </div>
 
               <label class="field">
@@ -379,7 +394,7 @@ onMounted(() => {
                 <small v-if="editIssues.status" class="field-error">{{ editIssues.status }}</small>
               </label>
 
-              <section class="editor-section stacked-gap">
+              <section class="editor-section editor-section-compact stacked-gap">
                 <div class="panel-toolbar">
                   <h3>角色</h3>
                   <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>

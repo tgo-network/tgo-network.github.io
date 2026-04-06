@@ -29,17 +29,6 @@ const visibilityLabels = {
   private: "私有"
 } as const;
 
-const membershipStatusDescriptions = {
-  active: "继续在前台成员列表中公开展示，是当前有效成员。",
-  alumni: "保留成员沉淀，但在身份表达上标记为校友成员。",
-  paused: "暂时不作为活跃成员对外展示，可后续再恢复。"
-} as const;
-
-const visibilityDescriptions = {
-  public: "会出现在前台成员列表和成员详情页中。",
-  private: "仍保留后台资料，但不会在公开站展示。"
-} as const;
-
 const route = useRoute();
 const router = useRouter();
 
@@ -80,59 +69,34 @@ const membershipStatusLabel = computed(
 );
 const visibilityLabel = computed(() => visibilityLabels[form.visibility as keyof typeof visibilityLabels] ?? form.visibility);
 const joinedAtSummary = computed(() => (form.joinedAt ? formatDate(form.joinedAt) : "待补充加入时间"));
-const memberBioParagraphs = computed(() =>
-  form.bio
-    .split(/\n{2,}/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-);
-const memberOverviewCards = computed(() => [
-  {
-    label: "可见性",
-    value: visibilityLabel.value,
-    summary: visibilityDescriptions[form.visibility as keyof typeof visibilityDescriptions]
-  },
+const memberMetaItems = computed(() => [
   {
     label: "成员状态",
-    value: membershipStatusLabel.value,
-    summary: membershipStatusDescriptions[form.membershipStatus as keyof typeof membershipStatusDescriptions]
+    value: membershipStatusLabel.value
   },
   {
-    label: "组织位置",
-    value: selectedBranch.value?.label ?? "未分配分会",
-    summary: selectedBranch.value?.description ?? "前台会根据分会和城市组织成员网络。"
+    label: "可见性",
+    value: visibilityLabel.value
+  },
+  {
+    label: "所属分会",
+    value: selectedBranch.value?.label ?? "未分配分会"
   },
   {
     label: "公开路径",
-    value: form.slug ? `/members/${form.slug}` : "待生成 slug",
-    summary: form.slug ? `${joinedAtSummary.value} · ${form.featured ? "首页推荐中" : "未加入首页推荐"}` : "姓名填写后会自动生成公开路径。"
-  }
-]);
-const memberChecklist = computed(() => [
-  {
-    label: "姓名与 slug",
-    ready: form.name.trim().length > 0 && form.slug.trim().length > 0,
-    hint: "成员详情页通过 slug 对外访问，姓名会同时用于列表卡片和详情页主标题。"
-  },
-  {
-    label: "公司与职称",
-    ready: form.company.trim().length > 0 && form.title.trim().length > 0,
-    hint: "成员列表卡片会直接展示公司与职称，帮助访客快速理解覆盖人群。"
-  },
-  {
-    label: "个人简介",
-    ready: memberBioParagraphs.value.length > 0,
-    hint: "详情页会展示个人简介，用于补足成员的背景与关注方向。"
+    value: form.slug ? `/members/${form.slug}` : "待生成"
   },
   {
     label: "加入时间",
-    ready: Boolean(form.joinedAt),
-    hint: "列表和详情都会显示加入时间，用于强化组织沉淀感。"
+    value: joinedAtSummary.value
   },
   {
-    label: "头像资源",
-    ready: Boolean(form.avatarAssetId),
-    hint: "头像不是强制项，但会显著提升成员列表页的识别度。"
+    label: "首页推荐",
+    value: form.featured ? "已开启" : "未开启"
+  },
+  {
+    label: "最近更新",
+    value: formatDateTime(member.value?.updatedAt)
   }
 ]);
 
@@ -256,14 +220,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section>
+  <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>{{ pageTitle }}</h2>
-        <p>成员资料只服务前台公开展示，与工作人员账号完全分开，不参与当前阶段的登录认证。</p>
-      </div>
+      <h2>{{ pageTitle }}</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members">返回成员列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建成员" : "保存修改" }}
@@ -271,294 +232,156 @@ onMounted(async () => {
       </div>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">操作错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在准备成员编辑器...</p>
     </div>
 
     <template v-else>
-      <div class="editor-overview-grid">
-        <article v-for="item in memberOverviewCards" :key="item.label" class="editor-overview-card">
-          <span>{{ item.label }}</span>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
-      <div class="editor-grid">
-        <div class="panel editor-main stacked-gap">
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">公开资料</div>
-            <h3>准备成员列表卡片所需信息</h3>
-            <p>姓名、公司、职称和 slug 会共同决定成员在公开列表中的第一印象与详情页链接。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>姓名</span>
-              <input v-model="form.name" type="text" placeholder="周扬" @input="onNameInput" />
-              <small class="field-hint">成员列表卡片、详情页主标题和头像回退字母都会直接使用姓名。</small>
-              <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
-            </label>
-
-            <label class="field">
-              <span>URL 标识</span>
-              <input v-model="form.slug" type="text" placeholder="zhou-yang" @input="onSlugInput" />
-              <small class="field-hint">公开成员详情页通过 slug 暴露访问路径，新建时会跟随姓名自动生成。</small>
-              <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>公司</span>
-              <input v-model="form.company" type="text" placeholder="海岸智能" />
-            </label>
-
-            <label class="field">
-              <span>职称</span>
-              <input v-model="form.title" type="text" placeholder="CTO" />
-            </label>
-          </div>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">组织归属与展示控制</div>
-            <h3>控制成员在前台的组织位置</h3>
-            <p>分会、可见性、排序和首页推荐共同决定成员是否公开展示，以及展示优先级。</p>
-          </div>
-
-          <div class="field-grid field-grid-3">
-            <label class="field">
-              <span>所属分会</span>
-              <select v-model="form.branchId">
-                <option :value="null">暂不分配</option>
-                <option v-for="option in branchOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
-              </select>
-              <small class="field-hint">前台成员列表和详情会直接显示分会与城市归属。</small>
-            </label>
-
-            <div class="info-card">
-              <span>当前城市</span>
-              <strong>{{ selectedBranch?.description ?? "待补充城市" }}</strong>
-              <small class="field-hint">{{ joinedAtSummary }}</small>
+      <div class="editor-grid editor-grid-focus">
+        <div class="panel panel-compact editor-main stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>基本信息</h3>
             </div>
-          </div>
 
-          <div class="field">
-            <span>成员状态</span>
-            <div class="option-card-grid option-card-grid-3">
-              <button
-                v-for="(label, value) in membershipStatusLabels"
-                :key="value"
-                type="button"
-                class="option-card"
-                :class="{ 'is-active': form.membershipStatus === value }"
-                @click="form.membershipStatus = value"
-              >
-                <strong>{{ label }}</strong>
-                <p>{{ membershipStatusDescriptions[value] }}</p>
-                <div class="option-card-foot">
-                  <span class="option-card-badge">{{ form.membershipStatus === value ? "当前状态" : "切换" }}</span>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>姓名</span>
+                <input v-model="form.name" type="text" placeholder="周扬" @input="onNameInput" />
+                <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
+              </label>
+
+              <label class="field">
+                <span>URL 标识</span>
+                <input v-model="form.slug" type="text" placeholder="zhou-yang" @input="onSlugInput" />
+                <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+              </label>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>公司</span>
+                <input v-model="form.company" type="text" placeholder="海岸智能" />
+              </label>
+
+              <label class="field">
+                <span>职称</span>
+                <input v-model="form.title" type="text" placeholder="CTO" />
+              </label>
+            </div>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>展示设置</h3>
+            </div>
+
+            <div class="field-grid field-grid-3">
+              <label class="field">
+                <span>所属分会</span>
+                <select v-model="form.branchId">
+                  <option :value="null">暂不分配</option>
+                  <option v-for="option in branchOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>成员状态</span>
+                <select v-model="form.membershipStatus">
+                  <option v-for="(label, value) in membershipStatusLabels" :key="value" :value="value">{{ label }}</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>可见性</span>
+                <select v-model="form.visibility">
+                  <option v-for="(label, value) in visibilityLabels" :key="value" :value="value">{{ label }}</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-grid field-grid-3">
+              <label class="field">
+                <span>加入时间</span>
+                <input v-model="form.joinedAt" type="datetime-local" />
+                <small v-if="fieldIssues.joinedAt" class="field-error">{{ fieldIssues.joinedAt }}</small>
+              </label>
+
+              <label class="field">
+                <span>排序</span>
+                <input v-model.number="form.sortOrder" type="number" min="0" />
+              </label>
+
+              <label class="checkbox-card" :class="{ 'is-active': form.featured }">
+                <input v-model="form.featured" type="checkbox" />
+                <div>
+                  <strong>首页推荐</strong>
+                  <p>允许在首页推荐位复用这份成员资料。</p>
                 </div>
-              </button>
+              </label>
             </div>
-          </div>
+          </section>
 
-          <div class="field">
-            <span>可见性</span>
-            <div class="option-card-grid option-card-grid-2">
-              <button
-                v-for="(label, value) in visibilityLabels"
-                :key="value"
-                type="button"
-                class="option-card"
-                :class="{ 'is-active': form.visibility === value }"
-                @click="form.visibility = value"
-              >
-                <strong>{{ label }}</strong>
-                <p>{{ visibilityDescriptions[value] }}</p>
-                <div class="option-card-foot">
-                  <span class="option-card-badge">{{ form.visibility === value ? "当前状态" : "切换" }}</span>
-                </div>
-              </button>
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>个人简介</h3>
             </div>
-            <small class="field-hint">私有成员不会出现在前台成员列表和详情页。</small>
-          </div>
-
-          <div class="field-grid field-grid-3">
-            <label class="field">
-              <span>加入时间</span>
-              <input v-model="form.joinedAt" type="datetime-local" />
-              <small v-if="fieldIssues.joinedAt" class="field-error">{{ fieldIssues.joinedAt }}</small>
-            </label>
 
             <label class="field">
-              <span>排序</span>
-              <input v-model.number="form.sortOrder" type="number" min="0" />
-              <small class="field-hint">数字越小越靠前，适合控制列表和精选排序。</small>
+              <span>个人简介</span>
+              <textarea v-model="form.bio" rows="10" placeholder="用于成员详情页展示的个人简介。" />
             </label>
+          </section>
 
-            <label class="checkbox-card" :class="{ 'is-active': form.featured }">
-              <input v-model="form.featured" type="checkbox" />
-              <div>
-                <strong>首页推荐</strong>
-                <p>开启后可作为首页精选成员候选，让成员推荐语或精选位继续复用这份资料。</p>
-              </div>
-            </label>
-          </div>
-        </section>
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>SEO（可选）</h3>
+            </div>
 
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">成员详情内容</div>
-            <h3>补足成员详情页叙事</h3>
-            <p>成员详情页目前只有一块“个人简介”，适合聚焦背景、关注议题和在社区中的价值。</p>
-          </div>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>SEO 标题</span>
+                <input v-model="form.seoTitle" type="text" />
+              </label>
 
-          <label class="field">
-            <span>个人简介</span>
-            <textarea v-model="form.bio" rows="10" placeholder="用于成员详情页展示的个人简介。" />
-            <small class="field-hint">建议按段落书写，可以拆成背景介绍、关注方向和社区参与方式。</small>
-          </label>
-        </section>
-
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">SEO</div>
-            <h3>准备搜索与分享信息</h3>
-            <p>SEO 标题和描述仅在需要覆盖默认姓名 / 公司职称组合时再填写。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>SEO 标题</span>
-              <input v-model="form.seoTitle" type="text" />
-            </label>
-
-            <label class="field">
-              <span>SEO 描述</span>
-              <textarea v-model="form.seoDescription" rows="4" />
-            </label>
-          </div>
-        </section>
+              <label class="field">
+                <span>SEO 描述</span>
+                <textarea v-model="form.seoDescription" rows="4" />
+              </label>
+            </div>
+          </section>
         </div>
 
         <aside class="editor-side stacked-gap">
-        <CoverAssetField
-          v-model="form.avatarAssetId"
-          :assets="assets"
-          label="头像资源"
-          help="选择公开图片资源作为成员头像。"
-          :error="fieldIssues.avatarAssetId"
-        />
+          <CoverAssetField
+            v-model="form.avatarAssetId"
+            class="panel-compact"
+            :assets="assets"
+            label="头像资源"
+            help="选择公开图片资源作为成员头像。"
+            :error="fieldIssues.avatarAssetId"
+          />
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">前台映射</div>
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>当前信息</h3>
 
-          <div class="preview-stack">
-            <div class="preview-group">
-              <span class="preview-label">成员列表卡片</span>
-              <div class="preview-card">
-                <span class="preview-eyebrow">{{ selectedBranch?.label ?? "成员" }}</span>
-                <strong class="preview-title">{{ form.name || "成员姓名会展示在这里" }}</strong>
-                <p class="preview-copy">{{ form.company || "待补充公司" }} · {{ form.title || "待补充职称" }}</p>
-                <div class="preview-meta">
-                  <span>{{ selectedBranch?.description ?? "待补充城市" }}</span>
-                  <span>{{ joinedAtSummary }}</span>
-                </div>
+            <div class="summary-list">
+              <div v-for="item in memberMetaItems" :key="item.label" class="summary-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
               </div>
             </div>
 
-            <div class="preview-group">
-              <span class="preview-label">成员详情页档案</span>
-              <div class="preview-card preview-card-dark">
-                <span class="preview-eyebrow">成员详情</span>
-                <strong class="preview-title">{{ form.name || "详情页主标题" }}</strong>
-                <ul class="preview-list">
-                  <li>
-                    <span>所属分会</span>
-                    <strong>{{ selectedBranch?.label ?? "待补充分会" }}</strong>
-                  </li>
-                  <li>
-                    <span>所在城市</span>
-                    <strong>{{ selectedBranch?.description ?? "待补充城市" }}</strong>
-                  </li>
-                  <li>
-                    <span>加入时间</span>
-                    <strong>{{ joinedAtSummary }}</strong>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="preview-group">
-              <span class="preview-label">个人简介摘要</span>
-              <div class="preview-card">
-                <ul class="preview-list">
-                  <li v-for="(paragraph, index) in memberBioParagraphs.slice(0, 2)" :key="`${index}-${paragraph}`">
-                    <span>段落 {{ index + 1 }}</span>
-                    <strong>{{ paragraph }}</strong>
-                  </li>
-                  <li v-if="memberBioParagraphs.length === 0">
-                    <span>简介预览</span>
-                    <strong>尚未填写个人简介，详情页这里会展示成员背景与关注方向。</strong>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            <p class="field-hint">成员资料只服务前台公开展示，与 Staff 账号完全分开，不会赋予后台权限。</p>
           </div>
-        </div>
-
-        <div class="panel stacked-gap">
-          <div class="brand-tag">资料状态</div>
-          <div class="info-row">
-            <span>公开可见</span>
-            <strong>{{ visibilityLabel }}</strong>
-          </div>
-          <div class="info-row">
-            <span>成员状态</span>
-            <strong>{{ membershipStatusLabel }}</strong>
-          </div>
-          <div class="info-row">
-            <span>排序</span>
-            <strong>{{ form.sortOrder }}</strong>
-          </div>
-          <div class="info-row">
-            <span>首页推荐</span>
-            <strong>{{ form.featured ? "是" : "否" }}</strong>
-          </div>
-          <div class="info-row">
-            <span>最近更新</span>
-            <strong>{{ formatDateTime(member?.updatedAt) }}</strong>
-          </div>
-
-          <div class="preview-note">
-            <p>成员与工作人员是完全分开的两套身份。这里维护的是公开成员资料，不会赋予任何后台权限。</p>
-          </div>
-
-          <ul class="checklist">
-            <li v-for="item in memberChecklist" :key="item.label">
-              <span class="checklist-indicator" :class="item.ready ? 'is-ready' : 'is-pending'"></span>
-              <div>
-                <strong>{{ item.label }}</strong>
-                <small>{{ item.hint }}</small>
-              </div>
-            </li>
-          </ul>
-        </div>
         </aside>
       </div>
     </template>

@@ -16,7 +16,7 @@ import {
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
 import CoverAssetField from "../components/CoverAssetField.vue";
 import MarkdownEditorField from "../components/MarkdownEditorField.vue";
-import { slugify, toDateTimeInputValue } from "../lib/format";
+import { formatContentStatus, formatDateTime, slugify, toDateTimeInputValue } from "../lib/format";
 
 interface ArticleFormState extends Omit<AdminArticleUpsertInput, "scheduledAt"> {
   scheduledAt: string;
@@ -59,7 +59,35 @@ const slugTouched = ref(false);
 const articleId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => articleId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建文章" : `编辑文章：${article.value?.title ?? "加载中..."}`));
+const selectedAuthorLabel = computed(
+  () => references.value.authors.find((option) => option.id === form.authorId)?.label ?? "暂未选择"
+);
+const selectedBranchLabel = computed(
+  () => references.value.branches.find((option) => option.id === form.branchId)?.label ?? "暂未关联"
+);
 const articleBodyPreviewHtml = computed(() => renderMarkdownToHtml(form.body));
+const articleMetaItems = computed(() => [
+  {
+    label: "作者",
+    value: selectedAuthorLabel.value
+  },
+  {
+    label: "分会",
+    value: selectedBranchLabel.value
+  },
+  {
+    label: "公开路径",
+    value: form.slug ? `/articles/${form.slug}` : "待生成"
+  },
+  {
+    label: "定时发布",
+    value: form.scheduledAt ? formatDateTime(form.scheduledAt) : "未设置"
+  },
+  {
+    label: "最近更新",
+    value: formatDateTime(article.value?.updatedAt)
+  }
+]);
 const markdownToolbarItems = [
   {
     label: "插入标题",
@@ -220,7 +248,7 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <h2>{{ pageTitle }}</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/articles">返回文章列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建文章" : "保存修改" }}
@@ -247,69 +275,100 @@ onMounted(() => {
     </div>
 
     <div v-else class="stacked-gap">
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>发布信息</h3>
-        </div>
+      <div class="editor-grid editor-grid-focus">
+        <section class="panel panel-compact editor-main stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>发布信息</h3>
+            </div>
 
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>标题</span>
-            <input v-model="form.title" type="text" placeholder="在不锁死技术栈的前提下交付内容平台" @input="onTitleInput" />
-            <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
-          </label>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>标题</span>
+                <input
+                  v-model="form.title"
+                  type="text"
+                  placeholder="在不锁死技术栈的前提下交付内容平台"
+                  @input="onTitleInput"
+                />
+                <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
+              </label>
 
-          <label class="field">
-            <span>URL 标识</span>
-            <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
-            <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-          </label>
-        </div>
+              <label class="field">
+                <span>URL 标识</span>
+                <input v-model="form.slug" type="text" placeholder="shipping-an-editorial-platform" @input="onSlugInput" />
+                <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+              </label>
+            </div>
 
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>作者</span>
-            <select v-model="form.authorId">
-              <option :value="null">暂不选择作者</option>
-              <option v-for="option in references.authors" :key="option.id" :value="option.id">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
-          </label>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>作者</span>
+                <select v-model="form.authorId">
+                  <option :value="null">暂不选择作者</option>
+                  <option v-for="option in references.authors" :key="option.id" :value="option.id">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.authorId" class="field-error">{{ fieldIssues.authorId }}</small>
+              </label>
 
-          <label class="field">
-            <span>所属分会</span>
-            <select v-model="form.branchId">
-              <option :value="null">暂不关联分会</option>
-              <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
-          </label>
-        </div>
+              <label class="field">
+                <span>所属分会</span>
+                <select v-model="form.branchId">
+                  <option :value="null">暂不关联分会</option>
+                  <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+              </label>
+            </div>
 
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>状态</span>
-            <select v-model="form.status">
-              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-          </label>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>状态</span>
+                <select v-model="form.status">
+                  <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+              </label>
 
-          <label class="field">
-            <span>定时发布时间</span>
-            <input v-model="form.scheduledAt" type="datetime-local" />
-            <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
-          </label>
-        </div>
+              <label class="field">
+                <span>定时发布时间</span>
+                <input v-model="form.scheduledAt" type="datetime-local" />
+                <small v-if="fieldIssues.scheduledAt" class="field-error">{{ fieldIssues.scheduledAt }}</small>
+              </label>
+            </div>
 
-        <label class="field">
-          <span>摘要</span>
-          <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
-          <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
-        </label>
-      </section>
+            <label class="field">
+              <span>摘要</span>
+              <textarea v-model="form.excerpt" rows="5" placeholder="用于文章列表与信息卡片的简短摘要。" />
+              <small v-if="fieldIssues.excerpt" class="field-error">{{ fieldIssues.excerpt }}</small>
+            </label>
+          </section>
+        </section>
 
-      <CoverAssetField v-model="form.coverAssetId" :assets="coverAssets" :error="fieldIssues.coverAssetId" help="用于文章列表与详情页的封面图。" />
+        <aside class="editor-side stacked-gap">
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <div class="panel-toolbar">
+              <h3>当前信息</h3>
+              <span class="status-pill">{{ formatContentStatus(article?.status ?? form.status) }}</span>
+            </div>
+
+            <div class="summary-list">
+              <div v-for="item in articleMetaItems" :key="item.label" class="summary-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <CoverAssetField
+            v-model="form.coverAssetId"
+            class="panel-compact"
+            :assets="coverAssets"
+            :error="fieldIssues.coverAssetId"
+            help="用于文章列表与详情页的封面图。"
+          />
+        </aside>
+      </div>
 
       <section class="editor-section stacked-gap">
         <div class="editor-section-head">

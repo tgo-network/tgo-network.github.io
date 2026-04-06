@@ -18,7 +18,7 @@ import {
 import CoverAssetField from "../components/CoverAssetField.vue";
 import MarkdownEditorField from "../components/MarkdownEditorField.vue";
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { slugify, toDateTimeInputValue } from "../lib/format";
+import { formatContentStatus, formatDateTime, formatEventRegistrationState, slugify, toDateTimeInputValue } from "../lib/format";
 
 interface EventAgendaFormItem {
   title: string;
@@ -83,7 +83,36 @@ const slugTouched = ref(false);
 const eventId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => eventId.value.length === 0);
 const pageTitle = computed(() => (isNew.value ? "新建活动" : `编辑活动：${event.value?.title ?? "加载中..."}`));
+const selectedBranchLabel = computed(
+  () => references.value.branches.find((option) => option.id === form.branchId)?.label ?? "暂未选择"
+);
 const eventBodyPreviewHtml = computed(() => renderMarkdownToHtml(normalizeLegacyEventMarkdown(form.body)));
+const eventMetaItems = computed(() => [
+  {
+    label: "内容状态",
+    value: formatContentStatus(event.value?.status ?? form.status)
+  },
+  {
+    label: "报名状态",
+    value: formatEventRegistrationState(form.registrationState)
+  },
+  {
+    label: "分会",
+    value: selectedBranchLabel.value
+  },
+  {
+    label: "开始时间",
+    value: formatDateTime(form.startsAt)
+  },
+  {
+    label: "公开路径",
+    value: form.slug ? `/events/${form.slug}` : "待生成"
+  },
+  {
+    label: "最近更新",
+    value: formatDateTime(event.value?.updatedAt)
+  }
+]);
 const markdownToolbarItems = [
   {
     label: "插入标题",
@@ -280,7 +309,7 @@ onMounted(() => {
     <header class="page-header page-header-row">
       <h2>{{ pageTitle }}</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
         <RouterLink v-if="event" class="button-link" :to="`/events/${event.id}/registrations`">查看报名</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
@@ -308,115 +337,136 @@ onMounted(() => {
     </div>
 
     <div v-else class="stacked-gap">
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>基本信息</h3>
+      <div class="editor-grid editor-grid-focus">
+        <div class="panel panel-compact editor-main stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>基本信息</h3>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>标题</span>
+                <input v-model="form.title" type="text" placeholder="春季平台工作坊" @input="onTitleInput" />
+                <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
+              </label>
+
+              <label class="field">
+                <span>URL 标识</span>
+                <input v-model="form.slug" type="text" placeholder="spring-platform-workshop" @input="onSlugInput" />
+                <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+              </label>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>分会</span>
+                <select v-model="form.branchId">
+                  <option :value="null">暂不选择分会</option>
+                  <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
+              </label>
+
+              <label class="field">
+                <span>内容状态</span>
+                <select v-model="form.status">
+                  <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
+              </label>
+            </div>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>时间与地点</h3>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>开始时间</span>
+                <input v-model="form.startsAt" type="datetime-local" />
+                <small v-if="fieldIssues.startsAt" class="field-error">{{ fieldIssues.startsAt }}</small>
+              </label>
+
+              <label class="field">
+                <span>结束时间</span>
+                <input v-model="form.endsAt" type="datetime-local" />
+                <small v-if="fieldIssues.endsAt" class="field-error">{{ fieldIssues.endsAt }}</small>
+              </label>
+            </div>
+
+            <div class="field-grid field-grid-3">
+              <label class="field">
+                <span>场地名称</span>
+                <input v-model="form.venueName" type="text" placeholder="北外滩工作室" />
+              </label>
+
+              <label class="field">
+                <span>时区</span>
+                <input v-model="form.timezone" type="text" placeholder="Asia/Shanghai" />
+              </label>
+
+              <label class="field">
+                <span>人数上限</span>
+                <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>场地地址</span>
+              <input v-model="form.venueAddress" type="text" placeholder="完整场地地址" />
+            </label>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>报名设置</h3>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>报名状态</span>
+                <select v-model="form.registrationState">
+                  <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                </select>
+                <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
+              </label>
+
+              <label class="field">
+                <span>报名链接</span>
+                <input v-model="form.registrationUrl" type="text" placeholder="https://example.com/register" />
+              </label>
+            </div>
+          </section>
         </div>
 
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>标题</span>
-            <input v-model="form.title" type="text" placeholder="春季平台工作坊" @input="onTitleInput" />
-            <small v-if="fieldIssues.title" class="field-error">{{ fieldIssues.title }}</small>
-          </label>
+        <aside class="editor-side stacked-gap">
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <div class="panel-toolbar">
+              <h3>当前信息</h3>
+              <span class="status-pill">{{ formatEventRegistrationState(form.registrationState) }}</span>
+            </div>
 
-          <label class="field">
-            <span>URL 标识</span>
-            <input v-model="form.slug" type="text" placeholder="spring-platform-workshop" @input="onSlugInput" />
-            <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-          </label>
-        </div>
+            <div class="summary-list">
+              <div v-for="item in eventMetaItems" :key="item.label" class="summary-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            </div>
+          </div>
 
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>分会</span>
-            <select v-model="form.branchId">
-              <option :value="null">暂不选择分会</option>
-              <option v-for="option in references.branches" :key="option.id" :value="option.id">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.branchId" class="field-error">{{ fieldIssues.branchId }}</small>
-          </label>
-
-          <label class="field">
-            <span>内容状态</span>
-            <select v-model="form.status">
-              <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.status" class="field-error">{{ fieldIssues.status }}</small>
-          </label>
-        </div>
-      </section>
-
-      <CoverAssetField
-        v-model="form.coverAssetId"
-        :assets="coverAssets"
-        label="活动封面"
-        help="用于活动列表与详情页封面。"
-        :error="fieldIssues.coverAssetId"
-      />
-
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>时间与地点</h3>
-        </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>开始时间</span>
-            <input v-model="form.startsAt" type="datetime-local" />
-            <small v-if="fieldIssues.startsAt" class="field-error">{{ fieldIssues.startsAt }}</small>
-          </label>
-
-          <label class="field">
-            <span>结束时间</span>
-            <input v-model="form.endsAt" type="datetime-local" />
-            <small v-if="fieldIssues.endsAt" class="field-error">{{ fieldIssues.endsAt }}</small>
-          </label>
-        </div>
-
-        <div class="field-grid field-grid-3">
-          <label class="field">
-            <span>场地名称</span>
-            <input v-model="form.venueName" type="text" placeholder="北外滩工作室" />
-          </label>
-
-          <label class="field">
-            <span>时区</span>
-            <input v-model="form.timezone" type="text" placeholder="Asia/Shanghai" />
-          </label>
-
-          <label class="field">
-            <span>人数上限</span>
-            <input v-model.number="form.capacity" type="number" min="0" placeholder="120" />
-          </label>
-        </div>
-
-        <label class="field">
-          <span>场地地址</span>
-          <input v-model="form.venueAddress" type="text" placeholder="完整场地地址" />
-        </label>
-      </section>
-
-      <section class="editor-section stacked-gap">
-        <div class="editor-section-head">
-          <h3>报名设置</h3>
-        </div>
-
-        <div class="field-grid field-grid-2">
-          <label class="field">
-            <span>报名状态</span>
-            <select v-model="form.registrationState">
-              <option v-for="option in eventRegistrationStateOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-            </select>
-            <small v-if="fieldIssues.registrationState" class="field-error">{{ fieldIssues.registrationState }}</small>
-          </label>
-
-          <label class="field">
-            <span>报名链接</span>
-            <input v-model="form.registrationUrl" type="text" placeholder="https://example.com/register" />
-          </label>
-        </div>
-      </section>
+          <CoverAssetField
+            v-model="form.coverAssetId"
+            class="panel-compact"
+            :assets="coverAssets"
+            label="活动封面"
+            help="用于活动列表与详情页封面。"
+            :error="fieldIssues.coverAssetId"
+          />
+        </aside>
+      </div>
 
       <section class="editor-section stacked-gap">
         <div class="editor-section-head">

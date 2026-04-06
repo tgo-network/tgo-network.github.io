@@ -200,7 +200,7 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -225,8 +225,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="editor-grid editor-grid-compact">
-        <div class="panel editor-main stacked-gap">
+      <div class="editor-grid editor-grid-balanced">
+        <div class="panel panel-compact editor-main stacked-gap">
           <div v-if="filteredRoles.length === 0" class="panel inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的角色。</p>
           </div>
@@ -268,13 +268,28 @@ onMounted(() => {
         </div>
 
         <aside class="editor-side stacked-gap">
-          <div class="panel editor-side-card">
+          <div class="panel panel-compact editor-side-card">
             <template v-if="selectedRole">
               <div class="panel-toolbar">
                 <h3>编辑角色</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
                   {{ saving ? "保存中..." : "保存角色" }}
                 </button>
+              </div>
+
+              <div class="summary-list">
+                <div class="summary-row">
+                  <span>角色代码</span>
+                  <strong>{{ selectedRole.code }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>工作人员数</span>
+                  <strong>{{ selectedRole.assignedStaffCount }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>更新时间</span>
+                  <strong>{{ formatDateTime(selectedRole.updatedAt) }}</strong>
+                </div>
               </div>
 
               <label class="field">
@@ -289,7 +304,7 @@ onMounted(() => {
                 <small v-if="fieldIssues.description" class="field-error">{{ fieldIssues.description }}</small>
               </label>
 
-              <section class="editor-section stacked-gap">
+              <section class="editor-section editor-section-compact stacked-gap">
                 <div class="panel-toolbar">
                   <h3>权限</h3>
                   <div class="filter-summary">已选 {{ selectedPermissionCount }}</div>

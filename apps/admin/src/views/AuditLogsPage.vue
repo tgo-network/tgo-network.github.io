@@ -171,7 +171,7 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <div class="panel filter-panel">
+      <div class="panel panel-compact filter-panel filter-panel-compact">
         <div class="filter-toolbar">
           <div class="segmented-actions">
             <button
@@ -220,18 +220,15 @@ onMounted(async () => {
       </div>
 
       <div v-else class="audit-log-list">
-        <article v-for="row in filteredRows" :key="row.id" class="panel audit-log-card stacked-gap">
-          <div class="page-header-row audit-log-head">
-            <div>
-              <div class="brand-tag">{{ formatTargetType(row.targetType) }}</div>
-              <h3>{{ formatAction(row.action) }}</h3>
-              <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
-            </div>
-
-            <div class="audit-log-badges">
+        <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap">
+          <div class="audit-log-head">
+            <div class="audit-log-topline">
+              <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
               <span class="status-pill">{{ formatSnapshotState(row) }}</span>
               <span class="status-pill">{{ row.targetId || "无目标 ID" }}</span>
             </div>
+            <h3>{{ formatAction(row.action) }}</h3>
+            <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
           </div>
 
           <div class="panel-grid panel-grid-2 audit-log-context-grid">
