@@ -1,0 +1,10 @@
+---
+import MemberDirectoryPage from "../../../components/MemberDirectoryPage.astro";
+import { getMemberPageRouteProps } from "../../../lib/member-directory.js";
+
+export async function getStaticPaths() {
+  return getMemberPageRouteProps();
+}
+---
+
+<MemberDirectoryPage {...Astro.props} />

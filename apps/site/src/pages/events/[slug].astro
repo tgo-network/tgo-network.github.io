@@ -2,22 +2,21 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatDateRange, formatRegistrationState } from "../../lib/format";
 import { shouldShowExternalRegistrationLink, stripEventDisplayUrls } from "../../lib/event-registration";
-import { getEvent, getPublicApiBaseUrl, listEvents } from "../../lib/public-api";
+import { getEvent, getPublicWriteApiBaseUrl } from "../../lib/public-api";
+import { getEventStaticPaths } from "../../lib/event-directory";
 import { normalizeLegacyEventMarkdown, renderMarkdownToHtml } from "@tgo/shared";
 
-export const getStaticPaths = async () => {
-  const events = await listEvents();
-
-  return events.map((event) => ({
-    params: {
-      slug: event.slug
+export const getStaticPaths = async () =>
+  (await getEventStaticPaths()).map(({ params }) => ({
+    params,
+    props: {
+      slug: params.slug
     }
   }));
-};
 
-const slug = Astro.params.slug!;
+const slug = Astro.props.slug;
 const event = await getEvent(slug);
-const apiBaseUrl = getPublicApiBaseUrl();
+const apiBaseUrl = getPublicWriteApiBaseUrl();
 
 if (!event) {
   throw new Error(`活动不存在：${slug}`);
@@ -33,6 +32,14 @@ const eventBodyMarkdown = normalizeLegacyEventMarkdown(event.body || sanitizedEv
 const eventBodyHtml = renderMarkdownToHtml(eventBodyMarkdown || sanitizedEventSummary);
 const registrationUrl = event.registrationUrl;
 const showExternalRegistrationLink = shouldShowExternalRegistrationLink(event.registrationState, registrationUrl);
+const registrationCopy =
+  event.registrationState === "closed"
+    ? "报名已结束，当前页面保留活动详情与议程信息，方便继续查看内容安排。"
+    : event.registrationState === "not_open"
+      ? "当前活动尚未开放报名，可先查看活动信息并等待后续开放通知。"
+      : event.registrationState === "waitlist"
+        ? "当前活动进入候补阶段，提交后会进入候补审核流程，由工作人员继续联系确认。"
+        : "开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。";
 const heroMetaItems = [formatDateRange(event.startsAt, event.endsAt), branchName, formatRegistrationState(event.registrationState)];
 const eventFactItems = [
   {
@@ -160,12 +167,12 @@ const registrationSideNotes =
             <h2>{registrationTitle}</h2>
             <span class="detail-meta-item registration-state-chip">{formatRegistrationState(event.registrationState)}</span>
           </div>
-          <p class="registration-copy">开放报名，提交后由工作人员审核，并继续联系确认是否通过或转入候补。</p>
+          <p class="registration-copy">{registrationCopy}</p>
         </div>
 
         {
           registrationEnabled ? (
-            <form class="form-panel" data-event-registration-form data-api-base={apiBaseUrl} data-event-slug={event.slug}>
+            <form class="form-panel" data-event-registration-form data-api-base={apiBaseUrl ?? undefined} data-event-slug={event.slug}>
               <div class="form-grid registration-form-grid">
                 <label>
                   <span>姓名</span>
@@ -254,7 +261,7 @@ const registrationSideNotes =
         const payload = Object.fromEntries(
           Array.from(formData.entries()).filter(([, value]) => typeof value === "string" && value.trim().length > 0)
         );
-        const baseUrl = form.dataset.apiBase ?? "http://127.0.0.1:8787";
+        const baseUrl = form.dataset.apiBase;
         const eventSlug = form.dataset.eventSlug;
 
         if (!eventSlug) {
@@ -262,8 +269,12 @@ const registrationSideNotes =
           return;
         }
 
+        const requestUrl = baseUrl
+          ? new URL(`/api/public/v1/events/${eventSlug}/registrations`, baseUrl)
+          : `/api/public/v1/events/${eventSlug}/registrations`;
+
         try {
-          const response = await fetch(new URL(`/api/public/v1/events/${eventSlug}/registrations`, baseUrl), {
+          const response = await fetch(requestUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

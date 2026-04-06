@@ -1,17 +1,29 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { officialAboutIntro, officialAboutSections } from "../lib/official-content";
+import { getAboutPage } from "../lib/public-api.js";
+import { officialAboutSections } from "../lib/official-content.js";
 
-const getVisibleImages = (images: typeof officialAboutSections[number]["images"]) => images.slice(0, Math.min(images.length, 2));
+const page = await getAboutPage();
+const leadSection = page.sections[0] ?? null;
+const finalSection = page.sections.at(-1) ?? null;
+const trailingSection = finalSection && /加入|申请/u.test(finalSection.title) ? finalSection : null;
+const contentSections = (trailingSection ? page.sections.slice(1, -1) : page.sections.slice(1)).map((section, index) => ({
+  ...section,
+  visuals: officialAboutSections[index] ?? null
+}));
+const getVisibleImages = (images: (typeof officialAboutSections)[number]["images"]) => images.slice(0, Math.min(images.length, 2));
+const ctaTitle = trailingSection?.title ?? "了解加入方式";
+const ctaBody = trailingSection?.body[0] ?? "查看加入条件后提交申请，后续由工作人员继续审核与联系。";
 ---
 
-<BaseLayout title="关于我们 | TGO 鲲鹏会" description={officialAboutIntro.summary}>
+<BaseLayout title="关于我们 | TGO 鲲鹏会" description={page.hero.summary}>
   <main class="page-shell page-stack detail-page-shell about-page-shell">
     <section class="section">
       <article class="panel detail-hero-card about-page-overview-card">
         <div class="detail-hero-copy about-page-overview-copy">
-          <h1>{officialAboutIntro.title}</h1>
-          <p class="detail-summary">{officialAboutIntro.summary}</p>
+          <p class="about-page-overview-label">{page.hero.eyebrow}</p>
+          <h1>{page.hero.title}</h1>
+          <p class="detail-summary">{page.hero.summary}</p>
 
           <div class="hero-actions about-page-actions">
             <a class="button primary" href="/join">加入申请</a>
@@ -19,46 +31,57 @@ const getVisibleImages = (images: typeof officialAboutSections[number]["images"]
           </div>
         </div>
 
-        <div class="detail-side-card about-page-overview-side">
-          <p class="about-page-overview-label">长期参与方式</p>
-          <h2>{officialAboutIntro.leadTitle}</h2>
-          <p>{officialAboutIntro.leadBody}</p>
-        </div>
+        {
+          leadSection && (
+            <div class="detail-side-card about-page-overview-side">
+              <h2>{leadSection.title}</h2>
+              {leadSection.body.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+          )
+        }
       </article>
     </section>
 
-    <section class="section about-section-list">
-      {
-        officialAboutSections.map((section, index) => {
-          const externalLink = section.link?.href.startsWith("http");
-          const visibleImages = getVisibleImages(section.images);
+    {
+      contentSections.length > 0 && (
+        <section class="section about-section-list">
+          {
+            contentSections.map((section, index) => {
+              const externalLink = section.visuals?.link?.href.startsWith("http");
+              const visibleImages = section.visuals ? getVisibleImages(section.visuals.images) : [];
 
-          return (
-            <article class:list={["panel detail-section-card about-section-card", index % 2 === 1 && "is-reversed"]}>
-              <div class:list={["about-section-media", visibleImages.length > 1 && "has-gallery"]}>
-                {visibleImages.map((image) => <img src={image.src} alt={image.alt} loading="lazy" />)}
-              </div>
+              return (
+                <article class:list={["panel detail-section-card about-section-card", index % 2 === 1 && "is-reversed"]}>
+                  {
+                    visibleImages.length > 0 && (
+                      <div class:list={["about-section-media", visibleImages.length > 1 && "has-gallery"]}>
+                        {visibleImages.map((image) => <img src={image.src} alt={image.alt} loading="lazy" />)}
+                      </div>
+                    )
+                  }
 
-              <div class="about-section-copy">
-                <h2>{section.title}</h2>
-                {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-                {section.link && (
-                  <a class="text-link" href={section.link.href} target={externalLink ? "_blank" : undefined} rel={externalLink ? "noreferrer" : undefined}>
-                    {section.link.label}
-                  </a>
-                )}
-              </div>
-            </article>
-          );
-        })
-      }
-    </section>
+                  <div class="about-section-copy">
+                    <h2>{section.title}</h2>
+                    {section.body.map((paragraph) => <p>{paragraph}</p>)}
+                    {section.visuals?.link && (
+                      <a class="text-link" href={section.visuals.link.href} target={externalLink ? "_blank" : undefined} rel={externalLink ? "noreferrer" : undefined}>
+                        {section.visuals.link.label}
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })
+          }
+        </section>
+      )
+    }
 
     <section class="section">
       <article class="panel detail-section-card about-cta-card">
         <div>
-          <h2>了解加入方式</h2>
-          <p class="card-copy">查看加入条件后提交申请，后续由工作人员继续审核与联系。</p>
+          <h2>{ctaTitle}</h2>
+          <p class="card-copy">{ctaBody}</p>
         </div>
 
         <div class="about-cta-actions">

@@ -17,6 +17,7 @@ import {
   getHomePayload,
   getJoinPage,
   getPublicApiBaseUrl,
+  getPublicWriteApiBaseUrl,
   getSiteConfig,
   listBranches,
   listEventPage,
@@ -62,6 +63,13 @@ test("uses the configured PUBLIC_API_BASE_URL when fetching public data", async 
   assert.equal(getPublicApiBaseUrl(), "http://example.test:9999");
   assert.equal(requestedUrl, "http://example.test:9999/api/public/v1/articles");
   assert.deepEqual(result, publicArticleSummariesV2);
+});
+
+test("does not invent a localhost write endpoint when PUBLIC_API_BASE_URL is missing", () => {
+  delete process.env.PUBLIC_API_BASE_URL;
+
+  assert.equal(getPublicWriteApiBaseUrl(), null);
+  assert.equal(getPublicApiBaseUrl(), "http://127.0.0.1:8787");
 });
 
 test("reads the converged home payload from the configured public API base URL", async () => {

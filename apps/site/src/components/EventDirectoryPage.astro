@@ -1,0 +1,274 @@
+---
+import type { EventDirectoryPageData } from "../lib/event-directory.js";
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatDateRange, formatRegistrationState } from "../lib/format.js";
+
+interface Props extends EventDirectoryPageData {}
+
+const { items, cityLinks, currentCity, page, pageCount, total, prevHref, nextHref, canonical, title, description } = Astro.props as Props;
+const heading = currentCity ? `${currentCity}活动` : "活动";
+const summary = currentCity ? `当前筛选 ${currentCity}，共 ${total} 场活动。` : `当前共展示 ${total} 场活动。`;
+---
+
+<BaseLayout title={title} description={description} canonical={canonical}>
+  <main class="page-shell page-stack event-directory-shell">
+    <section class="section event-list-section">
+      <div class="directory-heading">
+        <div>
+          <h1>{heading}</h1>
+          <p class="card-copy">{summary}</p>
+        </div>
+      </div>
+
+      <div class="panel event-directory-toolbar">
+        <nav class="filter-bar" aria-label="活动城市筛选">
+          {
+            cityLinks.map((link) => (
+              <a class:list={["filter-chip", link.active && "is-active"]} href={link.href} aria-current={link.active ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+
+      <div class="event-grid">
+        {
+          items.map((event) => (
+            <article class:list={["panel event-card", !event.coverImage && "event-card-no-cover"]}>
+              <a class="event-card-link" href={`/events/${event.slug}`}>
+                {
+                  event.coverImage && (
+                    <div class="event-card-media-shell">
+                      <img class="event-card-media" src={event.coverImage.url} alt={event.coverImage.alt} loading="lazy" />
+                    </div>
+                  )
+                }
+
+                <div class="event-card-body">
+                  <div class="event-card-head">
+                    <div class="event-card-meta">
+                      <span>{event.cityName}</span>
+                      <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
+                    </div>
+                    <span class:list={["event-state", `event-state-${event.registrationState}`]}>
+                      {formatRegistrationState(event.registrationState)}
+                    </span>
+                  </div>
+
+                  <h2 class="event-card-title">{event.title}</h2>
+                  <p class="event-card-summary">{event.summary}</p>
+
+                  <div class="event-card-footer">
+                    <p>{event.venueName}</p>
+                    <span class="text-link">查看详情</span>
+                  </div>
+                </div>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+
+      {
+        items.length === 0 && (
+          <div class="panel panel-soft empty-state">
+            <div class="card-label">暂无活动</div>
+            <p class="card-copy">当前城市下暂无可展示的活动。</p>
+          </div>
+        )
+      }
+
+      <div class="pagination-bar event-pagination-bar" aria-label="活动分页">
+        {
+          prevHref ? (
+            <a class="button secondary pagination-button" href={prevHref} rel="prev">
+              上一页
+            </a>
+          ) : (
+            <button class="button secondary pagination-button" type="button" disabled>
+              上一页
+            </button>
+          )
+        }
+
+        <p class="event-directory-page-indicator">第 {page} / {pageCount} 页</p>
+
+        {
+          nextHref ? (
+            <a class="button secondary pagination-button" href={nextHref} rel="next">
+              下一页
+            </a>
+          ) : (
+            <button class="button secondary pagination-button" type="button" disabled>
+              下一页
+            </button>
+          )
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .event-directory-shell {
+    padding-top: 18px;
+    padding-bottom: 48px;
+  }
+
+  .event-list-section,
+  .event-grid,
+  .event-directory-toolbar,
+  .directory-heading {
+    display: grid;
+    gap: 18px;
+  }
+
+  .directory-heading h1,
+  .event-card-title {
+    margin: 0;
+  }
+
+  .directory-heading .card-copy,
+  .event-directory-page-indicator {
+    margin: 0;
+  }
+
+  .event-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .event-card {
+    padding: 0;
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(244, 238, 230, 0.94));
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .event-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 106, 67, 0.18);
+    box-shadow: 0 20px 40px rgba(35, 28, 21, 0.1);
+  }
+
+  .event-card-no-cover {
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.1), transparent 24%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 239, 229, 0.94));
+  }
+
+  .event-card-link {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100%;
+  }
+
+  .event-card-media-shell {
+    display: grid;
+    place-items: center;
+    min-height: 208px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(27, 23, 19, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(138, 106, 67, 0.08), transparent 26%),
+      linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(246, 239, 229, 0.94));
+  }
+
+  .event-card-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: 212px;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .event-card-body {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    padding: 22px 20px 20px;
+  }
+
+  .event-card-no-cover .event-card-body {
+    position: relative;
+    gap: 16px;
+    padding-top: 30px;
+  }
+
+  .event-card-no-cover .event-card-body::before,
+  .event-card-no-cover .event-card-body::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(138, 106, 67, 0.34), rgba(138, 106, 67, 0));
+  }
+
+  .event-card-no-cover .event-card-body::before {
+    top: 18px;
+    width: 92px;
+  }
+
+  .event-card-no-cover .event-card-body::after {
+    top: 26px;
+    width: 128px;
+  }
+
+  .event-card-head,
+  .event-card-footer,
+  .event-pagination-bar {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .event-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .event-card-summary,
+  .event-card-footer p,
+  .event-directory-page-indicator {
+    color: var(--muted);
+    line-height: 1.74;
+  }
+
+  .event-card-summary,
+  .event-card-footer p {
+    margin: 0;
+  }
+
+  .event-card-footer p {
+    max-width: 18rem;
+  }
+
+  @media (max-width: 980px) {
+    .event-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .event-directory-shell {
+      padding-top: 8px;
+    }
+
+    .event-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .event-pagination-bar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
