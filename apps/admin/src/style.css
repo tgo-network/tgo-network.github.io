@@ -1651,19 +1651,11 @@ code {
 
 .login-hero-copy {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
-.login-hero h1,
-.login-card-head h2 {
+.login-card-head h1 {
   margin: 0;
-}
-
-.login-hero h1 {
-  max-width: 6ch;
-  font-size: clamp(2.9rem, 6vw, 4.6rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
 }
 
 .login-hero p,
@@ -1716,7 +1708,7 @@ code {
   gap: 10px;
 }
 
-.login-card-head h2 {
+.login-card-head h1 {
   font-size: 1.65rem;
   line-height: 1.15;
 }

@@ -68,7 +68,6 @@ const signIn = async () => {
       <aside class="login-hero">
         <div class="brand-tag">TGO鲲鹏会运营后台</div>
         <div class="login-hero-copy">
-          <h1>运营登录</h1>
           <p>统一处理文章、活动、申请、会员与 Staff 的日常维护，保持社区公开信息与后台流程一致。</p>
         </div>
 
@@ -92,8 +91,7 @@ const signIn = async () => {
 
       <section class="panel login-card">
         <div class="login-card-head">
-          <div class="brand-tag">工作人员登录</div>
-          <h2>登录控制台</h2>
+          <h1>工作人员登录</h1>
           <p class="login-card-copy">使用工作人员账号登录后台。</p>
         </div>
 
