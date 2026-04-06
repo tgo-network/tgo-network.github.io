@@ -1,33 +1,25 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { RouterLink } from "vue-router";
 
 import {
   staffAccountStatusOptions,
   type AdminRoleSummary,
-  type AdminStaffCreateInput,
   type AdminStaffListItem,
   type AdminStaffListMeta,
-  type AdminStaffListPayload,
-  type AdminStaffUpdateInput
+  type AdminStaffListPayload
 } from "@tgo/shared";
 
-import { adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
+import { adminFetchWithMeta } from "../lib/api";
 import { formatDateTime, formatStaffAccountStatus } from "../lib/format";
 import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const rows = ref<AdminStaffListItem[]>([]);
 const roles = ref<AdminRoleSummary[]>([]);
 const loading = ref(true);
-const creating = ref(false);
-const saving = ref(false);
 const hasLoadedOnce = ref(false);
 const currentPage = ref(1);
 const errorMessage = ref("");
-const successMessage = ref("");
-const createIssues = ref<Record<string, string>>({});
-const editIssues = ref<Record<string, string>>({});
-const selectedStaffId = ref("");
-const showCreatePanel = ref(false);
 const filters = reactive({
   status: "all",
   roleId: "all",
@@ -46,49 +38,8 @@ const meta = ref<AdminStaffListMeta>({
   }
 });
 
-const createForm = reactive<AdminStaffCreateInput>({
-  email: "",
-  name: "",
-  password: "",
-  status: "active",
-  roleIds: [],
-  notes: ""
-});
-
-const editForm = reactive<AdminStaffUpdateInput>({
-  email: "",
-  name: "",
-  status: "active",
-  roleIds: [],
-  notes: ""
-});
-
-const selectedStaff = computed(() => rows.value.find((row) => row.id === selectedStaffId.value) ?? null);
-const editStatusOptions = computed(() =>
-  selectedStaff.value?.status === "invited"
-    ? [{ value: "invited", label: "待启用（遗留）" }, ...visibleStaffStatusOptions]
-    : visibleStaffStatusOptions
-);
 const roleOptions = computed(() => roles.value);
 const formatStaffStatus = (value: string | null | undefined) => (value === "invited" ? "待启用" : formatStaffAccountStatus(value));
-const selectedStaffMetaItems = computed(() => [
-  {
-    label: "邮箱",
-    value: selectedStaff.value?.email ?? "-"
-  },
-  {
-    label: "状态",
-    value: selectedStaff.value ? formatStaffStatus(selectedStaff.value.status) : "-"
-  },
-  {
-    label: "角色",
-    value: selectedStaff.value ? formatRoleNames(selectedStaff.value) : "-"
-  },
-  {
-    label: "最后登录",
-    value: formatDateTime(selectedStaff.value?.lastLoginAt)
-  }
-]);
 const summaryChips = computed(() => [
   {
     label: "当前",
@@ -155,37 +106,6 @@ const createEmptyMeta = (pageSize: number): AdminStaffListMeta => ({
 
 const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
 
-const clearFeedback = () => {
-  errorMessage.value = "";
-  successMessage.value = "";
-};
-
-const resetCreateForm = () => {
-  createForm.email = "";
-  createForm.name = "";
-  createForm.password = "";
-  createForm.status = "active";
-  createForm.roleIds = [];
-  createForm.notes = "";
-};
-
-const applySelectedStaff = (staff: AdminStaffListItem | null) => {
-  if (!staff) {
-    editForm.email = "";
-    editForm.name = "";
-    editForm.status = "active";
-    editForm.roleIds = [];
-    editForm.notes = "";
-    return;
-  }
-
-  editForm.email = staff.email;
-  editForm.name = staff.name;
-  editForm.status = staff.status;
-  editForm.roleIds = staff.roles.map((role) => role.id);
-  editForm.notes = staff.notes;
-};
-
 const buildListPath = () => {
   const search = new URLSearchParams();
   search.set("page", String(currentPage.value));
@@ -202,7 +122,7 @@ const buildListPath = () => {
   return `/api/admin/v1/staff?${search.toString()}`;
 };
 
-const loadStaff = async (preferredStaffId?: string) => {
+const loadStaff = async () => {
   const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
@@ -219,22 +139,13 @@ const loadStaff = async (preferredStaffId?: string) => {
     roles.value = payload.roles;
     meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
     currentPage.value = meta.value.page;
-
-    const nextSelectedId =
-      preferredStaffId && payload.staff.some((row) => row.id === preferredStaffId)
-        ? preferredStaffId
-        : selectedStaffId.value && payload.staff.some((row) => row.id === selectedStaffId.value)
-          ? selectedStaffId.value
-          : "";
-
-    selectedStaffId.value = nextSelectedId;
-    applySelectedStaff(payload.staff.find((row) => row.id === nextSelectedId) ?? null);
   } catch (error) {
     if (requestId !== activeRequestId) {
       return;
     }
 
     rows.value = [];
+    roles.value = [];
     meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载工作人员账号。";
   } finally {
@@ -242,94 +153,6 @@ const loadStaff = async (preferredStaffId?: string) => {
       loading.value = false;
       hasLoadedOnce.value = true;
     }
-  }
-};
-
-const selectStaff = (staff: AdminStaffListItem) => {
-  showCreatePanel.value = false;
-  selectedStaffId.value = staff.id;
-  editIssues.value = {};
-  clearFeedback();
-  applySelectedStaff(staff);
-};
-
-const closeEditPanel = () => {
-  selectedStaffId.value = "";
-  editIssues.value = {};
-  clearFeedback();
-  applySelectedStaff(null);
-};
-
-const openCreatePanel = () => {
-  showCreatePanel.value = true;
-  selectedStaffId.value = "";
-  createIssues.value = {};
-  clearFeedback();
-  resetCreateForm();
-  applySelectedStaff(null);
-};
-
-const closeCreatePanel = () => {
-  showCreatePanel.value = false;
-  createIssues.value = {};
-  clearFeedback();
-  resetCreateForm();
-};
-
-const toggleCreatePanel = () => {
-  if (showCreatePanel.value) {
-    closeCreatePanel();
-    return;
-  }
-
-  openCreatePanel();
-};
-
-const createStaff = async () => {
-  creating.value = true;
-  clearFeedback();
-  createIssues.value = {};
-
-  try {
-    const created = await adminRequest<AdminStaffListItem>("/api/admin/v1/staff", {
-      method: "POST",
-      body: createForm
-    });
-
-    successMessage.value = `已为 ${created.name} 创建工作人员账号。`;
-    resetCreateForm();
-    showCreatePanel.value = false;
-    await loadStaff(created.id);
-  } catch (error) {
-    createIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "无法创建工作人员账号。";
-  } finally {
-    creating.value = false;
-  }
-};
-
-const saveStaff = async () => {
-  if (!selectedStaff.value) {
-    return;
-  }
-
-  saving.value = true;
-  clearFeedback();
-  editIssues.value = {};
-
-  try {
-    const updated = await adminRequest<AdminStaffListItem>(`/api/admin/v1/staff/${selectedStaff.value.id}`, {
-      method: "PATCH",
-      body: editForm
-    });
-
-    successMessage.value = `已更新 ${updated.name} 的工作人员账号。`;
-    await loadStaff(updated.id);
-  } catch (error) {
-    editIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "无法更新工作人员账号。";
-  } finally {
-    saving.value = false;
   }
 };
 
@@ -372,23 +195,12 @@ onBeforeUnmount(() => {
       <h2>工作人员</h2>
 
       <div class="page-actions page-actions-compact">
-        <button
-          class="button-link"
-          :class="showCreatePanel ? 'button-subtle' : 'button-primary'"
-          type="button"
-          @click="toggleCreatePanel"
-        >
-          {{ showCreatePanel ? "收起新增" : "新增 Staff" }}
-        </button>
+        <RouterLink class="button-link button-primary" to="/staff/new">新增 Staff</RouterLink>
       </div>
     </header>
 
     <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
-    </div>
-
-    <div v-if="successMessage" class="panel panel-success">
-      <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="!hasLoadedOnce && loading" class="panel">
@@ -424,9 +236,7 @@ onBeforeUnmount(() => {
             <span>状态</span>
             <select v-model="filters.status">
               <option value="all">全部状态</option>
-              <option v-for="option in visibleStaffStatusOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
+              <option v-for="option in visibleStaffStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </label>
 
@@ -474,7 +284,7 @@ onBeforeUnmount(() => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in rows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
+              <tr v-for="row in rows" :key="row.id">
                 <td>
                   <div class="table-cell-stack">
                     <strong>{{ row.name }}</strong>
@@ -486,9 +296,7 @@ onBeforeUnmount(() => {
                 <td class="table-cell-nowrap">{{ formatDateTime(row.lastLoginAt) }}</td>
                 <td class="table-cell-nowrap">{{ formatDateTime(row.updatedAt) }}</td>
                 <td class="table-actions-cell">
-                  <button class="button-link button-compact" type="button" @click="selectStaff(row)">
-                    {{ selectedStaffId === row.id ? "编辑中" : "编辑" }}
-                  </button>
+                  <RouterLink class="table-link" :to="`/staff/${row.id}/edit`">编辑</RouterLink>
                 </td>
               </tr>
             </tbody>
@@ -501,162 +309,12 @@ onBeforeUnmount(() => {
               <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadStaff()">
                 上一页
               </button>
-              <button
-                class="button-link"
-                type="button"
-                :disabled="loading || meta.page >= meta.pageCount"
-                @click="currentPage = meta.page + 1; void loadStaff()"
-              >
+              <button class="button-link" type="button" :disabled="loading || meta.page >= meta.pageCount" @click="currentPage = meta.page + 1; void loadStaff()">
                 下一页
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      <div v-if="selectedStaff" class="panel panel-compact editor-side-card">
-        <div class="panel-toolbar">
-          <h3>编辑 Staff</h3>
-
-          <div class="page-actions page-actions-compact">
-            <button class="button-link" type="button" @click="closeEditPanel">关闭</button>
-            <button class="button-link button-primary" type="button" :disabled="saving" @click="saveStaff">
-              {{ saving ? "保存中..." : "保存修改" }}
-            </button>
-          </div>
-        </div>
-
-        <div class="summary-list summary-list-inline">
-          <div v-for="item in selectedStaffMetaItems" :key="item.label" class="summary-row">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.value }}</strong>
-          </div>
-        </div>
-
-        <div class="field-grid field-grid-3">
-          <label class="field">
-            <span>姓名</span>
-            <input v-model="editForm.name" type="text" />
-            <small v-if="editIssues.name" class="field-error">{{ editIssues.name }}</small>
-          </label>
-
-          <label class="field">
-            <span>邮箱</span>
-            <input v-model="editForm.email" type="email" />
-            <small v-if="editIssues.email" class="field-error">{{ editIssues.email }}</small>
-          </label>
-
-          <label class="field">
-            <span>状态</span>
-            <select v-model="editForm.status">
-              <option v-for="option in editStatusOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="editIssues.status" class="field-error">{{ editIssues.status }}</small>
-          </label>
-        </div>
-
-        <section class="editor-section editor-section-compact stacked-gap">
-          <div class="panel-toolbar">
-            <h3>角色</h3>
-            <div class="filter-summary">已选 {{ editForm.roleIds.length }}</div>
-          </div>
-
-          <div class="selection-grid selection-grid-4 selection-grid-tight">
-            <label
-              v-for="role in roles"
-              :key="role.id"
-              class="checkbox-row selection-card selection-card-compact"
-              :class="{ 'is-active': editForm.roleIds.includes(role.id) }"
-            >
-              <input v-model="editForm.roleIds" type="checkbox" :value="role.id" />
-              <div>
-                <strong>{{ role.name }}</strong>
-                <small class="selection-card-code">{{ role.code }}</small>
-              </div>
-            </label>
-          </div>
-          <small v-if="editIssues.roleIds" class="field-error">{{ editIssues.roleIds }}</small>
-        </section>
-
-        <label class="field">
-          <span>备注</span>
-          <textarea v-model="editForm.notes" rows="3"></textarea>
-          <small v-if="editIssues.notes" class="field-error">{{ editIssues.notes }}</small>
-        </label>
-      </div>
-
-      <div v-if="showCreatePanel" class="panel panel-compact editor-side-card">
-        <div class="panel-toolbar">
-          <h3>新增 Staff</h3>
-
-          <div class="page-actions page-actions-compact">
-            <button class="button-link" type="button" @click="closeCreatePanel">关闭</button>
-            <button class="button-link button-primary" type="button" :disabled="creating" @click="createStaff">
-              {{ creating ? "创建中..." : "创建工作人员" }}
-            </button>
-          </div>
-        </div>
-
-        <div class="field-grid field-grid-3">
-          <label class="field">
-            <span>姓名</span>
-            <input v-model="createForm.name" type="text" placeholder="运营负责人" />
-            <small v-if="createIssues.name" class="field-error">{{ createIssues.name }}</small>
-          </label>
-
-          <label class="field">
-            <span>邮箱</span>
-            <input v-model="createForm.email" type="email" placeholder="ops@example.com" />
-            <small v-if="createIssues.email" class="field-error">{{ createIssues.email }}</small>
-          </label>
-
-          <label class="field">
-            <span>状态</span>
-            <select v-model="createForm.status">
-              <option v-for="option in visibleStaffStatusOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-            <small v-if="createIssues.status" class="field-error">{{ createIssues.status }}</small>
-          </label>
-        </div>
-
-        <label class="field">
-          <span>临时密码</span>
-          <input v-model="createForm.password" type="password" placeholder="至少 12 个字符" />
-          <small v-if="createIssues.password" class="field-error">{{ createIssues.password }}</small>
-        </label>
-
-        <section class="editor-section editor-section-compact stacked-gap">
-          <div class="panel-toolbar">
-            <h3>角色</h3>
-            <div class="filter-summary">已选 {{ createForm.roleIds.length }}</div>
-          </div>
-
-          <div class="selection-grid selection-grid-4 selection-grid-tight">
-            <label
-              v-for="role in roles"
-              :key="role.id"
-              class="checkbox-row selection-card selection-card-compact"
-              :class="{ 'is-active': createForm.roleIds.includes(role.id) }"
-            >
-              <input v-model="createForm.roleIds" type="checkbox" :value="role.id" />
-              <div>
-                <strong>{{ role.name }}</strong>
-                <small class="selection-card-code">{{ role.code }}</small>
-              </div>
-            </label>
-          </div>
-          <small v-if="createIssues.roleIds" class="field-error">{{ createIssues.roleIds }}</small>
-        </section>
-
-        <label class="field">
-          <span>备注</span>
-          <textarea v-model="createForm.notes" rows="3" placeholder="说明这个工作人员账号的用途。"></textarea>
-          <small v-if="createIssues.notes" class="field-error">{{ createIssues.notes }}</small>
-        </label>
       </div>
     </template>
   </section>

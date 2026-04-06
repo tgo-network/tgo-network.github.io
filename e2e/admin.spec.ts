@@ -70,6 +70,7 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   const staffFilters = page.locator(".filter-panel").first();
   await expect(staffFilters.getByLabel("状态")).toBeVisible();
   await expect(staffFilters.getByLabel("角色")).toBeVisible();
+  await expect(page.getByRole("link", { name: "新增 Staff" })).toBeVisible();
   await expectDefaultPagination(page, page.locator("tbody tr"));
   await expectNoHorizontalOverflow(page, "admin-staff");
 
@@ -77,6 +78,7 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   await expect(page).toHaveURL(/\/roles$/);
   await expect(page.getByRole("heading", { name: "角色", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "系统角色" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "新增角色" })).toBeVisible();
   await expectDefaultPagination(page, page.locator("tbody tr"));
   await expectNoHorizontalOverflow(page, "admin-roles");
 
@@ -156,6 +158,38 @@ test("admin editor pages expose structured overview and editing controls", async
   await expect(page.getByText("可见性", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-member-editor");
+
+  await page.goto(`${adminUrl}/staff`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "新增 Staff" }).click();
+  await expect(page).toHaveURL(/\/staff\/new$/);
+  await expect(page.getByRole("heading", { name: "新增 Staff", exact: true })).toBeVisible();
+  await expect(page.getByLabel("临时密码")).toBeVisible();
+  await expect(page.getByText("当前信息", { exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-staff-create");
+
+  await page.goto(`${adminUrl}/staff`, { waitUntil: "networkidle" });
+  await page.locator("tr", { hasText: "Super Admin" }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/staff\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑 Staff：/ })).toBeVisible();
+  await expect(page.getByText("角色", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("当前信息", { exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-staff-editor");
+
+  await page.goto(`${adminUrl}/roles`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "新增角色" }).click();
+  await expect(page).toHaveURL(/\/roles\/new$/);
+  await expect(page.getByRole("heading", { name: "新增角色", exact: true })).toBeVisible();
+  await expect(page.getByLabel("角色代码")).toBeVisible();
+  await expect(page.getByText("权限", { exact: true }).first()).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-role-create");
+
+  await page.goto(`${adminUrl}/roles`, { waitUntil: "networkidle" });
+  await page.locator("tr", { hasText: "Super Admin" }).first().getByRole("link", { name: "编辑" }).click();
+  await expect(page).toHaveURL(/\/roles\/[^/]+\/edit$/);
+  await expect(page.getByRole("heading", { name: /编辑角色：/ })).toBeVisible();
+  await expect(page.getByText("角色代码", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("当前信息", { exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page, "admin-role-editor");
 });
 
 test("admin branch, asset, and site configuration pages expose refined management layouts", async ({ page }) => {

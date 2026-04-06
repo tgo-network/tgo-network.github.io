@@ -21,6 +21,7 @@ import {
   validateAdminHomepageInput,
   validateAdminJoinApplicationUpdateInput,
   validateAdminMemberInput,
+  validateAdminRoleCreateInput,
   validateAdminRoleInput,
   validateAdminSitePageInputV2,
   validateAdminStaffCreateInput,
@@ -71,7 +72,10 @@ import {
   updateAdminSitePage
 } from "../lib/network-admin.js";
 import {
+  createAdminRole,
   createAdminStaff,
+  getAdminRoleEditorPayload,
+  getAdminStaffEditorPayload,
   listAdminRoles,
   listAdminStaff,
   updateAdminRole,
@@ -859,6 +863,14 @@ adminRoutes.post("/staff", requireActiveStaff("staff.manage"), async (c) => {
   }
 });
 
+adminRoutes.get("/staff/:id", requireActiveStaff("staff.manage"), async (c) => {
+  try {
+    return c.json(ok((await getAdminStaffEditorPayload(c.req.param("id"))).staff));
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
+});
+
 adminRoutes.patch("/staff/:id", requireActiveStaff("staff.manage"), async (c) => {
   const payload = await c.req.json().catch(() => null);
   const result = validateAdminStaffUpdateInput(payload);
@@ -905,6 +917,31 @@ adminRoutes.get("/roles", requireActiveStaff("role.manage"), async (c) => {
       meta
     )
   );
+});
+
+adminRoutes.get("/roles/:id", requireActiveStaff("role.manage"), async (c) => {
+  try {
+    return c.json(ok((await getAdminRoleEditorPayload(c.req.param("id"))).role));
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
+});
+
+adminRoutes.post("/roles", requireActiveStaff("role.manage"), async (c) => {
+  const payload = await c.req.json().catch(() => null);
+  const result = validateAdminRoleCreateInput(payload);
+
+  if (!result.valid) {
+    return jsonError(c, 400, "VALIDATION_ERROR", "一个或多个字段校验失败。", {
+      issues: result.issues
+    });
+  }
+
+  try {
+    return c.json(ok(await createAdminRole(result.data, getAuditActor(c))), 201);
+  } catch (error) {
+    return handleAdminError(c, error);
+  }
 });
 
 adminRoutes.patch("/roles/:id", requireActiveStaff("role.manage"), async (c) => {

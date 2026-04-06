@@ -10,10 +10,13 @@ import {
 } from "@tgo/db";
 import type {
   AdminPermissionRecord,
+  AdminRoleCreateInput,
+  AdminRoleEditorPayload,
   AdminRoleListItem,
   AdminRoleSummary,
   AdminRoleUpdateInput,
   AdminRolesPayload,
+  AdminStaffEditorPayload,
   AdminStaffCreateInput,
   AdminStaffListItem,
   AdminStaffListPayload,
@@ -344,6 +347,15 @@ const getRoleRecordById = async (roleId: string): Promise<AdminRoleListItem> => 
 
 export const listAdminStaff = async (): Promise<AdminStaffListPayload> => loadStaffListPayload();
 
+export const getAdminStaffEditorPayload = async (staffAccountId?: string): Promise<AdminStaffEditorPayload> => {
+  const payload = await loadStaffListPayload();
+
+  return {
+    staff: staffAccountId ? await getStaffRecordById(staffAccountId) : null,
+    roles: payload.roles
+  };
+};
+
 export const createAdminStaff = async (
   input: AdminStaffCreateInput,
   actor: AuditActorContext
@@ -561,6 +573,68 @@ export const updateAdminStaff = async (
 };
 
 export const listAdminRoles = async (): Promise<AdminRolesPayload> => loadRolesPayload();
+
+export const getAdminRoleEditorPayload = async (roleId?: string): Promise<AdminRoleEditorPayload> => {
+  const payload = await loadRolesPayload();
+
+  return {
+    role: roleId ? await getRoleRecordById(roleId) : null,
+    permissions: payload.permissions
+  };
+};
+
+export const createAdminRole = async (
+  input: AdminRoleCreateInput,
+  actor: AuditActorContext
+): Promise<AdminRoleListItem> => {
+  const db = getDb();
+  await assertPermissionIds(input.permissionIds);
+
+  try {
+    const timestamp = now();
+    const [createdRole] = await db.transaction(async (tx) => {
+      const [role] = await tx
+        .insert(roles)
+        .values({
+          code: input.code,
+          name: input.name,
+          description: input.description || null,
+          isSystem: false,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        })
+        .returning();
+
+      if (input.permissionIds.length > 0) {
+        await tx.insert(rolePermissionBindings).values(
+          input.permissionIds.map((permissionId) => ({
+            roleId: role.id,
+            permissionId
+          }))
+        );
+      }
+
+      return [role] as const;
+    });
+
+    const createdRecord = await getRoleRecordById(createdRole.id);
+
+    await writeAuditLog(actor, {
+      action: "role.create",
+      targetType: "role",
+      targetId: createdRole.id,
+      after: createdRecord
+    });
+
+    return createdRecord;
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw conflictError("该角色代码已存在。");
+    }
+
+    throw error;
+  }
+};
 
 export const updateAdminRole = async (
   roleId: string,

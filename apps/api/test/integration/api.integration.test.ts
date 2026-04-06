@@ -277,7 +277,7 @@ describe("admin and internal API integration", () => {
     assert.match(reviewerPayload.error.message, /staff\.manage/);
   });
 
-  test("supports staff create/update and role update flows for privileged operators", async () => {
+  test("supports staff create/update and role create/update flows for privileged operators", async () => {
     const superAdmin = await createSignedInUser(["super_admin"]);
 
     const rolesResult = await requestJson("/api/admin/v1/roles", {
@@ -296,6 +296,33 @@ describe("admin and internal API integration", () => {
     assert.ok(reviewerRole, "Expected reviewer role to exist.");
     assert.ok(mediaManagerRole, "Expected media_manager role to exist.");
 
+    const customRoleCode = `ops_${randomUUID().replace(/-/g, "_")}`;
+    const customRoleCreateResult = await requestJson("/api/admin/v1/roles", {
+      method: "POST",
+      headers: getAuthHeaders(superAdmin.cookie),
+      body: JSON.stringify({
+        code: customRoleCode,
+        name: "Ops Coordinator",
+        description: "Handles operational coordination",
+        permissionIds: (reviewerRole.permissionIds as string[]).slice(0, 2)
+      })
+    });
+
+    assert.equal(customRoleCreateResult.response.status, 201);
+    assert.equal(customRoleCreateResult.payload.data.code, customRoleCode);
+    assert.equal(customRoleCreateResult.payload.data.name, "Ops Coordinator");
+
+    const createdRoleId = customRoleCreateResult.payload.data.id as string;
+    const createdRoleDetailResult = await requestJson(`/api/admin/v1/roles/${createdRoleId}`, {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(createdRoleDetailResult.response.status, 200);
+    assert.equal(createdRoleDetailResult.payload.data.id, createdRoleId);
+    assert.equal(createdRoleDetailResult.payload.data.code, customRoleCode);
+
     const staffEmail = `staff-${randomUUID()}@example.com`;
     const createStaffResult = await requestJson("/api/admin/v1/staff", {
       method: "POST",
@@ -305,7 +332,7 @@ describe("admin and internal API integration", () => {
         name: "Staff Integration User",
         password: "StaffIntegration123!",
         status: "active",
-        roleIds: [reviewerRole.id],
+        roleIds: [createdRoleId],
         notes: "Created by integration test"
       })
     });
@@ -313,9 +340,19 @@ describe("admin and internal API integration", () => {
     assert.equal(createStaffResult.response.status, 201);
     assert.equal(createStaffResult.payload.data.email, staffEmail);
     assert.equal(createStaffResult.payload.data.roles.length, 1);
-    assert.equal(createStaffResult.payload.data.roles[0].code, "reviewer");
+    assert.equal(createStaffResult.payload.data.roles[0].code, customRoleCode);
 
     const createdStaffId = createStaffResult.payload.data.id as string;
+    const staffDetailResult = await requestJson(`/api/admin/v1/staff/${createdStaffId}`, {
+      headers: {
+        cookie: superAdmin.cookie
+      }
+    });
+
+    assert.equal(staffDetailResult.response.status, 200);
+    assert.equal(staffDetailResult.payload.data.id, createdStaffId);
+    assert.equal(staffDetailResult.payload.data.roles[0].code, customRoleCode);
+
     const updateStaffResult = await requestJson(`/api/admin/v1/staff/${createdStaffId}`, {
       method: "PATCH",
       headers: getAuthHeaders(superAdmin.cookie),
@@ -346,23 +383,24 @@ describe("admin and internal API integration", () => {
     assert.equal(updatedStaff.status, "suspended");
 
     const reviewerPermissionIds = reviewerRole.permissionIds as string[];
-    const roleUpdateResult = await requestJson(`/api/admin/v1/roles/${reviewerRole.id}`, {
+    const roleUpdateResult = await requestJson(`/api/admin/v1/roles/${createdRoleId}`, {
       method: "PATCH",
       headers: getAuthHeaders(superAdmin.cookie),
       body: JSON.stringify({
-        name: reviewerRole.name,
+        name: "Ops Coordinator Updated",
         description: "Integration test reviewer bundle",
         permissionIds: reviewerPermissionIds
       })
     });
 
     assert.equal(roleUpdateResult.response.status, 200);
+    assert.equal(roleUpdateResult.payload.data.name, "Ops Coordinator Updated");
     assert.equal(roleUpdateResult.payload.data.description, "Integration test reviewer bundle");
 
     const persistedRoleBindings = await directDb
       .select()
       .from(rolePermissionBindings)
-      .where(eq(rolePermissionBindings.roleId, reviewerRole.id));
+      .where(eq(rolePermissionBindings.roleId, createdRoleId));
 
     assert.equal(persistedRoleBindings.length, reviewerPermissionIds.length);
   });

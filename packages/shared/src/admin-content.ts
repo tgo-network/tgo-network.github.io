@@ -301,6 +301,11 @@ export interface AdminStaffListPayload {
   roles: AdminRoleSummary[];
 }
 
+export interface AdminStaffEditorPayload {
+  staff: AdminStaffListItem | null;
+  roles: AdminRoleSummary[];
+}
+
 export interface AdminStaffListMeta extends PaginationMeta {
   stats: {
     active: number;
@@ -352,11 +357,23 @@ export interface AdminRolesPayload {
   permissions: AdminPermissionRecord[];
 }
 
+export interface AdminRoleEditorPayload {
+  role: AdminRoleListItem | null;
+  permissions: AdminPermissionRecord[];
+}
+
 export interface AdminRolesListMeta extends PaginationMeta {
   stats: {
     system: number;
     assigned: number;
   };
+}
+
+export interface AdminRoleCreateInput {
+  code: string;
+  name: string;
+  description: string;
+  permissionIds: string[];
 }
 
 export interface AdminRoleUpdateInput {
@@ -1111,6 +1128,63 @@ export const validateAdminRoleInput = (payload: unknown): AdminValidationResult<
       name,
       description,
       permissionIds
+    }
+  };
+};
+
+export const validateAdminRoleCreateInput = (
+  payload: unknown
+): AdminValidationResult<AdminRoleCreateInput> => {
+  if (!isRecord(payload)) {
+    return {
+      valid: false,
+      issues: [
+        {
+          field: "payload",
+          message: "请求体必须是 JSON 对象。"
+        }
+      ]
+    };
+  }
+
+  const code = getTrimmedString(payload.code).toLowerCase();
+  const base = validateAdminRoleInput(payload);
+
+  if (!base.valid) {
+    const issues = [...base.issues];
+
+    if (!/^[a-z][a-z0-9_]{1,63}$/.test(code)) {
+      issues.push({
+        field: "code",
+        message: "角色代码需为 2 到 64 位小写字母、数字或下划线，且必须以字母开头。"
+      });
+    }
+
+    return {
+      valid: false,
+      issues
+    };
+  }
+
+  if (!/^[a-z][a-z0-9_]{1,63}$/.test(code)) {
+    return {
+      valid: false,
+      issues: [
+        {
+          field: "code",
+          message: "角色代码需为 2 到 64 位小写字母、数字或下划线，且必须以字母开头。"
+        }
+      ]
+    };
+  }
+
+  return {
+    valid: true,
+    data: {
+      code,
+      name: base.data.name,
+      description: base.data.description,
+      permissionIds: base.data.permissionIds
     }
   };
 };

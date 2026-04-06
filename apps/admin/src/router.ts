@@ -19,8 +19,10 @@ import HomepageEditorPage from "./views/HomepageEditorPage.vue";
 import MemberEditorPage from "./views/MemberEditorPage.vue";
 import MembersPage from "./views/MembersPage.vue";
 import RegistrationDetailPage from "./views/RegistrationDetailPage.vue";
+import RoleEditorPage from "./views/RoleEditorPage.vue";
 import RolesPage from "./views/RolesPage.vue";
 import SitePageEditorPage from "./views/SitePageEditorPage.vue";
+import StaffEditorPage from "./views/StaffEditorPage.vue";
 import StaffPage from "./views/StaffPage.vue";
 
 export const router = createRouter({
@@ -180,9 +182,41 @@ export const router = createRouter({
       }
     },
     {
+      path: "/staff/new",
+      name: "staff-create",
+      component: StaffEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/staff/:id/edit",
+      name: "staff-edit",
+      component: StaffEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: "/roles",
       name: "roles",
       component: RolesPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/roles/new",
+      name: "role-create",
+      component: RoleEditorPage,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/roles/:id/edit",
+      name: "role-edit",
+      component: RoleEditorPage,
       meta: {
         requiresAuth: true
       }
