@@ -10,7 +10,7 @@ import {
 } from "@tgo/shared";
 
 import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
-import { formatDateTime, formatEventRegistrationState, formatEventRegistrationStatus } from "../lib/format";
+import { formatDateTime, formatEventRegistrationState } from "../lib/format";
 
 const route = useRoute();
 
@@ -90,14 +90,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>{{ registration ? registration.name : "报名详情" }}</h2>
-        <p>查看报名人信息、审核备注与成员匹配情况，保持活动报名流程可追踪。</p>
-      </div>
+      <h2>{{ registration ? registration.name : "报名详情" }}</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink v-if="eventInfo" class="button-link" :to="`/events/${eventInfo.id}/registrations`">返回报名列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存状态" }}
@@ -105,60 +102,65 @@ onMounted(() => {
       </div>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">操作错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在准备报名详情...</p>
     </div>
 
-    <div v-else-if="registration && eventInfo" class="editor-grid">
-      <div class="panel editor-main stacked-gap">
-        <div class="brand-tag">报名人信息</div>
-        <div class="field-grid field-grid-2">
-          <div class="info-card">
-            <span>姓名</span>
-            <strong>{{ registration.name }}</strong>
+    <div v-else-if="registration && eventInfo" class="editor-grid editor-grid-focus">
+      <div class="panel panel-compact editor-main stacked-gap">
+        <section class="editor-section editor-section-compact stacked-gap">
+          <div class="editor-section-head">
+            <h3>报名人信息</h3>
           </div>
-          <div class="info-card">
-            <span>手机号</span>
-            <strong>{{ registration.phoneNumber || "未填写" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>微信号</span>
-            <strong>{{ registration.wechatId || "未填写" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>邮箱</span>
-            <strong>{{ registration.email || "未填写" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>公司</span>
-            <strong>{{ registration.company || "未填写" }}</strong>
-          </div>
-          <div class="info-card">
-            <span>职称</span>
-            <strong>{{ registration.title || "未填写" }}</strong>
-          </div>
-        </div>
 
-        <div class="panel inset-panel stacked-gap">
-          <div class="brand-tag">补充信息</div>
+          <div class="field-grid field-grid-2">
+            <div class="info-card">
+              <span>姓名</span>
+              <strong>{{ registration.name }}</strong>
+            </div>
+            <div class="info-card">
+              <span>手机号</span>
+              <strong>{{ registration.phoneNumber || "未填写" }}</strong>
+            </div>
+            <div class="info-card">
+              <span>微信号</span>
+              <strong>{{ registration.wechatId || "未填写" }}</strong>
+            </div>
+            <div class="info-card">
+              <span>邮箱</span>
+              <strong>{{ registration.email || "未填写" }}</strong>
+            </div>
+            <div class="info-card">
+              <span>公司</span>
+              <strong>{{ registration.company || "未填写" }}</strong>
+            </div>
+            <div class="info-card">
+              <span>职称</span>
+              <strong>{{ registration.title || "未填写" }}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="editor-section editor-section-compact stacked-gap">
+          <div class="editor-section-head">
+            <h3>补充信息</h3>
+          </div>
           <p>{{ registration.note || "未填写补充信息。" }}</p>
-        </div>
+        </section>
       </div>
 
       <aside class="editor-side stacked-gap">
-        <div class="panel stacked-gap">
-          <div class="brand-tag">审核</div>
+        <div class="panel panel-compact stacked-gap">
+          <h3>审核</h3>
+
           <label class="field">
             <span>状态</span>
             <select v-model="form.status">
@@ -181,43 +183,49 @@ onMounted(() => {
           </label>
         </div>
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">活动信息</div>
-          <div class="info-row">
-            <span>活动</span>
-            <strong>{{ eventInfo.title }}</strong>
-          </div>
-          <div class="info-row">
-            <span>URL 标识</span>
-            <strong>/{{ eventInfo.slug }}</strong>
-          </div>
-          <div class="info-row">
-            <span>报名状态</span>
-            <strong class="status-pill">{{ formatEventRegistrationState(eventInfo.registrationState) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>开始时间</span>
-            <strong>{{ formatDateTime(eventInfo.startsAt) }}</strong>
+        <div class="panel panel-compact summary-panel stacked-gap-tight">
+          <h3>活动信息</h3>
+
+          <div class="summary-list">
+            <div class="summary-row">
+              <span>活动</span>
+              <strong>{{ eventInfo.title }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>URL 标识</span>
+              <strong>/{{ eventInfo.slug }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>报名状态</span>
+              <strong class="status-pill">{{ formatEventRegistrationState(eventInfo.registrationState) }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>开始时间</span>
+              <strong>{{ formatDateTime(eventInfo.startsAt) }}</strong>
+            </div>
           </div>
         </div>
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">审计</div>
-          <div class="info-row">
-            <span>提交时间</span>
-            <strong>{{ formatDateTime(registration.createdAt) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>审核时间</span>
-            <strong>{{ formatDateTime(registration.reviewedAt) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>提交 IP</span>
-            <strong>{{ registration.submittedIp || "未记录" }}</strong>
-          </div>
-          <div class="info-row">
-            <span>User-Agent</span>
-            <strong>{{ registration.submittedUserAgent || "未记录" }}</strong>
+        <div class="panel panel-compact summary-panel stacked-gap-tight">
+          <h3>提交记录</h3>
+
+          <div class="summary-list">
+            <div class="summary-row">
+              <span>提交时间</span>
+              <strong>{{ formatDateTime(registration.createdAt) }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>审核时间</span>
+              <strong>{{ formatDateTime(registration.reviewedAt) }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>提交 IP</span>
+              <strong>{{ registration.submittedIp || "未记录" }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>User-Agent</span>
+              <strong>{{ registration.submittedUserAgent || "未记录" }}</strong>
+            </div>
           </div>
         </div>
       </aside>

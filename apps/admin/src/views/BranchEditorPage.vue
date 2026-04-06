@@ -77,6 +77,7 @@ const previewHref = computed(() => (form.slug.trim().length > 0 ? `/branches#${f
 const selectableAvatarAssets = computed(() =>
   assets.value.filter((asset) => asset.status === "active" && asset.visibility === "public" && asset.mimeType.startsWith("image/"))
 );
+const cityRegionSummary = computed(() => [form.cityName.trim() || "待补充城市", form.region.trim()].filter((value) => value.length > 0).join(" · "));
 const branchBodyParagraphs = computed(() =>
   form.body
     .split(/\n{2,}/)
@@ -88,58 +89,8 @@ const boardMembersReady = computed(() =>
     return Boolean(item.memberId) || [item.displayName, item.company, item.title, item.bio].some((value) => value.trim().length > 0);
   })
 );
-const boardPreviewItems = computed(() => boardMembersReady.value.slice(0, 3));
 const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为分会名称");
 const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.summary.trim() || "将回退为分会简介");
-const branchOverviewCards = computed(() => [
-  {
-    label: "当前状态",
-    value: formatContentStatus(branch.value?.status ?? form.status),
-    summary: branch.value?.publishedAt ? `已发布于 ${formatDateTime(branch.value.publishedAt)}` : "发布后会进入公开站分会路径。"
-  },
-  {
-    label: "城市 / 区域",
-    value: form.cityName || "待补充城市",
-    summary: form.region || "待补充区域"
-  },
-  {
-    label: "董事会人数",
-    value: String(boardMembersReady.value.length),
-    summary: boardMembersReady.value.length > 0 ? "已补充真实组织推动者信息。" : "建议至少补充一位董事会成员。"
-  },
-  {
-    label: "公开路径",
-    value: previewHref.value,
-    summary: form.slug.trim().length > 0 ? `slug：${form.slug.trim()}` : "填写分会名称后可自动生成 slug。"
-  }
-]);
-const branchChecklist = computed(() => [
-  {
-    label: "名称与 slug",
-    ready: form.name.trim().length > 0 && form.slug.trim().length > 0,
-    hint: "分会列表跳转和公开链接都依赖名称与 slug。"
-  },
-  {
-    label: "城市与简介",
-    ready: form.cityName.trim().length > 0 && form.summary.trim().length > 0,
-    hint: "分会列表卡片会优先展示城市、区域和简介。"
-  },
-  {
-    label: "正文内容",
-    ready: branchBodyParagraphs.value.length > 0,
-    hint: "分会详情区会直接展示正文，用于说明定位、活动方式与本地特色。"
-  },
-  {
-    label: "董事会成员",
-    ready: boardMembersReady.value.length > 0,
-    hint: "分会页强调真实的组织结构，至少需要补全一位董事会成员。"
-  },
-  {
-    label: "公开状态",
-    ready: form.status === "published",
-    hint: "只有已发布状态的分会才会进入公开站主路径。"
-  }
-]);
 
 const loadMemberOptions = async () => {
   const members = await adminFetch<AdminMemberListItem[]>("/api/admin/v1/members");
@@ -302,14 +253,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section>
+  <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <div>
-        <h2>{{ pageTitle }}</h2>
-        <p>分会承担前台的分会展示、董事会结构、活动归属与成员归属，是组织型站点的关键节点。</p>
-      </div>
+      <h2>{{ pageTitle }}</h2>
 
-      <div class="page-actions">
+      <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members/branches">返回分会列表</RouterLink>
         <a class="button-link" :href="previewHref" target="_blank" rel="noreferrer">预览前台</a>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
@@ -318,168 +266,123 @@ onMounted(async () => {
       </div>
     </header>
 
-    <div v-if="errorMessage" class="panel panel-danger stacked-gap">
-      <div class="brand-tag">操作错误</div>
+    <div v-if="errorMessage" class="panel panel-danger">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-if="successMessage" class="panel stacked-gap panel-success">
-      <div class="brand-tag">已保存</div>
+    <div v-if="successMessage" class="panel panel-success">
       <p>{{ successMessage }}</p>
     </div>
 
     <div v-if="loading" class="panel">
-      <div class="brand-tag">加载中</div>
       <p>正在准备分会编辑器...</p>
     </div>
 
     <template v-else>
-      <div class="editor-overview-grid">
-        <article v-for="item in branchOverviewCards" :key="item.label" class="editor-overview-card">
-          <span>{{ item.label }}</span>
-          <strong>{{ item.value }}</strong>
-          <p>{{ item.summary }}</p>
-        </article>
-      </div>
-
-      <div class="editor-grid">
-        <div class="panel editor-main stacked-gap">
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">基本信息</div>
-            <h3>定义分会在公开站中的身份</h3>
-            <p>分会名称、slug、城市和区域会共同决定它如何出现在分会列表、成员归属和活动归属中。</p>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>分会名称</span>
-              <input v-model="form.name" type="text" placeholder="上海分会" @input="onNameInput" />
-              <small class="field-hint">前台分会页卡片和详情标题都会直接使用这里的名称。</small>
-              <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
-            </label>
-
-            <label class="field">
-              <span>URL 标识</span>
-              <input v-model="form.slug" type="text" placeholder="shanghai" @input="onSlugInput" />
-              <small class="field-hint">公开站使用这个 slug 作为分会锚点和内部引用。</small>
-              <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
-            </label>
-          </div>
-
-          <div class="field-grid field-grid-2">
-            <label class="field">
-              <span>城市</span>
-              <input v-model="form.cityName" type="text" placeholder="上海" />
-              <small class="field-hint">活动城市筛选和成员归属会复用这里的城市信息。</small>
-              <small v-if="fieldIssues.cityName" class="field-error">{{ fieldIssues.cityName }}</small>
-            </label>
-
-            <label class="field">
-              <span>区域</span>
-              <input v-model="form.region" type="text" placeholder="华东" />
-              <small class="field-hint">用于分会列表卡片的上层地理语义，例如华东、华北等。</small>
-            </label>
-          </div>
-
-          <div class="field">
-            <span>状态</span>
-            <div class="option-card-grid option-card-grid-5">
-              <button
-                v-for="option in contentStatusOptions"
-                :key="option.value"
-                type="button"
-                class="option-card"
-                :class="{ 'is-active': form.status === option.value }"
-                @click="form.status = option.value"
-              >
-                <strong>{{ option.label }}</strong>
-                <p>{{ contentStatusDescriptions[option.value] }}</p>
-                <div class="option-card-foot">
-                  <span class="option-card-badge">{{ form.status === option.value ? "当前状态" : "切换" }}</span>
-                </div>
-              </button>
+      <div class="editor-grid editor-grid-focus">
+        <div class="panel panel-compact editor-main stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>基本信息</h3>
             </div>
-            <small class="field-hint">分会只有在发布后才会出现在公开站主路径中。</small>
-          </div>
-        </section>
 
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">前台概览与详情</div>
-            <h3>准备分会列表卡片和详情说明</h3>
-            <p>简介用于快速解释分会定位，正文用于进一步说明本地活动方式、组织特点和长期节奏。</p>
-          </div>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>分会名称</span>
+                <input v-model="form.name" type="text" placeholder="上海分会" @input="onNameInput" />
+                <small v-if="fieldIssues.name" class="field-error">{{ fieldIssues.name }}</small>
+              </label>
 
-          <label class="field">
-            <span>简介</span>
-            <textarea v-model="form.summary" rows="4" placeholder="用于前台列表展示的分会简介。" />
-            <small class="field-hint">建议 2-4 句话，说明这个分会面向谁、围绕什么议题组织活动。</small>
-          </label>
+              <label class="field">
+                <span>URL 标识</span>
+                <input v-model="form.slug" type="text" placeholder="shanghai" @input="onSlugInput" />
+                <small v-if="fieldIssues.slug" class="field-error">{{ fieldIssues.slug }}</small>
+              </label>
+            </div>
 
-          <label class="field">
-            <span>正文</span>
-            <textarea v-model="form.body" rows="10" placeholder="介绍分会定位、活动形式和本地特色。" />
-            <small class="field-hint">正文会直接显示在分会详情区，建议按自然段留空行拆分。</small>
-          </label>
-        </section>
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>城市</span>
+                <input v-model="form.cityName" type="text" placeholder="上海" />
+                <small v-if="fieldIssues.cityName" class="field-error">{{ fieldIssues.cityName }}</small>
+              </label>
 
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">展示控制与 SEO</div>
-            <h3>控制排序和搜索回退信息</h3>
-            <p>排序决定分会卡片的优先级，SEO 字段不填时会分别回退到分会名称和简介。</p>
-          </div>
+              <label class="field">
+                <span>区域</span>
+                <input v-model="form.region" type="text" placeholder="华东" />
+              </label>
+            </div>
 
-          <div class="field-grid field-grid-3">
             <label class="field">
-              <span>排序</span>
-              <input v-model.number="form.sortOrder" type="number" min="0" />
-              <small class="field-hint">数字越小越靠前，适合控制分会在首页和列表中的顺序。</small>
+              <span>状态</span>
+              <select v-model="form.status">
+                <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+              </select>
+              <small class="field-hint">{{ contentStatusDescriptions[form.status] }}</small>
+            </label>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>简介与正文</h3>
+            </div>
+
+            <label class="field">
+              <span>简介</span>
+              <textarea v-model="form.summary" rows="4" placeholder="用于前台列表展示的分会简介。" />
             </label>
 
             <label class="field">
-              <span>SEO 标题</span>
-              <input v-model="form.seoTitle" type="text" placeholder="可选，不填则回退分会名称。" />
+              <span>正文</span>
+              <textarea v-model="form.body" rows="10" placeholder="介绍分会定位、活动形式和本地特色。" />
             </label>
+          </section>
+
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>排序与 SEO</h3>
+            </div>
+
+            <div class="field-grid field-grid-2">
+              <label class="field">
+                <span>排序</span>
+                <input v-model.number="form.sortOrder" type="number" min="0" />
+              </label>
+
+              <label class="field">
+                <span>SEO 标题</span>
+                <input v-model="form.seoTitle" type="text" placeholder="可选，不填则回退分会名称。" />
+              </label>
+            </div>
 
             <label class="field">
               <span>SEO 描述</span>
               <textarea v-model="form.seoDescription" rows="4" placeholder="可选，不填则回退分会简介。" />
             </label>
-          </div>
-        </section>
+          </section>
 
-        <section class="editor-section stacked-gap">
-          <div class="editor-section-head">
-            <div class="brand-tag">董事会成员</div>
-            <h3>补足分会的真实组织结构</h3>
-            <p>分会页的重点不是孤立的一段介绍，而是这座城市里由谁在持续推动组织节奏。</p>
-          </div>
-
-          <div class="panel inset-panel stacked-gap">
+          <section class="editor-section editor-section-compact stacked-gap">
             <div class="page-header-row compact-row">
-              <div>
-                <div class="brand-tag">董事会成员</div>
-                <p class="section-copy">可绑定现有成员，也可直接填写展示信息与头像资源。</p>
+              <div class="editor-section-head">
+                <h3>董事会成员</h3>
               </div>
               <button class="button-link button-compact" type="button" @click="addBoardMember">添加成员</button>
             </div>
 
-            <div v-for="(item, index) in form.boardMembers" :key="`${index}-${item.memberId ?? 'manual'}`" class="panel stacked-gap">
+            <div v-for="(item, index) in form.boardMembers" :key="`${index}-${item.memberId ?? 'manual'}`" class="panel panel-compact stacked-gap">
               <div class="page-header-row compact-row">
-                <strong>董事会成员 {{ index + 1 }}</strong>
+                <strong>成员 {{ index + 1 }}</strong>
                 <button class="button-link button-danger button-compact" type="button" @click="removeBoardMember(index)">移除</button>
               </div>
 
-              <div class="field-grid field-grid-3">
+              <div class="field-grid field-grid-2">
                 <label class="field">
                   <span>关联成员</span>
                   <select v-model="item.memberId" @change="onMemberPick(item)">
                     <option :value="null">不关联现有成员</option>
                     <option v-for="option in memberOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
                   </select>
-                  <small class="field-hint">{{ memberOptions.find((option) => option.id === item.memberId)?.description ?? "可直接从现有成员资料带出基础信息。" }}</small>
+                  <small class="field-hint">{{ memberOptions.find((option) => option.id === item.memberId)?.description ?? "可选" }}</small>
                 </label>
 
                 <label class="field">
@@ -487,14 +390,6 @@ onMounted(async () => {
                   <select v-model="item.avatarAssetId">
                     <option :value="null">暂不单独设置头像</option>
                     <option v-for="asset in selectableAvatarAssets" :key="asset.id" :value="asset.id">{{ asset.originalFilename }}</option>
-                  </select>
-                  <small class="field-hint">优先选择公开头像资源，用于前台董事会成员卡片。</small>
-                </label>
-
-                <label class="field">
-                  <span>状态</span>
-                  <select v-model="item.status">
-                    <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
                   </select>
                 </label>
               </div>
@@ -509,157 +404,101 @@ onMounted(async () => {
                   <input v-model="item.company" type="text" />
                 </label>
                 <label class="field">
-                  <span>职务</span>
+                  <span>组织身份</span>
                   <input v-model="item.title" type="text" />
                 </label>
               </div>
 
-              <div class="field-grid field-grid-2">
+              <div class="field-grid field-grid-3">
                 <label class="field">
-                  <span>简介</span>
-                  <textarea v-model="item.bio" rows="4" />
+                  <span>状态</span>
+                  <select v-model="item.status">
+                    <option v-for="option in contentStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                  </select>
                 </label>
 
-                <div class="field-grid">
-                  <label class="field">
-                    <span>排序</span>
-                    <input v-model.number="item.sortOrder" type="number" min="0" />
-                  </label>
+                <label class="field">
+                  <span>排序</span>
+                  <input v-model.number="item.sortOrder" type="number" min="0" />
+                </label>
 
-                  <div class="info-card">
-                    <span>前台显示</span>
-                    <strong>{{ item.displayName || "待补充姓名" }}</strong>
-                    <small class="field-hint">{{ item.company || "待补充公司" }} · {{ item.title || "待补充职务" }}</small>
-                  </div>
+                <div class="info-card">
+                  <span>前台显示</span>
+                  <strong>{{ item.displayName || "待补充姓名" }}</strong>
+                  <p>{{ item.company || "待补充公司" }} · {{ item.title || "待补充组织身份" }}</p>
                 </div>
               </div>
+
+              <label class="field">
+                <span>简介</span>
+                <textarea v-model="item.bio" rows="3" />
+              </label>
             </div>
-          </div>
-        </section>
+          </section>
         </div>
 
         <aside class="editor-side stacked-gap">
-        <CoverAssetField
-          v-model="form.coverAssetId"
-          :assets="assets"
-          label="分会封面"
-          help="选择公开图片资源作为分会卡片封面。"
-          :error="fieldIssues.coverAssetId"
-        />
+          <CoverAssetField
+            v-model="form.coverAssetId"
+            :assets="assets"
+            label="分会封面"
+            help="选择公开图片资源作为分会卡片封面。"
+            :error="fieldIssues.coverAssetId"
+          />
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">前台映射</div>
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>当前状态</h3>
 
-          <div class="preview-stack">
-            <div class="preview-group">
-              <span class="preview-label">分会列表卡片</span>
-              <div class="preview-card">
-                <span class="preview-eyebrow">{{ form.region || form.cityName || "分会" }}</span>
-                <strong class="preview-title">{{ form.name || "分会名称会展示在这里" }}</strong>
-                <p class="preview-copy">{{ form.summary || "简介会出现在分会列表卡片，用于快速解释这个城市节点的定位。" }}</p>
-                <div class="preview-meta">
-                  <span>{{ form.cityName || "待补充城市" }}</span>
-                  <span>{{ boardMembersReady.length }} 位董事会成员</span>
-                </div>
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>当前状态</span>
+                <strong class="status-pill">{{ formatContentStatus(branch?.status ?? form.status) }}</strong>
               </div>
-            </div>
-
-            <div class="preview-group">
-              <span class="preview-label">分会详情区</span>
-              <div class="preview-card preview-card-dark">
-                <span class="preview-eyebrow">分会介绍</span>
-                <strong class="preview-title">{{ form.name || "详情页主标题" }}</strong>
-                <p class="preview-copy">
-                  {{ branchBodyParagraphs[0] || "这里会展示分会正文的首段，用于进一步说明本地活动节奏和组织特点。" }}
-                </p>
-                <ul class="preview-list">
-                  <li>
-                    <span>城市</span>
-                    <strong>{{ form.cityName || "待补充城市" }}</strong>
-                  </li>
-                  <li>
-                    <span>区域</span>
-                    <strong>{{ form.region || "待补充区域" }}</strong>
-                  </li>
-                  <li>
-                    <span>正文段落</span>
-                    <strong>{{ branchBodyParagraphs.length > 0 ? `${branchBodyParagraphs.length} 段` : "尚未填写正文" }}</strong>
-                  </li>
-                </ul>
+              <div class="summary-row">
+                <span>公开路径</span>
+                <strong>{{ previewHref }}</strong>
               </div>
-            </div>
-
-            <div class="preview-group">
-              <span class="preview-label">董事会预览</span>
-              <div class="preview-card">
-                <ul class="preview-list">
-                  <li v-for="(item, index) in boardPreviewItems" :key="`${index}-${item.displayName}-${item.company}`">
-                    <span>{{ item.status === 'published' ? '前台展示中' : '未发布成员' }}</span>
-                    <strong>{{ item.displayName || `董事会成员 ${index + 1}` }} · {{ item.company || '待补充公司' }} · {{ item.title || '待补充职务' }}</strong>
-                  </li>
-                  <li v-if="boardPreviewItems.length === 0">
-                    <span>董事会成员</span>
-                    <strong>尚未补全成员资料，分会页这里会展示组织推动者名单。</strong>
-                  </li>
-                </ul>
+              <div class="summary-row">
+                <span>城市 / 区域</span>
+                <strong>{{ cityRegionSummary }}</strong>
               </div>
-            </div>
-
-            <div class="preview-group">
-              <span class="preview-label">SEO 回退结果</span>
-              <div class="preview-card">
-                <ul class="preview-list">
-                  <li>
-                    <span>标题</span>
-                    <strong>{{ seoTitlePreview }}</strong>
-                  </li>
-                  <li>
-                    <span>描述</span>
-                    <strong>{{ seoDescriptionPreview }}</strong>
-                  </li>
-                </ul>
+              <div class="summary-row">
+                <span>董事会人数</span>
+                <strong>{{ boardMembersReady.length }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>最近更新</span>
+                <strong>{{ formatDateTime(branch?.updatedAt) }}</strong>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="panel stacked-gap">
-          <div class="brand-tag">运营提示</div>
-          <div class="info-row">
-            <span>当前状态</span>
-            <strong class="status-pill">{{ formatContentStatus(branch?.status ?? form.status) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>公开预览</span>
-            <strong>{{ previewHref }}</strong>
-          </div>
-          <div class="info-row">
-            <span>董事会人数</span>
-            <strong>{{ boardMembersReady.length }}</strong>
-          </div>
-          <div class="info-row">
-            <span>最近更新</span>
-            <strong>{{ formatDateTime(branch?.updatedAt) }}</strong>
-          </div>
-          <div class="info-row">
-            <span>发布时间</span>
-            <strong>{{ formatDateTime(branch?.publishedAt) }}</strong>
-          </div>
+          <div class="panel panel-compact summary-panel stacked-gap-tight">
+            <h3>内容概览</h3>
 
-          <div class="preview-note">
-            <p>建议优先绑定真实成员资料，再补充手工字段；这样分会、成员和活动三条主线会更容易形成统一叙事。</p>
-          </div>
-
-          <ul class="checklist">
-            <li v-for="item in branchChecklist" :key="item.label">
-              <span class="checklist-indicator" :class="item.ready ? 'is-ready' : 'is-pending'"></span>
-              <div>
-                <strong>{{ item.label }}</strong>
-                <small>{{ item.hint }}</small>
+            <div class="summary-list">
+              <div class="summary-row">
+                <span>简介</span>
+                <strong>{{ form.summary.trim().length > 0 ? "已填写" : "待补充" }}</strong>
               </div>
-            </li>
-          </ul>
-        </div>
+              <div class="summary-row">
+                <span>正文段落</span>
+                <strong>{{ branchBodyParagraphs.length > 0 ? `${branchBodyParagraphs.length} 段` : "待补充" }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>SEO 标题</span>
+                <strong>{{ seoTitlePreview }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>SEO 描述</span>
+                <strong>{{ seoDescriptionPreview }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>发布时间</span>
+                <strong>{{ formatDateTime(branch?.publishedAt) }}</strong>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
     </template>

@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 import type { AdminMePayload } from "@tgo/shared";
-import { platformName } from "@tgo/shared";
 
 import { authClient } from "./lib/auth-client";
 import { adminFetch } from "./lib/api";
@@ -60,11 +59,6 @@ onMounted(() => {
       <div class="sidebar-inner">
         <div class="sidebar-brand">
           <div class="brand-mark">TGO</div>
-
-          <div class="sidebar-brand-copy">
-            <strong>{{ platformName }}</strong>
-            <span>工作人员后台</span>
-          </div>
         </div>
 
         <nav class="nav sidebar-nav" aria-label="后台导航">
