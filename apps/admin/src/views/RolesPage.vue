@@ -291,23 +291,19 @@ onMounted(() => {
 
         <aside class="editor-side stacked-gap">
           <template v-if="selectedRole">
-            <div class="panel panel-compact summary-panel stacked-gap-tight">
-              <h3>当前角色</h3>
-
-              <div class="summary-list">
-                <div v-for="item in selectedRoleMetaItems" :key="item.label" class="summary-row">
-                  <span>{{ item.label }}</span>
-                  <strong>{{ item.value }}</strong>
-                </div>
-              </div>
-            </div>
-
             <div class="panel panel-compact editor-side-card">
               <div class="panel-toolbar">
                 <h3>编辑角色</h3>
                 <button class="button-link button-primary" type="button" :disabled="saving" @click="saveRole">
                   {{ saving ? "保存中..." : "保存角色" }}
                 </button>
+              </div>
+
+              <div class="summary-list summary-list-inline">
+                <div v-for="item in selectedRoleMetaItems" :key="item.label" class="summary-row">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
               </div>
 
               <label class="field">

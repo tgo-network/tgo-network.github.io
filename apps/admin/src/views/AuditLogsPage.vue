@@ -199,6 +199,13 @@ onMounted(async () => {
               {{ item.label }}
             </button>
           </div>
+
+          <div class="summary-chip-row">
+            <div v-for="item in summaryItems" :key="item.label" class="summary-chip">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
         </div>
 
         <div class="field-grid field-grid-3">
@@ -234,18 +241,7 @@ onMounted(async () => {
       </div>
 
       <div v-else class="audit-log-list">
-        <div class="panel panel-compact summary-panel stacked-gap-tight">
-          <h3>筛选结果</h3>
-
-          <div class="summary-list">
-            <div v-for="item in summaryItems" :key="item.label" class="summary-row">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap">
+        <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap-tight">
           <div class="audit-log-head">
             <div class="audit-log-topline">
               <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
