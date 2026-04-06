@@ -1,49 +1,86 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 
-import { applicationStatusOptions, type AdminJoinApplicationListItem } from "@tgo/shared";
+import { applicationStatusOptions, type AdminJoinApplicationListItem, type AdminJoinApplicationListMeta } from "@tgo/shared";
 
-import { adminFetch } from "../lib/api";
+import { adminFetchWithMeta } from "../lib/api";
 import { formatApplicationStatus, formatDateTime } from "../lib/format";
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const rows = ref<AdminJoinApplicationListItem[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const filters = reactive({
   query: "",
   status: "all",
-  branch: "all"
+  branch: "all",
+  pageSize: adminPageSizeOptions[0]
+});
+const meta = ref<AdminJoinApplicationListMeta>({
+  total: 0,
+  page: 1,
+  pageSize: adminPageSizeOptions[0],
+  pageCount: 1,
+  branchOptions: [],
+  stats: {
+    pending: 0
+  }
 });
 
-const branchOptions = computed(() =>
-  Array.from(new Set(rows.value.map((row) => row.targetBranchName).filter((value): value is string => Boolean(value)))).sort((left, right) =>
-    left.localeCompare(right, "zh-CN")
-  )
-);
-const filteredRows = computed(() => {
-  const query = filters.query.trim().toLowerCase();
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  return rows.value.filter((row) => {
-    const matchesQuery =
-      query.length === 0 ||
-      [row.name, row.phoneNumber, row.wechatId || "", row.email || "", row.targetBranchName || ""].some((value) =>
-        value.toLowerCase().includes(query)
-      );
-    const matchesStatus = filters.status === "all" || row.status === filters.status;
-    const matchesBranch = filters.branch === "all" || row.targetBranchName === filters.branch;
-
-    return matchesQuery && matchesStatus && matchesBranch;
-  });
+const createEmptyMeta = (pageSize: number): AdminJoinApplicationListMeta => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  branchOptions: [],
+  stats: {
+    pending: 0
+  }
 });
+
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  const query = filters.query.trim();
+
+  if (query.length > 0) {
+    search.set("q", query);
+  }
+
+  if (filters.status !== "all") {
+    search.set("status", filters.status);
+  }
+
+  if (filters.branch !== "all") {
+    search.set("branch", filters.branch);
+  }
+
+  return `/api/admin/v1/applications?${search.toString()}`;
+};
+
+const branchOptions = computed(() => meta.value.branchOptions);
+const hasResults = computed(() => meta.value.total > 0);
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
 const summaryChips = computed(() => [
   {
     label: "当前",
-    value: `${filteredRows.value.length} 条`
+    value: `${meta.value.total} 条`
   },
   {
     label: "待审核",
-    value: `${rows.value.filter((row) => row.status === "submitted" || row.status === "in_review").length} 条`
+    value: `${meta.value.stats.pending} 条`
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -81,16 +118,79 @@ const quickFilters = [
   }
 ] as const;
 
-onMounted(async () => {
+const loadRows = async () => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    rows.value = await adminFetch<AdminJoinApplicationListItem[]>("/api/admin/v1/applications");
+    const result = await adminFetchWithMeta<AdminJoinApplicationListItem[], AdminJoinApplicationListMeta>(buildListPath());
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = result.data;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载申请列表。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
+  }
+};
+
+const scheduleReload = (resetPage = false) => {
+  if (resetPage) {
+    currentPage.value = 1;
+  }
+
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
+
+  fetchTimer = setTimeout(() => {
+    fetchTimer = null;
+    void loadRows();
+  }, 250);
+};
+
+const changePage = (page: number) => {
+  if (loading.value || page < 1 || page > meta.value.pageCount || page === currentPage.value) {
+    return;
+  }
+
+  currentPage.value = page;
+  void loadRows();
+};
+
+watch(
+  () => [filters.query, filters.status, filters.branch, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    scheduleReload(true);
+  }
+);
+
+onMounted(() => {
+  void loadRows();
+});
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
   }
 });
 </script>
@@ -105,7 +205,7 @@ onMounted(async () => {
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-else-if="loading" class="panel">
+    <div v-if="!hasLoadedOnce && loading" class="panel">
       <p>正在加载加入申请...</p>
     </div>
 
@@ -133,7 +233,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="field-grid field-grid-3">
+        <div class="field-grid field-grid-4">
           <label class="field">
             <span>搜索</span>
             <input v-model="filters.query" type="search" placeholder="搜索姓名、手机号、微信号、邮箱或分会" />
@@ -154,52 +254,78 @@ onMounted(async () => {
               <option v-for="option in branchOptions" :key="option" :value="option">{{ option }}</option>
             </select>
           </label>
+
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="filters.pageSize">
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+            </select>
+          </label>
         </div>
       </div>
 
-      <div v-if="filteredRows.length === 0" class="panel empty-state-card">
+      <div v-if="loading" class="panel">
+        <p>正在更新申请列表...</p>
+      </div>
+
+      <div v-if="!loading && !hasResults" class="panel empty-state-card">
         <p>当前筛选条件下没有匹配的申请。</p>
       </div>
 
-      <div v-else class="panel panel-compact table-panel">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>申请人</th>
-              <th>联系方式</th>
-              <th>意向分会</th>
-              <th>状态</th>
-              <th>提交时间</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in filteredRows" :key="row.id">
-              <td>
-                <div class="table-cell-stack">
-                  <strong>{{ row.name }}</strong>
-                  <div class="muted-row">申请编号 {{ row.id }}</div>
-                </div>
-              </td>
-              <td>
-                <div class="table-cell-stack">
-                  <strong>{{ row.phoneNumber }}</strong>
-                  <div class="table-meta-row">
-                    <span>{{ row.wechatId || "未填微信" }}</span>
-                    <span>{{ row.email || "未填邮箱" }}</span>
+      <template v-else-if="hasResults">
+        <div class="panel panel-compact table-panel">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>申请人</th>
+                <th>联系方式</th>
+                <th>意向分会</th>
+                <th>状态</th>
+                <th>提交时间</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in rows" :key="row.id">
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.name }}</strong>
+                    <div class="muted-row">申请编号 {{ row.id }}</div>
                   </div>
-                </div>
-              </td>
-              <td>{{ row.targetBranchName || "未指定" }}</td>
-              <td><span class="status-pill">{{ formatApplicationStatus(row.status) }}</span></td>
-              <td>{{ formatDateTime(row.createdAt) }}</td>
-              <td class="table-actions-cell">
-                <RouterLink class="table-link" :to="`/applications/${row.id}`">进入审核</RouterLink>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                </td>
+                <td>
+                  <div class="table-cell-stack">
+                    <strong>{{ row.phoneNumber }}</strong>
+                    <div class="table-meta-row">
+                      <span>{{ row.wechatId || "未填微信" }}</span>
+                      <span>{{ row.email || "未填邮箱" }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ row.targetBranchName || "未指定" }}</td>
+                <td><span class="status-pill">{{ formatApplicationStatus(row.status) }}</span></td>
+                <td>{{ formatDateTime(row.createdAt) }}</td>
+                <td class="table-actions-cell">
+                  <RouterLink class="table-link" :to="`/applications/${row.id}`">进入审核</RouterLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-panel">
+          <div class="filter-summary">{{ paginationSummary }}</div>
+
+          <div class="pagination-actions">
+            <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">
+              上一页
+            </button>
+            <button class="button-link" type="button" :disabled="loading || meta.page >= meta.pageCount" @click="changePage(meta.page + 1)">
+              下一页
+            </button>
+          </div>
+        </div>
+      </template>
     </template>
   </section>
 </template>

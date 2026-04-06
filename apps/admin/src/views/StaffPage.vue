@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 import {
   staffAccountStatusOptions,
   type AdminRoleSummary,
   type AdminStaffCreateInput,
   type AdminStaffListItem,
+  type AdminStaffListMeta,
   type AdminStaffListPayload,
   type AdminStaffUpdateInput
 } from "@tgo/shared";
 
-import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
+import { adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
 import { formatDateTime, formatStaffAccountStatus } from "../lib/format";
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const rows = ref<AdminStaffListItem[]>([]);
 const roles = ref<AdminRoleSummary[]>([]);
 const loading = ref(true);
 const creating = ref(false);
 const saving = ref(false);
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const errorMessage = ref("");
 const successMessage = ref("");
 const createIssues = ref<Record<string, string>>({});
@@ -25,9 +29,21 @@ const editIssues = ref<Record<string, string>>({});
 const selectedStaffId = ref("");
 const filters = reactive({
   status: "all",
-  roleId: "all"
+  roleId: "all",
+  pageSize: adminPageSizeOptions[0]
 });
 const visibleStaffStatusOptions = staffAccountStatusOptions.filter((option) => option.value !== "invited");
+const meta = ref<AdminStaffListMeta>({
+  total: 0,
+  page: 1,
+  pageSize: adminPageSizeOptions[0],
+  pageCount: 1,
+  stats: {
+    active: 0,
+    suspended: 0,
+    disabled: 0
+  }
+});
 
 const createForm = reactive<AdminStaffCreateInput>({
   email: "",
@@ -72,26 +88,22 @@ const selectedStaffMetaItems = computed(() => [
     value: formatDateTime(selectedStaff.value?.lastLoginAt)
   }
 ]);
-const filteredRows = computed(() =>
-  rows.value.filter((row) => {
-    const matchesStatus = filters.status === "all" || row.status === filters.status;
-    const matchesRole = filters.roleId === "all" || row.roles.some((role) => role.id === filters.roleId);
-
-    return matchesStatus && matchesRole;
-  })
-);
 const summaryChips = computed(() => [
   {
     label: "当前",
-    value: `${filteredRows.value.length} 个`
+    value: `${meta.value.total} 个`
   },
   {
     label: "启用中",
-    value: `${rows.value.filter((row) => row.status === "active").length} 个`
+    value: `${meta.value.stats.active} 个`
   },
   {
     label: "已暂停",
-    value: `${rows.value.filter((row) => row.status === "suspended").length} 个`
+    value: `${meta.value.stats.suspended} 个`
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -129,6 +141,23 @@ const quickFilters = [
   }
 ] as const;
 
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+const createEmptyMeta = (pageSize: number): AdminStaffListMeta => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  stats: {
+    active: 0,
+    suspended: 0,
+    disabled: 0
+  }
+});
+
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
+
 const clearFeedback = () => {
   errorMessage.value = "";
   successMessage.value = "";
@@ -160,14 +189,39 @@ const applySelectedStaff = (staff: AdminStaffListItem | null) => {
   editForm.notes = staff.notes;
 };
 
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  if (filters.status !== "all") {
+    search.set("status", filters.status);
+  }
+
+  if (filters.roleId !== "all") {
+    search.set("roleId", filters.roleId);
+  }
+
+  return `/api/admin/v1/staff?${search.toString()}`;
+};
+
 const loadStaff = async (preferredStaffId?: string) => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    const payload = await adminFetch<AdminStaffListPayload>("/api/admin/v1/staff");
+    const result = await adminFetchWithMeta<AdminStaffListPayload, AdminStaffListMeta>(buildListPath());
+    const payload = result.data;
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
     rows.value = payload.staff;
     roles.value = payload.roles;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
 
     const nextSelectedId =
       preferredStaffId && payload.staff.some((row) => row.id === preferredStaffId)
@@ -179,9 +233,18 @@ const loadStaff = async (preferredStaffId?: string) => {
     selectedStaffId.value = nextSelectedId;
     applySelectedStaff(payload.staff.find((row) => row.id === nextSelectedId) ?? null);
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载工作人员账号。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
   }
 };
 
@@ -244,6 +307,32 @@ const formatRoleNames = (staff: AdminStaffListItem) => staff.roles.map((role) =>
 onMounted(() => {
   void loadStaff();
 });
+
+watch(
+  () => [filters.status, filters.roleId, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    currentPage.value = 1;
+
+    if (fetchTimer) {
+      clearTimeout(fetchTimer);
+    }
+
+    fetchTimer = setTimeout(() => {
+      fetchTimer = null;
+      void loadStaff();
+    }, 200);
+  }
+);
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
+});
 </script>
 
 <template>
@@ -260,7 +349,7 @@ onMounted(() => {
       <p>{{ successMessage }}</p>
     </div>
 
-    <div v-if="loading" class="panel">
+    <div v-if="!hasLoadedOnce && loading" class="panel">
       <p>正在加载工作人员账号...</p>
     </div>
 
@@ -288,7 +377,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="field-grid field-grid-2">
+        <div class="field-grid field-grid-3">
           <label class="field">
             <span>状态</span>
             <select v-model="filters.status">
@@ -306,6 +395,13 @@ onMounted(() => {
               <option v-for="role in roleOptions" :key="role.id" :value="role.id">{{ role.name }}</option>
             </select>
           </label>
+
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="filters.pageSize">
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -313,10 +409,14 @@ onMounted(() => {
         <div class="panel panel-compact editor-main stacked-gap">
           <div class="table-card-head">
             <h3>工作人员列表</h3>
-            <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
+            <span class="status-pill">当前 {{ meta.total }} 个</span>
           </div>
 
-          <div v-if="filteredRows.length === 0" class="panel panel-compact inset-panel empty-state-card">
+          <div v-if="loading" class="panel panel-compact inset-panel empty-state-card">
+            <p>正在更新工作人员列表...</p>
+          </div>
+
+          <div v-else-if="meta.total === 0" class="panel panel-compact inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的工作人员账号。</p>
           </div>
 
@@ -333,7 +433,7 @@ onMounted(() => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in filteredRows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
+                <tr v-for="row in rows" :key="row.id" :class="{ 'table-row-selected': selectedStaffId === row.id }">
                   <td>
                     <div class="table-cell-stack">
                       <strong>{{ row.name }}</strong>
@@ -352,6 +452,24 @@ onMounted(() => {
                 </tr>
               </tbody>
             </table>
+
+            <div class="pagination-panel">
+              <div class="filter-summary">{{ paginationSummary }}</div>
+
+              <div class="pagination-actions">
+                <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadStaff()">
+                  上一页
+                </button>
+                <button
+                  class="button-link"
+                  type="button"
+                  :disabled="loading || meta.page >= meta.pageCount"
+                  @click="currentPage = meta.page + 1; void loadStaff()"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

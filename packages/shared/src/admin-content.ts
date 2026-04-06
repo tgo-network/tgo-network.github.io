@@ -1,3 +1,4 @@
+import type { PaginationMeta } from "./contracts.js";
 import { eventRegistrationStatusOptions } from "./public-content.js";
 
 export type ContentStatus = "draft" | "in_review" | "scheduled" | "published" | "archived";
@@ -269,6 +270,11 @@ export interface AdminAuditLogRecord {
   createdAt: string | Date;
 }
 
+export interface AdminAuditLogListMeta extends PaginationMeta {
+  targetTypeOptions: string[];
+  actionOptions: string[];
+}
+
 export interface AdminRoleSummary {
   id: string;
   code: string;
@@ -293,6 +299,14 @@ export interface AdminStaffListItem {
 export interface AdminStaffListPayload {
   staff: AdminStaffListItem[];
   roles: AdminRoleSummary[];
+}
+
+export interface AdminStaffListMeta extends PaginationMeta {
+  stats: {
+    active: number;
+    suspended: number;
+    disabled: number;
+  };
 }
 
 export interface AdminStaffCreateInput {
@@ -338,6 +352,13 @@ export interface AdminRolesPayload {
   permissions: AdminPermissionRecord[];
 }
 
+export interface AdminRolesListMeta extends PaginationMeta {
+  stats: {
+    system: number;
+    assigned: number;
+  };
+}
+
 export interface AdminRoleUpdateInput {
   name: string;
   description: string;
@@ -359,6 +380,13 @@ export interface AdminArticleListItem {
   branchName: string | null;
   publishedAt: string | Date | null;
   updatedAt: string | Date;
+}
+
+export interface AdminArticleListMeta extends PaginationMeta {
+  branchOptions: string[];
+  stats: {
+    published: number;
+  };
 }
 
 export interface AdminArticleRecord {
@@ -420,6 +448,14 @@ export interface AdminAssetListItem {
   url: string | null;
   uploadedByStaffId: string | null;
   createdAt: string | Date;
+}
+
+export interface AdminAssetListMeta extends PaginationMeta {
+  stats: {
+    public: number;
+    private: number;
+    active: number;
+  };
 }
 
 export interface AdminAssetRecord extends AdminAssetListItem {

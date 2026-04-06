@@ -69,9 +69,9 @@ export const writeAuditLog = async (
   });
 };
 
-export const listAdminAuditLogs = async (limit = 50): Promise<AdminAuditLogRecord[]> => {
+export const listAdminAuditLogs = async (limit?: number): Promise<AdminAuditLogRecord[]> => {
   const db = getDb();
-  const rows = await db
+  const baseQuery = db
     .select({
       auditLog: auditLogs,
       actorName: users.name,
@@ -79,8 +79,12 @@ export const listAdminAuditLogs = async (limit = 50): Promise<AdminAuditLogRecor
     })
     .from(auditLogs)
     .leftJoin(users, eq(users.id, auditLogs.actorUserId))
-    .orderBy(desc(auditLogs.createdAt))
-    .limit(limit);
+    .orderBy(desc(auditLogs.createdAt));
+
+  const rows =
+    typeof limit === "number"
+      ? await baseQuery.limit(limit)
+      : await baseQuery;
 
   return rows.map((row) => mapAuditLogRecord(row.auditLog, row.actorName ?? null, row.actorEmail ?? null));
 };

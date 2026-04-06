@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 import {
   adminAssetUploadTypeOptions,
@@ -7,13 +7,15 @@ import {
   assetVisibilityOptions,
   type AdminAssetDetailPayload,
   type AdminAssetListItem,
+  type AdminAssetListMeta,
   type AdminAssetType,
   type AdminAssetUploadIntentPayload,
   type AssetVisibility
 } from "@tgo/shared";
 
-import { AdminApiError, adminFetch, adminRequest, getValidationIssues } from "../lib/api";
+import { AdminApiError, adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
 import { formatAdminAssetType, formatAssetStatus, formatAssetVisibility, formatBytes, formatDateTime } from "../lib/format";
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const assetTypeDescriptions: Record<AdminAssetType, string> = {
   "site-banner": "用于首页与站点页中的横幅或大图区域。",
@@ -40,11 +42,25 @@ const uploading = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
 const fieldIssues = ref<Record<string, string>>({});
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const filters = reactive({
   query: "",
   assetType: "all",
   visibility: "all",
-  status: "all"
+  status: "all",
+  pageSize: adminPageSizeOptions[0]
+});
+const meta = ref<AdminAssetListMeta>({
+  total: 0,
+  page: 1,
+  pageSize: adminPageSizeOptions[0],
+  pageCount: 1,
+  stats: {
+    public: 0,
+    private: 0,
+    active: 0
+  }
 });
 
 const form = reactive({
@@ -77,46 +93,24 @@ const selectedAssetTypeLabel = computed(
 const selectedVisibilityLabel = computed(
   () => assetVisibilityOptions.find((option) => option.value === form.visibility)?.label ?? formatAssetVisibility(form.visibility)
 );
-const publicAssetCount = computed(() => rows.value.filter((row) => row.visibility === "public").length);
-const privateAssetCount = computed(() => rows.value.filter((row) => row.visibility === "private").length);
-const activeAssetCount = computed(() => rows.value.filter((row) => row.status === "active").length);
-const filteredRows = computed(() => {
-  const query = filters.query.trim().toLowerCase();
-
-  return rows.value.filter((row) => {
-    const matchesQuery =
-      query.length === 0 ||
-      [
-        row.originalFilename,
-        row.objectKey,
-        row.altText,
-        row.mimeType,
-        formatAdminAssetType(row.assetType),
-        formatAssetVisibility(row.visibility),
-        formatAssetStatus(row.status)
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(query);
-    const matchesAssetType = filters.assetType === "all" || row.assetType === filters.assetType;
-    const matchesVisibility = filters.visibility === "all" || row.visibility === filters.visibility;
-    const matchesStatus = filters.status === "all" || row.status === filters.status;
-
-    return matchesQuery && matchesAssetType && matchesVisibility && matchesStatus;
-  });
-});
+const hasResults = computed(() => meta.value.total > 0);
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
 const summaryChips = computed(() => [
   {
     label: "当前",
-    value: `${filteredRows.value.length} 个`
+    value: `${meta.value.total} 个`
   },
   {
     label: "公开资源",
-    value: `${publicAssetCount.value} 个`
+    value: `${meta.value.stats.public} 个`
   },
   {
     label: "启用中",
-    value: `${activeAssetCount.value} 个`
+    value: `${meta.value.stats.active} 个`
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -155,6 +149,21 @@ const quickFilters = [
   }
 ] as const;
 
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+const createEmptyMeta = (pageSize: number): AdminAssetListMeta => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  stats: {
+    public: 0,
+    private: 0,
+    active: 0
+  }
+});
+
 const resetFeedback = () => {
   errorMessage.value = "";
   successMessage.value = "";
@@ -181,16 +190,60 @@ const guessMimeType = (file: File) => {
   return mimeTypeByExtension[extension] ?? "application/octet-stream";
 };
 
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  const query = filters.query.trim();
+
+  if (query.length > 0) {
+    search.set("q", query);
+  }
+
+  if (filters.assetType !== "all") {
+    search.set("assetType", filters.assetType);
+  }
+
+  if (filters.visibility !== "all") {
+    search.set("visibility", filters.visibility);
+  }
+
+  if (filters.status !== "all") {
+    search.set("status", filters.status);
+  }
+
+  return `/api/admin/v1/assets?${search.toString()}`;
+};
+
 const loadAssets = async () => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    rows.value = await adminFetch<AdminAssetListItem[]>("/api/admin/v1/assets");
+    const result = await adminFetchWithMeta<AdminAssetListItem[], AdminAssetListMeta>(buildListPath());
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = result.data;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载资源列表。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
   }
 };
 
@@ -263,7 +316,7 @@ const uploadAsset = async () => {
     }
 
     const dimensions = await readImageDimensions(file, mimeType);
-    const payload = await adminRequest<AdminAssetDetailPayload>("/api/admin/v1/assets/uploads/complete", {
+    await adminRequest<AdminAssetDetailPayload>("/api/admin/v1/assets/uploads/complete", {
       method: "POST",
       body: {
         intentToken: intent.upload.intentToken,
@@ -274,9 +327,10 @@ const uploadAsset = async () => {
       }
     });
 
-    rows.value = [payload.asset, ...rows.value.filter((row) => row.id !== payload.asset.id)];
     successMessage.value = "资源已上传并完成登记。";
     resetForm();
+    currentPage.value = 1;
+    await loadAssets();
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
     if (error instanceof AdminApiError || error instanceof Error) {
@@ -309,8 +363,34 @@ watch(
   }
 );
 
+watch(
+  () => [filters.query, filters.assetType, filters.visibility, filters.status, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    currentPage.value = 1;
+
+    if (fetchTimer) {
+      clearTimeout(fetchTimer);
+    }
+
+    fetchTimer = setTimeout(() => {
+      fetchTimer = null;
+      void loadAssets();
+    }, 250);
+  }
+);
+
 onMounted(() => {
   void loadAssets();
+});
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
 });
 </script>
 
@@ -433,19 +513,19 @@ onMounted(() => {
           <div class="summary-list">
             <div class="summary-row">
               <span>资源总数</span>
-              <strong>{{ rows.length }}</strong>
+              <strong>{{ meta.total }}</strong>
             </div>
             <div class="summary-row">
               <span>公开资源</span>
-              <strong>{{ publicAssetCount }}</strong>
+              <strong>{{ meta.stats.public }}</strong>
             </div>
             <div class="summary-row">
               <span>私有资源</span>
-              <strong>{{ privateAssetCount }}</strong>
+              <strong>{{ meta.stats.private }}</strong>
             </div>
             <div class="summary-row">
               <span>启用中</span>
-              <strong>{{ activeAssetCount }}</strong>
+              <strong>{{ meta.stats.active }}</strong>
             </div>
           </div>
         </div>
@@ -475,7 +555,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="field-grid field-grid-4">
+      <div class="field-grid field-grid-5">
         <label class="field">
           <span>搜索</span>
           <input v-model="filters.query" type="search" placeholder="搜索文件名、对象键、替代文本或 MIME 类型" />
@@ -504,14 +584,25 @@ onMounted(() => {
             <option v-for="option in assetVisibilityOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select>
         </label>
+
+        <label class="field">
+          <span>每页数量</span>
+          <select v-model.number="filters.pageSize">
+            <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+          </select>
+        </label>
       </div>
     </div>
 
-    <div v-if="loading" class="panel">
+    <div v-if="!hasLoadedOnce && loading" class="panel">
       <p>正在加载已上传资源...</p>
     </div>
 
-    <div v-else-if="filteredRows.length === 0" class="panel empty-state-card">
+    <div v-else-if="loading" class="panel">
+      <p>正在更新资源列表...</p>
+    </div>
+
+    <div v-else-if="!hasResults" class="panel empty-state-card">
       <p>当前筛选条件下没有匹配的资源。</p>
     </div>
 
@@ -519,7 +610,7 @@ onMounted(() => {
       <div class="table-card-head">
         <h3>资源列表</h3>
 
-        <span class="status-pill">当前 {{ filteredRows.length }} 个</span>
+        <span class="status-pill">当前 {{ meta.total }} 个</span>
       </div>
 
       <table class="data-table assets-table">
@@ -534,7 +625,7 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in filteredRows" :key="row.id">
+          <tr v-for="row in rows" :key="row.id">
             <td>
               <div class="asset-cell">
                 <img
@@ -563,6 +654,24 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
+
+      <div class="pagination-panel">
+        <div class="filter-summary">{{ paginationSummary }}</div>
+
+        <div class="pagination-actions">
+          <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadAssets()">
+            上一页
+          </button>
+          <button
+            class="button-link"
+            type="button"
+            :disabled="loading || meta.page >= meta.pageCount"
+            @click="currentPage = meta.page + 1; void loadAssets()"
+          >
+            下一页
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 </template>

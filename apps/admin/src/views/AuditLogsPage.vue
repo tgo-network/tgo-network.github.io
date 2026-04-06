@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
-import type { AdminAuditLogRecord } from "@tgo/shared";
+import type { AdminAuditLogListMeta, AdminAuditLogRecord } from "@tgo/shared";
 
-import { adminFetch } from "../lib/api";
+import { adminFetchWithMeta } from "../lib/api";
 import { formatDateTime } from "../lib/format";
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const rows = ref<AdminAuditLogRecord[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const filters = reactive({
   query: "",
   targetType: "all",
   action: "all",
-  actionFamily: "all"
+  actionFamily: "all",
+  pageSize: adminPageSizeOptions[0]
+});
+const meta = ref<AdminAuditLogListMeta>({
+  total: 0,
+  page: 1,
+  pageSize: adminPageSizeOptions[0],
+  pageCount: 1,
+  targetTypeOptions: [],
+  actionOptions: []
 });
 
 const segmentLabels: Record<string, string> = {
@@ -37,6 +49,9 @@ const segmentLabels: Record<string, string> = {
   complete: "完成",
   upload: "上传"
 };
+
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const formatSegment = (value: string) => segmentLabels[value] ?? value.replace(/_/g, " ");
 const formatAction = (value: string) => value.split(".").map(formatSegment).join(" / ");
@@ -68,36 +83,49 @@ const formatSnapshotState = (row: AdminAuditLogRecord) => {
   return "无快照";
 };
 
-const targetTypeOptions = computed(() =>
-  Array.from(new Set(rows.value.map((row) => row.targetType))).sort((left, right) =>
-    formatTargetType(left).localeCompare(formatTargetType(right), "zh-CN")
-  )
-);
-const actionOptions = computed(() =>
-  Array.from(new Set(rows.value.map((row) => row.action))).sort((left, right) =>
-    formatAction(left).localeCompare(formatAction(right), "zh-CN")
-  )
-);
-const filteredRows = computed(() => {
-  const query = filters.query.trim().toLowerCase();
-
-  return rows.value.filter((row) => {
-    const matchesQuery =
-      query.length === 0 ||
-      [formatAction(row.action), formatTargetType(row.targetType), formatActor(row), row.targetId ?? ""].some((value) =>
-        value.toLowerCase().includes(query)
-      );
-    const matchesTargetType = filters.targetType === "all" || row.targetType === filters.targetType;
-    const matchesAction = filters.action === "all" || row.action === filters.action;
-    const matchesActionFamily = filters.actionFamily === "all" || row.action.endsWith(".update");
-
-    return matchesQuery && matchesTargetType && matchesAction && matchesActionFamily;
-  });
+const createEmptyMeta = (pageSize: number): AdminAuditLogListMeta => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  targetTypeOptions: [],
+  actionOptions: []
 });
+
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  const query = filters.query.trim();
+
+  if (query.length > 0) {
+    search.set("q", query);
+  }
+
+  if (filters.targetType !== "all") {
+    search.set("targetType", filters.targetType);
+  }
+
+  if (filters.action !== "all") {
+    search.set("action", filters.action);
+  }
+
+  if (filters.actionFamily !== "all") {
+    search.set("actionFamily", filters.actionFamily);
+  }
+
+  return `/api/admin/v1/audit-logs?${search.toString()}`;
+};
+
+const targetTypeOptions = computed(() => meta.value.targetTypeOptions);
+const actionOptions = computed(() => meta.value.actionOptions);
+const hasResults = computed(() => meta.value.total > 0);
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
 const summaryItems = computed(() => [
   {
     label: "当前结果",
-    value: `${filteredRows.value.length} 条`
+    value: `${meta.value.total} 条`
   },
   {
     label: "对象类型",
@@ -106,6 +134,10 @@ const summaryItems = computed(() => [
   {
     label: "动作",
     value: filters.action === "all" ? "全部" : formatAction(filters.action)
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -151,16 +183,79 @@ const quickFilters = [
   }
 ] as const;
 
-onMounted(async () => {
+const loadRows = async () => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    rows.value = await adminFetch<AdminAuditLogRecord[]>("/api/admin/v1/audit-logs");
+    const result = await adminFetchWithMeta<AdminAuditLogRecord[], AdminAuditLogListMeta>(buildListPath());
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = result.data;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    rows.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载审计日志。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
+  }
+};
+
+const scheduleReload = (resetPage = false) => {
+  if (resetPage) {
+    currentPage.value = 1;
+  }
+
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
+
+  fetchTimer = setTimeout(() => {
+    fetchTimer = null;
+    void loadRows();
+  }, 250);
+};
+
+const changePage = (page: number) => {
+  if (loading.value || page < 1 || page > meta.value.pageCount || page === currentPage.value) {
+    return;
+  }
+
+  currentPage.value = page;
+  void loadRows();
+};
+
+watch(
+  () => [filters.query, filters.targetType, filters.action, filters.actionFamily, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    scheduleReload(true);
+  }
+);
+
+onMounted(() => {
+  void loadRows();
+});
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
   }
 });
 </script>
@@ -175,7 +270,7 @@ onMounted(async () => {
       <p>{{ errorMessage }}</p>
     </div>
 
-    <div v-else-if="loading" class="panel">
+    <div v-else-if="!hasLoadedOnce && loading" class="panel">
       <p>正在加载审计日志...</p>
     </div>
 
@@ -203,7 +298,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="field-grid field-grid-3">
+        <div class="field-grid field-grid-4">
           <label class="field">
             <span>搜索</span>
             <input v-model="filters.query" type="search" placeholder="搜索动作、对象、操作人或目标 ID" />
@@ -224,47 +319,69 @@ onMounted(async () => {
               <option v-for="option in actionOptions" :key="option" :value="option">{{ formatAction(option) }}</option>
             </select>
           </label>
+
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="filters.pageSize">
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+            </select>
+          </label>
         </div>
       </div>
 
-      <div v-if="rows.length === 0" class="panel empty-state-card">
-        <p>当前还没有审计记录。</p>
+      <div v-if="loading" class="panel">
+        <p>正在更新审计日志...</p>
       </div>
 
-      <div v-else-if="filteredRows.length === 0" class="panel empty-state-card">
+      <div v-else-if="!hasResults" class="panel empty-state-card">
         <p>当前筛选条件下没有匹配的审计日志。</p>
       </div>
 
-      <div v-else class="audit-log-list">
-        <article v-for="row in filteredRows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap-tight">
-          <div class="audit-log-head">
-            <div class="audit-log-headline">
-              <div class="stacked-gap-tight">
-                <h3>{{ formatAction(row.action) }}</h3>
-                <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
-              </div>
+      <template v-else>
+        <div class="audit-log-list">
+          <article v-for="row in rows" :key="row.id" class="panel panel-compact audit-log-card stacked-gap-tight">
+            <div class="audit-log-head">
+              <div class="audit-log-headline">
+                <div class="stacked-gap-tight">
+                  <h3>{{ formatAction(row.action) }}</h3>
+                  <p class="audit-log-meta">{{ formatActor(row) }} · {{ formatDateTime(row.createdAt) }}</p>
+                </div>
 
-              <div class="audit-log-topline">
-                <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
-                <span class="status-pill">{{ formatSnapshotState(row) }}</span>
-                <span class="status-pill">{{ row.targetId ? `ID ${row.targetId}` : "无目标 ID" }}</span>
+                <div class="audit-log-topline">
+                  <span class="status-pill">{{ formatTargetType(row.targetType) }}</span>
+                  <span class="status-pill">{{ formatSnapshotState(row) }}</span>
+                  <span class="status-pill">{{ row.targetId ? `ID ${row.targetId}` : "无目标 ID" }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="row.beforeJson || row.afterJson" class="audit-log-diff">
-            <details v-if="row.beforeJson" class="audit-log-detail">
-              <summary>变更前快照</summary>
-              <pre class="json-preview">{{ formatJson(row.beforeJson) }}</pre>
-            </details>
+            <div v-if="row.beforeJson || row.afterJson" class="audit-log-diff">
+              <details v-if="row.beforeJson" class="audit-log-detail">
+                <summary>变更前快照</summary>
+                <pre class="json-preview">{{ formatJson(row.beforeJson) }}</pre>
+              </details>
 
-            <details v-if="row.afterJson" class="audit-log-detail">
-              <summary>变更后快照</summary>
-              <pre class="json-preview">{{ formatJson(row.afterJson) }}</pre>
-            </details>
+              <details v-if="row.afterJson" class="audit-log-detail">
+                <summary>变更后快照</summary>
+                <pre class="json-preview">{{ formatJson(row.afterJson) }}</pre>
+              </details>
+            </div>
+          </article>
+        </div>
+
+        <div class="pagination-panel">
+          <div class="filter-summary">{{ paginationSummary }}</div>
+
+          <div class="pagination-actions">
+            <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="changePage(meta.page - 1)">
+              上一页
+            </button>
+            <button class="button-link" type="button" :disabled="loading || meta.page >= meta.pageCount" @click="changePage(meta.page + 1)">
+              下一页
+            </button>
           </div>
-        </article>
-      </div>
+        </div>
+      </template>
     </template>
   </section>
 </template>

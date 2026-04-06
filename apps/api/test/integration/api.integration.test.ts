@@ -457,6 +457,89 @@ describe("admin and internal API integration", () => {
     assert.equal(listResult.payload.data[0].venueName, seededEvent.venueName);
   });
 
+  test("uses a shared default page size for admin list routes when page is provided", async () => {
+    const superAdmin = await createSignedInUser(["super_admin"]);
+    const seededRegistration = await directDb.query.eventRegistrations.findFirst();
+
+    assert.ok(seededRegistration, "Expected at least one seeded event registration.");
+
+    const listRequests = [
+      {
+        label: "articles",
+        path: "/api/admin/v1/articles?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "events",
+        path: "/api/admin/v1/events?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "applications",
+        path: "/api/admin/v1/applications?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "members",
+        path: "/api/admin/v1/members?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "branches",
+        path: "/api/admin/v1/branches?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "assets",
+        path: "/api/admin/v1/assets?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "audit logs",
+        path: "/api/admin/v1/audit-logs?page=1",
+        readItems: (data: any) => data as unknown[]
+      },
+      {
+        label: "staff",
+        path: "/api/admin/v1/staff?page=1",
+        readItems: (data: any) => data.staff as unknown[]
+      },
+      {
+        label: "roles",
+        path: "/api/admin/v1/roles?page=1",
+        readItems: (data: any) => data.roles as unknown[]
+      },
+      {
+        label: "event registrations",
+        path: `/api/admin/v1/events/${seededRegistration.eventId}/registrations?page=1`,
+        readItems: (data: any) => data.registrations as unknown[]
+      }
+    ] as const;
+
+    for (const requestConfig of listRequests) {
+      const result = await requestJson(requestConfig.path, {
+        headers: {
+          cookie: superAdmin.cookie
+        }
+      });
+
+      assert.equal(result.response.status, 200, `Expected ${requestConfig.label} list request to succeed.`);
+      assert.equal(result.payload.meta.page, 1, `Expected ${requestConfig.label} to return the first page.`);
+      assert.equal(result.payload.meta.pageSize, 20, `Expected ${requestConfig.label} to default to 20 items per page.`);
+      assert.equal(result.payload.meta.pageCount >= 1, true, `Expected ${requestConfig.label} to include a valid page count.`);
+
+      const items = requestConfig.readItems(result.payload.data);
+
+      assert.ok(Array.isArray(items), `Expected ${requestConfig.label} items to be an array.`);
+      assert.equal(items.length <= 20, true, `Expected ${requestConfig.label} page to contain at most 20 items.`);
+      assert.equal(
+        result.payload.meta.total >= items.length,
+        true,
+        `Expected ${requestConfig.label} total to be greater than or equal to the current page size.`
+      );
+    }
+  });
+
   test("cleans retired permission codes when the seed script reruns", async () => {
     const superAdminRole = await directDb.query.roles.findFirst({
       where: eq(roles.code, "super_admin")

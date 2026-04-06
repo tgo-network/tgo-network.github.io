@@ -1,7 +1,17 @@
 import {
   implementationMilestones,
+  type AdminArticleListMeta,
+  type AdminAssetListMeta,
+  type AdminAuditLogListMeta,
+  type AdminBranchListMeta,
   type AdminMePayload,
   type AdminEventListQueryV2,
+  type AdminEventRegistrationListMetaV2,
+  type AdminJoinApplicationListMeta,
+  type AdminMemberListMeta,
+  type AdminRolesListMeta,
+  type AdminStaffListMeta,
+  type PaginationMeta,
   validateAdminBranchInput,
   validateAdminAssetUploadCompleteInput,
   validateAdminAssetUploadIntentInput,
@@ -108,6 +118,72 @@ const getPositiveIntQuery = (c: AdminContext, key: string) => {
   return Number.isFinite(value) && value > 0 ? Math.trunc(value) : undefined;
 };
 
+const defaultAdminListPageSize = 20;
+const maxAdminListPageSize = 100;
+
+type AdminListPagination = {
+  page: number;
+  pageSize: number;
+};
+
+const getListPagination = (c: AdminContext): AdminListPagination | null => {
+  const page = getPositiveIntQuery(c, "page");
+  const pageSize = getPositiveIntQuery(c, "pageSize");
+
+  if (page === undefined && pageSize === undefined) {
+    return null;
+  }
+
+  return {
+    page: page ?? 1,
+    pageSize: Math.min(pageSize ?? defaultAdminListPageSize, maxAdminListPageSize)
+  };
+};
+
+const buildPaginationMeta = (total: number, pagination: AdminListPagination | null): PaginationMeta => {
+  if (!pagination) {
+    return {
+      total,
+      page: 1,
+      pageSize: total > 0 ? total : defaultAdminListPageSize,
+      pageCount: 1
+    };
+  }
+
+  const pageCount = Math.max(1, Math.ceil(total / pagination.pageSize));
+  const page = Math.min(pagination.page, pageCount);
+
+  return {
+    total,
+    page,
+    pageSize: pagination.pageSize,
+    pageCount
+  };
+};
+
+const paginateItems = <T>(items: T[], pagination: AdminListPagination | null) => {
+  const meta = buildPaginationMeta(items.length, pagination);
+
+  if (!pagination) {
+    return {
+      data: items,
+      meta
+    };
+  }
+
+  const start = (meta.page - 1) * meta.pageSize;
+
+  return {
+    data: items.slice(start, start + meta.pageSize),
+    meta
+  };
+};
+
+const uniqueSortedValues = (values: Array<string | null | undefined>) =>
+  Array.from(new Set(values.filter((value): value is string => typeof value === "string" && value.trim().length > 0))).sort((left, right) =>
+    left.localeCompare(right, "zh-CN")
+  );
+
 const getAdminEventListQuery = (c: AdminContext): AdminEventListQueryV2 => ({
   page: getPositiveIntQuery(c, "page"),
   pageSize: getPositiveIntQuery(c, "pageSize"),
@@ -157,9 +233,31 @@ adminRoutes.get("/articles/references", requireActiveStaff("article.read"), asyn
 );
 
 adminRoutes.get("/articles", requireActiveStaff("article.read"), async (c) => {
-  const data = await listAdminArticles();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const status = getQueryValue(c, "status") || "all";
+  const branch = getQueryValue(c, "branch") || "all";
+  const rows = await listAdminArticles();
+  const branchOptions = uniqueSortedValues(rows.map((row) => row.branchName));
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [row.title, row.slug, row.authorName ?? "", row.branchName ?? ""].some((value) => value.toLowerCase().includes(query));
+    const matchesStatus = status === "all" || row.status === status;
+    const matchesBranch = branch === "all" || row.branchName === branch;
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesStatus && matchesBranch;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminArticleListMeta = {
+    ...result.meta,
+    branchOptions,
+    stats: {
+      published: rows.filter((row) => row.status === "published").length
+    }
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
 adminRoutes.post("/articles", requireActiveStaff("article.write"), async (c) => {
@@ -298,7 +396,24 @@ adminRoutes.post("/events/:id/archive", requireActiveStaff("event.manage"), asyn
 
 adminRoutes.get("/events/:id/registrations", requireActiveStaff("registration.review"), async (c) => {
   try {
-    return c.json(ok(await listAdminEventRegistrationsV2(c.req.param("id"))));
+    const pagination = getListPagination(c);
+    const payload = await listAdminEventRegistrationsV2(c.req.param("id"));
+    const result = paginateItems(payload.registrations, pagination);
+    const meta: AdminEventRegistrationListMetaV2 = {
+      ...result.meta,
+      reviewedCount: payload.registrations.filter((row) => Boolean(row.reviewedAt)).length,
+      pendingCount: payload.registrations.filter((row) => !row.reviewedAt).length
+    };
+
+    return c.json(
+      ok(
+        {
+          ...payload,
+          registrations: result.data
+        },
+        meta
+      )
+    );
   } catch (error) {
     return handleAdminError(c, error);
   }
@@ -336,9 +451,33 @@ adminRoutes.patch("/registrations/:id", requireActiveStaff("registration.review"
 });
 
 adminRoutes.get("/applications", requireActiveStaff("application.review"), async (c) => {
-  const data = await listAdminJoinApplications();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const status = getQueryValue(c, "status") || "all";
+  const branch = getQueryValue(c, "branch") || "all";
+  const rows = await listAdminJoinApplications();
+  const branchOptions = uniqueSortedValues(rows.map((row) => row.targetBranchName));
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [row.name, row.phoneNumber, row.wechatId || "", row.email || "", row.targetBranchName || ""].some((value) =>
+        value.toLowerCase().includes(query)
+      );
+    const matchesStatus = status === "all" || row.status === status;
+    const matchesBranch = branch === "all" || row.targetBranchName === branch;
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesStatus && matchesBranch;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminJoinApplicationListMeta = {
+    ...result.meta,
+    branchOptions,
+    stats: {
+      pending: rows.filter((row) => row.status === "submitted" || row.status === "in_review").length
+    }
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
 adminRoutes.get("/applications/:id", requireActiveStaff("application.review"), async (c) => {
@@ -369,9 +508,34 @@ adminRoutes.patch("/applications/:id", requireActiveStaff("application.review"),
 });
 
 adminRoutes.get("/members", requireActiveStaff("member.manage"), async (c) => {
-  const data = await listAdminMembers();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const membershipStatus = getQueryValue(c, "membershipStatus") || "all";
+  const visibility = getQueryValue(c, "visibility") || "all";
+  const branch = getQueryValue(c, "branch") || "all";
+  const rows = await listAdminMembers();
+  const branchOptions = uniqueSortedValues(rows.map((row) => row.branchName));
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [row.name, row.slug, row.company, row.title, row.branchName || ""].some((value) => value.toLowerCase().includes(query));
+    const matchesMembership = membershipStatus === "all" || row.membershipStatus === membershipStatus;
+    const matchesVisibility = visibility === "all" || row.visibility === visibility;
+    const matchesBranch = branch === "all" || row.branchName === branch;
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesMembership && matchesVisibility && matchesBranch;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminMemberListMeta = {
+    ...result.meta,
+    branchOptions,
+    stats: {
+      active: rows.filter((row) => row.membershipStatus === "active").length,
+      public: rows.filter((row) => row.visibility === "public").length
+    }
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
 adminRoutes.post("/members", requireActiveStaff("member.manage"), async (c) => {
@@ -419,9 +583,31 @@ adminRoutes.patch("/members/:id", requireActiveStaff("member.manage"), async (c)
 });
 
 adminRoutes.get("/branches", requireActiveStaff("branch.manage"), async (c) => {
-  const data = await listAdminBranches();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const status = getQueryValue(c, "status") || "all";
+  const region = getQueryValue(c, "region") || "all";
+  const rows = await listAdminBranches();
+  const regionOptions = uniqueSortedValues(rows.map((row) => row.region));
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [row.name, row.slug, row.cityName, row.region].some((value) => value.toLowerCase().includes(query));
+    const matchesStatus = status === "all" || row.status === status;
+    const matchesRegion = region === "all" || row.region === region;
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesStatus && matchesRegion;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminBranchListMeta = {
+    ...result.meta,
+    regionOptions,
+    stats: {
+      published: rows.filter((row) => row.status === "published").length
+    }
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
 adminRoutes.post("/branches", requireActiveStaff("branch.manage"), async (c) => {
@@ -521,9 +707,44 @@ adminRoutes.patch("/pages/:slug", requireActiveStaff("page.manage"), async (c) =
 });
 
 adminRoutes.get("/assets", requireActiveStaff("asset.manage"), async (c) => {
-  const data = await listAdminAssets();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const assetType = getQueryValue(c, "assetType") || "all";
+  const visibility = getQueryValue(c, "visibility") || "all";
+  const status = getQueryValue(c, "status") || "all";
+  const rows = await listAdminAssets();
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [
+        row.originalFilename,
+        row.objectKey,
+        row.altText,
+        row.mimeType,
+        row.assetType,
+        row.visibility,
+        row.status
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    const matchesAssetType = assetType === "all" || row.assetType === assetType;
+    const matchesVisibility = visibility === "all" || row.visibility === visibility;
+    const matchesStatus = status === "all" || row.status === status;
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesAssetType && matchesVisibility && matchesStatus;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminAssetListMeta = {
+    ...result.meta,
+    stats: {
+      public: rows.filter((row) => row.visibility === "public").length,
+      private: rows.filter((row) => row.visibility === "private").length,
+      active: rows.filter((row) => row.status === "active").length
+    }
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
 adminRoutes.post("/assets/uploads", requireActiveStaff("asset.manage"), async (c) => {
@@ -561,12 +782,65 @@ adminRoutes.post("/assets/uploads/complete", requireActiveStaff("asset.manage"),
 });
 
 adminRoutes.get("/audit-logs", requireActiveStaff("audit_log.read"), async (c) => {
-  const data = await listAdminAuditLogs();
+  const pagination = getListPagination(c);
+  const query = getQueryValue(c, "q").toLowerCase();
+  const targetType = getQueryValue(c, "targetType") || "all";
+  const action = getQueryValue(c, "action") || "all";
+  const actionFamily = getQueryValue(c, "actionFamily") || "all";
+  const rows = await listAdminAuditLogs(pagination ? undefined : 50);
+  const filtered = rows.filter((row) => {
+    const matchesQuery =
+      query.length === 0 ||
+      [row.action, row.targetType, row.actor.name ?? "", row.actor.email ?? "", row.targetId ?? ""].some((value) =>
+        value.toLowerCase().includes(query)
+      );
+    const matchesTargetType = targetType === "all" || row.targetType === targetType;
+    const matchesAction = action === "all" || row.action === action;
+    const matchesActionFamily = actionFamily === "all" || row.action.endsWith(`.${actionFamily}`);
 
-  return c.json(ok(data, { total: data.length }));
+    return matchesQuery && matchesTargetType && matchesAction && matchesActionFamily;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminAuditLogListMeta = {
+    ...result.meta,
+    targetTypeOptions: uniqueSortedValues(rows.map((row) => row.targetType)),
+    actionOptions: uniqueSortedValues(rows.map((row) => row.action))
+  };
+
+  return c.json(ok(result.data, meta));
 });
 
-adminRoutes.get("/staff", requireActiveStaff("staff.manage"), async (c) => c.json(ok(await listAdminStaff())));
+adminRoutes.get("/staff", requireActiveStaff("staff.manage"), async (c) => {
+  const pagination = getListPagination(c);
+  const status = getQueryValue(c, "status") || "all";
+  const roleId = getQueryValue(c, "roleId") || "all";
+  const payload = await listAdminStaff();
+  const filtered = payload.staff.filter((row) => {
+    const matchesStatus = status === "all" || row.status === status;
+    const matchesRole = roleId === "all" || row.roles.some((role) => role.id === roleId);
+
+    return matchesStatus && matchesRole;
+  });
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminStaffListMeta = {
+    ...result.meta,
+    stats: {
+      active: payload.staff.filter((row) => row.status === "active").length,
+      suspended: payload.staff.filter((row) => row.status === "suspended").length,
+      disabled: payload.staff.filter((row) => row.status === "disabled").length
+    }
+  };
+
+  return c.json(
+    ok(
+      {
+        ...payload,
+        staff: result.data
+      },
+      meta
+    )
+  );
+});
 
 adminRoutes.post("/staff", requireActiveStaff("staff.manage"), async (c) => {
   const payload = await c.req.json().catch(() => null);
@@ -602,7 +876,36 @@ adminRoutes.patch("/staff/:id", requireActiveStaff("staff.manage"), async (c) =>
   }
 });
 
-adminRoutes.get("/roles", requireActiveStaff("role.manage"), async (c) => c.json(ok(await listAdminRoles())));
+adminRoutes.get("/roles", requireActiveStaff("role.manage"), async (c) => {
+  const pagination = getListPagination(c);
+  const scope = getQueryValue(c, "scope") || "all";
+  const payload = await listAdminRoles();
+  const filtered = payload.roles.filter(
+    (role) =>
+      scope === "all" ||
+      (scope === "system" && role.isSystem) ||
+      (scope === "assigned" && role.assignedStaffCount > 0) ||
+      (scope === "empty" && role.permissionIds.length === 0)
+  );
+  const result = paginateItems(filtered, pagination);
+  const meta: AdminRolesListMeta = {
+    ...result.meta,
+    stats: {
+      system: payload.roles.filter((role) => role.isSystem).length,
+      assigned: payload.roles.filter((role) => role.assignedStaffCount > 0).length
+    }
+  };
+
+  return c.json(
+    ok(
+      {
+        ...payload,
+        roles: result.data
+      },
+      meta
+    )
+  );
+});
 
 adminRoutes.patch("/roles/:id", requireActiveStaff("role.manage"), async (c) => {
   const payload = await c.req.json().catch(() => null);

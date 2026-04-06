@@ -57,7 +57,7 @@ import { getEnv } from "./env.js";
 
 const asIso = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 const now = () => new Date();
-const defaultAdminEventListPageSize = 25;
+const defaultAdminEventListPageSize = 20;
 const maxAdminEventListPageSize = 100;
 
 const adminEventStatusSet = new Set<string>(["all", ...contentStatusOptions.map((option) => option.value)]);

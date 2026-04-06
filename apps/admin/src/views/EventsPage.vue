@@ -11,8 +11,7 @@ import {
 
 import { adminFetchWithMeta } from "../lib/api";
 import { formatContentStatus, formatDateTime, formatEventRegistrationState } from "../lib/format";
-
-const pageSizeOptions = [25, 50, 100] as const;
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const rows = ref<AdminEventListItemV2[]>([]);
 const loading = ref(true);
@@ -24,12 +23,12 @@ const filters = reactive({
   status: "all",
   registrationState: "all",
   branchId: "all",
-  pageSize: pageSizeOptions[0]
+  pageSize: adminPageSizeOptions[0]
 });
 const meta = ref<AdminEventListMetaV2>({
   total: 0,
   page: 1,
-  pageSize: pageSizeOptions[0],
+  pageSize: adminPageSizeOptions[0],
   pageCount: 1,
   branchOptions: [],
   stats: {
@@ -85,9 +84,7 @@ const buildListPath = () => {
 
 const branchOptions = computed(() => meta.value.branchOptions);
 const hasResults = computed(() => meta.value.total > 0);
-const paginationSummary = computed(
-  () => `第 ${meta.value.page} / ${meta.value.pageCount} 页 · 每页 ${meta.value.pageSize} 条 · 当前 ${rows.value.length} 条`
-);
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, rows.value.length));
 const summaryChips = computed(() => [
   {
     label: "当前",
@@ -297,7 +294,7 @@ onBeforeUnmount(() => {
           <label class="field">
             <span>每页数量</span>
             <select v-model.number="filters.pageSize">
-              <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
             </select>
           </label>
         </div>

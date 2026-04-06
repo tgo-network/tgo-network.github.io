@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 import {
   type AdminPermissionRecord,
   type AdminRoleListItem,
+  type AdminRolesListMeta,
   type AdminRoleUpdateInput,
   type AdminRolesPayload
 } from "@tgo/shared";
 
-import { adminFetch, adminRequest, getValidationIssues } from "../lib/api";
+import { adminFetchWithMeta, adminRequest, getValidationIssues } from "../lib/api";
 import { formatDateTime } from "../lib/format";
+import { adminPageSizeOptions, formatPaginationSummary } from "../lib/pagination";
 
 const resourceLabels: Record<string, string> = {
   article: "文章",
@@ -30,12 +32,25 @@ const roles = ref<AdminRoleListItem[]>([]);
 const permissions = ref<AdminPermissionRecord[]>([]);
 const loading = ref(true);
 const saving = ref(false);
+const hasLoadedOnce = ref(false);
+const currentPage = ref(1);
 const errorMessage = ref("");
 const successMessage = ref("");
 const fieldIssues = ref<Record<string, string>>({});
 const selectedRoleId = ref("");
 const filters = reactive({
-  scope: "all"
+  scope: "all",
+  pageSize: adminPageSizeOptions[0]
+});
+const meta = ref<AdminRolesListMeta>({
+  total: 0,
+  page: 1,
+  pageSize: adminPageSizeOptions[0],
+  pageCount: 1,
+  stats: {
+    system: 0,
+    assigned: 0
+  }
 });
 
 const form = reactive<AdminRoleUpdateInput>({
@@ -63,27 +78,22 @@ const selectedRoleMetaItems = computed(() => [
     value: formatDateTime(selectedRole.value?.updatedAt)
   }
 ]);
-const filteredRoles = computed(() =>
-  roles.value.filter(
-    (role) =>
-      filters.scope === "all" ||
-      (filters.scope === "system" && role.isSystem) ||
-      (filters.scope === "assigned" && role.assignedStaffCount > 0) ||
-      (filters.scope === "empty" && role.permissionIds.length === 0)
-  )
-);
 const summaryChips = computed(() => [
   {
     label: "当前",
-    value: `${filteredRoles.value.length} 个`
+    value: `${meta.value.total} 个`
   },
   {
     label: "系统角色",
-    value: `${roles.value.filter((role) => role.isSystem).length} 个`
+    value: `${meta.value.stats.system} 个`
   },
   {
     label: "已分配",
-    value: `${roles.value.filter((role) => role.assignedStaffCount > 0).length} 个`
+    value: `${meta.value.stats.assigned} 个`
+  },
+  {
+    label: "分页",
+    value: `第 ${meta.value.page} / ${meta.value.pageCount} 页`
   }
 ]);
 const quickFilters = [
@@ -122,6 +132,20 @@ const quickFilters = [
 ] as const;
 const selectedPermissionCount = computed(() => form.permissionIds.length);
 const isSuperAdmin = computed(() => selectedRole.value?.code === "super_admin");
+let activeRequestId = 0;
+let fetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+const createEmptyMeta = (pageSize: number): AdminRolesListMeta => ({
+  total: 0,
+  page: 1,
+  pageSize,
+  pageCount: 1,
+  stats: {
+    system: 0,
+    assigned: 0
+  }
+});
+const paginationSummary = computed(() => formatPaginationSummary(meta.value, roles.value.length));
 
 const clearFeedback = () => {
   errorMessage.value = "";
@@ -141,14 +165,35 @@ const applySelectedRole = (role: AdminRoleListItem | null) => {
   form.permissionIds = [...role.permissionIds];
 };
 
+const buildListPath = () => {
+  const search = new URLSearchParams();
+  search.set("page", String(currentPage.value));
+  search.set("pageSize", String(filters.pageSize));
+
+  if (filters.scope !== "all") {
+    search.set("scope", filters.scope);
+  }
+
+  return `/api/admin/v1/roles?${search.toString()}`;
+};
+
 const loadRoles = async (preferredRoleId?: string) => {
+  const requestId = ++activeRequestId;
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    const payload = await adminFetch<AdminRolesPayload>("/api/admin/v1/roles");
+    const result = await adminFetchWithMeta<AdminRolesPayload, AdminRolesListMeta>(buildListPath());
+    const payload = result.data;
+
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
     roles.value = payload.roles;
     permissions.value = payload.permissions;
+    meta.value = result.meta ?? createEmptyMeta(filters.pageSize);
+    currentPage.value = meta.value.page;
 
     const nextSelectedId =
       preferredRoleId && payload.roles.some((role) => role.id === preferredRoleId)
@@ -160,9 +205,18 @@ const loadRoles = async (preferredRoleId?: string) => {
     selectedRoleId.value = nextSelectedId;
     applySelectedRole(payload.roles.find((role) => role.id === nextSelectedId) ?? null);
   } catch (error) {
+    if (requestId !== activeRequestId) {
+      return;
+    }
+
+    roles.value = [];
+    meta.value = createEmptyMeta(filters.pageSize);
     errorMessage.value = error instanceof Error ? error.message : "无法加载角色列表。";
   } finally {
-    loading.value = false;
+    if (requestId === activeRequestId) {
+      loading.value = false;
+      hasLoadedOnce.value = true;
+    }
   }
 };
 
@@ -203,6 +257,32 @@ const formatPermissionResource = (value: string) => resourceLabels[value] ?? val
 onMounted(() => {
   void loadRoles();
 });
+
+watch(
+  () => [filters.scope, filters.pageSize],
+  () => {
+    if (!hasLoadedOnce.value) {
+      return;
+    }
+
+    currentPage.value = 1;
+
+    if (fetchTimer) {
+      clearTimeout(fetchTimer);
+    }
+
+    fetchTimer = setTimeout(() => {
+      fetchTimer = null;
+      void loadRoles();
+    }, 200);
+  }
+);
+
+onBeforeUnmount(() => {
+  if (fetchTimer) {
+    clearTimeout(fetchTimer);
+  }
+});
 </script>
 
 <template>
@@ -219,7 +299,7 @@ onMounted(() => {
       <p>{{ successMessage }}</p>
     </div>
 
-    <div v-if="loading" class="panel">
+    <div v-if="!hasLoadedOnce && loading" class="panel">
       <p>正在加载角色与权限...</p>
     </div>
 
@@ -246,18 +326,31 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>每页数量</span>
+            <select v-model.number="filters.pageSize">
+              <option v-for="option in adminPageSizeOptions" :key="option" :value="option">{{ option }} 条</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="editor-grid editor-grid-role">
         <div class="panel panel-compact editor-main stacked-gap">
-          <div v-if="filteredRoles.length === 0" class="panel panel-compact inset-panel empty-state-card">
+          <div v-if="loading" class="panel panel-compact inset-panel empty-state-card">
+            <p>正在更新角色列表...</p>
+          </div>
+
+          <div v-else-if="meta.total === 0" class="panel panel-compact inset-panel empty-state-card">
             <p>当前筛选条件下没有匹配的角色。</p>
           </div>
 
           <div v-else class="panel panel-compact table-panel inset-panel">
             <div class="table-card-head">
               <h3>角色列表</h3>
-              <span class="status-pill">当前 {{ filteredRoles.length }} 个</span>
+              <span class="status-pill">当前 {{ meta.total }} 个</span>
             </div>
 
             <table class="data-table data-table-fit data-table-compact">
@@ -269,7 +362,7 @@ onMounted(() => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="role in filteredRoles" :key="role.id" :class="{ 'table-row-selected': selectedRoleId === role.id }">
+                <tr v-for="role in roles" :key="role.id" :class="{ 'table-row-selected': selectedRoleId === role.id }">
                   <td>
                     <div class="table-cell-stack">
                       <strong>{{ role.name }}</strong>
@@ -290,6 +383,24 @@ onMounted(() => {
                 </tr>
               </tbody>
             </table>
+
+            <div class="pagination-panel">
+              <div class="filter-summary">{{ paginationSummary }}</div>
+
+              <div class="pagination-actions">
+                <button class="button-link" type="button" :disabled="loading || meta.page <= 1" @click="currentPage = meta.page - 1; void loadRoles()">
+                  上一页
+                </button>
+                <button
+                  class="button-link"
+                  type="button"
+                  :disabled="loading || meta.page >= meta.pageCount"
+                  @click="currentPage = meta.page + 1; void loadRoles()"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,3 +1,4 @@
+import type { PaginationMeta } from "./contracts.js";
 import type { EventRegistrationStatus } from "./public-content.js";
 import type {
   AdminEditorReferenceOption,
@@ -56,6 +57,13 @@ export interface AdminBranchListItem {
   updatedAt: string | Date;
 }
 
+export interface AdminBranchListMeta extends PaginationMeta {
+  regionOptions: string[];
+  stats: {
+    published: number;
+  };
+}
+
 export interface AdminBranchRecord {
   id: string;
   slug: string;
@@ -108,6 +116,14 @@ export interface AdminMemberListItem {
   visibility: string;
   joinedAt: string | Date | null;
   updatedAt: string | Date;
+}
+
+export interface AdminMemberListMeta extends PaginationMeta {
+  branchOptions: string[];
+  stats: {
+    active: number;
+    public: number;
+  };
 }
 
 export interface AdminMemberRecord {
@@ -164,6 +180,13 @@ export interface AdminJoinApplicationListItem {
   targetBranchName: string | null;
   status: ApplicationStatus;
   createdAt: string | Date;
+}
+
+export interface AdminJoinApplicationListMeta extends PaginationMeta {
+  branchOptions: string[];
+  stats: {
+    pending: number;
+  };
 }
 
 export interface AdminJoinApplicationRecord extends AdminJoinApplicationListItem {
@@ -292,11 +315,7 @@ export interface AdminEventListQueryV2 {
   branchId?: string | "all";
 }
 
-export interface AdminEventListMetaV2 {
-  total: number;
-  page: number;
-  pageSize: number;
-  pageCount: number;
+export interface AdminEventListMetaV2 extends PaginationMeta {
   branchOptions: AdminEditorReferenceOption[];
   stats: {
     total: number;
@@ -399,6 +418,11 @@ export interface AdminEventRegistrationListPayloadV2 {
     venueName: string;
   };
   registrations: AdminEventRegistrationListItemV2[];
+}
+
+export interface AdminEventRegistrationListMetaV2 extends PaginationMeta {
+  reviewedCount: number;
+  pendingCount: number;
 }
 
 export interface AdminEventRegistrationDetailPayloadV2 {

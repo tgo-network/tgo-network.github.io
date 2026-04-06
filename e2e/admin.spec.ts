@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const adminUrl = process.env.E2E_ADMIN_URL ?? "http://localhost:5173";
 const siteUrl = process.env.E2E_SITE_URL ?? "http://localhost:4321";
@@ -38,6 +38,11 @@ const expectNoHorizontalOverflow = async (page: Page, label: string) => {
   );
 };
 
+const expectDefaultPagination = async (page: Page, rows: Locator) => {
+  await expect(page.getByLabel("每页数量")).toHaveValue("20");
+  expect(await rows.count()).toBeLessThanOrEqual(20);
+};
+
 const signIn = async (page: Page) => {
   await page.getByLabel("邮箱").fill(adminEmail);
   await page.getByLabel("密码").fill(adminPassword);
@@ -65,18 +70,21 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
   const staffFilters = page.locator(".filter-panel").first();
   await expect(staffFilters.getByLabel("状态")).toBeVisible();
   await expect(staffFilters.getByLabel("角色")).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await expectNoHorizontalOverflow(page, "admin-staff");
 
   await page.getByRole("link", { name: "角色", exact: true }).click();
   await expect(page).toHaveURL(/\/roles$/);
   await expect(page.getByRole("heading", { name: "角色", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "系统角色" })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await expectNoHorizontalOverflow(page, "admin-roles");
 
   await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
   await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
 
   const auditLogsLink = page.getByRole("link", { name: "日志", exact: true });
   await expect(auditLogsLink).toBeVisible();
@@ -96,6 +104,7 @@ test("admin article list supports keyword filtering and preview actions", async 
   await page.getByRole("link", { name: "文章", exact: true }).click();
   await expect(page).toHaveURL(/\/articles$/);
   await expect(page.getByRole("heading", { name: "文章", exact: true })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
 
   const searchInput = page.getByPlaceholder("搜索标题、slug、作者或分会");
   await searchInput.fill("城市主页");
@@ -157,6 +166,7 @@ test("admin branch, asset, and site configuration pages expose refined managemen
   await expect(page).toHaveURL(/\/members\/branches$/);
   await expect(page.getByRole("heading", { name: "分会维护", exact: true })).toBeVisible();
   await expect(page.getByText("分会列表", { exact: true })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await page.getByPlaceholder("搜索分会、slug、城市或区域").fill("上海");
   await expect(page.locator("tbody")).toContainText("上海分会");
   await expectNoHorizontalOverflow(page, "admin-branches");
@@ -174,6 +184,7 @@ test("admin branch, asset, and site configuration pages expose refined managemen
   await expect(page.getByText("资源列表", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索文件名、对象键、替代文本或 MIME 类型")).toBeVisible();
   await expect(page.getByText("资源类型", { exact: true }).first()).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await expectNoHorizontalOverflow(page, "admin-assets");
 
   await page.goto(`${adminUrl}/site/homepage`, { waitUntil: "networkidle" });
@@ -208,6 +219,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "活动", exact: true }).click();
   await expect(page).toHaveURL(/\/events$/);
   await expect(page.getByRole("heading", { name: "活动", exact: true })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   const eventSearchInput = page.getByPlaceholder("搜索标题、slug 或分会");
   await expect(page.getByText(/第 \d+ \/ \d+ 页 · 每页 \d+ 条 · 当前 \d+ 条/).last()).toBeVisible();
   await eventSearchInput.fill(openEventSlug);
@@ -220,6 +232,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "申请", exact: true }).click();
   await expect(page).toHaveURL(/\/applications$/);
   await expect(page.getByRole("heading", { name: "申请", exact: true })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await page.getByPlaceholder("搜索姓名、手机号、微信号、邮箱或分会").fill("李昊然");
   await expect(page.locator("tbody")).toContainText("李昊然");
   await expect(page.locator("tr", { hasText: "李昊然" }).first().getByRole("link", { name: "进入审核" })).toBeVisible();
@@ -228,6 +241,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
   await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
   await expect(page.locator("tbody")).toContainText("周扬");
   await expect(page.getByRole("link", { name: "前台预览" }).first()).toBeVisible();
@@ -237,6 +251,7 @@ test("admin dashboard and core lists support layout and filter verification", as
   await expect(page).toHaveURL(/\/audit-logs$/);
   await expect(page.getByRole("heading", { name: "审计日志", exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("搜索动作、对象、操作人或目标 ID")).toBeVisible();
+  await expectDefaultPagination(page, page.locator(".audit-log-card"));
   await expectNoHorizontalOverflow(page, "admin-audit-logs");
 });
 
@@ -278,6 +293,7 @@ test("admin review detail flows support saving application and registration deci
   await openEventRow.getByRole("link", { name: "报名审核" }).click();
   await expect(page).toHaveURL(/\/events\/[^/]+\/registrations$/);
   await expect(page.getByRole("heading", { name: openEventTitle })).toBeVisible();
+  await expectDefaultPagination(page, page.locator("tbody tr"));
   await expect(page.locator("tbody")).toContainText(attendeeName);
   await page.locator("tr", { hasText: attendeeName }).getByRole("link", { name: "审核" }).click();
   await expect(page).toHaveURL(/\/registrations\/[^/]+$/);

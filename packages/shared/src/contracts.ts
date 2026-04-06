@@ -3,6 +3,13 @@ export interface ApiSuccess<T, M = Record<string, unknown>> {
   meta?: M;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
 export interface ApiErrorShape {
   error: {
     code: string;
