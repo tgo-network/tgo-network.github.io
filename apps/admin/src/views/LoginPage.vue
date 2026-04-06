@@ -66,42 +66,35 @@ const signIn = async () => {
   <main class="login-shell">
     <section class="login-layout">
       <aside class="login-hero">
-        <div class="brand-tag">工作人员后台</div>
+        <div class="brand-tag">TGO鲲鹏会运营后台</div>
         <div class="login-hero-copy">
-          <h1>工作人员登录</h1>
-          <p>
-            进入运营控制台后，可以继续维护公开站点的组织表达、活动审核队列、成员信息与工作人员权限。
-          </p>
+          <h1>运营登录</h1>
+          <p>统一处理文章、活动、申请、会员与 Staff 的日常维护，保持社区公开信息与后台流程一致。</p>
         </div>
 
-        <div class="login-highlight-grid">
-          <article class="login-highlight-card">
-            <span>内容运营</span>
-            <strong>文章、活动与首页表达</strong>
-            <p>保证公开站点始终围绕分会、成员、活动与加入这条主线持续更新。</p>
-          </article>
+        <div class="login-highlight-list" aria-label="后台主要工作">
+          <div class="login-highlight-item">
+            <strong>内容维护</strong>
+            <span>文章、活动与公开页面内容</span>
+          </div>
 
-          <article class="login-highlight-card">
-            <span>审核队列</span>
-            <strong>加入申请与活动报名</strong>
-            <p>公开入口负责收集信息，最终通过与否仍在后台审核中统一完成。</p>
-          </article>
+          <div class="login-highlight-item">
+            <strong>审核处理</strong>
+            <span>加入申请与活动报名统一在后台完成审核</span>
+          </div>
 
-          <article class="login-highlight-card">
-            <span>权限边界</span>
-            <strong>工作人员与角色配置</strong>
-            <p>成员和工作人员完全分离，后台权限只通过工作人员账号与角色生效。</p>
-          </article>
+          <div class="login-highlight-item">
+            <strong>权限管理</strong>
+            <span>Staff 账号与角色权限分开维护</span>
+          </div>
         </div>
       </aside>
 
       <section class="panel login-card">
         <div class="login-card-head">
-          <div class="brand-tag">Better Auth</div>
+          <div class="brand-tag">工作人员登录</div>
           <h2>登录控制台</h2>
-          <p class="login-card-copy">
-            后台已接入 Better Auth 邮箱密码登录。完成本地初始化后，这个表单可以直接用于真实工作人员登录。
-          </p>
+          <p class="login-card-copy">使用工作人员账号登录后台。</p>
         </div>
 
         <div class="login-credential-note">

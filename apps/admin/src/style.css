@@ -1638,26 +1638,20 @@ code {
   width: min(1120px, 100%);
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
-  gap: 22px;
-  align-items: stretch;
+  gap: 28px;
+  align-items: center;
 }
 
 .login-hero {
   display: grid;
-  gap: 24px;
-  align-content: start;
-  padding: clamp(28px, 4vw, 42px);
-  border: 1px solid rgba(138, 95, 58, 0.16);
-  border-radius: 32px;
-  background:
-    radial-gradient(circle at top right, rgba(214, 166, 109, 0.16), transparent 30%),
-    linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(244, 233, 219, 0.9));
-  box-shadow: var(--shadow);
+  gap: 28px;
+  align-content: center;
+  padding: clamp(8px, 2vw, 18px) 0;
 }
 
 .login-hero-copy {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .login-hero h1,
@@ -1666,9 +1660,9 @@ code {
 }
 
 .login-hero h1 {
-  max-width: 7ch;
-  font-size: clamp(2.8rem, 6vw, 4.8rem);
-  line-height: 0.96;
+  max-width: 6ch;
+  font-size: clamp(2.9rem, 6vw, 4.6rem);
+  line-height: 0.98;
   letter-spacing: -0.03em;
 }
 
@@ -1676,40 +1670,36 @@ code {
 .login-card-copy {
   margin: 0;
   color: var(--muted);
-  line-height: 1.8;
+  line-height: 1.75;
 }
 
-.login-highlight-grid {
+.login-highlight-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 0;
+  border-top: 1px solid rgba(138, 95, 58, 0.12);
 }
 
-.login-highlight-card {
+.login-highlight-item {
   display: grid;
-  gap: 8px;
-  padding: 18px;
-  border: 1px solid rgba(138, 95, 58, 0.1);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.68);
+  grid-template-columns: minmax(92px, 112px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(138, 95, 58, 0.12);
 }
 
-.login-highlight-card span {
+.login-highlight-item strong {
   color: var(--accent-deep);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+  line-height: 1.5;
   text-transform: uppercase;
 }
 
-.login-highlight-card strong {
-  line-height: 1.5;
-}
-
-.login-highlight-card p {
-  margin: 0;
+.login-highlight-item span {
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .login-card {
@@ -1717,11 +1707,13 @@ code {
   gap: 18px;
   align-content: start;
   padding: clamp(28px, 3vw, 34px);
+  max-width: 430px;
+  justify-self: end;
 }
 
 .login-card-head {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .login-card-head h2 {
@@ -1793,7 +1785,6 @@ code {
   .audit-log-summary-grid,
   .audit-log-diff,
   .login-layout,
-  .login-highlight-grid,
   .option-card-grid-2,
   .option-card-grid-3,
   .option-card-grid-5 {
@@ -1830,6 +1821,7 @@ code {
 }
 
 @media (max-width: 760px) {
+  .login-highlight-item,
   .summary-list-inline,
   .field-grid-2,
   .field-grid-3,
@@ -1849,6 +1841,11 @@ code {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .login-card {
+    max-width: none;
+    justify-self: stretch;
   }
 }
 
