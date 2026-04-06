@@ -289,7 +289,10 @@ onMounted(() => {
 
         <aside class="editor-side stacked-gap">
           <div class="panel panel-compact summary-panel stacked-gap-tight">
-            <h3>当前信息</h3>
+            <div class="panel-toolbar">
+              <h3>当前信息</h3>
+              <span class="status-pill">{{ role?.isSystem ? "系统角色" : "自定义角色" }}</span>
+            </div>
 
             <div class="summary-list summary-list-compact">
               <div v-for="item in roleMetaItems" :key="item.label" class="summary-row">

@@ -65,7 +65,7 @@ const createBlankForm = (): EventFormState => ({
   capacity: null,
   registrationState: "not_open",
   registrationUrl: "",
-  agenda: [createAgendaItem()]
+  agenda: []
 });
 
 const form = reactive<EventFormState>(createBlankForm());
@@ -172,7 +172,7 @@ const applyPayload = (payload: AdminEventDetailPayloadV2) => {
             endsAt: toDateTimeInputValue(item.endsAt),
             speakerName: item.speakerName
           }))
-        : [createAgendaItem()]
+        : []
   });
   slugTouched.value = true;
 };
@@ -222,11 +222,6 @@ const addAgendaItem = () => {
 };
 
 const removeAgendaItem = (index: number) => {
-  if (form.agenda.length === 1) {
-    form.agenda = [createAgendaItem()];
-    return;
-  }
-
   form.agenda = form.agenda.filter((_, itemIndex) => itemIndex !== index);
 };
 
@@ -316,7 +311,7 @@ onMounted(() => {
       <h2>{{ pageTitle }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
+        <RouterLink class="button-link" to="/events">返回列表</RouterLink>
         <RouterLink v-if="event" class="button-link" :to="`/events/${event.id}/registrations`">查看报名</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建活动" : "保存修改" }}
@@ -461,6 +456,7 @@ onMounted(() => {
             <MarkdownEditorField
               v-model="form.body"
               placeholder="使用 Markdown 编写活动正文。"
+              :rows="12"
               help="支持标题、列表、引用和表格。"
               :error="fieldIssues.body"
               :preview-html="eventBodyPreviewHtml"
@@ -469,51 +465,56 @@ onMounted(() => {
             />
           </section>
 
-          <section class="editor-section editor-section-compact stacked-gap">
-            <div class="panel-toolbar">
-              <div class="editor-section-head">
-                <h3>议程</h3>
+          <details class="panel panel-compact detail-card agenda-detail-card">
+            <summary>议程</summary>
+
+            <div class="detail-card-body stacked-gap">
+              <div class="panel-toolbar">
+                <div class="filter-summary">
+                  {{ agendaCount > 0 ? `当前 ${agendaCount} 项，发布前至少保留一项。` : "可选配置，发布前至少需要添加一项。" }}
+                </div>
+
+                <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
               </div>
 
-              <button class="button-link button-compact" type="button" @click="addAgendaItem">添加议程</button>
-            </div>
+              <div v-if="form.agenda.length === 0" class="panel panel-compact inset-panel empty-state-card">
+                <p>暂未添加议程，可在需要时补充。</p>
+              </div>
 
-            <div class="stacked-gap">
-              <div v-for="(item, index) in form.agenda" :key="index" class="panel panel-compact agenda-item-card stacked-gap-tight">
-                <div class="panel-toolbar">
-                  <strong>议程 {{ index + 1 }}</strong>
-                  <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
+              <div v-else class="stacked-gap">
+                <div v-for="(item, index) in form.agenda" :key="index" class="panel panel-compact agenda-item-card stacked-gap-tight">
+                  <div class="panel-toolbar">
+                    <strong>议程 {{ index + 1 }}</strong>
+                    <button class="button-link button-danger button-compact" type="button" @click="removeAgendaItem(index)">移除</button>
+                  </div>
+
+                  <div class="field-grid field-grid-2 agenda-item-grid">
+                    <label class="field">
+                      <span>议程标题</span>
+                      <input v-model="item.title" type="text" />
+                    </label>
+                    <label class="field">
+                      <span>讲者</span>
+                      <input v-model="item.speakerName" type="text" />
+                    </label>
+                    <label class="field">
+                      <span>开始时间</span>
+                      <input v-model="item.startsAt" type="datetime-local" />
+                    </label>
+                    <label class="field">
+                      <span>结束时间</span>
+                      <input v-model="item.endsAt" type="datetime-local" />
+                    </label>
+                  </div>
+
+                  <label class="field">
+                    <span>议程说明</span>
+                    <textarea v-model="item.summary" rows="2" />
+                  </label>
                 </div>
-
-                <div class="field-grid field-grid-2">
-                  <label class="field">
-                    <span>议程标题</span>
-                    <input v-model="item.title" type="text" />
-                  </label>
-                  <label class="field">
-                    <span>讲者</span>
-                    <input v-model="item.speakerName" type="text" />
-                  </label>
-                </div>
-
-                <div class="field-grid field-grid-2">
-                  <label class="field">
-                    <span>开始时间</span>
-                    <input v-model="item.startsAt" type="datetime-local" />
-                  </label>
-                  <label class="field">
-                    <span>结束时间</span>
-                    <input v-model="item.endsAt" type="datetime-local" />
-                  </label>
-                </div>
-
-                <label class="field">
-                  <span>议程说明</span>
-                  <textarea v-model="item.summary" rows="3" />
-                </label>
               </div>
             </div>
-          </section>
+          </details>
         </div>
 
         <aside class="editor-side stacked-gap">
@@ -544,3 +545,17 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+  .agenda-detail-card {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .agenda-item-card {
+    box-shadow: none;
+  }
+
+  .agenda-item-grid {
+    align-items: end;
+  }
+</style>

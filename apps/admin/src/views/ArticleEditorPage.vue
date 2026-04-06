@@ -247,7 +247,7 @@ onMounted(() => {
       <h2>{{ pageTitle }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/articles">返回文章列表</RouterLink>
+        <RouterLink class="button-link" to="/articles">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建文章" : "保存修改" }}
         </button>
@@ -350,6 +350,7 @@ onMounted(() => {
             <MarkdownEditorField
               v-model="form.body"
               placeholder="使用 Markdown 编写文章正文。"
+              :rows="14"
               help="支持标题、列表、引用和代码块。"
               :error="fieldIssues.body"
               :preview-html="articleBodyPreviewHtml"

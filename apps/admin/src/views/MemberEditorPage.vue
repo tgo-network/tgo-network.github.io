@@ -227,7 +227,7 @@ onMounted(async () => {
       <h2>{{ pageTitle }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/members">返回成员列表</RouterLink>
+        <RouterLink class="button-link" to="/members">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : isNew ? "创建成员" : "保存修改" }}
         </button>
@@ -339,24 +339,18 @@ onMounted(async () => {
 
             <label class="field">
               <span>个人简介</span>
-              <textarea v-model="form.bio" rows="8" placeholder="用于成员详情页展示的个人简介。" />
+              <textarea v-model="form.bio" rows="6" placeholder="用于成员详情页展示的个人简介。" />
             </label>
           </section>
 
         </div>
 
         <aside class="editor-side stacked-gap">
-          <CoverAssetField
-            v-model="form.avatarAssetId"
-            class="panel-compact"
-            :assets="assets"
-            label="头像资源"
-            help="选择公开图片资源作为成员头像。"
-            :error="fieldIssues.avatarAssetId"
-          />
-
           <div class="panel panel-compact summary-panel stacked-gap-tight">
-            <h3>当前信息</h3>
+            <div class="panel-toolbar">
+              <h3>当前信息</h3>
+              <span class="status-pill">{{ membershipStatusLabel }}</span>
+            </div>
 
             <div class="summary-list summary-list-compact">
               <div v-for="item in memberMetaItems" :key="item.label" class="summary-row">
@@ -365,6 +359,15 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+
+          <CoverAssetField
+            v-model="form.avatarAssetId"
+            class="panel-compact"
+            :assets="assets"
+            label="头像资源"
+            help="选择公开图片资源作为成员头像。"
+            :error="fieldIssues.avatarAssetId"
+          />
 
           <details class="panel panel-compact detail-card">
             <summary>SEO（可选）</summary>
