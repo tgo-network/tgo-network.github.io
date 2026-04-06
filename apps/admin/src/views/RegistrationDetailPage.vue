@@ -123,7 +123,7 @@ onMounted(() => {
       <h2>{{ registration ? registration.name : "报名详情" }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink v-if="eventInfo" class="button-link" :to="`/events/${eventInfo.id}/registrations`">返回报名列表</RouterLink>
+        <RouterLink v-if="eventInfo" class="button-link" :to="`/events/${eventInfo.id}/registrations`">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存审核" }}
         </button>
@@ -187,7 +187,10 @@ onMounted(() => {
 
       <aside class="editor-side stacked-gap">
         <div class="panel panel-compact stacked-gap">
-          <h3>审核</h3>
+          <div class="panel-toolbar">
+            <h3>审核</h3>
+            <span class="status-pill">{{ formatEventRegistrationState(eventInfo.registrationState) }}</span>
+          </div>
 
           <label class="field">
             <span>状态</span>
@@ -198,41 +201,24 @@ onMounted(() => {
           </label>
 
           <label class="field">
-            <span>匹配成员</span>
+            <span>匹配会员</span>
             <select v-model="form.matchedMemberId">
-              <option :value="null">不关联成员</option>
+              <option :value="null">不关联会员</option>
               <option v-for="option in memberOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
             </select>
           </label>
 
           <label class="field">
             <span>审核备注</span>
-            <textarea v-model="form.reviewNotes" rows="6" placeholder="记录通过、拒绝、候补或后续联系建议。" />
+            <textarea v-model="form.reviewNotes" rows="5" placeholder="记录通过、拒绝、候补或后续联系建议。" />
           </label>
 
           <div class="summary-list summary-list-compact">
             <div v-for="item in overviewItems" :key="item.label" class="summary-row">
               <span>{{ item.label }}</span>
-              <strong :class="{ 'status-pill': item.label === '报名状态' }">{{ item.value }}</strong>
+              <strong>{{ item.value }}</strong>
             </div>
           </div>
-
-          <details class="panel panel-compact detail-card">
-            <summary>提交环境（可选）</summary>
-
-            <div class="detail-card-body">
-              <div class="summary-list summary-list-compact">
-                <div class="summary-row">
-                  <span>提交 IP</span>
-                  <strong>{{ registration.submittedIp || "未记录" }}</strong>
-                </div>
-                <div class="summary-row">
-                  <span>User-Agent</span>
-                  <strong>{{ registration.submittedUserAgent || "未记录" }}</strong>
-                </div>
-              </div>
-            </div>
-          </details>
         </div>
       </aside>
     </div>

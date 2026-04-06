@@ -84,8 +84,8 @@ test("admin redirects unauthenticated users to login and supports dashboard navi
 
   await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
-  await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "新增成员" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "会员", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "新增会员" })).toBeVisible();
   await expectDefaultPagination(page, page.locator("tbody tr"));
 
   const auditLogsLink = page.getByRole("link", { name: "日志", exact: true });
@@ -153,8 +153,8 @@ test("admin editor pages expose structured overview and editing controls", async
   await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
   await page.locator("tr", { hasText: "周扬" }).first().getByRole("link", { name: "编辑" }).click();
   await expect(page).toHaveURL(/\/members\/[^/]+\/edit$/);
-  await expect(page.getByRole("heading", { name: /编辑成员：/ })).toBeVisible();
-  await expect(page.getByText("成员状态", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /编辑会员：/ })).toBeVisible();
+  await expect(page.getByText("会员状态", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("可见性", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("公开路径", { exact: true }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page, "admin-member-editor");
@@ -274,7 +274,7 @@ test("admin dashboard and core lists support layout and filter verification", as
 
   await page.getByRole("link", { name: "会员", exact: true }).click();
   await expect(page).toHaveURL(/\/members$/);
-  await expect(page.getByRole("heading", { name: "成员", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "会员", exact: true })).toBeVisible();
   await expectDefaultPagination(page, page.locator("tbody tr"));
   await page.getByPlaceholder("搜索姓名、slug、公司、职称或分会").fill("周扬");
   await expect(page.locator("tbody")).toContainText("周扬");

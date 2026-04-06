@@ -302,7 +302,9 @@ onBeforeUnmount(() => {
                 <td class="table-cell-nowrap"><span class="status-pill">{{ formatApplicationStatus(row.status) }}</span></td>
                 <td class="table-cell-nowrap">{{ formatDateTime(row.createdAt) }}</td>
                 <td class="table-actions-cell">
-                  <RouterLink class="table-link" :to="`/applications/${row.id}`">审核</RouterLink>
+                  <div class="table-action-list table-action-list-inline">
+                    <RouterLink class="table-link" :to="`/applications/${row.id}`">审核</RouterLink>
+                  </div>
                 </td>
               </tr>
             </tbody>

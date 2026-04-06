@@ -19,8 +19,8 @@ interface MemberFormState extends Omit<AdminMemberUpsertInput, "joinedAt"> {
 }
 
 const membershipStatusLabels = {
-  active: "有效成员",
-  alumni: "校友成员",
+  active: "有效会员",
+  alumni: "校友会员",
   paused: "暂停展示"
 } as const;
 
@@ -62,18 +62,18 @@ const slugTouched = ref(false);
 
 const memberId = computed(() => (typeof route.params.id === "string" ? route.params.id : ""));
 const isNew = computed(() => memberId.value.length === 0);
-const pageTitle = computed(() => (isNew.value ? "新增成员" : `编辑成员：${member.value?.name ?? "加载中..."}`));
+const pageTitle = computed(() => (isNew.value ? "新增会员" : `编辑会员：${member.value?.name ?? "加载中..."}`));
 const selectedBranch = computed(() => branchOptions.value.find((option) => option.id === form.branchId) ?? null);
 const membershipStatusLabel = computed(
   () => membershipStatusLabels[form.membershipStatus as keyof typeof membershipStatusLabels] ?? form.membershipStatus
 );
 const visibilityLabel = computed(() => visibilityLabels[form.visibility as keyof typeof visibilityLabels] ?? form.visibility);
 const joinedAtSummary = computed(() => (form.joinedAt ? formatDate(form.joinedAt) : "待补充加入时间"));
-const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为成员姓名");
-const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.bio.trim() || "将回退为成员简介");
+const seoTitlePreview = computed(() => form.seoTitle.trim() || form.name.trim() || "将回退为会员姓名");
+const seoDescriptionPreview = computed(() => form.seoDescription.trim() || form.bio.trim() || "将回退为会员简介");
 const memberMetaItems = computed(() => [
   {
-    label: "成员状态",
+    label: "会员状态",
     value: membershipStatusLabel.value
   },
   {
@@ -154,7 +154,7 @@ const loadMember = async () => {
     const payload = await adminFetch<AdminMemberDetailPayload>(`/api/admin/v1/members/${memberId.value}`);
     applyPayload(payload);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "无法加载成员详情。";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载会员详情。";
   } finally {
     loading.value = false;
   }
@@ -191,7 +191,7 @@ const save = async () => {
     );
 
     applyPayload(payload);
-    successMessage.value = isNew.value ? "成员已创建。" : "成员已保存。";
+    successMessage.value = isNew.value ? "会员已创建。" : "会员已保存。";
 
     if (isNew.value) {
       await router.replace({
@@ -203,7 +203,7 @@ const save = async () => {
     }
   } catch (error) {
     fieldIssues.value = getValidationIssues(error);
-    errorMessage.value = error instanceof Error ? error.message : "无法保存成员。";
+    errorMessage.value = error instanceof Error ? error.message : "无法保存会员。";
   } finally {
     saving.value = false;
   }
@@ -229,7 +229,7 @@ onMounted(async () => {
       <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
-          {{ saving ? "保存中..." : isNew ? "创建成员" : "保存修改" }}
+          {{ saving ? "保存中..." : isNew ? "创建会员" : "保存修改" }}
         </button>
       </div>
     </header>
@@ -243,7 +243,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="loading" class="panel">
-      <p>正在准备成员编辑器...</p>
+      <p>正在准备会员编辑器...</p>
     </div>
 
     <template v-else>
@@ -296,7 +296,7 @@ onMounted(async () => {
               </label>
 
               <label class="field">
-                <span>成员状态</span>
+                <span>会员状态</span>
                 <select v-model="form.membershipStatus">
                   <option v-for="(label, value) in membershipStatusLabels" :key="value" :value="value">{{ label }}</option>
                 </select>
@@ -339,7 +339,7 @@ onMounted(async () => {
 
             <label class="field">
               <span>个人简介</span>
-              <textarea v-model="form.bio" rows="6" placeholder="用于成员详情页展示的个人简介。" />
+              <textarea v-model="form.bio" rows="6" placeholder="用于会员详情页展示的个人简介。" />
             </label>
           </section>
 
@@ -365,7 +365,7 @@ onMounted(async () => {
             class="panel-compact"
             :assets="assets"
             label="头像资源"
-            help="选择公开图片资源作为成员头像。"
+            help="选择公开图片资源作为会员头像。"
             :error="fieldIssues.avatarAssetId"
           />
 

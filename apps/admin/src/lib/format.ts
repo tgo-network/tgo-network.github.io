@@ -78,11 +78,11 @@ export const formatApplicationStatus = (value: string | ApplicationStatus | null
 
 export const formatMembershipStatus = (value: string | null | undefined) => {
   if (value === "active") {
-    return "有效成员";
+    return "有效会员";
   }
 
   if (value === "alumni") {
-    return "校友成员";
+    return "校友会员";
   }
 
   if (value === "paused") {

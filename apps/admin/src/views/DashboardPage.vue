@@ -75,7 +75,7 @@ const reviewItems = computed(() => [
     value: `${stats.value.pendingRegistrationCount} 条`
   },
   {
-    label: "成员",
+    label: "会员",
     value: `${stats.value.memberCount} 位`
   },
   {

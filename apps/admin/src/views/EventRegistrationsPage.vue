@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
       <h2>{{ eventTitle }}</h2>
 
       <div class="page-actions">
-        <RouterLink class="button-link" to="/events">返回活动列表</RouterLink>
+        <RouterLink class="button-link" to="/events">返回列表</RouterLink>
         <RouterLink v-if="eventId" class="button-link button-primary" :to="`/events/${eventId}/edit`">编辑活动</RouterLink>
       </div>
     </header>
@@ -243,7 +243,9 @@ onBeforeUnmount(() => {
                   </div>
                 </td>
                 <td class="table-actions-cell">
-                  <RouterLink class="table-link" :to="`/registrations/${row.id}`">审核</RouterLink>
+                  <div class="table-action-list table-action-list-inline">
+                    <RouterLink class="table-link" :to="`/registrations/${row.id}`">审核</RouterLink>
+                  </div>
                 </td>
               </tr>
             </tbody>

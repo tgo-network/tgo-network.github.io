@@ -82,14 +82,14 @@ const summaryChips = computed(() => [
     value: `${meta.value.total} 位`
   },
   {
-    label: "有效成员",
+    label: "有效会员",
     value: `${meta.value.stats.active} 位`
   }
 ]);
 const quickFilters = [
   {
     key: "all",
-    label: "全部成员",
+    label: "全部会员",
     matches: () => filters.membershipStatus === "all" && filters.visibility === "all",
     apply: () => {
       filters.membershipStatus = "all";
@@ -98,7 +98,7 @@ const quickFilters = [
   },
   {
     key: "active",
-    label: "有效成员",
+    label: "有效会员",
     matches: () => filters.membershipStatus === "active",
     apply: () => {
       filters.visibility = "all";
@@ -147,7 +147,7 @@ const loadRows = async () => {
 
     rows.value = [];
     meta.value = createEmptyMeta(filters.pageSize);
-    errorMessage.value = error instanceof Error ? error.message : "无法加载成员列表。";
+    errorMessage.value = error instanceof Error ? error.message : "无法加载会员列表。";
   } finally {
     if (requestId === activeRequestId) {
       loading.value = false;
@@ -205,11 +205,11 @@ onBeforeUnmount(() => {
 <template>
   <section class="stacked-gap">
     <header class="page-header page-header-row">
-      <h2>成员</h2>
+      <h2>会员</h2>
 
       <div class="page-actions page-actions-compact">
         <RouterLink class="button-link" to="/members/branches">分会维护</RouterLink>
-        <RouterLink class="button-link button-primary" to="/members/new">新增成员</RouterLink>
+        <RouterLink class="button-link button-primary" to="/members/new">新增会员</RouterLink>
       </div>
     </header>
 
@@ -218,7 +218,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div v-if="!hasLoadedOnce && loading" class="panel">
-      <p>正在加载成员...</p>
+      <p>正在加载会员...</p>
     </div>
 
     <template v-else>
@@ -252,11 +252,11 @@ onBeforeUnmount(() => {
           </label>
 
           <label class="field">
-            <span>成员状态</span>
+            <span>会员状态</span>
             <select v-model="filters.membershipStatus">
-              <option value="all">全部成员状态</option>
-              <option value="active">有效成员</option>
-              <option value="alumni">校友成员</option>
+              <option value="all">全部会员状态</option>
+              <option value="active">有效会员</option>
+              <option value="alumni">校友会员</option>
               <option value="paused">暂停展示</option>
             </select>
           </label>
@@ -288,11 +288,11 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="loading" class="panel">
-        <p>正在更新成员列表...</p>
+        <p>正在更新会员列表...</p>
       </div>
 
       <div v-if="!loading && !hasResults" class="panel empty-state-card">
-        <p>当前筛选条件下没有匹配的成员。</p>
+        <p>当前筛选条件下没有匹配的会员。</p>
       </div>
 
       <template v-else-if="hasResults">
@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
                 <th>姓名</th>
                 <th>公司 / 职称</th>
                 <th>分会</th>
-                <th>成员状态</th>
+                <th>会员状态</th>
                 <th>可见性</th>
                 <th>加入时间</th>
                 <th></th>

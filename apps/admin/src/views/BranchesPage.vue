@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
       <h2>分会维护</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/members">返回成员</RouterLink>
+        <RouterLink class="button-link" to="/members">返回会员</RouterLink>
         <RouterLink class="button-link button-primary" to="/members/branches/new">新增分会</RouterLink>
       </div>
     </header>

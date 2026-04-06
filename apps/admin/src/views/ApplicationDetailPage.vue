@@ -52,6 +52,34 @@ const overviewItems = computed(() => {
     }
   ];
 });
+const applicantItems = computed(() => {
+  if (!application.value) {
+    return [];
+  }
+
+  return [
+    {
+      label: "姓名",
+      value: application.value.name
+    },
+    {
+      label: "手机号",
+      value: application.value.phoneNumber
+    },
+    {
+      label: "微信号",
+      value: application.value.wechatId || "未填写"
+    },
+    {
+      label: "邮箱",
+      value: application.value.email || "未填写"
+    },
+    {
+      label: "意向分会",
+      value: application.value.targetBranchName || "未指定"
+    }
+  ];
+});
 
 const loadApplication = async () => {
   const applicationId = typeof route.params.id === "string" ? route.params.id : "";
@@ -114,7 +142,7 @@ onMounted(() => {
       <h2>{{ application ? application.name : "申请详情" }}</h2>
 
       <div class="page-actions page-actions-compact">
-        <RouterLink class="button-link" to="/applications">返回申请列表</RouterLink>
+        <RouterLink class="button-link" to="/applications">返回列表</RouterLink>
         <button class="button-link button-primary" type="button" :disabled="loading || saving" @click="save">
           {{ saving ? "保存中..." : "保存审核" }}
         </button>
@@ -140,48 +168,37 @@ onMounted(() => {
             <h3>申请人信息</h3>
           </div>
 
-          <div class="field-grid field-grid-3">
-            <div class="info-card">
-              <span>姓名</span>
-              <strong>{{ application.name }}</strong>
-            </div>
-            <div class="info-card">
-              <span>手机号</span>
-              <strong>{{ application.phoneNumber }}</strong>
-            </div>
-            <div class="info-card">
-              <span>微信号</span>
-              <strong>{{ application.wechatId || "未填写" }}</strong>
-            </div>
-            <div class="info-card">
-              <span>邮箱</span>
-              <strong>{{ application.email || "未填写" }}</strong>
-            </div>
-            <div class="info-card">
-              <span>意向分会</span>
-              <strong>{{ application.targetBranchName || "未指定" }}</strong>
+          <div class="summary-list summary-list-inline review-summary-grid">
+            <div v-for="item in applicantItems" :key="item.label" class="summary-row">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
             </div>
           </div>
         </section>
 
-        <section class="editor-section editor-section-compact stacked-gap">
-          <div class="editor-section-head">
-            <h3>个人介绍</h3>
-          </div>
-          <p>{{ application.introduction }}</p>
-        </section>
+        <div class="panel-grid panel-grid-2 review-note-grid">
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>个人介绍</h3>
+            </div>
+            <p>{{ application.introduction }}</p>
+          </section>
 
-        <section class="editor-section editor-section-compact stacked-gap">
-          <div class="editor-section-head">
-            <h3>申请信息</h3>
-          </div>
-          <p>{{ application.applicationMessage }}</p>
-        </section>
+          <section class="editor-section editor-section-compact stacked-gap">
+            <div class="editor-section-head">
+              <h3>申请信息</h3>
+            </div>
+            <p>{{ application.applicationMessage }}</p>
+          </section>
+        </div>
       </div>
 
       <aside class="editor-side stacked-gap">
         <div class="panel panel-compact stacked-gap">
-          <h3>审核</h3>
+          <div class="panel-toolbar">
+            <h3>审核</h3>
+            <span class="status-pill">{{ formatApplicationStatus(form.status) }}</span>
+          </div>
 
           <label class="field">
             <span>状态</span>
@@ -195,14 +212,14 @@ onMounted(() => {
 
           <label class="field">
             <span>审核备注</span>
-            <textarea v-model="form.reviewNotes" rows="7" placeholder="记录沟通结论、跟进动作与审核判断。" />
+            <textarea v-model="form.reviewNotes" rows="5" placeholder="记录沟通结论、跟进动作与审核判断。" />
             <small v-if="fieldIssues.reviewNotes" class="field-error">{{ fieldIssues.reviewNotes }}</small>
           </label>
 
           <div class="summary-list summary-list-compact">
             <div v-for="item in overviewItems" :key="item.label" class="summary-row">
               <span>{{ item.label }}</span>
-              <strong :class="{ 'status-pill': item.label === '当前状态' }">{{ item.value }}</strong>
+              <strong>{{ item.value }}</strong>
             </div>
           </div>
         </div>
@@ -210,3 +227,10 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+  .review-summary-grid,
+  .review-note-grid {
+    gap: 10px 12px;
+  }
+</style>

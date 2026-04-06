@@ -22,7 +22,7 @@ const resourceLabels: Record<string, string> = {
   event: "活动",
   join_application: "加入申请",
   event_registration: "活动报名",
-  member: "成员",
+  member: "会员",
   branch: "分会",
   staff: "工作人员",
   role: "角色",

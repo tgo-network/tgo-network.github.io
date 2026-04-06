@@ -404,9 +404,9 @@ onMounted(async () => {
 
                 <div class="field-grid field-grid-2">
                   <label class="field">
-                    <span>关联成员</span>
+                    <span>关联会员</span>
                     <select v-model="item.memberId" @change="onMemberPick(item)">
-                      <option :value="null">不关联现有成员</option>
+                      <option :value="null">不关联现有会员</option>
                       <option v-for="option in memberOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
                     </select>
                     <small class="field-hint">{{ memberOptions.find((option) => option.id === item.memberId)?.description ?? "可选" }}</small>
