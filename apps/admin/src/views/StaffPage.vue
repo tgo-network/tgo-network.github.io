@@ -157,6 +157,17 @@ const loadStaff = async () => {
 };
 
 const formatRoleNames = (staff: AdminStaffListItem) => staff.roles.map((role) => role.name).join(" / ") || "未分配角色";
+const formatRoleSummary = (staff: AdminStaffListItem) => {
+  if (staff.roles.length === 0) {
+    return "未分配角色";
+  }
+
+  if (staff.roles.length <= 2) {
+    return formatRoleNames(staff);
+  }
+
+  return `${staff.roles.slice(0, 2).map((role) => role.name).join(" / ")} +${staff.roles.length - 2}`;
+};
 
 onMounted(() => {
   void loadStaff();
@@ -292,7 +303,12 @@ onBeforeUnmount(() => {
                   </div>
                 </td>
                 <td class="table-cell-nowrap"><span class="status-pill">{{ formatStaffStatus(row.status) }}</span></td>
-                <td>{{ formatRoleNames(row) }}</td>
+                <td :title="formatRoleNames(row)">
+                  <div class="table-cell-stack">
+                    <strong>{{ formatRoleSummary(row) }}</strong>
+                    <div v-if="row.roles.length > 1" class="muted-row">{{ row.roles.length }} 项角色</div>
+                  </div>
+                </td>
                 <td class="table-cell-nowrap">{{ formatDateTime(row.lastLoginAt) }}</td>
                 <td class="table-cell-nowrap">{{ formatDateTime(row.updatedAt) }}</td>
                 <td class="table-actions-cell">

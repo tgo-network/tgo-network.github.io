@@ -132,7 +132,7 @@ onMounted(async () => {
             <h3>待处理</h3>
           </div>
 
-          <div class="summary-list">
+          <div class="summary-list summary-list-inline dashboard-review-grid">
             <div v-for="item in reviewItems" :key="item.label" class="summary-row">
               <span>{{ item.label }}</span>
               <strong>{{ item.value }}</strong>
@@ -192,8 +192,8 @@ onMounted(async () => {
 
   .dashboard-quick-links {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .dashboard-quick-link {
@@ -216,8 +216,15 @@ onMounted(async () => {
 
   .dashboard-quick-link span {
     color: var(--muted);
-    font-size: 0.88rem;
-    line-height: 1.5;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .dashboard-review-grid :deep(.summary-row) {
+    padding: 10px 12px;
+    border: 1px solid rgba(138, 108, 57, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.56);
   }
 
   .dashboard-quick-link:hover,
@@ -231,6 +238,10 @@ onMounted(async () => {
 
   @media (max-width: 1100px) {
     .dashboard-overview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-quick-links {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }

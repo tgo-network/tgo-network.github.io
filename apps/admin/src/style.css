@@ -55,18 +55,18 @@ a {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 148px minmax(0, 1fr);
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
 }
 
 .sidebar {
   position: sticky;
-  top: 12px;
+  top: 10px;
   align-self: start;
-  min-height: calc(100vh - 24px);
-  padding: 9px 7px 7px;
+  min-height: auto;
+  padding: 8px 7px 7px;
   border: 1px solid var(--line);
-  border-radius: 26px;
+  border-radius: 24px;
   background:
     radial-gradient(circle at top right, rgba(205, 171, 111, 0.12), transparent 34%),
     linear-gradient(180deg, rgba(255, 252, 246, 0.94), rgba(244, 236, 224, 0.88));
@@ -76,8 +76,7 @@ a {
 
 .sidebar-inner {
   display: grid;
-  gap: 10px;
-  min-height: 100%;
+  gap: 8px;
 }
 
 .sidebar-brand {
@@ -140,12 +139,12 @@ a {
 
 .nav-link {
   display: block;
-  padding: 8px 10px;
+  padding: 7px 10px;
   border: 1px solid rgba(255, 255, 255, 0);
   border-radius: 14px;
   color: var(--muted);
   font-weight: 700;
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   background: rgba(255, 255, 255, 0.28);
   text-align: left;
   white-space: nowrap;
@@ -181,15 +180,15 @@ a {
 }
 
 .sidebar-footer {
-  margin-top: auto;
+  margin-top: 6px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .sidebar-account {
   display: grid;
   gap: 2px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   border: 1px solid rgba(138, 108, 57, 0.1);
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.58);
@@ -224,8 +223,8 @@ code {
 
 .page-header h2 {
   margin: 0;
-  font-size: clamp(1.85rem, 2.8vw, 2.4rem);
-  line-height: 1.06;
+  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
+  line-height: 1.08;
   letter-spacing: -0.03em;
 }
 
@@ -297,7 +296,7 @@ code {
 }
 
 .panel {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 242, 232, 0.86));
@@ -306,8 +305,8 @@ code {
 }
 
 .panel-compact {
-  padding: 14px;
-  border-radius: 20px;
+  padding: 12px;
+  border-radius: 18px;
 }
 
 .panel h3 {
@@ -393,12 +392,12 @@ code {
 
 .data-table.data-table-compact th,
 .data-table.data-table-compact td {
-  padding: 10px 8px;
+  padding: 9px 8px;
 }
 
 .data-table th,
 .data-table td {
-  padding: 12px 10px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
@@ -489,21 +488,21 @@ code {
 
 .editor-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(240px, 0.8fr);
+  grid-template-columns: minmax(0, 2.05fr) minmax(220px, 0.7fr);
   gap: 12px;
   align-items: start;
 }
 
 .editor-grid-compact {
-  grid-template-columns: minmax(0, 1.95fr) minmax(240px, 0.72fr);
+  grid-template-columns: minmax(0, 2.05fr) minmax(220px, 0.66fr);
 }
 
 .editor-grid-focus {
-  grid-template-columns: minmax(0, 1.58fr) minmax(260px, 0.82fr);
+  grid-template-columns: minmax(0, 1.78fr) minmax(240px, 0.72fr);
 }
 
 .editor-grid-review {
-  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.94fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.84fr);
 }
 
 .editor-grid-balanced {
@@ -511,7 +510,7 @@ code {
 }
 
 .editor-grid-role {
-  grid-template-columns: minmax(0, 1.36fr) minmax(320px, 0.82fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.74fr);
 }
 
 .editor-main,
@@ -520,14 +519,14 @@ code {
 }
 
 .editor-section {
-  padding: 14px;
+  padding: 12px;
   border: 1px solid rgba(33, 24, 17, 0.08);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.52);
 }
 
 .editor-section-compact {
-  padding: 12px;
+  padding: 10px;
   border-radius: 16px;
 }
 
@@ -636,7 +635,7 @@ code {
 
 .field-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .field-grid-2 {
@@ -657,7 +656,7 @@ code {
 
 .field {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .field span {
@@ -669,7 +668,7 @@ code {
 .field select,
 .field textarea {
   width: 100%;
-  padding: 9px 11px;
+  padding: 8px 10px;
   border: 1px solid rgba(33, 24, 17, 0.14);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.94);
@@ -683,7 +682,7 @@ code {
 
 .field textarea {
   resize: vertical;
-  min-height: 110px;
+  min-height: 96px;
 }
 
 .field select[multiple] {
@@ -852,15 +851,15 @@ code {
 
 .table-cell-stack {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .table-meta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 6px 10px;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 .table-cell-nowrap {
@@ -869,12 +868,12 @@ code {
 
 .filter-panel {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   background: linear-gradient(180deg, rgba(255, 252, 247, 0.95), rgba(248, 241, 231, 0.9));
 }
 
 .filter-panel-compact {
-  gap: 8px;
+  gap: 6px;
 }
 
 .filter-toolbar {
@@ -1433,9 +1432,10 @@ code {
 }
 
 .table-action-list {
-  display: grid;
-  gap: 6px;
-  justify-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
 }
 
 .table-action-list-inline {
@@ -1555,12 +1555,12 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(138, 108, 57, 0.1);
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1;
 }
 
