@@ -1,0 +1,167 @@
+:root {
+  --page-bg: #ffffff;
+  --page-ink: #0f1419;
+  --page-muted: #536471;
+  --page-line: #eff3f4;
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --surface-alt: #f7f9f9;
+  --shadow-soft: none;
+  --shadow-strong: none;
+  --accent: #1d9bf0;
+  --accent-strong: #1a8cd8;
+  --accent-soft: rgba(29, 155, 240, 0.1);
+  --button-ink: #ffffff;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-alt: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+body {
+  background: var(--page-bg);
+}
+
+.page-wrap::before {
+  display: none;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  color: var(--page-ink);
+}
+
+.initial-badge,
+.brand-mark {
+  border-radius: 8px;
+  background: var(--page-bg);
+  border: 1px solid var(--page-line);
+  box-shadow: none;
+}
+
+.button {
+  border-radius: 9999px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease;
+}
+
+.button-primary {
+  background: var(--page-ink);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.button-primary:hover {
+  background: #272c30;
+  transform: none;
+}
+
+.button-secondary {
+  background: var(--page-bg);
+  border-color: #cfd9de;
+  color: var(--page-ink);
+  box-shadow: none;
+}
+
+.button-secondary:hover {
+  background: rgba(15, 20, 25, 0.1);
+  transform: none;
+}
+
+.hero-frame {
+  background: var(--page-bg);
+  border: 1px solid var(--page-line);
+  box-shadow: none;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+}
+
+.hero-quote {
+  padding-left: 16px;
+  border-left: 4px solid var(--page-line);
+  color: var(--page-muted);
+  font-weight: 400;
+}
+
+.hero-image {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--page-line);
+  box-shadow: none;
+}
+
+.hero-note {
+  background: var(--surface-alt);
+  border: 1px solid var(--page-line);
+  box-shadow: none;
+}
+
+.surface-card,
+.surface-subcard {
+  background: var(--page-bg);
+  backdrop-filter: none;
+  border: 1px solid var(--page-line);
+  box-shadow: none;
+}
+
+.surface-card:hover,
+.surface-subcard:hover {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--page-line);
+  box-shadow: none;
+  transform: none;
+  transition: background 0.2s ease;
+}
+
+.section-head {
+  border-bottom: 1px solid var(--page-line);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.intro-copy {
+  max-width: 100%;
+}
+
+.experience-card,
+.collection-card,
+.article-card,
+.testimonial-card,
+.board-card {
+  background: var(--page-bg);
+  transition: background 0.2s ease;
+}
+
+.board-card:hover,
+.article-card:hover,
+.testimonial-card:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tag-pill,
+.board-branch,
+.eyebrow,
+.section-kicker {
+  background: rgba(15, 20, 25, 0.08);
+  color: var(--page-ink);
+  border: none;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.demo-modebar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--page-line);
+}
+
+.demo-header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--page-line);
+}

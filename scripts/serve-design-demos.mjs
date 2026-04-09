@@ -58,4 +58,5 @@ server.listen(port, "127.0.0.1", () => {
   console.log(`- Atlas Ink: ${baseUrl}atlas-ink/`);
   console.log(`- Summit Signal: ${baseUrl}summit-signal/`);
   console.log(`- Member House: ${baseUrl}member-house/`);
+  console.log(`- Pro Community: ${baseUrl}pro-community/`);
 });

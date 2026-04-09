@@ -26,6 +26,14 @@ export const demoThemes = {
     reference: "YPO × Chief × Soho House",
     summary: "更强调会籍感、邀请感与长期社群归属。",
     recommendation: "会员社区气质最强"
+  },
+  "pro-community": {
+    id: "pro-community",
+    chineseName: "方案 D · 专业社区信息型",
+    englishName: "Pro Community",
+    reference: "Vercel × Stripe × Intercom",
+    summary: "强调整体网站内容的模块化组织，呈现清晰、高端而且极具科技感的观感，适合作为内容丰富的平台。",
+    recommendation: "内容承载力更强"
   }
 };
 
